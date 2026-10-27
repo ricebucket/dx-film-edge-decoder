@@ -1,0 +1,151 @@
+const { test, expect } = require('@playwright/test');
+const { writeFile } = require('node:fs/promises');
+const { watchConsole, encodePng } = require('./helpers.cjs');
+const image = require('../../site/js/dx-image.js');
+
+let checkConsole;
+test.beforeEach(async ({ page }) => {
+  checkConsole = watchConsole(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Read from a photo' }).click();
+  await expect(page.locator('#photo')).toBeVisible();
+});
+test.afterEach(() => checkConsole());
+
+async function upload(page, testInfo, synthOptions, composeOptions) {
+  const syn = image.synthesize(synthOptions);
+  const png = encodePng(image.compose(syn, composeOptions), syn.width, syn.height);
+  const file = testInfo.outputPath('edge.png');
+  await writeFile(file, png);
+  await page.locator('#photo-file').setInputFiles(file);
+}
+
+test('the sample photo is read and can be used', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  const found = page.locator('.photo__found');
+  await expect(found).toContainText('DX 96-12, frame 14A');
+  await expect(found).toContainText('KODAK GOLD 200 Film');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#photo')).toBeHidden();
+  await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
+});
+
+test('an uploaded photo of a mirrored slide is read the right way round', async ({ page }, testInfo) => {
+  await upload(page, testInfo, { part1: 34, part2: 13, frame: 7, half: true, mirrored: true, module: 7 }, { look: 'slide' });
+  await expect(page.locator('.photo__found')).toContainText('DX 34-13, frame 7A');
+  await expect(page.locator('.photo__found')).toContainText('FUJICHROME PROVIA 100F PROFESSIONAL');
+  await expect(page.locator('.photo__notes')).toContainText('mirrored or upside down');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'slide');
+});
+
+test('turning the photo by 90° still finds the code', async ({ page }, testInfo) => {
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6, angle: 90, width: 120, height: 400 }, {});
+  await expect(page.locator('.photo__result')).toContainText('No clock track found');
+  await page.getByRole('button', { name: 'Rotate right 90 degrees' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+});
+
+test('a photo without a barcode gets advice instead of a guess', async ({ page }, testInfo) => {
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23 });
+  syn.ink.fill(0);
+  const file = testInfo.outputPath('blank.png');
+  await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.locator('.photo__result')).toContainText('No clock track found');
+});
+
+test('a non-image file is refused politely', async ({ page }, testInfo) => {
+  const file = testInfo.outputPath('notes.txt');
+  await writeFile(file, 'not an image');
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.locator('.photo__drop')).toBeVisible();
+  await expect(page.getByText('That file is not an image.')).toBeVisible();
+});
+
+test('a photo of an older 7-bar code switches the strip to that layout', async ({ page }, testInfo) => {
+  await upload(page, testInfo, { part1: 79, part2: 7, format: 'short', module: 8, angle: 1 }, { look: 'negative' });
+  await expect(page.locator('.photo__found')).toContainText('DX 79-7');
+  await expect(page.locator('.photo__found')).toContainText('KODACOLOR VR200 Film');
+  await expect(page.locator('.photo__notes')).toContainText('original 23-cell layout');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
+  await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
+});
+
+test('the sample is labelled, and further samples can be loaded', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__source')).toContainText('Sample: a computer-drawn film edge');
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  await page.getByRole('button', { name: 'Show another sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 32-6');
+  await page.getByRole('button', { name: 'Show another sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 109-9');
+});
+
+test('a scratched stop bar does not stick to the strip', async ({ page }, testInfo) => {
+  const module = 8;
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module });
+  // Erase the data-track bar of cell 31 (the last cell of the stop pattern).
+  const codeLeft = (syn.width - 31 * module) / 2;
+  const dataTop = syn.height * 0.42 + 2.2 * module;
+  for (let y = Math.ceil(dataTop); y < syn.height; y++) {
+    for (let x = 0; x < syn.width; x++) {
+      if (Math.floor((x - codeLeft) / module) === 30) syn.ink[y * syn.width + x] = 0;
+    }
+  }
+  const file = testInfo.outputPath('scratched.png');
+  await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#result .status')).toHaveText('Valid DX code');
+  await expect(page.locator('#hint')).toContainText('Valid code');
+  await expect(page.locator('#result-title')).toBeFocused();
+});
+
+test('a cancelled drag leaves the reader usable', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toBeVisible();
+  await page.locator('.photo__canvas').evaluate((canvas) => {
+    const box = canvas.getBoundingClientRect();
+    const at = (type, dx) => canvas.dispatchEvent(new PointerEvent(type, {
+      bubbles: true, pointerId: 7, button: 0, clientX: box.left + 20 + dx, clientY: box.top + 20 + dx,
+    }));
+    at('pointerdown', 0);
+    at('pointermove', 2);
+    at('pointercancel', 2);
+  });
+  await page.getByRole('button', { name: 'Find the barcode' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  await expect(page.getByRole('button', { name: 'Find the barcode' })).toBeEnabled();
+});
+
+test('flip mirrors the straightened photo', async ({ page }, testInfo) => {
+  // Tilted beyond the reader's own ±3° tolerance, so it must be straightened.
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 8, angle: 7 }, {});
+  await expect(page.locator('.photo__result .is-error')).toBeVisible();
+  await expect(page.locator('.photo__found')).toHaveCount(0);
+  // The synthetic edge slopes down to the right (clockwise on screen), so
+  // straightening turns the view 7° the other way.
+  await page.locator('#photo-fine').evaluate((input) => {
+    input.value = '-7';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+  await page.getByRole('button', { name: 'Flip' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+  await expect(page.locator('.photo__notes')).toContainText('mirrored or upside down');
+});
+
+test('the photo keeps its proportions on screen', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  const ratios = await page.locator('.photo__canvas').evaluate((c) => {
+    const box = c.getBoundingClientRect();
+    return [box.width / box.height, c.width / c.height];
+  });
+  expect(Math.abs(ratios[0] / ratios[1] - 1)).toBeLessThan(0.01);
+});
+

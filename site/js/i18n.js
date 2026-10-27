@@ -12,6 +12,7 @@
  *
  * The choice is saved in localStorage; changing it reloads the page, which
  * keeps the code on the strip (it is in the URL) and the other preferences.
+ * Where the browser blocks storage, the choice goes in the URL too (?lang=).
  */
 (function (root, factory) {
   'use strict';
@@ -39,13 +40,27 @@
       return null; // storage unavailable: English
     }
   }
-  const wanted = saved();
+
+  /** A language in the URL (?lang=), put there when the choice could not be saved. */
+  function inUrl() {
+    try {
+      return typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('lang');
+    } catch (e) {
+      return null;
+    }
+  }
+  // The URL's language wins over the saved one, but only if the page has it,
+  // so a wrong ?lang= falls back to the saved choice. Case does not matter.
+  const fromUrl = inUrl();
+  const fromStorage = saved();
+  const same = (a, b) => Boolean(a && b) && a.toLowerCase() === b.toLowerCase();
+  const rank = (code) => (same(code, fromUrl) ? 2 : same(code, fromStorage) ? 1 : 0);
 
   /** Called by each file in js/i18n/. */
   function register(lang) {
     if (languages.some((l) => l.code === lang.code)) throw new Error(`Language ${lang.code} registered twice`);
     languages.push(lang);
-    if (lang.code === wanted) current = lang;
+    if (rank(lang.code) > rank(current.code)) current = lang;
   }
 
   const normalize = (text) => String(text).replace(/\s+/g, ' ').trim();
@@ -122,10 +137,21 @@
   /** Save a choice and reload the page in that language. */
   function select(code) {
     if (code === current.code || !languages.some((l) => l.code === code)) return;
+    let stored = true;
     try {
       localStorage.setItem(STORAGE_KEY, code);
-    } catch (e) { /* not remembered, but still shown below */ }
-    location.reload();
+    } catch (e) {
+      stored = false;
+    }
+    const url = new URL(location.href);
+    if (stored && !url.searchParams.has('lang')) {
+      location.reload();
+      return;
+    }
+    // Storage is blocked: carry the choice in the URL instead (and drop it once storage works).
+    if (stored) url.searchParams.delete('lang');
+    else url.searchParams.set('lang', code);
+    location.replace(url.href);
   }
 
   return {

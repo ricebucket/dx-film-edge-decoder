@@ -351,9 +351,11 @@
   }
 
   /**
-   * Parse a DX number as written by people: "79-15", "79 15", a 4-digit
-   * "DX extract" (16 × Part 1 + Part 2, e.g. "1279") or a 6-digit cassette
-   * number ("012794"). Returns null when the input cannot be a DX number.
+   * Parse a DX number as written by people: "79-15", "79 15", a "DX extract"
+   * (16 × Part 1 + Part 2, e.g. "1279", or "550" as Lawley writes it) or a
+   * 6-digit cassette number ("012794"). Returns null when the input cannot be
+   * a DX number. A shorter number up to 127 could be a Part 1 on its own
+   * ("79"), so as an extract it needs four digits ("0079").
    */
   function parseDxNumber(input) {
     const text = String(input || '').trim();
@@ -367,7 +369,7 @@
     m = /^\d{1,4}$/.exec(text);
     if (m) {
       const extract = parseInt(text, 10);
-      if (extract > 2047) return null;
+      if (extract > 2047 || (text.length < 4 && extract <= 127)) return null;
       return { part1: extract >> 4, part2: extract & 15, kind: 'extract', extract };
     }
     const cassette = parseCassette(text);

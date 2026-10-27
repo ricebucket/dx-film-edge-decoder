@@ -1628,6 +1628,10 @@ thead th {
   min-height: 34px;
 }
 
+.finder__frame .fineprint.is-error {
+  color: var(--danger);
+}
+
 .finder__status {
   margin-top: 12px;
   font-size: 0.9rem;

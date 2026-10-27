@@ -41,6 +41,7 @@
     } catch (e) { /* storage unavailable or corrupt: keep defaults */ }
   }
 
+  /** Called wherever a film look or mirroring is chosen (not on every edit), so the latest choice in any tab is kept. */
   function savePrefs() {
     try {
       localStorage.setItem('dx-prefs', JSON.stringify({ look: state.look, mirrored: state.mirrored }));
@@ -84,11 +85,41 @@
     return location.href.split(/[?#]/)[0] + stateQuery(decoded);
   }
 
-  function syncUrl(decoded) {
-    const url = location.pathname + stateQuery(decoded) + location.hash;
+  // The URL follows every edit at once, so a reload or bookmark gets the latest
+  // code. Browsers limit how often a page may rewrite it (Safari: 100 times in
+  // 10 s), so past 50 rewrites in 10 s (holding Ctrl+Z, say) it changes at most
+  // every 250 ms, always ending with the latest state. A language in the URL
+  // (?lang=) stays while it is the one shown.
+  const rewrites = []; // performance.now() of recent rewrites; unlike Date.now(), never moves backwards
+  let urlQuery = '';
+  let urlTimer = null;
+
+  function writeUrl() {
+    clearTimeout(urlTimer);
+    urlTimer = null;
+    const lang = new URLSearchParams(location.search).get('lang');
+    const query = lang && lang.toLowerCase() === i18n.current.toLowerCase()
+      ? `${urlQuery ? `${urlQuery}&` : '?'}lang=${encodeURIComponent(i18n.current)}`
+      : urlQuery;
+    const url = location.pathname + query + location.hash;
+    if (url === location.pathname + location.search + location.hash) return;
+    rewrites.push(performance.now());
     try {
-      if (url !== location.pathname + location.search + location.hash) history.replaceState(null, '', url);
+      history.replaceState(null, '', url);
     } catch (e) { /* some browsers refuse this on file:// pages */ }
+  }
+
+  function syncUrl(decoded) {
+    urlQuery = stateQuery(decoded);
+    if (urlTimer) return;
+    const now = performance.now();
+    while (rewrites.length && now - rewrites[0] > 10000) rewrites.shift();
+    if (rewrites.length < 50) writeUrl();
+    else urlTimer = setTimeout(writeUrl, Math.max(0, rewrites[rewrites.length - 1] + 250 - now));
+  }
+
+  function flushUrl() {
+    if (urlTimer) writeUrl();
   }
 
   // ---- history --------------------------------------------------------------------------
@@ -174,7 +205,6 @@
       },
     });
     syncUrl(decoded);
-    savePrefs();
   }
 
   /** Put a code on the strip (in the current layout unless one is given) and bring the strip into view. */
@@ -182,7 +212,10 @@
     record();
     if (options && options.format) state.format = options.format;
     state.cells = codec.encode(code, state.format);
-    if (options && options.look) state.look = options.look;
+    if (options && options.look) {
+      state.look = options.look;
+      savePrefs();
+    }
     update({ develop: true });
     if (!options || options.scroll !== false) {
       $('lighttable').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
@@ -204,10 +237,12 @@
       const b = e.target.closest('button[data-value]');
       if (!b) return;
       state.look = b.dataset.value;
+      savePrefs();
       update();
     });
     $('mirror-toggle').addEventListener('click', () => {
       state.mirrored = !state.mirrored;
+      savePrefs();
       update();
     });
     $('undo').addEventListener('click', () => restore(past, future));
@@ -268,7 +303,11 @@
     }
     select.before(DX.dom.icon('globe', 'lang-picker__globe'));
     select.after(DX.dom.icon('chevron', 'lang-picker__chevron'));
-    select.addEventListener('change', () => i18n.select(select.value));
+    select.addEventListener('change', () => {
+      // The page reloads from its URL, so write any pending change first.
+      flushUrl();
+      i18n.select(select.value);
+    });
   }
 
   // ---- start --------------------------------------------------------------------------------
@@ -281,6 +320,11 @@
     if (fromUrl) Object.assign(state, fromUrl);
     bindToolbar();
     bindTheme();
+    // Leaving or hiding the page writes a pending URL change at once.
+    addEventListener('pagehide', flushUrl);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushUrl();
+    });
 
     const photo = ui.createPhoto($('photo'), {
       lookup,
@@ -288,7 +332,10 @@
         record();
         state.format = format;
         state.cells = standardEnds(cells, format);
-        if (look) state.look = look;
+        if (look) {
+          state.look = look;
+          savePrefs();
+        }
         photo.close();
         update({ develop: true });
         $('lighttable').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
@@ -302,7 +349,8 @@
     });
     $('photo-open').addEventListener('click', () => photo.open());
 
-    const show = (code) => loadCode(code);
+    // Every "Show" button asks for a frame, which only the 31-cell layout has.
+    const show = (code) => loadCode(code, { format: 'long' });
     ui.createFinder($('finder-ui'), { lookup, onShow: show });
     ui.createCassette($('cassette-ui'), { lookup, onShow: show });
     ui.createReference($('reference-ui'), { lookup, onShow: show });

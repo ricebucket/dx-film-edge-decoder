@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 206" width="560" height="206" role="img" aria-label="暗盒条码下方的六位数字：017563">
+<title>暗盒条码下方的六位数字：017563</title>
+<g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif">
+<rect x="0.5" y="0.5" width="559" height="205" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+<text x="20" y="30" font-size="15" font-weight="650" fill="#1f2328" text-anchor="start">暗盒条码下方的六位数字：017563</text>
+<rect x="40" y="64" width="46" height="52" rx="6" fill="none" stroke="#59636e" stroke-width="2"/>
+<text x="63" y="101" font-size="32" font-weight="700" fill="#1f2328" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace">0</text>
+<rect x="98" y="64" width="136" height="52" rx="6" fill="none" stroke="#2c66cf" stroke-width="2"/>
+<text x="166" y="101" font-size="32" font-weight="700" fill="#1f2328" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace">1756</text>
+<rect x="246" y="64" width="46" height="52" rx="6" fill="none" stroke="#19865a" stroke-width="2"/>
+<text x="269" y="101" font-size="32" font-weight="700" fill="#1f2328" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace">3</text>
+<line x1="63" y1="116" x2="63" y2="180" stroke="#59636e" stroke-width="1.5"/>
+<text x="71" y="184" font-size="13" font-weight="400" fill="#59636e" text-anchor="start">首位数字，由制造商自定</text>
+<line x1="166" y1="116" x2="166" y2="158" stroke="#2c66cf" stroke-width="1.5"/>
+<text x="174" y="162" font-size="13" font-weight="400" fill="#2c66cf" text-anchor="start">16 × 109 + 12 = 1756，即 DX 109-12</text>
+<line x1="269" y1="116" x2="269" y2="136" stroke="#19865a" stroke-width="1.5"/>
+<text x="277" y="140" font-size="13" font-weight="400" fill="#19865a" text-anchor="start">3 = 24 张</text>
+</g>
+</svg>

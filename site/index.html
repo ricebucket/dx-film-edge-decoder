@@ -12,17 +12,22 @@
   <link rel="stylesheet" href="css/style.css">
   <script>
     // Apply the saved theme and language before first paint to avoid a flash.
-    try {
-      const t = localStorage.getItem('dx-theme');
-      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-      const lang = localStorage.getItem('dx-lang');
+    // Where storage is blocked, a chosen language is in the URL (?lang=).
+    (function () {
+      let theme = null;
+      let lang = new URLSearchParams(location.search).get('lang');
+      try {
+        theme = localStorage.getItem('dx-theme');
+        lang = lang || localStorage.getItem('dx-lang');
+      } catch (e) { /* storage unavailable: follow the system theme */ }
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
       if (lang && lang !== 'en') {
         // Hidden until js/i18n.js has translated the page (or after 3 s regardless).
         document.documentElement.lang = lang;
         document.documentElement.setAttribute('data-i18n-pending', '');
         setTimeout(() => document.documentElement.removeAttribute('data-i18n-pending'), 3000);
       }
-    } catch (e) { /* storage unavailable: follow the system theme, in English */ }
+    })();
   </script>
   <script src="js/i18n.js" defer></script>
   <script src="js/i18n/zh-CN.js" defer></script>

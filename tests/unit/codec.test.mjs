@@ -1,0 +1,342 @@
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { ZINT_VECTORS } from './zint-vectors.mjs';
+
+const require = createRequire(import.meta.url);
+const dx = require('../../site/js/dx-codec.js');
+
+const LONG_CLOCK = '1111101010101010101010101010111';
+const SHORT_CLOCK = '11111010101010101010111';
+
+function parseVector(input) {
+  const [dxPart, framePart] = input.split('/');
+  const [part1, part2] = dxPart.split('-').map(Number);
+  if (framePart === undefined) return { part1, part2, format: 'short' };
+  const half = framePart.endsWith('A');
+  return { part1, part2, frame: parseInt(framePart, 10), half, format: 'long' };
+}
+
+describe('layouts', () => {
+  test('clock patterns match the published patterns', () => {
+    assert.equal(dx.FORMATS.long.clock, LONG_CLOCK);
+    assert.equal(dx.FORMATS.short.clock, SHORT_CLOCK);
+  });
+
+  test('long clock has a 5-cell entry mark, 11 thin bars and a 3-cell exit mark', () => {
+    const runs = LONG_CLOCK.match(/1+/g).map((r) => r.length);
+    assert.deepEqual(runs, [5, ...Array(11).fill(1), 3]);
+  });
+
+  test('short clock has 7 thin bars (the "seven clock bars" of Fuji US 5,122,645)', () => {
+    const runs = SHORT_CLOCK.match(/1+/g).map((r) => r.length);
+    assert.deepEqual(runs, [5, ...Array(7).fill(1), 3]);
+  });
+
+  test('layout() describes every cell once, with binary weights', () => {
+    for (const id of ['long', 'short']) {
+      const cells = dx.layout(id);
+      assert.equal(cells.length, dx.FORMATS[id].cells);
+      assert.deepEqual(cells.map((c) => c.cell), cells.map((_, i) => i + 1));
+      assert.equal(cells.map((c) => c.clock).join(''), dx.FORMATS[id].clock);
+    }
+    const long = dx.layout('long');
+    assert.deepEqual(long.filter((c) => c.field === 'part1').map((c) => c.weight), [64, 32, 16, 8, 4, 2, 1]);
+    assert.deepEqual(long.filter((c) => c.field === 'part2').map((c) => c.weight), [8, 4, 2, 1]);
+    assert.deepEqual(long.filter((c) => c.field === 'frame').map((c) => c.weight), [32, 16, 8, 4, 2, 1]);
+    assert.deepEqual(long.filter((c) => !c.editable).map((c) => c.cell), [1, 2, 3, 4, 5, 6, 28, 29, 30, 31]);
+    assert.deepEqual(dx.layout('short').filter((c) => c.field === 'parity').map((c) => c.cell), [19]);
+  });
+});
+
+describe('Zint reference vectors', () => {
+  for (const [input, symbol] of ZINT_VECTORS) {
+    test(`encodes and decodes ${input}`, () => {
+      const v = parseVector(input);
+      const width = dx.FORMATS[v.format].cells;
+      assert.equal(symbol.length, width * 2, 'vector length');
+      assert.equal(symbol.slice(0, width), dx.FORMATS[v.format].clock, 'clock row');
+      const data = symbol.slice(width);
+      assert.equal(dx.encode(v, v.format), data);
+      const d = dx.decode(data, v.format);
+      assert.equal(d.valid, true, JSON.stringify(d.issues));
+      assert.equal(d.part1, v.part1);
+      assert.equal(d.part2, v.part2);
+      if (v.format === 'long') {
+        assert.equal(d.frame, v.frame);
+        assert.equal(d.half, v.half);
+      } else {
+        assert.equal(d.frame, null);
+      }
+    });
+  }
+});
+
+describe('published examples', () => {
+  test('Wikipedia "DX number" sample: 79-15, frame 23 (also read from a real BW400CN negative)', () => {
+    // Bits as tabulated on Wikipedia, and as measured on the photo
+    // "Kodak Telegraph negativ23a.jpg" by Sergio Fabris (Wikimedia Commons).
+    const bits = '101010' + '1001111' + '0' + '1111' + '010111' + '0' + '0' + '1' + '0101';
+    const d = dx.decode(bits, 'long');
+    assert.equal(d.valid, true);
+    assert.equal(d.dxNumber, '79-15');
+    assert.equal(d.frameLabel, '23');
+    assert.equal(d.parity.bit, 1);
+    assert.equal(d.parity.ones, 13);
+    assert.equal(dx.encode({ part1: 79, part2: 15, frame: 23, half: false }), bits);
+  });
+
+  test('alibosworth worked example: Portra 160, 95-14 frame 5', () => {
+    const bits = '101010' + '1011111' + '0' + '1110' + '000101' + '0' + '0' + '1' + '0101';
+    const d = dx.decode(bits, 'long');
+    assert.equal(d.valid, true);
+    assert.equal(d.dxNumber, '95-14');
+    assert.equal(d.frame, 5);
+    assert.equal(d.half, false);
+  });
+
+  test('merinorus.com worked example: 112-1, frame 10A', () => {
+    const bits = '101010' + '1110000' + '0' + '0001' + '001010' + '1' + '0' + '1' + '0101';
+    const d = dx.decode(bits, 'long');
+    assert.equal(d.valid, true);
+    assert.equal(d.dxNumber, '112-1');
+    assert.equal(d.frameLabel, '10A');
+    assert.equal(d.halfFrameIndex, 21);
+  });
+
+  test('Wikimedia "Dx-film-edge-barcode.jpg": 47-1, frame 22A round-trips', () => {
+    const bits = dx.encode({ part1: 47, part2: 1, frame: 22, half: true });
+    const d = dx.decode(bits);
+    assert.equal(d.valid, true);
+    assert.equal(d.dxNumber, '47-1');
+    assert.equal(d.frameLabel, '22A');
+  });
+
+  test('aurelien.lawley.com.au example: Part 1 = 34, Part 2 = 6 → DX extract 550', () => {
+    const d = dx.decode(dx.encode({ part1: 34, part2: 6 }, 'short'), 'short');
+    assert.equal(d.dxExtract, 550);
+    assert.deepEqual([d.part1Bits, d.part2Bits], ['0100010', '0110']);
+  });
+});
+
+describe('decode diagnostics', () => {
+  const good = dx.encode({ part1: 79, part2: 15, frame: 23, half: false });
+
+  const flip = (bits, cell) =>
+    bits.slice(0, cell - 1) + (bits[cell - 1] === '1' ? '0' : '1') + bits.slice(cell);
+
+  test('a single misread payload bar breaks parity', () => {
+    for (let cell = 7; cell <= 25; cell++) {
+      if (cell === 14) continue;
+      const d = dx.decode(flip(good, cell), 'long');
+      assert.equal(d.parity.ok, false, `cell ${cell}`);
+      assert.deepEqual(d.issues.map((i) => i.code), ['parity']);
+    }
+  });
+
+  test('a bar in an unused cell is reported', () => {
+    for (const cell of [14, 26]) {
+      const d = dx.decode(flip(good, cell), 'long');
+      assert.equal(d.valid, false);
+      assert.deepEqual(d.issues, [{ code: 'blank', cell }]);
+    }
+  });
+
+  test('broken start and stop patterns are reported', () => {
+    const d = dx.decode(flip(flip(good, 3), 30), 'long');
+    assert.deepEqual(d.issues.map((i) => i.code), ['start', 'stop']);
+  });
+
+  test('Part 1 = 0 is never a valid DX number', () => {
+    const d = dx.decode(dx.encode({ part1: 0, part2: 3, frame: 1 }), 'long');
+    assert.deepEqual(d.issues.map((i) => i.code), ['part1-zero']);
+  });
+
+  test('an empty data area decodes to Part 1 = 0 with intact sentinels', () => {
+    const empty = dx.layout('long').map((c) => (c.fixed === null ? '0' : c.fixed)).join('');
+    const d = dx.decode(empty, 'long');
+    assert.equal(d.part1, 0);
+    assert.deepEqual(d.issues.map((i) => i.code), ['part1-zero']);
+  });
+
+  test('accepts arrays of booleans and rejects bad input', () => {
+    const arr = good.split('').map((c) => c === '1');
+    assert.equal(dx.decode(arr).dxNumber, '79-15');
+    assert.throws(() => dx.decode('101', 'long'), RangeError);
+    assert.throws(() => dx.decode(good.replace('1', '2')), TypeError);
+    assert.throws(() => dx.decode(good, 'medium'), RangeError);
+  });
+
+  test('nearMisses finds the original code after one misread bar', () => {
+    const bad = flip(good, 10);
+    const fixes = dx.nearMisses(bad, 'long');
+    assert.ok(fixes.length > 0);
+    assert.ok(fixes.some((f) => f.cell === 10 && f.result.dxNumber === '79-15' && f.result.frame === 23));
+    for (const f of fixes) assert.equal(f.result.valid, true);
+  });
+
+  test('nearMisses never touches the fixed start/stop cells', () => {
+    const fixes = dx.nearMisses(flip(good, 8), 'long');
+    for (const f of fixes) assert.ok(f.cell >= 7 && f.cell <= 27, `cell ${f.cell}`);
+  });
+});
+
+describe('exhaustive round trip', () => {
+  test('every DX number survives encode → decode in both layouts', () => {
+    for (let part1 = 1; part1 <= 127; part1++) {
+      for (let part2 = 0; part2 <= 15; part2++) {
+        const s = dx.decode(dx.encode({ part1, part2 }, 'short'), 'short');
+        assert.ok(s.valid && s.part1 === part1 && s.part2 === part2);
+        const frame = (part1 * 7 + part2) % 64;
+        const half = (part1 + part2) % 2 === 1;
+        const l = dx.decode(dx.encode({ part1, part2, frame, half }, 'long'), 'long');
+        assert.ok(l.valid && l.part1 === part1 && l.part2 === part2 && l.frame === frame && l.half === half);
+      }
+    }
+  });
+
+  test('parity always makes the payload + parity bit count even', () => {
+    for (let frame = 0; frame < 64; frame++) {
+      const bits = dx.encode({ part1: 109, part2: 9, frame, half: frame % 3 === 0 });
+      const ones = (bits.slice(6, 13) + bits.slice(14, 25) + bits[26]).split('1').length - 1;
+      assert.equal(ones % 2, 0);
+    }
+  });
+
+  test('encode validates ranges', () => {
+    assert.throws(() => dx.encode({ part1: 128, part2: 0 }), RangeError);
+    assert.throws(() => dx.encode({ part1: 1, part2: 16 }), RangeError);
+    assert.throws(() => dx.encode({ part1: 1, part2: 0, frame: 64 }), RangeError);
+    assert.throws(() => dx.encode({ part1: 1.5, part2: 0 }), RangeError);
+  });
+});
+
+describe('frame numbers', () => {
+  test('labels follow the printed sequence X, XA, 00, 00A, 0, 0A, 1 …', () => {
+    const seq = [[62, false], [62, true], [63, false], [63, true], [0, false], [0, true], [1, false], [36, true]];
+    assert.deepEqual(seq.map(([f, h]) => dx.frameLabel(f, h)), ['X', 'XA', '00', '00A', '0', '0A', '1', '36A']);
+  });
+
+  test('alternative labels documented by Zint', () => {
+    assert.deepEqual(dx.frameAliases(62, false), ['S']);
+    assert.deepEqual(dx.frameAliases(63, true), ['KA']);
+    assert.deepEqual(dx.frameAliases(0, false), ['F']);
+    assert.deepEqual(dx.frameAliases(5, false), []);
+  });
+
+  test('parseFrameLabel understands printed labels', () => {
+    const cases = {
+      '23': [23, false], '23a': [23, true], ' 7A ': [7, true], X: [62, false], xa: [62, true],
+      S: [62, false], '00': [63, false], '00A': [63, true], K: [63, false], F: [0, false],
+      FA: [0, true], '0': [0, false], '0A': [0, true], '62': [62, false], '63A': [63, true],
+    };
+    for (const [input, [frame, half]] of Object.entries(cases)) {
+      assert.deepEqual(dx.parseFrameLabel(input), { frame, half }, input);
+    }
+    for (const bad of ['', 'A', '64', '123', '2B', 'XX', null]) assert.equal(dx.parseFrameLabel(bad), null, String(bad));
+  });
+
+  test('half-frame index counts 0, 0A, 1, 1A … as 0, 1, 2, 3 …', () => {
+    assert.equal(dx.halfFrameIndex(0, false), 0);
+    assert.equal(dx.halfFrameIndex(0, true), 1);
+    assert.equal(dx.halfFrameIndex(1, false), 2);
+    assert.equal(dx.halfFrameIndex(36, true), 73);
+    assert.equal(dx.halfFrameIndex(62, false), null);
+    assert.equal(dx.halfFrameIndex(63, true), null);
+  });
+});
+
+describe('DX numbers and cassette codes', () => {
+  test('parseDxNumber accepts the usual spellings', () => {
+    assert.deepEqual(dx.parseDxNumber('79-15'), { part1: 79, part2: 15, kind: 'parts' });
+    assert.deepEqual(dx.parseDxNumber(' 79 – 15 '), { part1: 79, part2: 15, kind: 'parts' });
+    assert.deepEqual(dx.parseDxNumber('115/4'), { part1: 115, part2: 4, kind: 'parts' });
+    assert.equal(dx.parseDxNumber('1279').part1, 79);
+    assert.equal(dx.parseDxNumber('1279').part2, 15);
+    assert.equal(dx.parseDxNumber('550').part1, 34); // Lawley's 16 × 34 + 6
+    assert.deepEqual(dx.parseDxNumber('0079'), { part1: 4, part2: 15, kind: 'extract', extract: 79 });
+    const c = dx.parseDxNumber('315223');
+    assert.equal(c.kind, 'cassette');
+    assert.equal(`${c.part1}-${c.part2}`, '95-2');
+    for (const bad of ['128-0', '79-16', '2048', 'abc', '', '12345', '1-2-3']) {
+      assert.equal(dx.parseDxNumber(bad), null, bad);
+    }
+  });
+
+  test('parseDxNumber does not read a lone Part 1 as an extract', () => {
+    // "79" is more likely Part 1 of 79-15 than the extract of DX 4-15.
+    for (const short of ['79', '109', '127', '5']) assert.equal(dx.parseDxNumber(short), null, short);
+    assert.equal(dx.parseDxNumber('128').part1, 8, 'above 127 it can only be an extract');
+  });
+
+  test('dxExtract follows the 16 × Part 1 + Part 2 rule (Kodak US 5,761,558: 83-2 → 1330)', () => {
+    assert.equal(dx.dxExtract(83, 2), 1330);
+    assert.equal(dx.dxExtract(115, 4), 1844);
+  });
+
+  test('cassette barcodes from Wikipedia and merinorus.com', () => {
+    const kodak = dx.parseCassette('315223');
+    assert.deepEqual(
+      [kodak.prefix, kodak.extract, kodak.dxNumber, kodak.exposures, kodak.valid],
+      [3, 1522, '95-2', 24, true]
+    );
+    const ilford = dx.parseCassette('017563');
+    assert.deepEqual([ilford.dxNumber, ilford.exposures], ['109-12', 24]);
+    const gold = dx.parseCassette('4 1250 3');
+    assert.deepEqual([gold.prefix, gold.dxNumber, gold.exposures], [4, '78-2', 24]);
+    assert.equal(dx.parseCassette('018500').dxNumber, '115-10');
+    assert.equal(dx.parseCassette('018500').exposures, 72);
+    assert.equal(dx.parseCassette('012717').exposures, 'non-standard');
+  });
+
+  test('cassette codes outside the DX range are flagged, not guessed', () => {
+    const augmented = dx.parseCassette('832973');
+    assert.equal(augmented.part1, null);
+    assert.deepEqual(augmented.issues, [{ code: 'extract-range', extract: 3297 }]);
+    assert.deepEqual(dx.parseCassette('000108').issues.map((i) => i.code), ['part1-zero', 'exposure-code']);
+    assert.equal(dx.parseCassette('12345'), null);
+  });
+});
+
+describe('helpers', () => {
+  test('every 23-cell code copied into the 31-cell strip reads as frame 10 or 42 of the same film', () => {
+    // As copied into the long strip: the 23 cells as seen, then empty cells
+    // 24–27, with the long layout's own stop pattern drawn at 28–31.
+    for (let part1 = 1; part1 <= 127; part1++) {
+      for (let part2 = 0; part2 <= 15; part2++) {
+        const short = dx.encode({ part1, part2 }, 'short');
+        const copied = short + '0000' + '0101';
+        const d = dx.decode(copied, 'long');
+        assert.ok(d.valid && d.part1 === part1 && d.part2 === part2 && !d.half && [10, 42].includes(d.frame));
+        assert.equal(dx.shortCodeInLong(copied), short);
+      }
+    }
+  });
+
+  test('shortCodeInLong only flags whole frame 10 or 42', () => {
+    for (const [part1, part2, expected] of [[79, 7, 10], [79, 15, 42]]) {
+      const flagged = [];
+      for (let frame = 0; frame < 64; frame++) {
+        for (const half of [false, true]) {
+          if (dx.shortCodeInLong(dx.encode({ part1, part2, frame, half }))) flagged.push([frame, half]);
+        }
+      }
+      assert.deepEqual(flagged, [[expected, false]], `${part1}-${part2}`);
+    }
+    const good = dx.encode({ part1: 79, part2: 15, frame: 23 });
+    assert.equal(dx.shortCodeInLong(good.slice(0, 9) + '0' + good.slice(10)), null, 'misread long code');
+    assert.equal(dx.shortCodeInLong(dx.encode({ part1: 79, part2: 7 }, 'short')), null, 'wrong length');
+  });
+
+  test('transplant keeps cells 1–18 and never invents parity', () => {
+    const long = dx.encode({ part1: 79, part2: 15, frame: 23 }, 'long');
+    const short = dx.transplant(long, 'long', 'short');
+    assert.equal(short.slice(0, 18), long.slice(0, 18));
+    assert.equal(short.slice(18), '0' + '0101');
+    const back = dx.transplant(short, 'short', 'long');
+    assert.equal(back.slice(0, 18), long.slice(0, 18));
+    assert.equal(back.slice(18), '000000' + '0' + '0' + '0' + '0101');
+    // A damaged start pattern is restored, since those cells cannot be edited.
+    assert.equal(dx.transplant('0' + long.slice(1), 'long', 'short').slice(0, 6), '101010');
+  });
+});

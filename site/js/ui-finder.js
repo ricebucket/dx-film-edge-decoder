@@ -17,6 +17,18 @@
     return entry.part1 === null ? null : codec.formatDxNumber(entry.part1, entry.part2);
   }
 
+  /** The frame typed in `field` (1 when empty), or null after saying in `message` why it can't be read. */
+  function readFrame(field, message) {
+    if (field.value.trim() === '') return { frame: 1, half: false };
+    const frame = codec.parseFrameLabel(field.value);
+    if (!frame) {
+      message.textContent = t('Write the frame as printed on film: a number up to 63, optionally followed by A, or X, 00.');
+      message.classList.add('is-error');
+      field.focus();
+    }
+    return frame;
+  }
+
   function createFinder(host, { lookup, onShow }) {
     const input = h('input', {
       type: 'search', id: 'finder-q', class: 'input input--search', autocomplete: 'off', spellcheck: 'false',
@@ -29,12 +41,14 @@
     const more = h('button', { type: 'button', class: 'text-button', hidden: true }, t('Show more'));
 
     const frameInput = h('input', { type: 'text', id: 'finder-frame', class: 'input input--short', value: '1', inputmode: 'text', autocomplete: 'off', 'aria-describedby': 'finder-frame-help' });
+    const frameHelp = h('span', { id: 'finder-frame-help', class: 'fineprint' }, t('as printed, e.g. 12 or 12A'));
     let results = [];
     let shown = 0;
 
-    function frameValue() {
-      return codec.parseFrameLabel(frameInput.value) || { frame: 1, half: false };
-    }
+    frameInput.addEventListener('input', () => {
+      frameHelp.textContent = t('as printed, e.g. 12 or 12A');
+      frameHelp.classList.remove('is-error');
+    });
 
     function resultItem(entry) {
       const dx = dxOf(entry);
@@ -43,12 +57,15 @@
       const detail = isI3a
         ? (entry.inUse ? t('{maker}. In production in 2008.', { maker }) : t('{maker}. Discontinued by 2008.', { maker }))
         : [entry.manufacturer && t('Made by {maker}', { maker: entry.manufacturer }), entry.original].filter(Boolean).join(i18n.punctuation().sentence);
-      // Rows without a usable DX number can't be drawn: cassette numbers above
-      // 2047, and registry rows whose Part 2 was never identified.
+      // Rows without a usable DX number can't be drawn: registry rows whose
+      // Part 2 was never identified, and community numbers above 2047 or below
+      // 16 (where Part 1 would be 0).
       const showable = dx !== null && !entry.wildcard;
       const why = entry.wildcard
         ? t('The registry does not give the Part 2 number for this film')
-        : t('This cassette number is outside the range a film edge code can hold');
+        : entry.extract > 2047
+          ? t('This cassette number is outside the range a film edge code can hold')
+          : t('Part 1 = 0 is never used on film.');
       const button = h('button', {
         type: 'button', class: 'tool', disabled: showable ? null : true,
         title: showable ? null : why,
@@ -56,13 +73,17 @@
         'aria-label': showable ? t('Show barcode of {name}', { name: entry.name }) : null,
       }, showable ? t('Show barcode') : t('No full code'));
       if (showable) {
-        button.addEventListener('click', () => onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frameValue())));
+        button.addEventListener('click', () => {
+          const frame = readFrame(frameInput, frameHelp);
+          if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame));
+        });
       }
+      const label = dx ? `DX ${entry.wildcard ? `${entry.part1}-?` : dx}` : entry.full ? t('cassette {number}', { number: entry.full }) : null;
       return h('li', { class: 'finder__item' },
         h('div', { class: 'finder__text' },
           h('p', { class: 'finder__name' }, entry.name),
           h('p', { class: 'finder__meta' },
-            h('span', { class: 'finder__dx' }, dx ? `DX ${entry.wildcard ? `${entry.part1}-?` : dx}` : t('cassette {number}', { number: entry.full })),
+            label ? h('span', { class: 'finder__dx' }, label) : null,
             h('span', { class: `source-tag source-tag--${isI3a ? 'i3a' : 'community'}` }, isI3a ? t('I3A 2008') : t('Community')),
             detail ? h('span', { class: 'finder__detail' }, detail) : null)),
         button);
@@ -106,7 +127,6 @@
     directForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const dx = codec.parseDxNumber(dxInput.value);
-      const frame = directFrame.value.trim() === '' ? { frame: 1, half: false } : codec.parseFrameLabel(directFrame.value);
       if (!dx) {
         directMsg.textContent = t('That is not a DX number. Part 1 runs from 1 to 127 and Part 2 from 0 to 15, e.g. 79-15.');
         directMsg.classList.add('is-error');
@@ -118,12 +138,8 @@
         directMsg.classList.add('is-error');
         return;
       }
-      if (!frame) {
-        directMsg.textContent = t('Write the frame as printed on film: a number up to 63, optionally followed by A, or X, 00.');
-        directMsg.classList.add('is-error');
-        directFrame.focus();
-        return;
-      }
+      const frame = readFrame(directFrame, directMsg);
+      if (!frame) return;
       directMsg.classList.remove('is-error');
       directMsg.textContent = t('Showing DX {dx}, frame {frame}.', { dx: `${dx.part1}-${dx.part2}`, frame: codec.frameLabel(frame.frame, frame.half) });
       onShow({ part1: dx.part1, part2: dx.part2, frame: frame.frame, half: frame.half });
@@ -134,8 +150,7 @@
         h('label', { for: 'finder-q', class: 'field-label' }, icon('search'), t('Film name, maker or DX number')),
         input,
         h('div', { class: 'finder__frame' },
-          h('label', { for: 'finder-frame' }, t('Show with frame')), frameInput,
-          h('span', { id: 'finder-frame-help', class: 'fineprint' }, t('as printed, e.g. 12 or 12A'))),
+          h('label', { for: 'finder-frame' }, t('Show with frame')), frameInput, frameHelp),
         status, list, more),
       h('div', { class: 'finder__direct' },
         h('h3', null, t('Know the number already?')),

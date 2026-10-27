@@ -1,0 +1,70 @@
+// Accessibility checks with axe-core (its WCAG 2.2 level A and AA rules), in
+// every interface language and in light and dark mode. axe-core is installed
+// outside this repository, next to Playwright; see scripts/run-e2e.mjs.
+const fs = require('node:fs');
+const path = require('node:path');
+const { test, expect } = require('@playwright/test');
+const { AxeBuilder } = require('@axe-core/playwright');
+const { watchConsole } = require('./helpers.cjs');
+
+const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+const LANGUAGES = ['en', ...fs.readdirSync(path.join(__dirname, '..', '..', 'site', 'js', 'i18n'))
+  .filter((f) => f.endsWith('.js'))
+  .map((f) => f.slice(0, -3))];
+
+/** axe's findings, one line each (rule, element, advice); empty when the page passes. */
+async function problems(page, include) {
+  // From the top: on wide screens the sticky header would cover whatever is
+  // scrolled under it, and axe would count those buttons as too small.
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    return document.fonts.ready;
+  });
+  const builder = new AxeBuilder({ page }).withTags(WCAG);
+  if (include) builder.include(include);
+  const { violations } = await builder.analyze();
+  return violations.flatMap((v) => v.nodes.map((n) => `${v.id}: ${n.target.join(' ')}: ${v.help}`));
+}
+
+let checkConsole;
+test.beforeEach(({ page }) => {
+  checkConsole = watchConsole(page);
+});
+test.afterEach(() => checkConsole());
+
+for (const lang of LANGUAGES) {
+  for (const colorScheme of ['light', 'dark']) {
+    test(`axe finds no WCAG A or AA problems (${lang}, ${colorScheme})`, async ({ page }) => {
+      await page.addInitScript((code) => localStorage.setItem('dx-lang', code), lang);
+      await page.emulateMedia({ colorScheme });
+
+      // A decoded film, with the help panels, the photo reader, search and
+      // cassette results, and two error messages showing.
+      await page.goto('/?dx=96-12/14A');
+      for (const help of await page.locator('[data-help]').all()) await help.click();
+      await page.locator('#photo-open').click();
+      await page.locator('#photo .photo__drop .tool:not(.tool--primary)').click();
+      await expect(page.locator('.photo__found')).toBeVisible();
+      await page.locator('#finder-q').fill('hp5');
+      await expect(page.locator('.finder__item').first()).toBeVisible();
+      await page.locator('#cassette-code').fill('017563');
+      await page.locator('#cassette-code').press('Enter');
+      await expect(page.locator('.cassette__result')).toBeVisible();
+      await page.locator('#finder-frame').fill('64');
+      await page.locator('.finder__item .tool:not([disabled])').first().click();
+      await expect(page.locator('#finder-frame-help.is-error')).toBeVisible();
+      await page.locator('#direct-dx').fill('79');
+      await page.locator('#direct-dx').press('Enter');
+      await expect(page.locator('#direct-help.is-error')).toBeVisible();
+      expect(await problems(page)).toEqual([]);
+
+      // An invalid code, then an empty strip: only the decoder changes.
+      await page.locator('#strip .track--data [data-cell="8"]').click();
+      await expect(page.locator('#strip .strip')).not.toHaveClass(/is-valid/);
+      expect(await problems(page, '#decoder')).toEqual([]);
+      await page.locator('#clear').click();
+      await expect(page.locator('#strip .track--data button.is-bar')).toHaveCount(0);
+      expect(await problems(page, '#decoder')).toEqual([]);
+    });
+  }
+}
