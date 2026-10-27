@@ -19,8 +19,9 @@ arise. All sources are listed once, in report 06.
 ## Method
 
 No single free source specifies the whole format: the formal standards
-(ISO 1007 and the US lineage ANSI PH1.14 → NAPM IT1.14 → PIMA IT3.42) are sold
-by ISO and ANSI and were not consulted. Instead, every rule the decoder uses is
+(ISO 1007, the US lineage ANSI PH1.14 → NAPM IT1.14 → PIMA IT3.42, and China's
+GB/T 9185-2003, which adopts ISO 1007:2000 unchanged) are not freely available
+and were not consulted. Instead, every rule the decoder uses is
 backed by at least two independent sources among Kodak's patents, Wikipedia's
 summaries of ISO 1007, two open-source implementations (zxing-cpp and Zint) and
 community write-ups, and was confirmed on a real negative

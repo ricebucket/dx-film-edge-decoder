@@ -91,7 +91,7 @@ in [research/04](../research/04-community-database.md).
    the test "is a cleaned subset with DX numbers" fails, a row contains
    something the build does not clean up yet, such as a new kind of markup.
 3. Bring [research/04](../research/04-community-database.md) and its Chinese
-   translation up to date.
+   version up to date.
    `npm run stats:community-data` prints the figures it quotes in its
    summary, under "Snapshot used" and in "Data-quality findings"; the date of
    the commit is shown on GitHub. Check the films listed under "Coverage of

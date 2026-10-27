@@ -176,10 +176,10 @@ To add a language:
 page, as a starting point. When you change or add English text in `site/`,
 update every language file in the same change: the tests fail until you do.
 
-The documentation is translated file by file: `README.zh-CN.md` sits next to
-`README.md`, and so on. Each translation starts with a link to its English
-original, and its links lead to the other translated files. Update the
-translations whenever the English changes.
+The documentation comes in two parallel versions, English and Simplified
+Chinese: `README.zh-CN.md` sits next to `README.md`, and so on. Both versions
+say the same things, and the links in each lead to the other files in the same
+language. When you change one version, make the same change in the other.
 
 ### Diagrams and screenshots
 

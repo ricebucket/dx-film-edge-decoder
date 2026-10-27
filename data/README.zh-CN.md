@@ -67,7 +67,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
    ```
 
    测试检查的是数据的结构而不是数据量，所以新增的行不会让测试失败。如果上游重命名或删除了某一列，更新或构建会报错停止，并在错误信息中指出该列；请相应修改 `scripts/update-community-data.mjs` 或 `scripts/build-data.mjs`。如果测试“is a cleaned subset with DX numbers”（是带 DX 编号的已清理子集）失败，说明某一行包含构建步骤还不会清理的内容，例如一种新的标记。
-3. 更新 [research/04](../research/04-community-database.zh-CN.md) 及其中文译本。`npm run stats:community-data` 会打印该报告在摘要、“所用快照”和“数据质量方面的发现”中引用的数字；提交的日期可以在 GitHub 上看到。再检查一遍“现代胶片的覆盖情况”中列出的胶片。
+3. 更新 [research/04](../research/04-community-database.zh-CN.md) 及其英文版。`npm run stats:community-data` 会打印该报告在摘要、“所用快照”和“数据质量方面的发现”中引用的数字；提交的日期可以在 GitHub 上看到。再检查一遍“现代胶片的覆盖情况”中列出的胶片。
 
 ### I3A 列表需要更正时
 

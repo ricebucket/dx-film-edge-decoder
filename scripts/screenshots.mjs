@@ -4,8 +4,8 @@
 // site/, and look at the results before committing them.
 //
 // English images are saved as <name>.png, other languages as
-// <name>.<lang>.png (for example screenshot.zh-CN.png), so each translated
-// document can show the interface in its own language.
+// <name>.<lang>.png (for example screenshot.zh-CN.png), so the documents in
+// each language can show the interface in that language.
 //
 // Needs Playwright with Chromium, installed outside this repository; see
 // scripts/run-e2e.mjs.

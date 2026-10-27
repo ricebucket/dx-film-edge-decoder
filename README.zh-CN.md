@@ -106,7 +106,7 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 
 `npm run check:translations -- --template` 会打印页面上的全部英文文字，可以作为起点。修改或添加 `site/` 中的英文文字时，请在同一次修改中更新每一个语言文件：在此之前测试不会通过。
 
-文档逐个文件翻译：`README.zh-CN.md` 放在 `README.md` 旁边，其余文件也一样。每个译文开头都有一个指向英文原文的链接，其中的链接通向其他翻译后的文件。英文有改动时，请同时更新译文。
+文档有英文和简体中文两个平行的版本：`README.zh-CN.md` 放在 `README.md` 旁边，其余文件也一样。两个版本的内容相同，各自的链接都通向同一语言的其他文件。修改其中一个版本时，请在另一个版本中做同样的修改。
 
 ### 图示与截图
 

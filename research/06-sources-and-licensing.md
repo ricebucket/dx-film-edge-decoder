@@ -10,8 +10,8 @@ source consulted for the project.
 texts. Each file has a single licence.
 
 - **Code, tests, scripts, styles, the favicon, the interface translations, the
-  diagrams and screenshots in the documentation, and these research notes and
-  their translations** were written for this project and are licensed under the
+  diagrams and screenshots in the documentation, and these research notes in
+  English and Chinese** were written for this project and are licensed under the
   GNU General Public License v3.0 (see `LICENSE`). The diagrams are drawn by
   `scripts/make-figures.mjs` and the screenshots taken by
   `scripts/screenshots.mjs`. The screenshots that show entries from The Big
@@ -53,6 +53,7 @@ texts. Each file has a single licence.
 - Saeki et al. (Fuji Photo Film), US patent 5,122,645, *Method and apparatus for reading bar codes on photographic film and determining setting conditions of photographic film*, 1992 — <https://patents.google.com/patent/US5122645A/en>
 - Wikipedia, *DX number* — <https://en.wikipedia.org/wiki/DX_number>
 - Wikipedia, *DX encoding* — <https://en.wikipedia.org/wiki/DX_encoding>
+- Chinese national standard GB/T 9185-2003, *Photography — 135-size film and magazine — Specifications*, 2003, an identical adoption of ISO 1007:2000: its record on the National Public Service Platform for Standards Information — <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>; the National Standards Full Text Disclosure System does not show its text, for copyright reasons — <https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=B197380D4FBB4B5E62D889D6902DE5DD>
 - zxing-cpp, DX Film Edge reader (`ODDXFilmEdgeReader.cpp`) by Antoine Mérino and Axel Waggershauser — <https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp>
 - Zint, DX Film Edge generator (`backend/dxfilmedge.c`), its tests and manual section 6.4.5, by Antoine Mérino — <https://github.com/zint/zint>
 - Antoine Mérino, *Identifying the manufacturer of your 35mm (and APS) films*, 2024 — <https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/>

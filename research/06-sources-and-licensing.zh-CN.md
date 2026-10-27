@@ -6,7 +6,7 @@
 
 `REUSE.toml` 以 [REUSE](https://reuse.software/) 格式记录了每个文件的版权和许可证，`LICENSES/` 存放各许可证的全文。每个文件只有一种许可证。
 
-- **代码、测试、脚本、样式、网站图标、界面译文、文档中的图示和截图，以及这些研究笔记及其译文**是为本项目编写的，采用 GNU General Public License v3.0 许可证（见 `LICENSE`）。图示由 `scripts/make-figures.mjs` 绘制，截图由 `scripts/screenshots.mjs` 生成。显示了 The Big Film Database 条目的截图（`.github/screenshot*.png` 和 `research/img/community-result*.png`）则采用 CC BY-SA 4.0 许可证。
+- **代码、测试、脚本、样式、网站图标、界面译文、文档中的图示和截图，以及这些研究笔记的中英文版本**是为本项目编写的，采用 GNU General Public License v3.0 许可证（见 `LICENSE`）。图示由 `scripts/make-figures.mjs` 绘制，截图由 `scripts/screenshots.mjs` 生成。显示了 The Big Film Database 条目的截图（`.github/screenshot*.png` 和 `research/img/community-result*.png`）则采用 CC BY-SA 4.0 许可证。
 - **`data/i3a-2008/`** 存放 I3A 列表 *DX Codes for 135-Size Film*（2008 年 2 月）中事实内容的转录：Part 1（第一部分）的分配，以及与公布内容一致的 DX 编号和产品名称。它是用 `scripts/extract-i3a-pdf.py` 生成的，采用 GNU General Public License v3.0 许可证。I3A 文件的文本中没有版权声明或许可条款。
 - **`data/big-film-database/`** 存放 The Big Film Database 的一个改编子集，采用 CC BY-SA 4.0 许可证；其署名和修改清单见 [data/README.md](../data/README.zh-CN.md)。
 - **`site/js/dx-data.js`** 和 **`site/js/dx-data-community.js`** 由 `scripts/build-data.mjs` 根据 `data/` 生成，每个数据集一个文件。前者存放 I3A 数据表，采用 GNU General Public License v3.0 许可证；后者存放 The Big Film Database 的子集，文件头带有它的署名，采用 CC BY-SA 4.0 许可证。
@@ -25,6 +25,7 @@
 - Saeki 等（Fuji Photo Film），美国专利 5,122,645，*Method and apparatus for reading bar codes on photographic film and determining setting conditions of photographic film*，1992 — <https://patents.google.com/patent/US5122645A/en>
 - Wikipedia，*DX number* — <https://en.wikipedia.org/wiki/DX_number>
 - Wikipedia，*DX encoding* — <https://en.wikipedia.org/wiki/DX_encoding>
+- 中国国家标准 GB/T 9185-2003《摄影师 135规格胶片和暗盒 规范》，2003 年，等同采用 ISO 1007:2000：全国标准信息公共服务平台上的记录 — <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>；国家标准全文公开系统因涉及版权，不提供该标准的文本阅读 — <https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=B197380D4FBB4B5E62D889D6902DE5DD>
 - zxing-cpp，DX Film Edge 读取器（`ODDXFilmEdgeReader.cpp`），作者 Antoine Mérino 和 Axel Waggershauser — <https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp>
 - Zint，DX Film Edge 生成器（`backend/dxfilmedge.c`）及其测试和手册第 6.4.5 节，作者 Antoine Mérino — <https://github.com/zint/zint>
 - Antoine Mérino，*Identifying the manufacturer of your 35mm (and APS) films*，2024 — <https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/>

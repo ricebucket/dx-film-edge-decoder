@@ -46,7 +46,7 @@ DX 编号写作 `Part 1-Part 2`，例如 `79-15`。Part 1 有 7 位（0–127，
 
 1. PDF 的文本层是连同单词坐标一起读取的（PyMuPDF），因此可以根据位置重建表格的行，并把折到第二行的产品名称重新接起来。
 2. 第二个独立的解析器处理的是纯文本流。两者得到了相同的 389 行。
-3. 把 Part 1 表与文件自身的 *Assignment Summary*（分配汇总）页对照：12 个受让方全部一致。
+3. 把 Part 1 表与文件自身的 *Assignment Summary* 页对照：12 个受让方全部一致。
 4. 把各页渲染成图像，用肉眼与提取出的行进行比对。
 5. 用已公开的例子做抽查：34-6 是 FUJICHROME ASTIA 100 PROFESSIONAL（Lawley），115-3 和 115-4 是 Perutz SC 100-3 和 200-3 Color（维基百科），79-15 是 KODAK Professional BW400CN Film（维基百科示例）。
 
