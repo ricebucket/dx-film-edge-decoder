@@ -1,13 +1,13 @@
 # 06 – Sources and licensing
 
-This report lists the licences of the files in this repository and every
+This report lists the licenses of the files in this repository and every
 source consulted for the project.
 
-## Licences of this project's files
+## Licenses of this project's files
 
-`REUSE.toml` records the copyright and licence of every file in the
-[REUSE](https://reuse.software/) format, and `LICENSES/` holds the licence
-texts. Each file has a single licence.
+`REUSE.toml` records the copyright and license of every file in the
+[REUSE](https://reuse.software/) format, and `LICENSES/` holds the license
+texts. Each file has a single license.
 
 - **Code, tests, scripts, styles, the favicon, the interface translations, the
   diagrams and screenshots in the documentation, and these research notes in
@@ -23,7 +23,7 @@ texts. Each file has a single licence.
   assignments, and the DX numbers and product names as published. It was
   produced with `scripts/extract-i3a-pdf.py` and is licensed under the GNU
   General Public License v3.0. The text of the I3A document contains no
-  copyright notice or licence terms.
+  copyright notice or license terms.
 - **`data/big-film-database/`** holds an adapted subset of The Big Film
   Database, licensed under CC BY-SA 4.0; its attribution and the list of
   changes are in [data/README.md](../data/README.md).
@@ -69,7 +69,7 @@ texts. Each file has a single licence.
 - The (Modified) Big Film Database by Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>
 - Patton, Travis & McPherson (Eastman Kodak), US patent 5,761,558, *Expanded film cartridge bar code*, 1998 — <https://patents.google.com/patent/US5761558A/en>
 
-### Licences
+### Licenses
 
 - BSD 3-Clause License — <https://spdx.org/licenses/BSD-3-Clause.html>
 - Creative Commons, CC BY-SA 4.0 — <https://creativecommons.org/licenses/by-sa/4.0/>

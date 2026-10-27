@@ -21,12 +21,12 @@ jobs:
       # No npm dependencies to install: the unit tests use node:test.
       - run: npm test
 
-  licences:
-    name: Licence check (REUSE)
+  licenses:
+    name: License check (REUSE)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      # Checks that REUSE.toml gives every file a copyright notice and a licence
+      # Checks that REUSE.toml gives every file a copyright notice and a license
       # whose text is in LICENSES/.
       - uses: fsfe/reuse-action@v6
 

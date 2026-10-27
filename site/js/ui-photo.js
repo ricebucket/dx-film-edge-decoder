@@ -14,7 +14,7 @@
   const MAX_WORKING_SIDE = 2400;
 
   const SAMPLES = [
-    { synth: { part1: 96, part2: 12, frame: 14, half: true, module: 9, angle: -1.2 }, look: 'negative', note: t('Sample: a computer-drawn film edge, a colour negative.') },
+    { synth: { part1: 96, part2: 12, frame: 14, half: true, module: 9, angle: -1.2 }, look: 'negative', note: t('Sample: a computer-drawn film edge, a color negative.') },
     { synth: { part1: 32, part2: 6, frame: 5, half: false, module: 9, angle: 0.8 }, look: 'slide', note: t('Sample: a computer-drawn film edge, a slide.') },
     { synth: { part1: 109, part2: 9, frame: 12, half: false, module: 9, mirrored: true }, look: 'bw', note: t('Sample: a computer-drawn film edge, a black-and-white negative seen from the back.') },
   ];

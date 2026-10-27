@@ -3,7 +3,7 @@
 // Copyright (C) 2024-2025 Antoine Merino <antoine.merino.dev@gmail.com>.
 // This file is under the BSD 3-Clause License (LICENSES/BSD-3-Clause.txt). It is
 // kept apart from the tests that use it (codec.test.mjs, GPL), so that each file
-// has one licence.
+// has one license.
 //
 // Each entry is the input (DX number, then frame) and the expected symbol: the
 // clock row followed by the data row.

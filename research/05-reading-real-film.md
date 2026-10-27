@@ -20,7 +20,7 @@ track within 0–0.030 in (0–0.76 mm) and the clock track within 0.050–0.073
 (1.27–1.85 mm). alibosworth notes that the perforations can slightly overlap
 the top of the clock track, so the upper part of a clock bar may be cut off.
 
-![A stretch of colour negative film edge: perforations, then the clock and data tracks, with two codes labelled 23 and 23A](img/film-edge.svg)
+![A stretch of color negative film edge: perforations, then the clock and data tracks, with two codes labeled 23 and 23A](img/film-edge.svg)
 
 Some cameras exposed further marks on the same edge, three or four times
 wider than a DX bar; they are not part of the code
@@ -33,7 +33,7 @@ the Wikimedia photo *Kodak Telegraph negativ23a.jpg* (2,598 × 2,203 pixels),
 using the standard 35 mm perforation pitch of 4.75 mm (8 per frame) as the
 scale:
 
-| Quantity | Pixels | Millimetres |
+| Quantity | Pixels | Millimeters |
 |---|---|---|
 | Perforation pitch | ≈ 290 | 4.75 (scale) |
 | One cell | 25.0 | ≈ 0.41 |
@@ -113,19 +113,19 @@ the photo reader detects either polarity by itself.
 The photo reader (`site/js/dx-image.js`) works without any machine-learning or
 external service:
 
-1. Each row of the image, also tilted by up to ±3°, is normalised on its own
-   (on colour negatives the orange base lies halfway between dark bars and the
+1. Each row of the image, also tilted by up to ±3°, is normalized on its own
+   (on color negatives the orange base lies halfway between dark bars and the
    white perforations, so one global threshold would fail).
 2. Runs of bars and gaps are matched against the clock pattern, in either
    direction and for both layouts; the best match is refined by small shifts
    of the cell grid.
 3. The clock track's known bars and gaps give the gray levels of "bar" and
    "gap" in this photo, in either polarity.
-4. The data track is the neighbouring row whose cells best fit the fixed
+4. The data track is the neighboring row whose cells best fit the fixed
    start and stop patterns and the parity rule; bits are read in clock order,
    so mirrored or upside-down photos come out right.
 
-It is tested on film edges drawn by the project's own renderer: colour
+It is tested on film edges drawn by the project's own renderer: color
 negative, black-and-white and slide; mirrored and upside down; tilted by up to
 2.5°; cells only 4 pixels wide; grain and blur; the 23-cell layout; leader
 frames; a scratched-out bar; and a large image that has to be downscaled. A

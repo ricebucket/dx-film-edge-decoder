@@ -36,7 +36,7 @@ const LABELS = {
     stop: 'Stop',
     legendLong: 'A = half-frame flag, P = even parity over Part 1, Part 2, the frame and A; dotted = always empty',
     legendShort: 'P = even parity over Part 1 and Part 2; dotted = always empty',
-    edgeTitle: 'Where the code sits: two codes along the edge of a colour negative',
+    edgeTitle: 'Where the code sits: two codes along the edge of a color negative',
     perforations: 'Perforations',
     filmEdge: 'Film edge',
     codeLength: 'one code: 31 cells, about 12.7 mm',
@@ -54,14 +54,14 @@ const LABELS = {
     exposureNote: '{digit} = {n} exposures',
   },
   'zh-CN': {
-    layoutLong: '31 格版式：DX {dx}，第 {frame} 帧',
-    layoutShort: '23 格版式，不含帧号：DX {dx}',
-    clockTrack: '时钟轨',
+    layoutLong: '31 位版式：DX {dx}，第 {frame} 帧',
+    layoutShort: '23 位版式，不含帧号：DX {dx}',
+    clockTrack: '定位码',
     clockNote: '所有胶片都相同',
-    dataTrack: '数据轨',
+    dataTrack: '信息码',
     dataNote: '1 = 条，0 = 空',
-    cellNumbers: '格',
-    weights: '权值',
+    cellNumbers: '位',
+    weights: '对应数字',
     start: '起始符',
     part1: 'Part 1',
     part2: 'Part 2',
@@ -69,10 +69,10 @@ const LABELS = {
     stop: '终止符',
     legendLong: 'A = 半帧标志，P = 对 Part 1、Part 2、帧号和 A 的偶校验；虚线 = 始终为空',
     legendShort: 'P = 对 Part 1 和 Part 2 的偶校验；虚线 = 始终为空',
-    edgeTitle: '编码的位置：彩色负片片边上的两个编码',
+    edgeTitle: '编码的位置：彩色底片片边上的两个编码',
     perforations: '齿孔',
     filmEdge: '片边',
-    codeLength: '一个编码：31 格，约 12.7 mm',
+    codeLength: '一个编码：31 位，约 12.7 mm',
     repeat: '编码约每 19 mm 重复一次，每帧两次',
     printedNote: '紧挨在编码前面印的数字（先是 23，然后是 23A）就是该编码所带的帧号。',
     casTitle: '暗盒触点（DX CAS），示例：ISO 400，36 张，宽容度 +3/−1',
@@ -82,7 +82,7 @@ const LABELS = {
     metal: '裸露金属 = 1',
     painted: '涂漆 = 0',
     cassetteTitle: '暗盒条码下方的六位数字：{digits}',
-    prefixNote: '首位数字，由制造商自定',
+    prefixNote: '首位数字，由生产商自定',
     extractNote: '16 × {part1} + {part2} = {extract}，即 DX {dx}',
     exposureNote: '{digit} = {n} 张',
   },
@@ -90,7 +90,7 @@ const LABELS = {
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif";
 const EDGE_FONT = "'DIN Alternate', 'Bahnschrift', 'Roboto Condensed', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif";
-// The light-theme colours of site/css/style.css.
+// The light-theme colors of site/css/style.css.
 const C = {
   ink: '#1f2328', muted: '#59636e', rule: '#d0d7de', card: '#ffffff',
   film: '#d0672d', mark: '#2b1a14', hole: '#ffffff', grid: 'rgba(43, 26, 20, 0.22)',

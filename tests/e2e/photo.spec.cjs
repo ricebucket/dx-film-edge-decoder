@@ -74,7 +74,7 @@ test('a photo of an older 7-bar code switches the strip to that layout', async (
   await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
 });
 
-test('the sample is labelled, and further samples can be loaded', async ({ page }) => {
+test('the sample is labeled, and further samples can be loaded', async ({ page }) => {
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await expect(page.locator('.photo__source')).toContainText('Sample: a computer-drawn film edge');
   await expect(page.locator('.photo__found')).toContainText('DX 96-12');
@@ -105,7 +105,7 @@ test('a scratched stop bar does not stick to the strip', async ({ page }, testIn
   await expect(page.locator('#result-title')).toBeFocused();
 });
 
-test('a cancelled drag leaves the reader usable', async ({ page }) => {
+test('a canceled drag leaves the reader usable', async ({ page }) => {
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await expect(page.locator('.photo__found')).toBeVisible();
   await page.locator('.photo__canvas').evaluate((canvas) => {

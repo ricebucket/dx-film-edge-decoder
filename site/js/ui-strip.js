@@ -160,12 +160,18 @@
     }
 
     function bindEvents(track) {
+      // A finger that moves this far is scrolling the strip, not tapping a cell.
+      const scrolled = (s, e) => Math.hypot(e.clientX - s.x, e.clientY - s.y) > 10;
+
       track.addEventListener('pointerdown', (e) => {
         const btn = cellButton(e.target);
         if (!btn || e.button !== 0) return;
         const cellNo = Number(btn.dataset.cell);
         if (e.pointerType === 'touch') {
-          stroke = { touch: true, id: e.pointerId, x: e.clientX, y: e.clientY, cellNo };
+          // Toggled when the finger lifts; until then the cell shows what that
+          // will do, as hovering does with a mouse.
+          btn.classList.add('is-pressing');
+          stroke = { touch: true, id: e.pointerId, x: e.clientX, y: e.clientY, cellNo, btn };
           return;
         }
         e.preventDefault();
@@ -182,7 +188,11 @@
       });
 
       track.addEventListener('pointermove', (e) => {
-        if (!stroke || stroke.touch || stroke.id !== e.pointerId) return;
+        if (!stroke || stroke.id !== e.pointerId) return;
+        if (stroke.touch) {
+          if (scrolled(stroke, e)) stroke.btn.classList.remove('is-pressing');
+          return;
+        }
         const btn = cellButton(document.elementFromPoint(e.clientX, e.clientY));
         if (btn && setCell(Number(btn.dataset.cell), stroke.value)) emit(false);
       });
@@ -192,8 +202,8 @@
         const s = stroke;
         stroke = null;
         if (s.touch) {
-          const moved = Math.hypot(e.clientX - s.x, e.clientY - s.y) > 10;
-          if (e.type === 'pointerup' && !moved) {
+          s.btn.classList.remove('is-pressing');
+          if (e.type === 'pointerup' && !scrolled(s, e)) {
             const previous = state.cells;
             setCell(s.cellNo, state.cells[s.cellNo - 1] !== '1');
             setFocusCell(s.cellNo);
@@ -274,7 +284,10 @@
     function render(next) {
       // A change from outside (undo, a loaded code, a layout switch) ends any
       // drag in progress, so it cannot later record cells of another layout.
-      if (stroke && (!refs || refs.format !== next.format || next.cells !== state.cells)) stroke = null;
+      if (stroke && (!refs || refs.format !== next.format || next.cells !== state.cells)) {
+        if (stroke.btn) stroke.btn.classList.remove('is-pressing');
+        stroke = null;
+      }
       state = Object.assign({}, next);
       if (!refs || refs.format !== state.format) {
         refs = build(state.format);

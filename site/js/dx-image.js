@@ -8,7 +8,7 @@
  * How the reader works:
  *   1. Along every row (and a few slight slants) it looks for the clock
  *      track's run pattern: a 5-cell mark, 23 (or 15) single cells, a 3-cell
- *      mark. Each row is normalised on its own, because on colour negatives
+ *      mark. Each row is normalized on its own, because on color negatives
  *      the orange base sits halfway between the bars and the white holes.
  *   2. The best match fixes the cell grid. Its known bar/gap cells give the
  *      gray levels of "bar" and "gap" for this photo, in either polarity
@@ -85,7 +85,7 @@
     return (d[i] * (1 - fx) + d[i + 1] * fx) * (1 - fy) + (d[i + w] * (1 - fx) + d[i + w + 1] * fx) * fy;
   }
 
-  /** Gray values along a row, slanted by `slope` around the image centre, averaged over ±band rows. */
+  /** Gray values along a row, slanted by `slope` around the image center, averaged over ±band rows. */
   function profile(img, y, slope, band) {
     const out = new Float32Array(img.width);
     const cx = img.width / 2;
@@ -190,7 +190,7 @@
   }
 
   /** Map gray values to 0 (gap) … 1 (bar) using a calibration. */
-  function normalise(values, cal) {
+  function normalize(values, cal) {
     const span = cal.bar - cal.gap;
     return values.map((v) => Math.min(1, Math.max(0, (v - cal.gap) / span)));
   }
@@ -213,7 +213,7 @@
         const values = sampleCells(img, y, slope, x0, unit, cells, band);
         const cal = calibrate(values, pattern);
         if (Math.abs(cal.bar - cal.gap) < minContrast) continue;
-        const score = fitScore(normalise(values, cal), pattern);
+        const score = fitScore(normalize(values, cal), pattern);
         if (!best || score > best.score) best = { x0, unit, cal, score };
       }
     }
@@ -237,7 +237,7 @@
 
   function readRow(img, y, slope, band, clock) {
     const values = sampleCells(img, y, slope, clock.x0, clock.unit, clock.cells, band);
-    const norm = normalise(values, clock.cal);
+    const norm = normalize(values, clock.cal);
     const ordered = clock.reversed ? norm.reverse() : norm;
     return { norm: ordered, bits: ordered.map((v) => (v >= 0.5 ? '1' : '0')).join('') };
   }
@@ -369,7 +369,7 @@
   const GEOMETRY = { pitch: 46.3, track: 2.2, perfPitch: 11.59, perfW: 6.8, perfH: 4.8, perfR: 1.1, glyph: 0.7 };
 
   /**
-   * Draw a stretch of film edge carrying a DX code, with neighbouring codes,
+   * Draw a stretch of film edge carrying a DX code, with neighboring codes,
    * printed labels and perforations. Returns ink (bars, labels) and hole
    * (perforations, space beyond the film) coverage per pixel, and the true bits
    * of the code in the middle.
@@ -481,7 +481,7 @@
     slide: { base: [22, 20, 22], ink: [232, 224, 205] },
   };
 
-  /** Paint a synthetic edge as RGBA with film-like colours, grain and blur. */
+  /** Paint a synthetic edge as RGBA with film-like colors, grain and blur. */
   function compose(syn, options) {
     const o = Object.assign({ look: 'negative', hole: [244, 248, 250], noise: 10, blur: 1, seed: 1 }, options);
     const look = LOOKS[o.look];

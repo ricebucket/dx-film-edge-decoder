@@ -38,8 +38,8 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
 |---|---|
 | `DX extract` | 16 × Part 1 + Part 2（四位数字） |
 | `DX full` | 六位数的暗盒编号 |
-| `Name` | 产品名称，可以带有 `#` 搜索标签 |
-| `Original Film or informations` | 备注，常常是贴牌胶卷背后的原厂乳剂 |
+| `Name` | 型号名称，可以带有 `#` 搜索标签 |
+| `Original Film or informations` | 备注，常常是贴牌胶片背后的原厂乳剂 |
 | `Manufacturer`、`Country`、`Distributor` | 自由文本 |
 | `reliability` | 识别的可信度，从 0（低）到 4（高） |
 | `Beginning year`、`End year` | 自由文本，例如 `~1990 ?` |
@@ -71,7 +71,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
 
 ### I3A 列表需要更正时
 
-2008 年 2 月的列表是能找到的最新版本（[research/03](../research/03-dx-numbers-and-registry.zh-CN.md)），所以它的表格只会因为更正转录错误而改变。请在 `scripts/extract-i3a-pdf.py` 中修正出错的原因，而不是手动编辑 CSV 文件，这样它们仍然可以从 PDF（链接见 [research/06](../research/06-sources-and-licensing.zh-CN.md#来源)）重新生成；然后再次运行该脚本。如果脚本提取出的 Part 1（第一部分）表与列表自身的汇总页不一致，脚本会停止。然后按上面的步骤重新构建并测试。有几个单元测试检查 2008 年列表中的数量（91 个已分配的 Part 1 编号，386 个产品）；只有当更正改变了这些数量时，这些测试才需要修改。
+2008 年 2 月的列表是能找到的最新版本（[research/03](../research/03-dx-numbers-and-registry.zh-CN.md)），所以它的表格只会因为更正转录错误而改变。请在 `scripts/extract-i3a-pdf.py` 中修正出错的原因，而不是手动编辑 CSV 文件，这样它们仍然可以从 PDF（链接见 [research/06](../research/06-sources-and-licensing.zh-CN.md#来源)）重新生成；然后再次运行该脚本。如果脚本提取出的 Part 1（第一部分）表与列表自身的汇总页不一致，脚本会停止。然后按上面的步骤重新构建并测试。有几个单元测试检查 2008 年列表中的数量（91 个已分配的 Part 1 编号，386 个型号）；只有当更正改变了这些数量时，这些测试才需要修改。
 
 ### 如果出现更新的 I3A 版本
 

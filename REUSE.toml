@@ -1,7 +1,7 @@
-# Copyright and licence of every file, in the REUSE format (https://reuse.software/),
+# Copyright and license of every file, in the REUSE format (https://reuse.software/),
 # checked by `reuse lint` on GitHub. "override" makes these entries apply even where
-# a file quotes other notices. Each file has one licence: material under another
-# licence goes in a file of its own, with an entry here, its licence text in
+# a file quotes other notices. Each file has one license: material under another
+# license goes in a file of its own, with an entry here, its license text in
 # LICENSES/ and its source listed in research/06.
 version = 1
 

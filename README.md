@@ -37,7 +37,7 @@ sends nothing anywhere (including photos you open in it), and also works when
 
 ## How to use it
 
-![A stretch of colour negative film edge: perforations, then the clock and data tracks, with two codes labelled 23 and 23A](research/img/film-edge.svg)
+![A stretch of color negative film edge: perforations, then the clock and data tracks, with two codes labeled 23 and 23A](research/img/film-edge.svg)
 
 1. **Find the barcode.** It runs between the sprocket holes and the edge of the
    film: two touching rows of small bars, about 13 mm long, repeated twice per
@@ -79,7 +79,7 @@ from [the cell layout](research/01-edge-code-format.md) and
   a community database that also covers films introduced since 2008 and
   rebranded films ([research/04](research/04-community-database.md)).
 
-The two are always labelled separately on the page. No code is given a meaning
+The two are always labeled separately on the page. No code is given a meaning
 that neither source documents: an unknown code is reported as unknown, together
 with the manufacturer its Part 1 number belongs to.
 
@@ -105,8 +105,8 @@ scripts/              data extraction and build, diagrams, screenshots,
                       translation check, local server, test runner
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
-.github/workflows/    tests, licence check and GitHub Pages deployment
-LICENSES/, REUSE.toml licence texts, and which files each one covers
+.github/workflows/    tests, license check and GitHub Pages deployment
+LICENSES/, REUSE.toml license texts, and which files each one covers
 ```
 
 ### Tests
@@ -192,16 +192,16 @@ language. When you change one version, make the same change in the other.
   font (on Ubuntu, the `fonts-noto-cjk` package). Run it after every visible
   change to the page, and look at the results before committing them.
 
-## Licence and sources
+## License and sources
 
 The code, tests, scripts and documentation are free software under the
 [GNU General Public License v3.0](LICENSE). The film data has its own sources
 and terms, described in [data/README.md](data/README.md). Every source used for
 the project is listed in [research/06](research/06-sources-and-licensing.md).
 
-The licence of every file is also recorded in [`REUSE.toml`](REUSE.toml), in
+The license of every file is also recorded in [`REUSE.toml`](REUSE.toml), in
 the [REUSE](https://reuse.software/) format, and the tests on GitHub check it.
 To check it yourself, install the REUSE tool (for example with
-`pipx install reuse`) and run `reuse lint`. Every file has one licence, so
+`pipx install reuse`) and run `reuse lint`. Every file has one license, so
 material added from elsewhere needs an entry there, and a file of its own if its
-licence differs.
+license differs.

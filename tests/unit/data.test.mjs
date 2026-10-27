@@ -24,7 +24,7 @@ describe('generated data files', () => {
     }
   });
 
-  test('each file holds one dataset, so each has one licence (see REUSE.toml)', () => {
+  test('each file holds one dataset, so each has one license (see REUSE.toml)', () => {
     assert.deepEqual(Object.keys(data), ['source', 'sensitizers', 'part1', 'products', 'augmented']);
     assert.deepEqual(Object.keys(community), ['source', 'rows']);
   });

@@ -13,7 +13,7 @@
  *
  * Cells are numbered from 1 in reading order (the wide clock mark comes first).
  *
- * Sources: ISO 1007 §6.1 as summarised on Wikipedia ("DX number"), Kodak US
+ * Sources: ISO 1007 §6.1 as summarized on Wikipedia ("DX number"), Kodak US
  * 4,965,628, zxing-cpp ODDXFilmEdgeReader.cpp, Zint dxfilmedge.c. See
  * docs/dx-edge-code-format.md for the full write-up.
  */
@@ -88,7 +88,7 @@
     return format.fields.find((f) => f.id === id) || null;
   }
 
-  /** Normalise a cell sequence ("1010…", [1,0,…] or [true,false,…]) to a 0/1 string. */
+  /** Normalize a cell sequence ("1010…", [1,0,…] or [true,false,…]) to a 0/1 string. */
   function toBitString(cells) {
     if (typeof cells === 'string') {
       if (!/^[01]*$/.test(cells)) throw new TypeError('Cell string may only contain 0 and 1');

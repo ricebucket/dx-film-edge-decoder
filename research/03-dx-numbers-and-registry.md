@@ -113,7 +113,7 @@ The largest real DX number gives HHHH = 2047. The I3A list also records five
 Kodak "augmented magazine bar code numbers" (ISO 1007, Annex A.4) for Kodak
 films sold through Jean Coutu pharmacies in Canada, for example `832973`; their
 middle digits exceed 2047, so they cannot appear on the film edge. The
-cassette helper recognises them by their full number.
+cassette helper recognizes them by their full number.
 
 Wikipedia cites the cartridge barcode patent with the right title, inventors
 and dates but the number "US 5661558A", which belongs to an unrelated patent

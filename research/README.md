@@ -13,18 +13,18 @@ arise. All sources are listed once, in report 06.
 | [03 – DX numbers and the registry](03-dx-numbers-and-registry.md) | Part 1 / Part 2, who assigned them, the 2008 I3A list and how it was transcribed, the cassette barcode |
 | [04 – Community film database](04-community-database.md) | The Big Film Database: data-quality findings, coverage of modern films, how the tool presents it |
 | [05 – Reading real film](05-reading-real-film.md) | Physical layout and size, reading direction, slide film, damaged codes, validation on a real negative, the photo reader |
-| [06 – Sources and licensing](06-sources-and-licensing.md) | The licences of this project's files, and every source consulted |
+| [06 – Sources and licensing](06-sources-and-licensing.md) | The licenses of this project's files, and every source consulted |
 | [07 – History and related markings](07-history-and-related-markings.md) | Timeline from 1983, cassette contacts and barcodes, other marks on the film edge, APS and 120 film |
 
 ## Method
 
 No single free source specifies the whole format: the formal standards
 (ISO 1007, the US lineage ANSI PH1.14 → NAPM IT1.14 → PIMA IT3.42, and China's
-GB/T 9185-2003, which adopts ISO 1007:2000 unchanged) are not freely available
-and were not consulted. Instead, every rule the decoder uses is
-backed by at least two independent sources among Kodak's patents, Wikipedia's
-summaries of ISO 1007, two open-source implementations (zxing-cpp and Zint) and
-community write-ups, and was confirmed on a real negative
-([report 05](05-reading-real-film.md)). The film tables were transcribed with
-two independent parsers and checked against the list itself
+GB/T 9185-2003, which its official record lists as an identical adoption of
+ISO 1007:2000) are not freely available and were not consulted. Instead, every
+rule the decoder uses is backed by at least two independent sources among
+Kodak's patents, Wikipedia's summaries of ISO 1007, two open-source
+implementations (zxing-cpp and Zint) and community write-ups, and was confirmed
+on a real negative ([report 05](05-reading-real-film.md)). The film tables were
+transcribed with two independent parsers and checked against the list itself
 ([report 03](03-dx-numbers-and-registry.md)).

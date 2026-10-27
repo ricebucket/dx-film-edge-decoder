@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Compile the CSV files in data/ into the lookup tables the web app loads: one file
-// per dataset, because the two have different licences (see REUSE.toml). The
+// per dataset, because the two have different licenses (see REUSE.toml). The
 // output is deterministic, so `npm test` can check it is current.
 //
 //   node scripts/build-data.mjs           # write site/js/dx-data*.js

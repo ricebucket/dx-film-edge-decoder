@@ -7,7 +7,7 @@
 `REUSE.toml` 以 [REUSE](https://reuse.software/) 格式记录了每个文件的版权和许可证，`LICENSES/` 存放各许可证的全文。每个文件只有一种许可证。
 
 - **代码、测试、脚本、样式、网站图标、界面译文、文档中的图示和截图，以及这些研究笔记的中英文版本**是为本项目编写的，采用 GNU General Public License v3.0 许可证（见 `LICENSE`）。图示由 `scripts/make-figures.mjs` 绘制，截图由 `scripts/screenshots.mjs` 生成。显示了 The Big Film Database 条目的截图（`.github/screenshot*.png` 和 `research/img/community-result*.png`）则采用 CC BY-SA 4.0 许可证。
-- **`data/i3a-2008/`** 存放 I3A 列表 *DX Codes for 135-Size Film*（2008 年 2 月）中事实内容的转录：Part 1（第一部分）的分配，以及与公布内容一致的 DX 编号和产品名称。它是用 `scripts/extract-i3a-pdf.py` 生成的，采用 GNU General Public License v3.0 许可证。I3A 文件的文本中没有版权声明或许可条款。
+- **`data/i3a-2008/`** 存放 I3A 列表 *DX Codes for 135-Size Film*（2008 年 2 月）中事实内容的转录：Part 1（第一部分）的分配，以及与公布内容一致的 DX 编号和型号名称。它是用 `scripts/extract-i3a-pdf.py` 生成的，采用 GNU General Public License v3.0 许可证。I3A 文件的文本中没有版权声明或许可条款。
 - **`data/big-film-database/`** 存放 The Big Film Database 的一个改编子集，采用 CC BY-SA 4.0 许可证；其署名和修改清单见 [data/README.md](../data/README.zh-CN.md)。
 - **`site/js/dx-data.js`** 和 **`site/js/dx-data-community.js`** 由 `scripts/build-data.mjs` 根据 `data/` 生成，每个数据集一个文件。前者存放 I3A 数据表，采用 GNU General Public License v3.0 许可证；后者存放 The Big Film Database 的子集，文件头带有它的署名，采用 CC BY-SA 4.0 许可证。
 - **`tests/unit/zint-vectors.mjs`** 存放 11 个位串，取自 Zint 条码库针对该格式的测试文件（`backend/tests/test_dxfilmedge.c`，版权 2024–2025 Antoine Mérino），并附有该版权声明，采用 BSD-3-Clause 许可证。使用这些位串的测试在 `tests/unit/codec.test.mjs` 中。

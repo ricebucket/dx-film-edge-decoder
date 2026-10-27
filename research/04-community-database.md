@@ -32,7 +32,7 @@ and `Ava` (availability), comes from the site's own PHP code.
 
 ## Snapshot used
 
-Commit `9aa3890` of the database's GitHub repository (10 October 2026): 8,710
+Commit `9aa3890` of the database's GitHub repository (October 10, 2026): 8,710
 rows, of which 1,676 carry a DX number (1,674 with a DX extract, 2 with only a
 cassette number, whose middle digits give the extract).
 `npm run stats:community-data` prints these figures and those in the next
@@ -76,7 +76,7 @@ Spot checks of codes beyond the 2008 list:
 
 ## How the tool presents it
 
-- The registry and the community database are always labelled separately
+- The registry and the community database are always labeled separately
   ("I3A registry, 2008" and "The Big Film Database").
 - The title of a result comes from the registry when possible; the community
   name is used only when the registry has no entry, and the page then says so.

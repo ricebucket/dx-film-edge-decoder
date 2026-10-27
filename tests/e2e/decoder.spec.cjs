@@ -175,7 +175,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
     await expect(page).toHaveURL(/\?dx=79-7$/);
   });
 
-  test('a 7-bar code copied into the 11-bar strip is recognised', async ({ page }) => {
+  test('a 7-bar code copied into the 11-bar strip is recognized', async ({ page }) => {
     await page.goto('/');
     // What a user sees on old film, entered cell by cell into the default strip.
     await setCells(page, VR200_SHORT + '0000' + '0101');
@@ -244,4 +244,42 @@ test('a reload straight after quick edits keeps the latest code', async ({ page 
   await page.reload();
   await expect(page).toHaveURL(/\?dx=127-15\/23$/);
   await expect(dataCell(page, 9)).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('empty cells that can be clicked show a faint +, which a bar replaces', async ({ page }) => {
+  await page.goto('/');
+  const plus = (n) => dataCell(page, n).evaluate((el) => getComputedStyle(el, '::after').backgroundImage);
+  expect(await plus(7)).toContain('linear-gradient');
+  expect(await plus(1)).toBe('none'); // the start pattern is the same on every film
+  expect(await plus(14)).toBe('none'); // an unused cell: it should stay empty
+  await dataCell(page, 7).click();
+  await expect(dataCell(page, 7)).toHaveAttribute('aria-pressed', 'true');
+  expect(await plus(7)).toBe('none');
+});
+
+test('a finger on a cell shows what lifting it will do, unless it scrolls', async ({ page }) => {
+  await page.goto('/');
+  const cell = dataCell(page, 8);
+  await cell.scrollIntoViewIfNeeded();
+  // Playwright cannot hold a touch down, so the pointer events are sent directly.
+  const touch = (type, dx = 0) => cell.evaluate((el, [type, dx]) => {
+    const r = el.getBoundingClientRect();
+    el.dispatchEvent(new PointerEvent(type, {
+      pointerId: 7, pointerType: 'touch', isPrimary: true, bubbles: true,
+      clientX: r.x + r.width / 2 + dx, clientY: r.y + r.height / 2,
+    }));
+  }, [type, dx]);
+  await touch('pointerdown');
+  await expect(cell).toHaveClass(/\bis-pressing\b/);
+  await expect(cell).toHaveAttribute('aria-pressed', 'false');
+  // The finger moves: it is scrolling the strip, so nothing changes.
+  await touch('pointermove', 30);
+  await expect(cell).not.toHaveClass(/\bis-pressing\b/);
+  await touch('pointercancel', 30);
+  await expect(cell).toHaveAttribute('aria-pressed', 'false');
+  // A tap that lifts in place adds the bar.
+  await touch('pointerdown');
+  await touch('pointerup');
+  await expect(cell).not.toHaveClass(/\bis-pressing\b/);
+  await expect(cell).toHaveAttribute('aria-pressed', 'true');
 });

@@ -112,7 +112,7 @@
                 <span class="visually-hidden" data-i18n>What does the film look option do?</span>?
               </button>
               <div class="segmented" data-control="look">
-                <button type="button" data-value="negative" aria-pressed="true" data-i18n>Colour neg.</button>
+                <button type="button" data-value="negative" aria-pressed="true" data-i18n>Color neg.</button>
                 <button type="button" data-value="bw" aria-pressed="false" data-i18n>B&amp;W neg.</button>
                 <button type="button" data-value="slide" aria-pressed="false" data-i18n>Slide</button>
               </div>
@@ -130,7 +130,7 @@
             <p data-i18n>Count the thin bars in the <strong>top</strong> row between the wide mark at the start and the shorter wide mark at the end. <strong>11 thin bars</strong>: the 31-cell layout with a frame number, introduced around 1990. <strong>7 thin bars</strong>: the original 23-cell layout from 1983, still used on some film in the 1990s; it identifies the film but carries no frame number.</p>
           </div>
           <div class="help-panel" id="look-help" hidden>
-            <p data-i18n>This only changes how the strip is drawn, so it is easier to compare with your film. On colour and black-and-white negatives the bars are dark. On slide film the edge is black and the bars are clear, because reversal processing turns exposed areas clear: treat the clear marks as bars.</p>
+            <p data-i18n>This only changes how the strip is drawn, so it is easier to compare with your film. On color and black-and-white negatives the bars are dark. On slide film the edge is black and the bars are clear, because reversal processing turns exposed areas clear: treat the clear marks as bars.</p>
           </div>
 
           <div class="strip-host" id="strip"></div>
@@ -163,7 +163,7 @@
       <div class="wrap">
         <h2 id="how-title" data-i18n>How the DX edge code works</h2>
         <div class="prose">
-          <p data-i18n>Kodak introduced DX encoding in 1983. Besides the checkerboard contacts and barcode on the cassette, every roll carries a <em>latent image</em> barcode exposed along one edge of the film during manufacture. It stays invisible until development, and photofinishing machines read it to recognise the film and, later, to number the frames.</p>
+          <p data-i18n>Kodak introduced DX encoding in 1983. Besides the checkerboard contacts and barcode on the cassette, every roll carries a <em>latent image</em> barcode exposed along one edge of the film during manufacture. It stays invisible until development, and photofinishing machines read it to recognize the film and, later, to number the frames.</p>
 
           <h3 data-i18n>Two tracks</h3>
           <p data-i18n>The code has two rows that touch. The <strong>clock track</strong> on top, nearest the sprocket holes, is the same on every film: a wide mark, a run of thin bars and a shorter wide mark. Machines use it to find each cell. The <strong>data track</strong> below, along the film edge, holds the information: every cell is either a bar (1) or a gap (0).</p>
@@ -213,7 +213,7 @@
           <p data-i18n>The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When your copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.</p>
 
           <h3 data-i18n>Reading direction and film type</h3>
-          <p data-i18n>Read the code with the wide clock mark first. When the film is the right way round, usually with its shiny base side towards you, the printed numbers beside the barcode read normally and the wide mark is on the left. Seen from the other side, everything is mirrored. On slide film the edge is black and the bars show as clear marks. Faded or scratched codes are common; since the code repeats every half frame, check the next one along if a bar is unclear.</p>
+          <p data-i18n>Read the code with the wide clock mark first. When the film is the right way round, usually with its shiny base side toward you, the printed numbers beside the barcode read normally and the wide mark is on the left. Seen from the other side, everything is mirrored. On slide film the edge is black and the bars show as clear marks. Faded or scratched codes are common; since the code repeats every half frame, check the next one along if a bar is unclear.</p>
 
           <h3 data-i18n>What the code cannot tell you</h3>
           <p data-i18n>The DX number names a product. It does not encode the film speed or development process directly; those follow from the product, and the cassette’s contacts carry the speed for cameras. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.</p>
@@ -235,7 +235,7 @@
         <h3 data-i18n>Barcode format</h3>
         <ul class="sources">
           <li data-i18n>Olliver, Johnson &amp; Patton (Eastman Kodak), <a href="https://patents.google.com/patent/US4965628A/en">US patent 4,965,628</a>, “Photographic film with latent image multi-field bar code and eye-readable symbols”, 1990.</li>
-          <li data-i18n>ISO 1007, <cite>Photography — 135-size film and magazine — Specifications</cite>, section 6, as summarised in Wikipedia’s <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> and <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> articles.</li>
+          <li data-i18n>ISO 1007, <cite>Photography — 135-size film and magazine — Specifications</cite>, section 6, as summarized in Wikipedia’s <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> and <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> articles.</li>
           <li data-i18n>Fuji Photo Film, <a href="https://patents.google.com/patent/US5122645A/en">US patent 5,122,645</a>, describing the original layout with seven clock bars.</li>
           <li data-i18n>The DX Film Edge reader in <a href="https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp">zxing-cpp</a> and the generator in <a href="https://github.com/zint/zint/blob/master/backend/dxfilmedge.c">Zint</a> by Antoine Mérino, used to cross-check every rule on this page; Zint’s test vectors are part of this project’s tests.</li>
           <li data-i18n>Antoine Mérino, <a href="https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/">Identifying the manufacturer of your 35mm (and APS) films</a>, 2024.</li>

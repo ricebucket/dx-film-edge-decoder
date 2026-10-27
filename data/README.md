@@ -3,7 +3,7 @@
 The film tables behind the decoder, compiled into the two files the web page
 loads: `site/js/dx-data.js` from the I3A list and `site/js/dx-data-community.js`
 from The Big Film Database. They are separate because the two datasets have
-different licences.
+different licenses.
 
 | Command | What it does |
 |---|---|

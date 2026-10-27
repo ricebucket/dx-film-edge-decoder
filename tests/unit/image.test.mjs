@@ -33,7 +33,7 @@ describe('clock-track matching', () => {
 
 describe('reading synthetic film edges', () => {
   const cases = [
-    ['colour negative', { part1: 79, part2: 15, frame: 23 }, { look: 'negative' }],
+    ['color negative', { part1: 79, part2: 15, frame: 23 }, { look: 'negative' }],
     ['slide film (clear bars on black)', { part1: 32, part2: 6, frame: 5, half: true }, { look: 'slide' }],
     ['B&W, seen from the back (mirrored)', { part1: 109, part2: 9, frame: 12, mirrored: true }, { look: 'bw' }],
     ['upside down', { part1: 47, part2: 1, frame: 22, half: true, upsideDown: true }, { look: 'negative' }],

@@ -33,7 +33,7 @@ test('choosing Chinese translates the page, keeps the code and is remembered', a
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
   await expect(page.locator('#result .status')).toHaveText('有效的 DX 编码');
   await expect(page.locator('#hint')).toHaveText('有效编码。在你的胶片上，紧挨在这个条码前面的数字应为 23。');
-  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 格（共 31 格）：Part 1，值 64');
+  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：Part 1，对应数字 64');
   await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^切换到/);
 
   await page.goto('/');

@@ -118,7 +118,7 @@
       };
     }
 
-    // Search index: one normalised haystack per entry.
+    // Search index: one normalized haystack per entry.
     const haystacks = [
       ...products.map((p) => ({
         entry: p,
