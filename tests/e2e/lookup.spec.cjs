@@ -90,6 +90,28 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
   await expect(page.locator('#result-title')).toHaveText('FP4 PLUS');
 });
 
+test('community matches link once to their DX number on The Big Film Database', async ({ page }) => {
+  const SEARCH = 'https://thebigfilmdatabase.merinorus.com/search?dx_number=';
+  const links = (scope) => scope.getByRole('link', { name: /on The Big Film Database$/ });
+  // One link for all the films listed with the decoded number...
+  await page.goto('/?dx=96-12/14A');
+  const result = links(page.locator('#result'));
+  await expect(result).toHaveText('Look up DX 96-12 on The Big Film Database');
+  await expect(result).toHaveAttribute('href', `${SEARCH}96-12`);
+  // ...and for those of a cassette number.
+  await page.locator('#cassette-code').fill('017563');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(links(page.locator('.cassette__result'))).toHaveAttribute('href', `${SEARCH}109-12`);
+  // Search results lead to the decoder and its link; they have none of their own.
+  await page.locator('#finder-q').fill('kentmere');
+  await expect(page.locator('.finder__item').first()).toBeVisible();
+  await expect(page.locator('#finder-ui').getByRole('link')).toHaveCount(0);
+  // No community matches, no link.
+  await page.goto('/?dx=88-1/1');
+  await expect(page.locator('#result-title')).toHaveText('SHENGUANG / SHANGHAI / SEAGULL / RAINBOW');
+  await expect(links(page.locator('#result'))).toHaveCount(0);
+});
+
 test('cassette input is validated', async ({ page }) => {
   await page.locator('#cassette-code').fill('12');
   await page.getByRole('button', { name: 'Look up' }).click();
@@ -110,4 +132,44 @@ test('the code list filters by Part 1 number', async ({ page }) => {
   await page.locator('#ref-status').selectOption('live');
   await expect(rows.first()).toBeVisible();
   expect(await rows.count()).toBeLessThan(386);
+});
+
+test('a shown code says where it came from, with a way back there', async ({ page }) => {
+  const bar = page.locator('#source');
+  await page.goto('/');
+  await expect(bar).toBeHidden();
+  await page.locator('.examples .chip').first().click();
+  await expect(bar).toHaveText('Example: Kodak BW400CN, frame 23');
+
+  await page.locator('#finder-q').fill('hp5 plus');
+  await page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode/ }).click();
+  await expect(bar).toContainText('From Find a film: HP5 PLUS, frame 1');
+  await bar.getByRole('button', { name: 'Back to the search' }).click();
+  await expect(page.locator('#finder-q')).toBeFocused();
+
+  await page.locator('#cassette-code').fill('017563');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await page.getByRole('button', { name: 'Show the edge barcode' }).click();
+  await expect(bar).toContainText('From a cassette number: 017563, frame 1');
+  await bar.getByRole('button', { name: 'Back to the cassette number' }).click();
+  await expect(page.locator('#cassette-code')).toBeFocused();
+
+  await page.locator('#reference-ui button.tool--small:not([disabled])').first().click();
+  await expect(bar).toContainText('From the code list:');
+  await bar.getByRole('button', { name: 'Back to the code list' }).click();
+  await expect(page.locator('#codes-title')).toBeFocused();
+
+  // Edits are marked; × hides the bar and keeps the code; Clear takes it away too.
+  await page.locator('#strip .track--data [data-cell="8"]').click();
+  await expect(bar).toContainText('edited since');
+  const code = page.url();
+  await bar.getByRole('button', { name: 'Hide where this code came from' }).click();
+  await expect(bar).toBeHidden();
+  expect(page.url()).toBe(code);
+  await page.goto('/?dx=79-15/23');
+  await expect(bar).toBeHidden(); // a shared link has no bar
+  await page.locator('#finder-q').fill('hp5 plus');
+  await page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode/ }).click();
+  await page.locator('#clear').click();
+  await expect(bar).toBeHidden();
 });

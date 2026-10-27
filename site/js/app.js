@@ -81,8 +81,10 @@
     return `?bits=${state.cells}`;
   }
 
+  /** What "Copy link" copies: the code, and the language it is shown in. */
   function shareUrl(decoded) {
-    return location.href.split(/[?#]/)[0] + stateQuery(decoded);
+    const query = stateQuery(decoded);
+    return `${location.href.split(/[?#]/)[0]}${query ? `${query}&` : '?'}lang=${encodeURIComponent(i18n.current)}`;
   }
 
   // The URL follows every edit at once, so a reload or bookmark gets the latest
@@ -177,7 +179,9 @@
 
   function update(options) {
     const decoded = codec.decode(state.cells, state.format);
-    strip.render(Object.assign({}, state, { decoded }));
+    // A photo's barcode lines up over the strip only in the layout it was read in.
+    const lined = origin && origin.lined && origin.format === state.format ? origin.lined : null;
+    strip.render(Object.assign({}, state, { decoded, photo: lined }));
     if (options && options.develop) strip.develop();
     setPressed(document.querySelector('[data-control="format"]'), state.format);
     setPressed(document.querySelector('[data-control="look"]'), state.look);
@@ -186,12 +190,14 @@
     $('undo').setAttribute('aria-disabled', String(past.length === 0));
     $('redo').setAttribute('aria-disabled', String(future.length === 0));
     $('hint').textContent = hint(decoded);
+    renderSource();
     ui.renderResult($('result'), {
       decoded,
       lookup,
       examples: EXAMPLES,
       shareUrl: shareUrl(decoded),
-      onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long' }),
+      way,
+      onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label } }),
       onApplyCells(cells) {
         record();
         state.cells = cells;
@@ -216,6 +222,7 @@
       state.look = options.look;
       savePrefs();
     }
+    setOrigin(options && options.origin);
     update({ develop: true });
     if (!options || options.scroll !== false) {
       $('lighttable').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
@@ -250,6 +257,7 @@
     $('clear').addEventListener('click', () => {
       if (state.cells === emptyCells(state.format)) return;
       record();
+      origin = null;
       state.cells = emptyCells(state.format);
       update();
     });
@@ -270,6 +278,126 @@
       const key = e.key.toLowerCase();
       if (key === 'z' && !e.shiftKey) { e.preventDefault(); restore(past, future); }
       else if ((key === 'z' && e.shiftKey) || key === 'y') { e.preventDefault(); restore(future, past); }
+    });
+  }
+
+  // ---- two ways in: copy the bars, or read a photo ----------------------------------------
+
+  let photo = null; // the photo reader (ui-photo.js), created in start()
+  let way = 'copy';
+  let ready = false; // set once start() has drawn the page
+
+  /** Show the steps for copying by hand, or the photo reader, above the strip. */
+  function setWay(next, options) {
+    way = next;
+    for (const tab of document.querySelectorAll('.ways [role="tab"]')) {
+      const on = tab.id === `tab-${way}`;
+      tab.setAttribute('aria-selected', String(on));
+      tab.tabIndex = on ? 0 : -1;
+    }
+    $('way-copy').hidden = way !== 'copy';
+    if (way === 'photo') photo.open(options);
+    else photo.close();
+    if (ready) update(); // the empty result's heading follows the way in
+  }
+
+  function bindWays() {
+    const tabs = [$('tab-copy'), $('tab-photo')];
+    $('tab-copy').prepend(DX.dom.icon('pencil'));
+    $('tab-photo').prepend(DX.dom.icon('photo'));
+    for (const tab of tabs) tab.addEventListener('click', () => setWay(tab.id.slice(4)));
+    // Arrow keys, Home and End move between the tabs and choose them.
+    $('tab-copy').parentElement.addEventListener('keydown', (e) => {
+      const i = tabs.indexOf(document.activeElement);
+      const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (i < 0 || next === undefined) return;
+      e.preventDefault();
+      const tab = tabs[(next + tabs.length) % tabs.length];
+      tab.focus();
+      setWay(tab.id.slice(4));
+    });
+  }
+
+  // ---- where the code came from ----------------------------------------------------------
+
+  // The bar above the strip says where its code came from (ui-source.js):
+  // { kind, label, use, format, cells }, plus a photo's thumbnail and its
+  // barcode lined up for the strip; null for a code copied by hand.
+  let origin = null;
+  let originUses = 0;
+  let sourceShown = '';
+
+  /** Note where the code now on the strip came from: { kind, name } or { kind, label }, or nothing. */
+  function setOrigin(from) {
+    if (!from) {
+      origin = null;
+      return;
+    }
+    const d = codec.decode(state.cells, state.format);
+    const label = from.label || (d.frame === null ? from.name : t('{name}, frame {frame}', { name: from.name, frame: d.frameLabel }));
+    origin = Object.assign({}, from, { label, use: ++originUses, format: state.format, cells: state.cells });
+  }
+
+  /** "Back to …": the place the code came from, with focus where to carry on. */
+  function goBack(kind) {
+    if (kind === 'photo') {
+      setWay('photo', { focus: true });
+      return;
+    }
+    const target = $({ finder: 'finder-q', cassette: 'cassette-code', list: 'codes-title' }[kind]);
+    if (target.tagName !== 'INPUT') target.tabIndex = -1; // the code list's heading
+    target.closest('section').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+    target.focus({ preventScroll: true });
+  }
+
+  function renderSource() {
+    const edited = Boolean(origin) && (origin.format !== state.format || origin.cells !== state.cells);
+    const key = origin ? `${origin.use}:${edited}` : '';
+    if (key === sourceShown) return;
+    sourceShown = key;
+    const kind = origin && origin.kind;
+    ui.renderSource($('source'), origin, {
+      edited,
+      onBack: () => goBack(kind),
+      onRemove() {
+        if (kind === 'photo') photo.reset();
+        origin = null;
+        update();
+        $(`tab-${way}`).focus();
+      },
+    });
+  }
+
+  // ---- phones: a shorter top of the page ------------------------------------------------
+
+  /**
+   * On phones the introduction folds away with the chevron by the title (kept
+   * for later visits; index.html applies it before first paint), and the
+   * copying steps show their titles until "How to copy the bars" opens them.
+   */
+  function bindCompact() {
+    const toggle = $('intro-toggle');
+    const paint = () => {
+      const shown = document.documentElement.dataset.intro !== 'hidden';
+      toggle.setAttribute('aria-expanded', String(shown));
+      toggle.setAttribute('aria-label', shown ? t('Hide the introduction') : t('Show the introduction'));
+    };
+    toggle.append(DX.dom.icon('chevron'));
+    toggle.addEventListener('click', () => {
+      const hide = document.documentElement.dataset.intro !== 'hidden';
+      if (hide) document.documentElement.dataset.intro = 'hidden';
+      else delete document.documentElement.dataset.intro;
+      try { localStorage.setItem('dx-intro', hide ? 'hidden' : 'shown'); } catch (e) { /* ignore */ }
+      paint();
+    });
+    paint();
+
+    const more = $('steps-more');
+    more.append(DX.dom.icon('chevron'));
+    more.addEventListener('click', () => {
+      const open = more.getAttribute('aria-expanded') !== 'true';
+      more.setAttribute('aria-expanded', String(open));
+      $('way-copy').classList.toggle('is-open', open);
     });
   }
 
@@ -313,22 +441,23 @@
   // ---- start --------------------------------------------------------------------------------
 
   function start() {
-    i18n.translatePage(document);
+    i18n.applyLanguage(document);
     bindLanguage();
     loadPrefs();
     const fromUrl = codeFromUrl();
     if (fromUrl) Object.assign(state, fromUrl);
     bindToolbar();
     bindTheme();
+    bindCompact();
     // Leaving or hiding the page writes a pending URL change at once.
     addEventListener('pagehide', flushUrl);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') flushUrl();
     });
 
-    const photo = ui.createPhoto($('photo'), {
+    photo = ui.createPhoto($('photo'), {
       lookup,
-      onApply(cells, format, look) {
+      onApply(cells, format, look, shot) {
         record();
         state.format = format;
         state.cells = standardEnds(cells, format);
@@ -336,21 +465,20 @@
           state.look = look;
           savePrefs();
         }
-        photo.close();
+        setOrigin(Object.assign({ kind: 'photo' }, shot));
+        // The reader folds up; the bar above the strip keeps the photo in sight.
+        photo.fold();
         update({ develop: true });
         $('lighttable').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
-        // The panel that had focus is gone: continue at the result.
+        // The button that had focus is gone: continue at the result.
         $('result-title').focus({ preventScroll: true });
       },
-      onClose() {
-        photo.close();
-        $('photo-open').focus();
-      },
     });
-    $('photo-open').addEventListener('click', () => photo.open());
+    bindWays();
+    setWay('copy');
 
     // Every "Show" button asks for a frame, which only the 31-cell layout has.
-    const show = (code) => loadCode(code, { format: 'long' });
+    const show = (code, from) => loadCode(code, { format: 'long', origin: from });
     ui.createFinder($('finder-ui'), { lookup, onShow: show });
     ui.createCassette($('cassette-ui'), { lookup, onShow: show });
     ui.createReference($('reference-ui'), { lookup, onShow: show });
@@ -363,6 +491,7 @@
     });
 
     update({ develop: Boolean(fromUrl) });
+    ready = true;
   }
 
   start();

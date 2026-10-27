@@ -74,7 +74,7 @@
       const show = h('button', { type: 'button', class: 'tool tool--small', disabled: p.wildcard ? true : null,
         'aria-label': p.wildcard ? null : t('Show the barcode of {name}', { name: p.name }),
         title: p.wildcard ? t('Part 2 not identified in the registry') : null }, t('Show'));
-      if (!p.wildcard) show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }));
+      if (!p.wildcard) show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'list', name: p.name }));
       return h('tr', null,
         h('td', { class: 'num' }, dx),
         h('td', null, p.name),

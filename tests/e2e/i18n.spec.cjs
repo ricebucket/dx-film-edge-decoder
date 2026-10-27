@@ -20,9 +20,10 @@ test('the page starts in English, with every language in the menu', async ({ pag
   await expect(menu.locator('option[value="zh-CN"]')).toHaveAttribute('lang', 'zh-CN');
 });
 
-test('choosing Chinese translates the page, keeps the code and is remembered', async ({ page }) => {
+test('choosing Chinese shows the page in Chinese, keeps the code, and is remembered and named in the URL', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
   await chooseLanguage(page, '简体中文');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
   await expect(page).toHaveTitle('DX 片边码解码器');
@@ -43,6 +44,7 @@ test('choosing Chinese translates the page, keeps the code and is remembered', a
   await chooseLanguage(page, 'English');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  await expect(page).toHaveURL(/\?lang=en$/);
 });
 
 test('the language can be switched where the browser blocks storage', async ({ page }) => {
@@ -59,6 +61,7 @@ test('the language can be switched where the browser blocks storage', async ({ p
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await chooseLanguage(page, 'English');
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=en$/);
 });
 
 test('a language in the URL that the page does not have is ignored', async ({ page }) => {
@@ -66,6 +69,39 @@ test('a language in the URL that the page does not have is ignored', async ({ pa
   await page.goto('/?dx=79-15/23&lang=fr');
   await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
   await expect(page).toHaveURL(/\?dx=79-15\/23$/);
+});
+
+test('Copy link copies the code and the language it is shown in', async ({ page, baseURL }) => {
+  await page.addInitScript(() => {
+    window.copied = [];
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text) => { window.copied.push(text); } } });
+  });
+  await page.goto('/?dx=96-12/14A');
+  await page.getByRole('button', { name: 'Copy link' }).click();
+  await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
+  expect(await page.evaluate(() => window.copied)).toEqual([`${baseURL}/?dx=96-12/14A&lang=en`]);
+  await chooseLanguage(page, '简体中文');
+  await page.getByRole('button', { name: '复制链接' }).click();
+  await expect(page.getByRole('button', { name: '链接已复制' })).toBeVisible();
+  expect(await page.evaluate(() => window.copied)).toEqual([`${baseURL}/?dx=96-12/14A&lang=zh-CN`]);
+});
+
+test('a link can name the language: it stays in the URL as the code changes, without replacing the saved choice', async ({ page }) => {
+  await page.goto('/?dx=79-15/23&lang=zh-cn');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
+  await page.locator('#strip .track--data [data-cell="8"]').click();
+  await expect(page).toHaveURL(/\?bits=[01]+&lang=zh-CN$/);
+  // Nothing saved yet: without ?lang= the page is in English.
+  await page.goto('/');
+  await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  // Chinese saved from the menu; a link asking for English still gets English.
+  await chooseLanguage(page, '简体中文');
+  await page.goto('/?lang=en');
+  await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  await expect(page.getByLabel('Language')).toHaveValue('en');
+  await page.goto('/');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
 });
 
 test('in Chinese, searches, the cassette helper and the photo reader speak Chinese', async ({ page }) => {
@@ -79,13 +115,13 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   await page.getByRole('button', { name: '查询' }).click();
   await expect(page.locator('.cassette__result')).toContainText('24 张');
 
-  await page.getByRole('button', { name: '从照片读取' }).click();
+  await page.getByRole('tab', { name: '读取照片' }).click();
   await page.getByRole('button', { name: '试用示例' }).click();
   await expect(page.locator('.photo__found')).toContainText('DX 96-12，第 14A 帧');
   await expect(page.locator('.photo__found')).toContainText('：KODAK GOLD 200 Film');
 });
 
-test('every marked part of the page has a translation, exactly as the browser reads it', async ({ page }) => {
+test('every marked part of the page has its text in every language, exactly as the browser reads it', async ({ page }) => {
   await page.goto('/');
   const missing = await page.evaluate(() => {
     const { i18n } = window.DX;

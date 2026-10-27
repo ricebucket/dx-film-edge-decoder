@@ -319,7 +319,7 @@ select {
 
 /* ---- language menu ------------------------------------------------------------- */
 
-/* Set by the inline script in index.html until js/i18n.js has translated the page. */
+/* Set by the inline script in index.html until js/i18n.js has put in the chosen language's text. */
 html[data-i18n-pending] body {
   visibility: hidden;
 }
@@ -422,6 +422,29 @@ h1 {
   max-width: 44rem;
 }
 
+.intro__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Phones only (see the 600 px rules): fold the introduction away, open the steps. */
+.intro__toggle,
+.steps__more {
+  display: none;
+}
+
+.intro__toggle .icon,
+.steps__more .icon {
+  transition: transform 0.15s;
+}
+
+.intro__toggle[aria-expanded="true"] .icon,
+.steps__more[aria-expanded="true"] .icon {
+  transform: rotate(180deg);
+}
+
 .steps {
   list-style: none;
   counter-reset: step;
@@ -451,6 +474,45 @@ h1 {
   border: 1.5px solid var(--film-base);
   color: var(--ink);
   font: 700 0.95rem/1 var(--font-edge);
+}
+
+/* The two ways in: copy the bars by hand, or read a photo. */
+.ways {
+  display: inline-flex;
+  gap: 4px;
+  max-width: 100%;
+  margin-top: 30px;
+  padding: 4px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.ways__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 20px 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ways__tab[aria-selected="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+@media (hover: hover) {
+  .ways__tab[aria-selected="false"]:hover {
+    color: var(--ink);
+  }
 }
 
 .steps__title {
@@ -550,6 +612,12 @@ h1 {
 .segmented button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--bg);
+}
+
+/* The chosen film look shows its full name, the others a short one. */
+.segmented button[aria-pressed="true"] .when-off,
+.segmented button[aria-pressed="false"] .when-on {
+  display: none;
 }
 
 .help-dot {
@@ -731,6 +799,36 @@ h1 {
 .strip__canvas {
   width: max-content;
   margin-inline: auto;
+}
+
+/* A photo's barcode, stretched so each cell sits over the strip's matching
+   cell: the label in the edge-label column, the image across the code. */
+.strip__photo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.strip__photo-label {
+  flex: none;
+  box-sizing: border-box;
+  width: var(--label-w);
+  padding-right: 10px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+.strip__photo canvas {
+  display: block;
+  width: var(--code-w);
+  height: calc(var(--row) * 1.25);
+  border-radius: 3px;
+}
+
+.strip.is-mirrored .strip__photo canvas {
+  transform: scaleX(-1);
 }
 
 .film {
@@ -1033,8 +1131,8 @@ h1 {
 /* ---- photo reader ------------------------------------------------------------------------ */
 
 .photo {
-  margin-top: 22px;
-  padding: 18px 20px 20px;
+  margin: 30px 0 24px;
+  padding: 20px 22px;
   border: 1px solid var(--rule);
   border-radius: 12px;
   background: var(--surface);
@@ -1045,34 +1143,96 @@ h1 {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.photo__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.photo__head h2 {
-  font-size: 1.25rem;
-}
-
-.photo__drop {
+/* The reader's three steps, one under the other and joined by a line: the
+   next one to do is filled in, finished ones are ticked. */
+.photo__steps {
+  list-style: none;
+  counter-reset: step;
+  margin: 0;
+  padding: 0;
   display: grid;
-  gap: 8px;
-  place-items: center;
-  text-align: center;
-  padding: 28px 16px;
-  border: 1.5px dashed var(--rule-strong);
-  border-radius: var(--radius);
+  gap: 20px;
 }
 
-.photo__drop p:first-child {
+.photo__step {
+  counter-increment: step;
+  position: relative;
+  min-width: 0;
+  padding-left: 44px;
+}
+
+.photo__step::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -2px;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--film-base);
+  background: var(--surface);
+  color: var(--ink);
+  font: 700 0.95rem/1 var(--font-edge);
+}
+
+.photo__step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 30px;
+  bottom: -20px;
+  width: 1.5px;
+  background: var(--rule-strong);
+}
+
+.photo__step[aria-current="step"]::before {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.photo__step.is-done::before {
+  content: "✓";
+}
+
+/* Once the code is used: the steps in a row, all ticked, and a way back. */
+.photo.is-folded .photo__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+}
+
+.photo.is-folded .photo__step > :not(.steps__title),
+.photo.is-folded .photo__step::after {
+  display: none;
+}
+
+.photo.is-folded .photo__step > .steps__title {
+  margin: 4px 0 0;
+}
+
+.photo__folded {
+  display: none;
+  margin: 14px 0 0;
+  color: var(--ink-2);
+}
+
+.photo.is-folded .photo__folded {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  gap: 8px 12px;
+}
+
+.photo__drop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  margin: 8px 0 6px;
 }
 
 .photo__controls {
@@ -1099,7 +1259,7 @@ h1 {
 }
 
 .photo__tip {
-  margin: 10px 0;
+  margin: 4px 0 10px;
 }
 
 .photo__source {
@@ -1109,6 +1269,7 @@ h1 {
 }
 
 .photo__stage {
+  margin-top: 12px;
   display: grid;
   place-items: center;
   padding: 10px;
@@ -1124,8 +1285,68 @@ h1 {
   touch-action: none;
 }
 
+/* The one link from community matches to their DX number on The Big Film Database's site. */
+.source-block__link {
+  margin: 8px 0 6px;
+  font-size: 0.9rem;
+}
+
 .photo__result {
-  margin-top: 12px;
+  margin-top: 6px;
+}
+
+/* While the strip shows a code read from a photo: the photo and its barcode. */
+.source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.source > canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.source__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-2);
+}
+
+.source__text {
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: 0.93rem;
+}
+
+.source__edited {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--rule);
+  color: var(--ink-2);
+  font-size: 0.82rem;
+}
+
+.source__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .photo__found {
@@ -1949,6 +2170,51 @@ thead th {
     padding-block: 28px 44px;
   }
 
+  /* A shorter top of the page: the introduction can be folded away (kept
+     for later visits), and the copying steps show their titles until opened. */
+  .lead {
+    font-size: 1rem;
+  }
+
+  .intro__toggle {
+    display: inline-grid;
+    flex: none;
+    margin-top: 4px;
+  }
+
+  [data-intro="hidden"] #intro-lead {
+    display: none;
+  }
+
+  .steps {
+    margin: 18px 0 8px;
+    gap: 10px;
+  }
+
+  #way-copy:not(.is-open) .steps li p {
+    display: none;
+  }
+
+  .steps__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 18px;
+  }
+
+  /* The two ways in share the width. */
+  .ways {
+    display: flex;
+    margin-top: 18px;
+  }
+
+  .ways__tab {
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 2px;
+    padding: 7px 10px;
+  }
+
   .lighttable,
   .photo {
     padding-inline: 12px;
@@ -1992,6 +2258,8 @@ thead th {
 
 @media print {
   .site-header,
+  .ways,
+  .source__actions,
   .cell--edit::after,
   .toolbar,
   .photo,

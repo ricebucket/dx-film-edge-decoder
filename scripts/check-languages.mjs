@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// Check the interface translations in site/js/i18n/ against the English text
+// Check the interface languages in site/js/i18n/ against the English text
 // of the page: every t('…') and plural(…) call in site/js, every element of
 // site/index.html marked data-i18n and every attribute named in
 // data-i18n-attr.
 //
-//   node scripts/check-translations.mjs              # report on every language
-//   node scripts/check-translations.mjs --template   # print a dictionary of all English texts
+//   node scripts/check-languages.mjs              # report on every language
+//   node scripts/check-languages.mjs --template   # print a dictionary of all English texts
 //
-// For each language it lists texts without a translation, translations whose
-// English text is no longer used, and translations whose {placeholders} or
-// HTML tags differ from the English. The exit code is 1 if anything is wrong.
+// For each language it lists English texts it lacks, texts whose English is no
+// longer used, and texts whose {placeholders} or HTML tags differ from the
+// English. The exit code is 1 if anything is wrong.
 
 import { readFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -21,7 +21,7 @@ const SITE = join(ROOT, 'site');
 const require = createRequire(import.meta.url);
 const { normalize } = require('../site/js/i18n.js');
 
-// Files whose text is not interface text: the translation layer itself and the generated data.
+// Files whose text is not interface text: the language layer itself and the generated data.
 const SKIP = new Set(['i18n.js', 'dx-data.js', 'dx-data-community.js']);
 const PLURAL_FORMS = new Set(['zero', 'one', 'two', 'few', 'many', 'other']);
 const STRING = String.raw`'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|\`(?:[^\`\\$]|\\.)*\``;
@@ -56,7 +56,7 @@ export function scriptKeys(file, text) {
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
 const decode = (s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
 
-/** English texts of the elements and attributes that index.html marks for translation. */
+/** English texts of the elements and attributes that index.html marks for other languages. */
 export function pageKeys(file, html) {
   const keys = [];
   const stack = [];
@@ -127,7 +127,7 @@ export function checkLanguage(lang, used) {
     });
     if (typeof value !== 'string' && !('other' in value)) lines.push(`plural forms without "other" for ${JSON.stringify(key)}`);
     for (const v of forms) {
-      if (typeof v !== 'string' || !v.trim()) lines.push(`empty translation for ${JSON.stringify(key)}`);
+      if (typeof v !== 'string' || !v.trim()) lines.push(`empty text for ${JSON.stringify(key)}`);
       else {
         if (placeholders(v) !== placeholders(key)) lines.push(`placeholders differ: ${JSON.stringify(key)} → ${JSON.stringify(v)}`);
         if (used.get(key).html && tags(v) !== tags(key)) lines.push(`HTML tags differ: ${JSON.stringify(key)} → ${JSON.stringify(v)}`);
@@ -150,7 +150,7 @@ async function main() {
   for (const lang of await loadLanguages()) {
     const lines = checkLanguage(lang, used);
     failed = failed || lines.length > 0;
-    console.log(`${lang.file} (${lang.code}, ${lang.name}): ${lines.length ? `${lines.length} problems` : `all ${used.size} texts translated`}`);
+    console.log(`${lang.file} (${lang.code}, ${lang.name}): ${lines.length ? `${lines.length} problems` : `all ${used.size} texts present`}`);
     for (const l of lines) console.log(`  ${l}`);
   }
   process.exit(failed ? 1 : 0);

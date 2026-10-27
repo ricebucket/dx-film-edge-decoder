@@ -9,11 +9,11 @@ source consulted for the project.
 [REUSE](https://reuse.software/) format, and `LICENSES/` holds the license
 texts. Each file has a single license.
 
-- **Code, tests, scripts, styles, the favicon, the interface translations, the
-  diagrams and screenshots in the documentation, and these research notes in
-  English and Chinese** were written for this project and are licensed under the
-  GNU General Public License v3.0 (see `LICENSE`). The diagrams are drawn by
-  `scripts/make-figures.mjs` and the screenshots taken by
+- **Code, tests, scripts, styles, the favicon, the interface text in each
+  language, the diagrams and screenshots in the documentation, and these
+  research notes in English and Chinese** were written for this project and are
+  licensed under the GNU General Public License v3.0 (see `LICENSE`). The
+  diagrams are drawn by `scripts/make-figures.mjs` and the screenshots taken by
   `scripts/screenshots.mjs`. The screenshots that show entries from The Big
   Film Database (`.github/screenshot*.png` and
   `research/img/community-result*.png`) are licensed under CC BY-SA 4.0
@@ -65,7 +65,7 @@ texts. Each file has a single license.
 ### Film data and cassette codes
 
 - International Imaging Industry Association, *DX Codes for 135-Size Film*, February 2008 — PDF linked from Aurélien Lawley's article, <https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf> (archived copy: <https://web.archive.org/web/20221222115315/https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf>); also viewable at <https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association>
-- The Big Film Database (dxdatabase) by Dxdatabase — <https://github.com/dxdatabase/Open-source-film-database>, help page <https://industrieplus.net/dxdatabase/help.html>
+- The Big Film Database (dxdatabase) by Dxdatabase — <https://github.com/dxdatabase/Open-source-film-database>, website <https://industrieplus.net/dxdatabase/>, help page <https://industrieplus.net/dxdatabase/help.html>
 - The (Modified) Big Film Database by Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>
 - Patton, Travis & McPherson (Eastman Kodak), US patent 5,761,558, *Expanded film cartridge bar code*, 1998 — <https://patents.google.com/patent/US5761558A/en>
 

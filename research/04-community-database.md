@@ -15,8 +15,10 @@ the manufacturer behind a Part 1 number.
 
 The Big Film Database was started in February 2018 by its author, who
 publishes as "Dxdatabase", as a website. In 2024 the data was released on
-GitHub under CC BY-SA 4.0. Antoine Mérino maintains a modified edition with
-search by DX number and edge-barcode scanning. According to its help page, it was first compiled
+GitHub under CC BY-SA 4.0. The repository's README adds that the copyright of
+the film box images belongs to their respective owners and that the images are
+only available under "fair use". Antoine Mérino maintains a modified edition
+with search by DX number and edge-barcode scanning. According to its help page, it was first compiled
 from the I3A 2008 list and extended with DX codes for 2011–2014 obtained from
 IS&T, Kodak's film chronology, Tom Philo's Kodak film-number cross-reference,
 a Flickr thread on DX numbers, Wikipedia's film lists, collectors and
@@ -83,6 +85,11 @@ Spot checks of codes beyond the 2008 list:
 - The manufacturer of a Part 1 number always comes from the registry.
 - A note under community matches explains that the data is community-maintained,
   mostly cassette-based and includes rebrands.
+- Where the community database lists films for a DX number, the result and
+  the cassette helper show one link to that number on Antoine Mérino's edition
+  of the database (for DX 96-12,
+  `https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12`). The
+  database's box images are not copied into this project.
 
 The database's website also guesses a maker and film type from ranges of the
 DX extract (the ranges are listed in its repository as

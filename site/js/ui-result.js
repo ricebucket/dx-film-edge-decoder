@@ -53,6 +53,19 @@
     return s.aka ? `${s.name} (${s.aka})` : s.name;
   }
 
+  // Antoine Mérino's edition of The Big Film Database looks up a DX number on
+  // its site. Community matches link there once for their number, not once
+  // per film. (The database's box pictures are not ours to copy: research/04.)
+  const BFD_SEARCH = 'https://thebigfilmdatabase.merinorus.com/search?dx_number=';
+
+  /** A link to this DX number on The Big Film Database's site; null for Part 1 = 0, which film never uses. */
+  function bfdLink(part1, part2) {
+    if (!(part1 > 0)) return null;
+    const dx = `${part1}-${part2}`;
+    return h('p', { class: 'source-block__link' },
+      h('a', { href: BFD_SEARCH + dx }, t('Look up DX {dx} on The Big Film Database', { dx })));
+  }
+
   function communityItem(e) {
     const p = i18n.punctuation();
     const facts = [];
@@ -79,7 +92,7 @@
       p.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null);
   }
 
-  function communityBlock(entries, title) {
+  function communityBlock(entries, title, d) {
     const groups = groupCommunity(entries);
     if (!groups.length) return null;
     const list = h('ul', { class: 'matches' }, groups.slice(0, COMMUNITY_PREVIEW).map(communityItem));
@@ -95,6 +108,8 @@
       });
       block.append(more);
     }
+    const link = bfdLink(d.part1, d.part2);
+    if (link) block.append(link);
     block.append(h('p', { class: 'fineprint' },
       t('Community-maintained and mostly based on cassette numbers, so it includes rebranded films. Entries are as reliable as their sources.')));
     return block;
@@ -163,17 +178,6 @@
     return d.frame === null ? d.dxNumber : `${d.dxNumber}/${d.frameLabel}`;
   }
 
-  function summaryText(d, info, url) {
-    const name = info.products.length ? info.products[0].name : info.community.length ? info.community[0].name : t('unlisted film');
-    const maker = info.part1Info.sensitizer ? ` (${info.part1Info.sensitizer.name})` : '';
-    const params = { dx: d.dxNumber, frame: d.frameLabel, name, maker, bits: d.bits, url };
-    return [
-      d.frame === null ? t('DX {dx}: {name}{maker}', params) : t('DX {dx}, frame {frame}: {name}{maker}', params),
-      d.valid ? t('Data track: {bits} (valid)', params) : t('Data track: {bits} (has problems)', params),
-      url ? t('Decoded with DX Film Edge Decoder: {url}', params) : '',
-    ].filter(Boolean).join('\n');
-  }
-
   async function copyText(text, button, done) {
     // Remember the label once, so quick repeated clicks don't keep "Copied" for good.
     if (!button.dataset.label) button.dataset.label = button.textContent;
@@ -190,7 +194,8 @@
   function emptyState(ctx) {
     return [
       h('div', { class: 'status status--idle' }, icon('info'), h('span', null, t('Waiting for bars'))),
-      h('h2', { id: 'result-title', class: 'result__title', tabindex: '-1' }, t('Copy the lower row of your barcode')),
+      h('h2', { id: 'result-title', class: 'result__title', tabindex: '-1' },
+        ctx.way === 'photo' ? t('Read a photo of your barcode') : t('Copy the lower row of your barcode')),
       h('p', { class: 'result__lead' }, t('The decoding appears here as you go. Not sure what a barcode looks like? Load an example and compare it with your film.')),
       h('div', { class: 'examples' }, ctx.examples.map((ex) =>
         h('button', { type: 'button', class: 'chip', onClick: () => ctx.onLoadExample(ex) }, ex.label))),
@@ -276,7 +281,7 @@
           h('span', { class: 'source-tag source-tag--i3a' }, t('I3A registry, 2008'))),
         h('ul', { class: 'matches' }, products.map(productItem))));
     }
-    const cb = communityBlock(info.community, products.length ? t('Also listed for this number') : t('Films listed for this number'));
+    const cb = communityBlock(info.community, products.length ? t('Also listed for this number') : t('Films listed for this number'), d);
     if (cb) parts.push(cb);
     return { title, lines, parts };
   }
@@ -316,7 +321,7 @@
   }
 
   /**
-   * ctx: { decoded, lookup, examples, shareUrl, onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
+   * ctx: { decoded, lookup, examples, shareUrl, way ('copy' or 'photo'), onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
    */
   function renderResult(container, ctx) {
     const d = ctx.decoded;
@@ -359,9 +364,7 @@
     if (d.part1 !== 0) {
       const share = h('button', { type: 'button', class: 'tool' }, t('Copy link'));
       share.addEventListener('click', () => copyText(ctx.shareUrl, share, t('Link copied')));
-      const copy = h('button', { type: 'button', class: 'tool' }, t('Copy as text'));
-      copy.addEventListener('click', () => copyText(summaryText(d, info, ctx.shareUrl), copy, t('Copied')));
-      actions.append(share, copy);
+      actions.append(share);
     }
 
     // Keep "Raw fields" open across re-renders while the user edits the strip.
@@ -389,5 +392,6 @@
   root.DX.ui.groupCommunity = groupCommunity;
   root.DX.ui.sensitizerName = sensitizerName;
   root.DX.ui.communityItem = communityItem;
+  root.DX.ui.bfdLink = bfdLink;
   root.DX.ui.productItem = productItem;
 })(globalThis);

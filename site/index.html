@@ -11,18 +11,22 @@
   <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
   <script>
-    // Apply the saved theme and language before first paint to avoid a flash.
-    // Where storage is blocked, a chosen language is in the URL (?lang=).
+    // Apply the saved theme, language and folded introduction (phones) before
+    // first paint to avoid a flash. A language in the URL (?lang=) wins over the
+    // saved one.
     (function () {
       let theme = null;
+      let intro = null;
       let lang = new URLSearchParams(location.search).get('lang');
       try {
         theme = localStorage.getItem('dx-theme');
+        intro = localStorage.getItem('dx-intro');
         lang = lang || localStorage.getItem('dx-lang');
       } catch (e) { /* storage unavailable: follow the system theme */ }
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-      if (lang && lang !== 'en') {
-        // Hidden until js/i18n.js has translated the page (or after 3 s regardless).
+      if (intro === 'hidden') document.documentElement.dataset.intro = 'hidden';
+      if (lang && lang.toLowerCase() !== 'en') {
+        // Hidden until js/i18n.js has put in that language's text (or after 3 s regardless).
         document.documentElement.lang = lang;
         document.documentElement.setAttribute('data-i18n-pending', '');
         setTimeout(() => document.documentElement.removeAttribute('data-i18n-pending'), 3000);
@@ -42,6 +46,7 @@
   <script src="js/ui-finder.js" defer></script>
   <script src="js/ui-photo.js" defer></script>
   <script src="js/ui-reference.js" defer></script>
+  <script src="js/ui-source.js" defer></script>
   <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -75,24 +80,39 @@
     <section class="decoder" id="decoder" aria-labelledby="decoder-title">
       <div class="wrap">
         <div class="intro">
-          <h1 id="decoder-title" data-i18n>Identify a film from the barcode on its edge</h1>
-          <p class="lead" data-i18n>Most 35&nbsp;mm film made since 1983 carries a DX barcode along one edge. It is exposed at the factory and appears when the film is developed, so it is still on your negatives and slides long after the cassette is gone. Copy the bars you see and this page tells you the film, its maker and the frame number.</p>
+          <div class="intro__head">
+            <h1 id="decoder-title" data-i18n>Identify a film from the barcode on its edge</h1>
+            <!-- Phones only: folds the introduction away (app.js). -->
+            <button type="button" class="icon-button intro__toggle" id="intro-toggle" aria-expanded="true" aria-controls="intro-lead" aria-label="Hide the introduction" data-i18n-attr="aria-label"></button>
+          </div>
+          <p class="lead" id="intro-lead" data-i18n>Not sure which film your negatives or slides are? They can tell you themselves. Most 35&nbsp;mm film made since 1983 has a DX barcode along one edge. Copy its bars, or read them from a photo, to find the film, its maker and the frame number.</p>
         </div>
 
-        <ol class="steps">
-          <li>
-            <h2 class="steps__title" data-i18n>Find the barcode</h2>
-            <p data-i18n>Look at the strip between the sprocket holes and the edge of the film: two touching rows of small bars, about 13&nbsp;mm long, repeated twice per frame. A loupe or a zoomed-in scan helps.</p>
-          </li>
-          <li>
-            <h2 class="steps__title" data-i18n>Turn the film the right way round</h2>
-            <p data-i18n>Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <strong>Mirror</strong>.</p>
-          </li>
-          <li>
-            <h2 class="steps__title" data-i18n>Copy the lower row</h2>
-            <p data-i18n>Click every cell of the lower row where your film has a bar. Drag to fill several. The top row and both ends are identical on every film, so they are already drawn. Older film may have a shorter code with only 7 thin bars in the top row: choose <strong>7 thin bars</strong> under Layout.</p>
-          </li>
-        </ol>
+        <div class="ways" role="tablist" aria-label="How to enter the code" data-i18n-attr="aria-label">
+          <button type="button" class="ways__tab" role="tab" id="tab-copy" aria-selected="true" aria-controls="way-copy"><span data-i18n>Copy the bars</span></button>
+          <button type="button" class="ways__tab" role="tab" id="tab-photo" aria-selected="false" aria-controls="photo" tabindex="-1"><span data-i18n>Read a photo</span></button>
+        </div>
+
+        <div id="way-copy" role="tabpanel" aria-labelledby="tab-copy" tabindex="0">
+          <ol class="steps" id="copy-steps">
+            <li>
+              <h2 class="steps__title" data-i18n>Find the barcode</h2>
+              <p data-i18n>Look at the strip between the sprocket holes and the edge of the film: two touching rows of small bars, about 13&nbsp;mm long, repeated twice per frame. A loupe or a zoomed-in scan helps.</p>
+            </li>
+            <li>
+              <h2 class="steps__title" data-i18n>Turn the film the right way round</h2>
+              <p data-i18n>Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <strong>Mirror</strong>.</p>
+            </li>
+            <li>
+              <h2 class="steps__title" data-i18n>Copy the lower row</h2>
+              <p data-i18n>Click every cell of the lower row where your film has a bar. Drag to fill several. The top row and both ends are identical on every film, so they are already drawn. Older film may have a shorter code with only 7 thin bars in the top row: choose <strong>7 thin bars</strong> under Layout.</p>
+            </li>
+          </ol>
+          <!-- Phones only: the steps show their titles until this opens them (app.js). -->
+          <button type="button" class="text-button steps__more" id="steps-more" aria-expanded="false" aria-controls="copy-steps"><span data-i18n>How to copy the bars</span></button>
+        </div>
+
+        <section class="photo" id="photo" role="tabpanel" aria-labelledby="tab-photo" hidden></section>
 
         <div class="lighttable" id="lighttable">
           <div class="toolbar" id="toolbar">
@@ -112,8 +132,9 @@
                 <span class="visually-hidden" data-i18n>What does the film look option do?</span>?
               </button>
               <div class="segmented" data-control="look">
-                <button type="button" data-value="negative" aria-pressed="true" data-i18n>Color neg.</button>
-                <button type="button" data-value="bw" aria-pressed="false" data-i18n>B&amp;W neg.</button>
+                <!-- The chosen look shows its full name, the others a short one. -->
+                <button type="button" data-value="negative" aria-pressed="true" aria-label="Color negative" data-i18n-attr="aria-label"><span class="when-on" data-i18n>Color negative</span><span class="when-off" data-i18n>Color</span></button>
+                <button type="button" data-value="bw" aria-pressed="false" aria-label="B&amp;W negative" data-i18n-attr="aria-label"><span class="when-on" data-i18n>B&amp;W negative</span><span class="when-off" data-i18n>B&amp;W</span></button>
                 <button type="button" data-value="slide" aria-pressed="false" data-i18n>Slide</button>
               </div>
             </div>
@@ -122,7 +143,6 @@
               <button type="button" class="tool" id="undo" aria-disabled="true" data-i18n>Undo</button>
               <button type="button" class="tool" id="redo" aria-disabled="true" data-i18n>Redo</button>
               <button type="button" class="tool" id="clear" data-i18n>Clear</button>
-              <button type="button" class="tool tool--primary" id="photo-open" data-i18n>Read from a photo</button>
             </div>
           </div>
 
@@ -133,11 +153,10 @@
             <p data-i18n>This only changes how the strip is drawn, so it is easier to compare with your film. On color and black-and-white negatives the bars are dark. On slide film the edge is black and the bars are clear, because reversal processing turns exposed areas clear: treat the clear marks as bars.</p>
           </div>
 
+          <div class="source" id="source" hidden></div>
           <div class="strip-host" id="strip"></div>
           <p class="hint" id="hint" aria-live="polite"></p>
         </div>
-
-        <section class="photo" id="photo" hidden aria-labelledby="photo-title"></section>
 
         <section class="result" id="result" aria-labelledby="result-title"></section>
       </div>
@@ -216,7 +235,7 @@
           <p data-i18n>Read the code with the wide clock mark first. When the film is the right way round, usually with its shiny base side toward you, the printed numbers beside the barcode read normally and the wide mark is on the left. Seen from the other side, everything is mirrored. On slide film the edge is black and the bars show as clear marks. Faded or scratched codes are common; since the code repeats every half frame, check the next one along if a bar is unclear.</p>
 
           <h3 data-i18n>What the code cannot tell you</h3>
-          <p data-i18n>The DX number names a product. It does not encode the film speed or development process directly; those follow from the product, and the cassette’s contacts carry the speed for cameras. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.</p>
+          <p data-i18n>The DX number names a product. The product’s name usually includes its speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.</p>
         </div>
       </div>
     </section>

@@ -27,13 +27,16 @@ sends nothing anywhere (including photos you open in it), and also works when
   corrections that give a valid code, known films first.
 - **Older film**: the original 23-cell code from before the 1990 frame-number
   extension is supported alongside the current 31-cell one.
-- **Read from a photo or scan**: the decoder finds the barcode itself, even on
+- **Read a photo or scan**: the decoder finds the barcode itself, even on
   mirrored or upside-down film and on slides, and shows which cells it read.
+  The photo then stays in view, its barcode lined up over the strip's cells.
 - **Find a film's code** by name or DX number, **look up a cassette number**,
-  and browse the **2008 DX code list**.
+  and browse the **2008 DX code list**. A code shown from any of them says
+  above the strip where it came from, with a way back.
 - Undo and redo, shareable links such as `?dx=79-15/23`, light and dark themes,
-  English or Simplified Chinese (from the language menu at the top), and
-  keyboard and screen-reader support.
+  English or Simplified Chinese (from the language menu at the top, or in a
+  link with `?lang=en` or `?lang=zh-CN`), and keyboard and screen-reader
+  support.
 
 ## How to use it
 
@@ -56,7 +59,10 @@ sends nothing anywhere (including photos you open in it), and also works when
    again at faint bars, compare with the next code along the film, or pick a
    suggested correction.
 
-Instead of copying by hand, you can also use **Read from a photo**.
+Instead of copying by hand, you can choose **Read a photo** at the top and
+follow its three steps: choose a photo, check the barcode, use the code. The
+photo then stays above the strip, with its barcode lined up over the strip's
+cells.
 
 ## How the code works
 
@@ -77,7 +83,10 @@ from [the cell layout](research/01-edge-code-format.md) and
   ([research/03](research/03-dx-numbers-and-registry.md)).
 - **[The Big Film Database](https://github.com/dxdatabase/Open-source-film-database)**,
   a community database that also covers films introduced since 2008 and
-  rebranded films ([research/04](research/04-community-database.md)).
+  rebranded films ([research/04](research/04-community-database.md)). When it
+  lists films for a DX number, the decoder also links to that number on
+  [Antoine Mérino's edition](https://thebigfilmdatabase.merinorus.com) of the
+  database.
 
 The two are always labeled separately on the page. No code is given a meaning
 that neither source documents: an unknown code is reported as unknown, together
@@ -102,7 +111,7 @@ data/                 film tables as CSV, see data/README.md
 research/             research reports on the format and the data
   img/                their diagrams and screenshots
 scripts/              data extraction and build, diagrams, screenshots,
-                      translation check, local server, test runner
+                      language check, local server, test runner
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
 .github/workflows/    tests, license check and GitHub Pages deployment
@@ -150,29 +159,29 @@ change.
 
 ### Languages
 
-The page is written in English and translated into Simplified Chinese; visitors
-choose the language from the menu at the top. Each translation is one file in
-`site/js/i18n/` that gives, for every English text of the page, the text in
-that language.
+The page comes in English and Simplified Chinese; visitors choose the language
+from the menu at the top. The code and `site/index.html` hold the English text,
+and every other language is one file in `site/js/i18n/` that gives, for every
+English text of the page, the text in that language.
 
 To add a language:
 
 1. Copy `site/js/i18n/zh-CN.js` to a file named after the language code, for
    example `site/js/i18n/de.js`. Set `code`, `name` (the language's name in
-   that language) and `punctuation`, and replace every translation. Keep the
-   `{placeholders}` and any HTML tags as they are. Film and product names are
-   not translated. Where the language has several plural forms, a translation
-   can be an object such as `{ one: …, few: …, many: …, other: … }`.
+   that language) and `punctuation`, and replace every Chinese text with the
+   new language's. Keep the `{placeholders}`, any HTML tags, and film and
+   product names as they are. Where the language has several plural forms, a
+   text can be an object such as `{ one: …, few: …, many: …, other: … }`.
 2. Load the file in `site/index.html`, next to the line for `js/i18n/zh-CN.js`.
    The language menu lists it from then on.
-3. Run `npm run check:translations`. It lists texts without a translation,
-   translations that are no longer used, and translations whose placeholders
-   or tags differ from the English. `npm test` runs the same check.
+3. Run `npm run check:languages`. It lists English texts the language lacks,
+   texts whose English is no longer used, and texts whose placeholders or tags
+   differ from the English. `npm test` runs the same check.
 4. Add the language's labels to `LABELS` in `scripts/make-figures.mjs`, then
    run `npm run figures` and `npm run screenshots` so the diagrams and
    screenshots exist in the new language.
 
-`npm run check:translations -- --template` prints every English text of the
+`npm run check:languages -- --template` prints every English text of the
 page, as a starting point. When you change or add English text in `site/`,
 update every language file in the same change: the tests fail until you do.
 

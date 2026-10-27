@@ -42,7 +42,7 @@ for (const lang of LANGUAGES) {
       // cassette results, and two error messages showing.
       await page.goto('/?dx=96-12/14A');
       for (const help of await page.locator('[data-help]').all()) await help.click();
-      await page.locator('#photo-open').click();
+      await page.locator('#tab-photo').click();
       await page.locator('#photo .photo__drop .tool:not(.tool--primary)').click();
       await expect(page.locator('.photo__found')).toBeVisible();
       await page.locator('#finder-q').fill('hp5');
@@ -58,7 +58,17 @@ for (const lang of LANGUAGES) {
       await expect(page.locator('#direct-help.is-error')).toBeVisible();
       expect(await problems(page)).toEqual([]);
 
-      // An invalid code, then an empty strip: only the decoder changes.
+      // The photo's code in use: the reader folded up, its bar above the strip.
+      await page.locator('#photo .result__actions .tool--primary').click();
+      await expect(page.locator('#source')).toBeVisible();
+      expect(await problems(page, '#decoder')).toEqual([]);
+      // A code shown from the search (the frame field held 64, an error, above): the bar says so, with a way back.
+      await page.locator('#finder-frame').fill('');
+      await page.locator('.finder__item .tool:not([disabled])').first().click();
+      await expect(page.locator('#source .source__icon')).toBeVisible();
+      expect(await problems(page, '#decoder')).toEqual([]);
+
+      // An invalid code (the bar now says it was edited), then an empty strip: only the decoder changes.
       await page.locator('#strip .track--data [data-cell="8"]').click();
       await expect(page.locator('#strip .strip')).not.toHaveClass(/is-valid/);
       expect(await problems(page, '#decoder')).toEqual([]);

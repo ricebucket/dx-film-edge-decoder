@@ -1,7 +1,7 @@
 /*
  * "Find a film's code" (search + direct entry) and "Have the cassette?".
- * Both end in onShow({ part1, part2, frame, half }), which puts the code on
- * the strip.
+ * Both end in onShow({ part1, part2, frame, half }, { kind, name }), which
+ * puts the code on the strip and says where it came from.
  */
 (function (root) {
   'use strict';
@@ -75,7 +75,7 @@
       if (showable) {
         button.addEventListener('click', () => {
           const frame = readFrame(frameInput, frameHelp);
-          if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame));
+          if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame), { kind: 'finder', name: entry.name });
         });
       }
       const label = dx ? `DX ${entry.wildcard ? `${entry.part1}-?` : dx}` : entry.full ? t('cassette {number}', { number: entry.full }) : null;
@@ -142,7 +142,7 @@
       if (!frame) return;
       directMsg.classList.remove('is-error');
       directMsg.textContent = t('Showing DX {dx}, frame {frame}.', { dx: `${dx.part1}-${dx.part2}`, frame: codec.frameLabel(frame.frame, frame.half) });
-      onShow({ part1: dx.part1, part2: dx.part2, frame: frame.frame, half: frame.half });
+      onShow({ part1: dx.part1, part2: dx.part2, frame: frame.frame, half: frame.half }, { kind: 'finder', name: `DX ${dx.part1}-${dx.part2}` });
     });
 
     host.replaceChildren(
@@ -215,13 +215,15 @@
           h('summary', null, i18n.plural(similar.length, '{n} other film uses the same DX number', '{n} other films use the same DX number')),
           h('ul', { class: 'matches' }, similar.map(ui.communityItem))));
       }
+      const link = exact.length || similar.length ? ui.bfdLink(p.part1, p.part2) : null;
+      if (link) blocks.push(link);
       if (!blocks.length || (!hit.augmented.length && hit.dx && !hit.dx.products.length && !exact.length && !similar.length)) {
         blocks.push(h('p', { class: 'fineprint' }, t('This number is not in the 2008 registry or the community database.')));
       }
       const actions = [];
       if (p.part1 !== null && p.part1 > 0) {
         const show = h('button', { type: 'button', class: 'tool tool--primary' }, t('Show the edge barcode'));
-        show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }));
+        show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits }));
         actions.push(h('div', { class: 'result__actions' }, show));
       }
       out.replaceChildren(facts, ...blocks, ...actions);

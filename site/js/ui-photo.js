@@ -1,7 +1,9 @@
 /*
- * "Read from a photo": load an image of the film edge, straighten it, select
- * one barcode (optional) and let DX.image.readBarcode find the bars. The
- * image never leaves the browser.
+ * "Read a photo": load an image of the film edge, straighten it, select one
+ * barcode (optional) and let DX.image.readBarcode find the bars, in three
+ * numbered steps. The image never leaves the browser. Once its code is used
+ * the reader folds up, and the strip keeps the photo in sight: a thumbnail in
+ * the bar above it (ui-source.js) and the barcode lined up over its cells.
  */
 (function (root) {
   'use strict';
@@ -26,7 +28,21 @@
     unclear: t('Something like a barcode was found, but it could not be read reliably. Straighten the image so the film edge runs left to right, or drag a box around one barcode.'),
   };
 
-  function createPhoto(section, { lookup, onApply, onClose }) {
+  /** A copy of a box of a canvas, fitted into maxW × maxH CSS pixels. */
+  function thumbnail(src, box, maxW, maxH) {
+    const k = Math.min(maxW / box.w, maxH / box.h);
+    const dpr = root.devicePixelRatio || 1;
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(box.w * k * dpr));
+    c.height = Math.max(1, Math.round(box.h * k * dpr));
+    c.style.width = `${Math.round(box.w * k)}px`; // the height follows, also when CSS narrows it
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(src, box.x, box.y, box.w, box.h, 0, 0, c.width, c.height);
+    return c;
+  }
+
+  function createPhoto(section, { lookup, onApply }) {
     let source = null; // canvas with the loaded image, at working resolution
     let view = null; // source after rotation/flip
     let turns = 0;
@@ -37,13 +53,9 @@
     let sampleIndex = 0;
 
     const fileInput = h('input', { type: 'file', accept: 'image/*', class: 'visually-hidden', id: 'photo-file', tabindex: '-1', 'aria-label': t('Photo of the film edge') });
-    const chooseBtn = h('button', { type: 'button', class: 'tool tool--primary' }, t('Choose a photo'));
+    const chooseBtn = h('button', { type: 'button', class: 'tool' }, t('Choose a photo'));
     const sampleBtn = h('button', { type: 'button', class: 'tool' }, t('Try a sample'));
-    const closeBtn = h('button', { type: 'button', class: 'tool', 'aria-label': t('Close the photo reader') }, t('Close'));
-
-    const drop = h('div', { class: 'photo__drop' },
-      h('p', null, t('Drop an image here, paste one, or'), ' ', chooseBtn, ' ', sampleBtn),
-      h('p', { class: 'fineprint' }, t('A close-up of the film edge works best: phone macro photo, loupe photo or scan. The image stays on your device.')));
+    const sourceNote = h('p', { class: 'photo__source' });
 
     const canvas = h('canvas', { class: 'photo__canvas', 'aria-label': t('Photo of the film edge. Drag to select one barcode.'), role: 'img' });
     const rotateLeft = h('button', { type: 'button', class: 'tool tool--small', 'aria-label': t('Rotate left 90 degrees') }, '⟲ 90°');
@@ -51,26 +63,64 @@
     const flipBtn = h('button', { type: 'button', class: 'tool tool--small', 'aria-pressed': 'false' }, t('Flip'));
     const fineInput = h('input', { type: 'range', min: '-15', max: '15', step: '0.5', value: '0', id: 'photo-fine', class: 'range' });
     const fineOut = h('output', { for: 'photo-fine', class: 'range__out' }, '0°');
-    const findBtn = h('button', { type: 'button', class: 'tool tool--primary' }, t('Find the barcode'));
+    const readBtn = h('button', { type: 'button', class: 'tool' }, t('Read again'));
     const clearSel = h('button', { type: 'button', class: 'tool tool--small', hidden: true }, t('Clear selection'));
-    // Outside the work area, so messages show before any image is loaded too.
+    const stage = h('div', { class: 'photo__stage', hidden: true }, canvas);
+    // Messages and the result, in step 3; they show before any image is loaded too.
     const out = h('div', { class: 'photo__result', 'aria-live': 'polite' });
-    const sourceNote = h('p', { class: 'photo__source' });
+    const unfoldBtn = h('button', { type: 'button', class: 'tool tool--small' }, t('Open the photo'));
 
-    const work = h('div', { class: 'photo__work', hidden: true },
-      h('div', { class: 'photo__controls' },
-        h('div', { class: 'photo__control' }, h('span', { class: 'toolbar__label' }, t('Turn')), rotateLeft, rotateRight, flipBtn),
-        h('div', { class: 'photo__control photo__control--range' }, h('label', { for: 'photo-fine', class: 'toolbar__label' }, t('Straighten')), fineInput, fineOut),
-        h('div', { class: 'photo__control' }, findBtn, clearSel, h('button', { type: 'button', class: 'tool tool--small', onClick: () => fileInput.click() }, t('Other photo')))),
-      h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right (within a few degrees), then drag a box around one barcode, including both rows. Without a box the whole image is searched.')),
-      sourceNote,
-      h('div', { class: 'photo__stage' }, canvas));
+    const step = (n, title, ...content) => h('li', { class: 'photo__step', 'data-step': n }, h('h2', { class: 'steps__title' }, title), ...content);
+    const steps = h('ol', { class: 'photo__steps' },
+      step(1, t('Choose a photo'),
+        h('p', { class: 'photo__drop' }, t('Drop an image here, paste one, or'), ' ', chooseBtn, ' ', sampleBtn),
+        h('p', { class: 'fineprint' }, t('A close-up of the film edge works best: phone macro photo, loupe photo or scan. The image stays on your device.')),
+        sourceNote),
+      step(2, t('Check the barcode'),
+        h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right (within a few degrees), then drag a box around one barcode, including both rows. Without a box the whole image is searched.')),
+        h('div', { class: 'photo__controls' },
+          h('div', { class: 'photo__control' }, h('span', { class: 'toolbar__label' }, t('Turn')), rotateLeft, rotateRight, flipBtn),
+          h('div', { class: 'photo__control photo__control--range' }, h('label', { for: 'photo-fine', class: 'toolbar__label' }, t('Straighten')), fineInput, fineOut),
+          h('div', { class: 'photo__control' }, readBtn, clearSel)),
+        stage),
+      step(3, t('Use the code'), out));
+    // Shown instead of the steps' contents once the code has been used.
+    const folded = h('p', { class: 'photo__folded' }, t('The code from your photo is on the strip below.'), ' ', unfoldBtn);
 
-    section.replaceChildren(
-      h('div', { class: 'photo__head' },
-        h('h2', { id: 'photo-title' }, t('Read the barcode from a photo')),
-        closeBtn),
-      drop, work, out, fileInput);
+    section.replaceChildren(steps, folded, fileInput);
+
+    /** Highlight the step to do next: 1 until there is a photo, 2 until a code is found, then 3. */
+    function setStep() {
+      const current = !view ? 1 : result && result.found ? 3 : 2;
+      for (const li of steps.children) {
+        const n = Number(li.dataset.step);
+        li.classList.toggle('is-done', n < current);
+        if (n === current) li.setAttribute('aria-current', 'step');
+        else li.removeAttribute('aria-current');
+      }
+      // Only the next step's button stands out.
+      chooseBtn.classList.toggle('tool--primary', current === 1);
+      readBtn.classList.toggle('tool--primary', current === 2);
+      for (const control of [rotateLeft, rotateRight, flipBtn, fineInput, readBtn]) control.disabled = !view;
+    }
+
+    function showPlaceholder() {
+      out.replaceChildren(h('p', { class: 'fineprint' }, t('The code appears here once a photo has been read.')));
+    }
+
+    function fold() {
+      section.classList.add('is-folded');
+      for (const li of steps.children) {
+        li.classList.add('is-done');
+        li.removeAttribute('aria-current');
+      }
+    }
+
+    function unfold() {
+      section.classList.remove('is-folded');
+      setStep();
+      draw();
+    }
 
     // ---- loading ------------------------------------------------------------
 
@@ -106,10 +156,11 @@
       flipBtn.setAttribute('aria-pressed', 'false');
       selection = null;
       result = null;
-      work.hidden = false;
-      drop.hidden = true;
+      stage.hidden = false;
+      section.classList.remove('is-folded');
       replace(sourceNote, ...note);
       rebuildView();
+      setStep();
       find();
     }
 
@@ -125,6 +176,18 @@
         s.note, ' ',
         h('button', { type: 'button', class: 'text-button', onClick: loadSample }, t('Show another sample')),
       ]);
+    }
+
+    function reset() {
+      source = null;
+      view = null;
+      result = null;
+      selection = null;
+      stage.hidden = true;
+      clearSel.hidden = true;
+      sourceNote.replaceChildren();
+      showPlaceholder();
+      unfold();
     }
 
     // ---- view (rotation) and drawing --------------------------------------------
@@ -156,8 +219,7 @@
     }
 
     function draw() {
-      if (!view) return;
-      const stage = canvas.parentElement;
+      if (!view || stage.hidden || section.hidden) return;
       const pad = getComputedStyle(stage);
       const maxW = stage.clientWidth - parseFloat(pad.paddingLeft) - parseFloat(pad.paddingRight) || 800;
       const maxH = Math.max(160, Math.round(window.innerHeight * 0.55));
@@ -208,6 +270,45 @@
         }
       }
       ctx.restore();
+    }
+
+    /**
+     * The barcode as read, straightened and in reading order (cell 1 on the
+     * left, clock track on top), CELL pixels per cell: the strip stretches it
+     * so each cell sits over its own.
+     */
+    function lineUp(r) {
+      const CELL = 16;
+      const rowGap = Math.abs(r.dataY - r.clockY);
+      const top = Math.min(r.clockY, r.dataY) - rowGap * 0.6;
+      const bottom = Math.max(r.clockY, r.dataY) + rowGap * 0.6;
+      const c = document.createElement('canvas');
+      c.width = r.cells * CELL;
+      c.height = CELL * 5;
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      // Read right to left (mirrored or upside down): cell 1 goes on the left.
+      // Data track above the clock track (upside down): the clock track goes on top.
+      if (r.reversed) {
+        ctx.translate(c.width, 0);
+        ctx.scale(-1, 1);
+      }
+      if (r.dataY < r.clockY) {
+        ctx.translate(0, c.height);
+        ctx.scale(1, -1);
+      }
+      // From the view: x from the first cell, y from the top, less the tilt
+      // (the rows rise or fall by r.slope per pixel across the region).
+      const sx = c.width / (r.cells * r.unit);
+      const sy = c.height / (bottom - top);
+      const cx = r.offset.x + r.regionWidth / 2;
+      ctx.transform(sx, -r.slope * sy, 0, sy, -sx * (r.offset.x + r.x0), sy * (r.slope * cx - r.offset.y - top));
+      ctx.drawImage(view, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      // Cell borders, to compare cell by cell.
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      for (let i = 1; i < r.cells; i++) ctx.fillRect(i * CELL, 0, 1, c.height);
+      return c;
     }
 
     // ---- selection ----------------------------------------------------------------
@@ -276,7 +377,7 @@
       const usable = selection && selection.w >= 12 && selection.h >= 8;
       const region = usable ? selection : { x: 0, y: 0, w: view.width, h: view.height };
       showMessage(t('Looking for the barcode…'));
-      findBtn.disabled = true;
+      readBtn.disabled = true;
       // Let the message paint before the (short) search.
       setTimeout(() => {
         try {
@@ -289,7 +390,8 @@
           result = null;
           showMessage(t('This part of the image could not be read. Select the barcode again, or clear the selection.'), true);
         } finally {
-          findBtn.disabled = false;
+          readBtn.disabled = false;
+          setStep();
           draw();
         }
       }, 30);
@@ -316,7 +418,11 @@
       if (r.confidence < 0.3) notes.push(t('Some cells were hard to tell apart; compare the result with your film.'));
       if (!d.valid) notes.push(t('The code as read does not pass all checks. Use it, then look at the suggested corrections.'));
       const apply = h('button', { type: 'button', class: 'tool tool--primary' }, t('Use this code'));
-      apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity === 'light' ? 'slide' : null));
+      apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity === 'light' ? 'slide' : null, {
+        label: what,
+        photo: thumbnail(view, { x: 0, y: 0, w: view.width, h: view.height }, 120, 72),
+        lined: lineUp(r),
+      }));
       replace(out,
         h('p', { class: `photo__found${d.valid ? '' : ' is-error'}` },
           h('strong', null, what), name ? i18n.punctuation().colon + name.name : d.valid ? i18n.punctuation().colon + t('not in the lists') : ''),
@@ -333,7 +439,10 @@
       fileInput.value = '';
     });
     sampleBtn.addEventListener('click', loadSample);
-    closeBtn.addEventListener('click', () => onClose());
+    unfoldBtn.addEventListener('click', () => {
+      unfold();
+      readBtn.focus();
+    });
     rotateLeft.addEventListener('click', () => { turns = (turns + 3) % 4; result = null; rebuildView(); find(); });
     rotateRight.addEventListener('click', () => { turns = (turns + 1) % 4; result = null; rebuildView(); find(); });
     flipBtn.addEventListener('click', () => {
@@ -348,9 +457,10 @@
       fineOut.textContent = `${fine > 0 ? '+' : ''}${fine}°`;
       result = null;
       rebuildView();
+      setStep();
     });
     fineInput.addEventListener('change', find);
-    findBtn.addEventListener('click', find);
+    readBtn.addEventListener('click', find);
     clearSel.addEventListener('click', () => {
       selection = null;
       clearSel.hidden = true;
@@ -376,18 +486,27 @@
         loadBlob(item.getAsFile());
       }
     });
-    window.addEventListener('resize', () => { if (!section.hidden) draw(); });
+    window.addEventListener('resize', draw);
+
+    showPlaceholder();
+    setStep();
 
     return {
-      open() {
+      /** Show the reader, unfolded; with focus, also bring it into view and focus its next step. */
+      open(options) {
         section.hidden = false;
-        section.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-        (view ? findBtn : chooseBtn).focus({ preventScroll: true });
-        draw();
+        unfold();
+        if (options && options.focus) {
+          section.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+          (view ? readBtn : chooseBtn).focus({ preventScroll: true });
+        }
       },
       close() {
         section.hidden = true;
       },
+      fold,
+      /** Forget the photo: back to step 1. */
+      reset,
     };
   }
 

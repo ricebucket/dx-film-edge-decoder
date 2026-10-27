@@ -6,7 +6,7 @@
 
 ## 它是什么
 
-The Big Film Database 由署名为“Dxdatabase”的作者于 2018 年 2 月以网站形式创办。2024 年，这些数据以 CC BY-SA 4.0 许可证在 GitHub 上发布。Antoine Mérino 维护着一个修改版，支持按 DX 编号搜索和扫描片边条码。根据该数据库的帮助页面，它最初依据 2008 年的 I3A 列表编成，后来又补充了从 IS&T 获得的 2011–2014 年 DX 编码，以及来自柯达的胶片年表、Tom Philo 的柯达胶片编号对照表、Flickr 上一个关于 DX 编号的讨论帖、维基百科的胶片列表、收藏者和生产商员工的信息。
+The Big Film Database 由署名为“Dxdatabase”的作者于 2018 年 2 月以网站形式创办。2024 年，这些数据以 CC BY-SA 4.0 许可证在 GitHub 上发布。该仓库的 README 另外说明，胶片包装盒图片的版权归各自的所有者，这些图片只能在“fair use”（合理使用）下使用。Antoine Mérino 维护着一个修改版，支持按 DX 编号搜索和扫描片边条码。根据该数据库的帮助页面，它最初依据 2008 年的 I3A 列表编成，后来又补充了从 IS&T 获得的 2011–2014 年 DX 编码，以及来自柯达的胶片年表、Tom Philo 的柯达胶片编号对照表、Flickr 上一个关于 DX 编号的讨论帖、维基百科的胶片列表、收藏者和生产商员工的信息。
 
 ## 文件
 
@@ -52,6 +52,7 @@ The Big Film Database 由署名为“Dxdatabase”的作者于 2018 年 2 月以
 - 结果的标题尽可能取自登记表；只有在登记表中没有对应条目时才使用社区数据库中的名称，此时页面会注明这一点。
 - Part 1 编号对应的生产商始终取自登记表。
 - 社区数据库匹配结果的下方有一条说明，指出这些数据由社区维护，大多基于暗盒，并且包含贴牌胶片。
+- 如果社区数据库中有某个 DX 编号下的胶片，解码结果和暗盒编号查询都会给出一个链接，指向 Antoine Mérino 修改版数据库中的这个编号（DX 96-12 对应 `https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12`）。该数据库的包装盒图片没有复制到本项目中。
 
 该数据库的网站还会根据 DX extract 所在的范围推测生产商和胶片类型（这些范围列在其仓库的 `Various documentation/Film type by DX.txt` 中）。网站自己也把这种推测标为“not very accurate”（不太准确），而且有些范围相互重叠：46–127 是“Agfa Gevaert chrome (slide) film”（爱克发反转片），但其中又包含 64–79，即“Kodak Technical film”（柯达技术胶片）。本工具不使用这些范围。
 

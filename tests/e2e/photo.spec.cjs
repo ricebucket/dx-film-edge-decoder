@@ -7,7 +7,7 @@ let checkConsole;
 test.beforeEach(async ({ page }) => {
   checkConsole = watchConsole(page);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Read from a photo' }).click();
+  await page.getByRole('tab', { name: 'Read a photo' }).click();
   await expect(page.locator('#photo')).toBeVisible();
 });
 test.afterEach(() => checkConsole());
@@ -26,7 +26,8 @@ test('the sample photo is read and can be used', async ({ page }) => {
   await expect(found).toContainText('DX 96-12, frame 14A');
   await expect(found).toContainText('KODAK GOLD 200 Film');
   await page.getByRole('button', { name: 'Use this code' }).click();
-  await expect(page.locator('#photo')).toBeHidden();
+  await expect(page.locator('#photo')).toHaveClass(/\bis-folded\b/);
+  await expect(page.locator('#source')).toContainText('From your photo: DX 96-12, frame 14A');
   await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
 });
 
@@ -117,9 +118,9 @@ test('a canceled drag leaves the reader usable', async ({ page }) => {
     at('pointermove', 2);
     at('pointercancel', 2);
   });
-  await page.getByRole('button', { name: 'Find the barcode' }).click();
+  await page.getByRole('button', { name: 'Read again' }).click();
   await expect(page.locator('.photo__found')).toContainText('DX 96-12');
-  await expect(page.getByRole('button', { name: 'Find the barcode' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Read again' })).toBeEnabled();
 });
 
 test('flip mirrors the straightened photo', async ({ page }, testInfo) => {
@@ -149,3 +150,74 @@ test('the photo keeps its proportions on screen', async ({ page }) => {
   expect(Math.abs(ratios[0] / ratios[1] - 1)).toBeLessThan(0.01);
 });
 
+
+test('the two ways in are tabs, and the reader marks the step to do next', async ({ page }) => {
+  const steps = page.locator('#photo .photo__step');
+  await expect(page.getByRole('tab', { name: 'Read a photo' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#way-copy')).toBeHidden();
+  await expect(steps.nth(0)).toHaveAttribute('aria-current', 'step');
+  await expect(page.getByRole('button', { name: 'Read again' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(steps.nth(2)).toHaveAttribute('aria-current', 'step');
+  await expect(steps.nth(0)).toHaveClass(/\bis-done\b/);
+  await expect(steps.nth(1)).toHaveClass(/\bis-done\b/);
+  // The empty result below says what to do in this way in.
+  await expect(page.locator('#result-title')).toHaveText('Read a photo of your barcode');
+  // Arrow keys move between the tabs, as in any tab list.
+  await page.getByRole('tab', { name: 'Read a photo' }).focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByRole('tab', { name: 'Copy the bars' })).toBeFocused();
+  await expect(page.getByRole('tab', { name: 'Copy the bars' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#way-copy')).toBeVisible();
+  await expect(page.locator('#photo')).toBeHidden();
+  await expect(page.locator('#result-title')).toHaveText('Copy the lower row of your barcode');
+});
+
+test('after "Use this code" the photo stays above the strip until another code replaces it', async ({ page }) => {
+  const bar = page.locator('#source');
+  await expect(bar).toBeHidden();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  await expect(bar.getByRole('img', { name: 'Your photo', exact: true })).toBeVisible();
+  await expect(page.locator('#strip .strip__photo canvas')).toBeVisible();
+  // The reader has folded up into its three ticked steps.
+  await expect(page.locator('#photo .photo__step.is-done')).toHaveCount(3);
+  await expect(page.locator('#photo .photo__canvas')).toBeHidden();
+  // Editing the strip keeps the photo, marked as edited since.
+  await page.locator('#strip .track--data [data-cell="9"]').click();
+  await expect(bar).toContainText('edited since');
+  // The photo opens again where it was left.
+  await bar.getByRole('button', { name: 'Open the photo' }).click();
+  await expect(page.locator('#photo .photo__canvas')).toBeVisible();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  // Clear, or another code, takes the bar away.
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(bar).not.toContainText('edited since');
+  await page.locator('#clear').click();
+  await expect(bar).toBeHidden();
+  // × forgets the photo: the reader starts again at step 1.
+  await page.getByRole('button', { name: 'Open the photo' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await bar.getByRole('button', { name: 'Remove the photo' }).click();
+  await expect(bar).toBeHidden();
+  await expect(page.locator('#photo .photo__step').first()).toHaveAttribute('aria-current', 'step');
+  await expect(page.locator('#photo .photo__canvas')).toBeHidden();
+});
+
+test("the photo's barcode lines up over the strip's cells, also mirrored, while the layout stays", async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  const photo = page.locator('#strip .strip__photo canvas');
+  const code = page.locator('#strip .film__code');
+  const [p, c] = [await photo.boundingBox(), await code.boundingBox()];
+  expect(Math.abs(p.x - c.x)).toBeLessThan(1);
+  expect(Math.abs(p.width - c.width)).toBeLessThan(1);
+  // Mirrored, the photo turns with the strip, so each cell stays over its own.
+  await page.getByRole('button', { name: 'Mirror' }).click();
+  await expect(photo).toHaveCSS('transform', 'matrix(-1, 0, 0, 1, 0, 0)');
+  // In the other layout the cells no longer match: the photo goes, the bar stays.
+  await page.getByRole('button', { name: '7 thin bars' }).click();
+  await expect(photo).toBeHidden();
+  await expect(page.locator('#source')).toContainText('edited since');
+});

@@ -41,7 +41,7 @@ export const SHOTS = [
     file: 'research/img/photo-reader',
     query: '',
     async prepare(page) {
-      await page.locator('#photo-open').click();
+      await page.locator('#tab-photo').click();
       await page.locator('#photo .photo__drop .tool:not(.tool--primary)').click();
       await page.locator('.photo__found').waitFor();
     },

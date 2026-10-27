@@ -1,8 +1,8 @@
 /*
  * Simplified Chinese (zh-CN) text for the interface. Keys are the English
- * texts of the page (see js/i18n.js); `npm run check:translations` lists any
+ * texts of the page (see js/i18n.js); `npm run check:languages` lists any
  * that are missing or no longer used. Film and product names are data and
- * are not translated.
+ * stay as they are.
  */
 (function (root, lang) {
   'use strict';
@@ -166,10 +166,46 @@
       "选择照片",
     "Try a sample":
       "试用示例",
-    "Close the photo reader":
-      "关闭照片读取",
-    "Close":
-      "关闭",
+    "Check the barcode":
+      "检查条码",
+    "Read again":
+      "重新读取",
+    "Use the code":
+      "使用编码",
+    "The code appears here once a photo has been read.":
+      "读取照片后，编码会显示在这里。",
+    "The code from your photo is on the strip below.":
+      "照片中的编码已显示在下方的片条上。",
+    "Open the photo":
+      "打开照片",
+    "From your photo":
+      "来自你的照片",
+    "{name}, frame {frame}":
+      "{name}，第 {frame} 帧",
+    "From Find a film":
+      "来自“查找胶片”",
+    "Back to the search":
+      "回到搜索",
+    "From a cassette number":
+      "来自暗盒编号",
+    "Back to the cassette number":
+      "回到暗盒编号",
+    "From the code list":
+      "来自编码列表",
+    "Back to the code list":
+      "回到编码列表",
+    "Example":
+      "示例",
+    "Look up DX {dx} on The Big Film Database":
+      "在 The Big Film Database 上查看 DX {dx}",
+    "Hide where this code came from":
+      "隐藏编码来源",
+    "edited since":
+      "之后已修改",
+    "Your photo":
+      "你的照片",
+    "Remove the photo":
+      "移除照片",
     "Drop an image here, paste one, or":
       "把图片拖到这里、粘贴图片，或者",
     "A close-up of the film edge works best: phone macro photo, loupe photo or scan. The image stays on your device.":
@@ -190,12 +226,8 @@
       "旋转",
     "Straighten":
       "拉直",
-    "Other photo":
-      "换一张照片",
     "Turn the image so the film edge runs left to right (within a few degrees), then drag a box around one barcode, including both rows. Without a box the whole image is searched.":
       "把图片转到片边从左到右（误差在几度以内），再拖一个框选中一个条码，包括两排。不框选时会搜索整张图片。",
-    "Read the barcode from a photo":
-      "从照片读取条码",
     "That file is not an image.":
       "这个文件不是图片。",
     "Your photo, {width} × {height} pixels.":
@@ -378,24 +410,14 @@
       "二进制",
     "Value":
       "值",
-    "unlisted film":
-      "未列出的胶片",
-    "DX {dx}: {name}{maker}":
-      "DX {dx}：{name}{maker}",
-    "DX {dx}, frame {frame}: {name}{maker}":
-      "DX {dx}，第 {frame} 帧：{name}{maker}",
-    "Data track: {bits} (valid)":
-      "信息码：{bits}（有效）",
-    "Data track: {bits} (has problems)":
-      "信息码：{bits}（有问题）",
-    "Decoded with DX Film Edge Decoder: {url}":
-      "用 DX 片边码解码器解码：{url}",
     "Copy failed: select and copy by hand":
       "复制失败：请手动选择并复制",
     "Waiting for bars":
       "等待输入条",
     "Copy the lower row of your barcode":
       "抄写条码的下排",
+    "Read a photo of your barcode":
+      "读取你的条码照片",
     "The decoding appears here as you go. Not sure what a barcode looks like? Load an example and compare it with your film.":
       "解码结果会随着你的输入显示在这里。不知道条码长什么样？载入一个示例，和你的胶片对照。",
     "Does the top row of your film have 7 thin bars?":
@@ -476,10 +498,6 @@
       "复制链接",
     "Link copied":
       "链接已复制",
-    "Copy as text":
-      "复制为文本",
-    "Copied":
-      "已复制",
     "Raw fields":
       "原始字段",
     "Data track":
@@ -546,8 +564,20 @@
       "语言",
     "Identify a film from the barcode on its edge":
       "从片边条码识别胶片",
-    "Most 35&nbsp;mm film made since 1983 carries a DX barcode along one edge. It is exposed at the factory and appears when the film is developed, so it is still on your negatives and slides long after the cassette is gone. Copy the bars you see and this page tells you the film, its maker and the frame number.":
-      "1983 年以后生产的 35&nbsp;mm 胶片大多在一侧片边上带有 DX 条码。它在工厂里曝光，冲洗后显现，所以即使暗盒早已丢失，它也还留在你的底片和反转片上。把你看到的条抄下来，这个页面就会告诉你胶片名称、生产商和帧号。",
+    "Not sure which film your negatives or slides are? They can tell you themselves. Most 35&nbsp;mm film made since 1983 has a DX barcode along one edge. Copy its bars, or read them from a photo, to find the film, its maker and the frame number.":
+      "不确定你的底片或反转片是哪种胶片？它们自己就能告诉你。1983 年以后生产的 35mm 胶片大多在一侧片边上带有 DX 条码。抄下条码，或者从照片中读取，就能查到胶片名称、生产商和帧号。",
+    "How to enter the code":
+      "输入编码的方式",
+    "Copy the bars":
+      "手动抄写",
+    "Read a photo":
+      "读取照片",
+    "Hide the introduction":
+      "收起简介",
+    "Show the introduction":
+      "展开简介",
+    "How to copy the bars":
+      "如何抄写条码",
     "Look at the strip between the sprocket holes and the edge of the film: two touching rows of small bars, about 13&nbsp;mm long, repeated twice per frame. A loupe or a zoomed-in scan helps.":
       "看齿孔和片边之间的窄条：两排紧挨着的细小条纹，长约 13&nbsp;mm，每帧重复两次。用放大镜或放大的扫描图会更容易看清。",
     "Turn the film the right way round":
@@ -568,10 +598,16 @@
       "我的胶片是哪种版式？",
     "Film":
       "胶片",
-    "Color neg.":
+    "Color negative":
       "彩色底片",
-    "B&amp;W neg.":
+    "Color":
+      "彩色",
+    "B&amp;W negative":
       "黑白底片",
+    "B&W negative":
+      "黑白底片",
+    "B&amp;W":
+      "黑白",
     "Slide":
       "反转片",
     "What does the film look option do?":
@@ -584,8 +620,6 @@
       "重做",
     "Clear":
       "清除",
-    "Read from a photo":
-      "从照片读取",
     "Count the thin bars in the <strong>top</strong> row between the wide mark at the start and the shorter wide mark at the end. <strong>11 thin bars</strong>: the 31-cell layout with a frame number, introduced around 1990. <strong>7 thin bars</strong>: the original 23-cell layout from 1983, still used on some film in the 1990s; it identifies the film but carries no frame number.":
       "数一数<strong>上排</strong>开头的宽标记和结尾较短的宽标记之间有几根细条。<strong>11 根细条</strong>：带帧号的 31 位版式，约 1990 年推出。<strong>7 根细条</strong>：1983 年最初的 23 位版式，1990 年代仍有部分胶片使用；它能识别胶片，但不含帧号。",
     "This only changes how the strip is drawn, so it is easier to compare with your film. On color and black-and-white negatives the bars are dark. On slide film the edge is black and the bars are clear, because reversal processing turns exposed areas clear: treat the clear marks as bars.":
@@ -597,7 +631,7 @@
     "Have the cassette?":
       "有暗盒吗？",
     "The six digits printed under the barcode on a 35&nbsp;mm cassette carry the same DX number as the film edge, plus the roll length. Enter them to identify the film.":
-      "35&nbsp;mm 暗盒条码下方印的六位数字包含与片边相同的 DX 编号，另加卷长。输入这些数字即可识别胶片。",
+      "135 规格暗盒条码下方印的六位数字包含与片边相同的 DX 编号，另加卷长。输入这些数字即可识别胶片。",
     "How the DX edge code works":
       "DX 片边码的原理",
     "Kodak introduced DX encoding in 1983. Besides the checkerboard contacts and barcode on the cassette, every roll carries a <em>latent image</em> barcode exposed along one edge of the film during manufacture. It stays invisible until development, and photofinishing machines read it to recognize the film and, later, to number the frames.":
@@ -680,8 +714,8 @@
       "从定位码的宽标记开始读。胶片方向正确时（通常是光亮的片基面朝向你），条码旁的数字正常可读，宽标记在左边。从另一面看，一切都是镜像的。在反转片上，片边是黑的，条显示为透明的标记。编码褪色或有划痕很常见；由于编码每半帧重复一次，如果某根条看不清，可以看下一个编码。",
     "What the code cannot tell you":
       "编码不能告诉你什么",
-    "The DX number names a product. It does not encode the film speed or development process directly; those follow from the product, and the cassette’s contacts carry the speed for cameras. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.":
-      "DX 编号代表一种型号。它不直接编码感光度或冲洗工艺；这些由型号决定，而暗盒触点为相机提供感光度。这里使用的官方列表是 2008 年的，所以较晚推出的胶片要靠社区资料来识别。很多胶片还以多个名称销售，而片边码由生产胶片的工厂曝光，所以一个编码可能对应一整组贴牌胶片。",
+    "The DX number names a product. The product’s name usually includes its speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.":
+      "DX 编号代表一种型号。型号名称通常带有感光度，但并非总是如此。这里使用的官方列表是 2008 年的，所以较晚推出的胶片要靠社区资料来识别。很多胶片还以多个名称销售，而片边码由生产胶片的工厂曝光，所以一个编码可能对应一整组贴牌胶片。",
     "DX code list":
       "DX 编码列表",
     "The Part 1 numbers and products registered with the International Imaging Industry Association, as published in <cite>DX Codes for 135-Size Film</cite> (February 2008). Select a Part 1 number to filter the list.":

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { collectKeys, loadLanguages, checkLanguage, scriptKeys, pageKeys } from '../../scripts/check-translations.mjs';
+import { collectKeys, loadLanguages, checkLanguage, scriptKeys, pageKeys } from '../../scripts/check-languages.mjs';
 import { buildFigures } from '../../scripts/make-figures.mjs';
 
 const require = createRequire(import.meta.url);
@@ -21,17 +21,17 @@ i18n.register({
 });
 after(() => i18n.use('en'));
 
-describe('translation layer', () => {
+describe('language layer', () => {
   test('English is the source: texts pass through with placeholders filled', () => {
     i18n.use('en');
     assert.equal(i18n.current, 'en');
     assert.equal(i18n.t('Hello {name}', { name: 'Ann' }), 'Hello Ann');
-    assert.equal(i18n.t('Untranslated {x} stays {y}', { x: 1 }), 'Untranslated 1 stays {y}');
+    assert.equal(i18n.t('Missing {x} stays {y}', { x: 1 }), 'Missing 1 stays {y}');
     assert.equal(i18n.plural(1, '{n} film found.', '{n} films found.'), '1 film found.');
     assert.equal(i18n.plural(3, '{n} film found.', '{n} films found.'), '3 films found.');
   });
 
-  test('another language translates, and falls back to English when a text is missing', () => {
+  test('another language gives its own text, and falls back to English when a text is missing', () => {
     assert.equal(i18n.use('pl'), true);
     assert.equal(i18n.t('Hello {name}', { name: 'Ann' }), 'Cześć Ann');
     assert.equal(i18n.t('Not in the dictionary'), 'Not in the dictionary');
@@ -57,7 +57,7 @@ describe('translation layer', () => {
 });
 
 describe('which language a visitor sees', () => {
-  /** A fresh copy of the translation layer, loaded as a page with this URL query and saved choice would load it. */
+  /** A fresh copy of the language layer, loaded as a page with this URL query and saved choice would load it. */
   function shown(search, stored) {
     const file = require.resolve('../../site/js/i18n.js');
     const cached = require.cache[file];
@@ -85,15 +85,15 @@ describe('which language a visitor sees', () => {
   });
 
   test('a language in the URL wins, in any case, but only if the page has it', () => {
-    assert.equal(shown('?lang=zh-CN', null), 'zh-CN', 'storage blocked: the URL carries the choice');
+    assert.equal(shown('?lang=zh-CN', null), 'zh-CN', 'a link or bookmark names the language');
     assert.equal(shown('?lang=zh-cn', null), 'zh-CN');
     assert.equal(shown('?lang=en', 'zh-CN'), 'en');
     assert.equal(shown('?lang=fr', 'zh-CN'), 'zh-CN', 'unknown: the saved choice stays');
   });
 });
 
-describe('interface translations', () => {
-  test('every language translates every English text of the page, with matching placeholders and tags', async () => {
+describe('interface languages', () => {
+  test('every language has every English text of the page, with matching placeholders and tags', async () => {
     const { used, problems } = await collectKeys();
     assert.deepEqual(problems, []);
     assert.ok(used.size > 300, `${used.size} texts`);

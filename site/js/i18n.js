@@ -6,13 +6,15 @@
  * the tests pick it up from the registry.
  *
  * Text in the code goes through t('English text {name}', { name }). Elements
- * of index.html marked data-i18n have their content translated, and
- * data-i18n-attr="aria-label title …" names attributes to translate; in both
- * cases the key is the English text with runs of white space collapsed.
+ * of index.html marked data-i18n get their content in the current language,
+ * and data-i18n-attr="aria-label title …" names attributes that do too; in
+ * both cases the key is the English text with runs of white space collapsed.
  *
- * The choice is saved in localStorage; changing it reloads the page, which
- * keeps the code on the strip (it is in the URL) and the other preferences.
- * Where the browser blocks storage, the choice goes in the URL too (?lang=).
+ * Choosing a language saves it in localStorage and reloads the page with the
+ * language in the URL (?lang=zh-CN), so links and bookmarks open in it too. A
+ * language in the URL wins over the saved one without replacing it. The reload
+ * keeps the code on the strip (it is in the URL as well) and the other
+ * preferences.
  */
 (function (root, factory) {
   'use strict';
@@ -26,7 +28,7 @@
   const ENGLISH = {
     code: 'en',
     name: 'English',
-    // Separators used when the code joins translated pieces; `sentence` goes between two sentences.
+    // Separators used when the code joins pieces of text; `sentence` goes between two sentences.
     punctuation: { comma: ', ', colon: ': ', semicolon: '; ', period: '.', sentence: '. ' },
     strings: {},
   };
@@ -41,7 +43,7 @@
     }
   }
 
-  /** A language in the URL (?lang=), put there when the choice could not be saved. */
+  /** The language named in the URL (?lang=), if any. */
   function inUrl() {
     try {
       return typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('lang');
@@ -80,15 +82,15 @@
     return entry[new Intl.PluralRules(current.code).select(n)] || entry.other;
   }
 
-  /** Translate an English source text, filling {placeholders} from params. */
+  /** The current language's text for an English source text, with {placeholders} filled from params. */
   function t(text, params) {
     const entry = current.strings[text];
     return fill(entry === undefined ? text : choose(entry, params), params);
   }
 
   /**
-   * English has two forms; other languages translate the plural text, as a
-   * string or as an object of plural forms.
+   * English has two forms; other languages give their text for the plural
+   * one, as a string or as an object of plural forms.
    */
   function plural(n, one, other, params) {
     const p = Object.assign({ n }, params);
@@ -107,8 +109,8 @@
     }
   }
 
-  /** Translate the marked parts of a page (index.html) into the current language. */
-  function translatePage(doc) {
+  /** Put the current language's text into the marked parts of a page (index.html). */
+  function applyLanguage(doc) {
     doc.documentElement.lang = current.code;
     if (current !== ENGLISH) {
       for (const el of doc.querySelectorAll('[data-i18n]')) {
@@ -134,24 +136,15 @@
     return Boolean(lang);
   }
 
-  /** Save a choice and reload the page in that language. */
+  /** Save a choice and reload the page in that language, named in the URL. */
   function select(code) {
     if (code === current.code || !languages.some((l) => l.code === code)) return;
-    let stored = true;
     try {
       localStorage.setItem(STORAGE_KEY, code);
-    } catch (e) {
-      stored = false;
-    }
-    const url = new URL(location.href);
-    if (stored && !url.searchParams.has('lang')) {
-      location.reload();
-      return;
-    }
-    // Storage is blocked: carry the choice in the URL instead (and drop it once storage works).
-    if (stored) url.searchParams.delete('lang');
-    else url.searchParams.set('lang', code);
-    location.replace(url.href);
+    } catch (e) { /* storage blocked: the URL alone keeps the choice */ }
+    // Built by hand: URLSearchParams would escape the "/" in ?dx=79-15/23.
+    const others = location.search.slice(1).split('&').filter((p) => p && !/^lang=/i.test(p));
+    location.replace(`${location.pathname}?${[...others, `lang=${encodeURIComponent(code)}`].join('&')}${location.hash}`);
   }
 
   return {
@@ -162,7 +155,7 @@
     or,
     punctuation,
     normalize,
-    translatePage,
+    applyLanguage,
     use,
     select,
     get current() { return current.code; },

@@ -14,7 +14,8 @@ recent assignment list that is freely available is I3A's *DX Codes for
 A DX number is written `Part 1-Part 2`, for example `79-15`. Part 1 has 7 bits
 (0–127, with 0 unused) and Part 2 has 4 bits (0–15), so there are 2,032 possible
 numbers. The number names a film product; it does not encode speed or process,
-which follow from the product (alibosworth; Wikipedia *DX number*).
+which follow from the product (alibosworth; Wikipedia *DX number*). Most
+product names in the 2008 list include the speed, but not all.
 
 The same number is used on the cassette, where its middle four digits are
 16 × Part 1 + Part 2 (see below). Kodak's 1990 patent calls the pair the

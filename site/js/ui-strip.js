@@ -117,7 +117,10 @@
         h('div', { class: 'annot__grid annot__weights' }, weights),
         h('div', { class: 'annot__grid annot__fields' }, brackets));
 
-      const scroller = h('div', { class: 'strip__scroller' }, h('div', { class: 'strip__canvas' }, film, annot));
+      // A photo's barcode, stretched so each cell sits over its own (render's state.photo).
+      const photoRow = h('div', { class: 'strip__photo', hidden: true, 'aria-hidden': 'true' },
+        h('span', { class: 'strip__photo-label' }, t('Your photo')));
+      const scroller = h('div', { class: 'strip__scroller' }, h('div', { class: 'strip__canvas' }, photoRow, film, annot));
       const swipe = h('p', { class: 'strip__swipe' }, opts.interactive
         ? t('Swipe the strip sideways to reach every cell, or turn your phone to landscape.')
         : t('Swipe sideways to see the whole code.'));
@@ -138,7 +141,7 @@
       requestAnimationFrame(overflow);
 
       if (opts.interactive) bindEvents(data);
-      return { format, strip, scroller, film, clock, data, before, after, annot, layout, brackets, weights };
+      return { format, strip, scroller, photoRow, film, clock, data, before, after, annot, layout, brackets, weights };
     }
 
     // ---- editing ----------------------------------------------------------
@@ -335,6 +338,12 @@
       refs.after.querySelector('.edge-text').textContent = hasFrame ? nextLabel(d.frame, d.half) : '';
       refs.film.classList.toggle('has-labels', hasFrame);
       refs.film.classList.toggle('labels-uncertain', hasFrame && !d.valid);
+
+      const label = refs.photoRow.firstChild;
+      if (state.photo) {
+        if (refs.photoRow.lastChild !== state.photo) refs.photoRow.replaceChildren(label, state.photo);
+      } else if (refs.photoRow.lastChild !== label) refs.photoRow.replaceChildren(label);
+      refs.photoRow.hidden = !state.photo;
     }
 
     /** Bars fade in left to right, like a latent image developing. */

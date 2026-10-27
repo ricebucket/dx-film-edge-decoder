@@ -6,7 +6,7 @@
 
 ## DX 编号
 
-DX 编号写作 `Part 1-Part 2`，例如 `79-15`。Part 1 有 7 位（0–127，其中 0 未使用），Part 2 有 4 位（0–15），因此共有 2,032 个可能的编号。这个编号代表一种胶片型号；它并不编码感光度或冲洗工艺，这些由型号决定（alibosworth；维基百科 *DX number*）。
+DX 编号写作 `Part 1-Part 2`，例如 `79-15`。Part 1 有 7 位（0–127，其中 0 未使用），Part 2 有 4 位（0–15），因此共有 2,032 个可能的编号。这个编号代表一种胶片型号；它并不编码感光度或冲洗工艺，这些由型号决定（alibosworth；维基百科 *DX number*）。2008 年列表中的型号名称大多带有感光度，但并非全部。
 
 暗盒上也使用同一个编号，它的中间四位数字为 16 × Part 1 + Part 2（见下文）。柯达 1990 年的专利把这对数字称为“NAPM number”（NAPM 编号），这个名称来自最早分配 Part 1 编号的 National Association of Photographic Manufacturers（全国摄影器材生产商协会）。这项工作后来先后移交给 PIMA 和 I3A（alibosworth 对这段沿革的总结）；维基百科称 I3A “published and sold a proprietary list of DX numbers … yearly or as needed”（每年或按需出版并出售一份专有的 DX 编号列表），最后一版的日期为 2009 年 1 月。网上没有找到这一版。The Big Film Database 提到了从影像科学与技术学会（IS&T）获得的 2011–2014 年 DX 编码，这些编码尚未公开。
 
