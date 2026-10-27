@@ -1,0 +1,16 @@
+{
+  "title": "The Big Film Database",
+  "author": "Dxdatabase",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "repository": "https://github.com/dxdatabase/Open-source-film-database",
+  "commit": "9aa38907a07552285f6c1187d5409f602504c7cc",
+  "file": "film_database.csv",
+  "retrieved": "2026-10-26",
+  "rowsUpstream": 8710,
+  "rowsKept": 1676,
+  "changes": [
+    "Kept only rows with a \"DX extract\" or \"DX full\" number.",
+    "Removed the \"Pic\" column (box-image file names)."
+  ]
+}

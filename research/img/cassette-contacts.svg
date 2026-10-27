@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 838 218" width="838" height="218" role="img" aria-label="Cassette contacts (DX CAS), example: ISO 400, 36 exposures, tolerance +3/−1">
+<title>Cassette contacts (DX CAS), example: ISO 400, 36 exposures, tolerance +3/−1</title>
+<g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif">
+<rect x="0.5" y="0.5" width="837" height="217" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+<text x="20" y="30" font-size="15" font-weight="650" fill="#1f2328" text-anchor="start">Cassette contacts (DX CAS), example: ISO 400, 36 exposures, tolerance +3/−1</text>
+<rect x="162" y="46" width="440" height="108" rx="6" fill="#e9ecef" stroke="#d0d7de"/>
+<rect x="176" y="58" width="62" height="38" rx="3" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="207" y="75" font-size="12" font-weight="700" fill="#1f2328" text-anchor="middle">G</text>
+<text x="207" y="89" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+<rect x="246" y="58" width="62" height="38" rx="3" fill="#2d3136" stroke="#2d3136"/>
+<text x="277" y="75" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">S1</text>
+<text x="277" y="89" font-size="11" font-weight="400" fill="#ffffff" text-anchor="middle">0</text>
+<rect x="316" y="58" width="62" height="38" rx="3" fill="#2d3136" stroke="#2d3136"/>
+<text x="347" y="75" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">S2</text>
+<text x="347" y="89" font-size="11" font-weight="400" fill="#ffffff" text-anchor="middle">0</text>
+<rect x="386" y="58" width="62" height="38" rx="3" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="417" y="75" font-size="12" font-weight="700" fill="#1f2328" text-anchor="middle">S3</text>
+<text x="417" y="89" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+<rect x="456" y="58" width="62" height="38" rx="3" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="487" y="75" font-size="12" font-weight="700" fill="#1f2328" text-anchor="middle">S4</text>
+<text x="487" y="89" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+<rect x="526" y="58" width="62" height="38" rx="3" fill="#2d3136" stroke="#2d3136"/>
+<text x="557" y="75" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">S5</text>
+<text x="557" y="89" font-size="11" font-weight="400" fill="#ffffff" text-anchor="middle">0</text>
+<rect x="176" y="104" width="62" height="38" rx="3" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="207" y="121" font-size="12" font-weight="700" fill="#1f2328" text-anchor="middle">G</text>
+<text x="207" y="135" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+<rect x="246" y="104" width="62" height="38" rx="3" fill="#2d3136" stroke="#2d3136"/>
+<text x="277" y="121" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">L1</text>
+<text x="277" y="135" font-size="11" font-weight="400" fill="#ffffff" text-anchor="middle">0</text>
+<rect x="316" y="104" width="62" height="38" rx="3" fill="#2d3136" stroke="#2d3136"/>
+<text x="347" y="121" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">L2</text>
+<text x="347" y="135" font-size="11" font-weight="400" fill="#ffffff" text-anchor="middle">0</text>
+<rect x="386" y="104" width="62" height="38" rx="3" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="417" y="121" font-size="12" font-weight="700" fill="#1f2328" text-anchor="middle">L3</text>
+<text x="417" y="135" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+<rect x="456" y="104" width="62" height="38" rx="3" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="487" y="121" font-size="12" font-weight="700" fill="#1f2328" text-anchor="middle">T1</text>
+<text x="487" y="135" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+<rect x="526" y="104" width="62" height="38" rx="3" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="557" y="121" font-size="12" font-weight="700" fill="#1f2328" text-anchor="middle">T2</text>
+<text x="557" y="135" font-size="11" font-weight="400" fill="#1f2328" text-anchor="middle">1</text>
+<text x="142" y="104" font-size="12" font-weight="400" fill="#59636e" text-anchor="end">spool post side</text>
+<line x1="148" y1="100" x2="160" y2="100" stroke="#59636e" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="618" y="60" width="16" height="12" rx="2" fill="#c3c9cf" stroke="#8b949e"/>
+<text x="642" y="70" font-size="12" font-weight="400" fill="#1f2328" text-anchor="start">bare metal = 1</text>
+<rect x="618" y="82" width="16" height="12" rx="2" fill="#2d3136"/>
+<text x="642" y="92" font-size="12" font-weight="400" fill="#1f2328" text-anchor="start">painted = 0</text>
+<text x="20" y="182" font-size="12" font-weight="400" fill="#59636e" text-anchor="start">Row 1: ground (G) and film speed (S1–S5)</text>
+<text x="20" y="202" font-size="12" font-weight="400" fill="#59636e" text-anchor="start">Row 2: ground, length (L1–L3) and exposure tolerance (T1–T2)</text>
+</g>
+</svg>

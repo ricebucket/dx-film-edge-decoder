@@ -1,0 +1,28 @@
+{
+  "name": "dx-film-edge-decoder",
+  "version": "1.0.0",
+  "description": "Identify 35 mm film from the DX barcode along the edge of negatives and slides. A self-contained web tool.",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ricebucket/dx-film-edge-decoder.git"
+  },
+  "homepage": "https://ricebucket.github.io/dx-film-edge-decoder/",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test \"tests/unit/**/*.test.mjs\"",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "test:all": "npm test && npm run test:e2e",
+    "build:data": "node scripts/build-data.mjs",
+    "check:data": "node scripts/build-data.mjs --check",
+    "update:community-data": "node scripts/update-community-data.mjs",
+    "stats:community-data": "node scripts/community-stats.mjs",
+    "check:translations": "node scripts/check-translations.mjs",
+    "figures": "node scripts/make-figures.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
+  }
+}
