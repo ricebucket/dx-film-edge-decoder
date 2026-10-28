@@ -82,7 +82,7 @@ const LABELS = {
     metal: '导电区（裸露金属）= 1',
     painted: '绝缘区（涂漆）= 0',
     cassetteTitle: '暗盒条码下方的六位数字：{digits}',
-    prefixNote: '首位数字，由制造厂自定',
+    prefixNote: '首位数字，由制造厂自行安排',
     extractNote: '16 × {part1} + {part2} = {extract}，即 DX {dx}',
     exposureNote: '{digit} = {n} 张',
   },

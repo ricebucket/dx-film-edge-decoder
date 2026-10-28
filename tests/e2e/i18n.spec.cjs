@@ -33,7 +33,7 @@ test('choosing Chinese shows the page in Chinese, keeps the code, and is remembe
   // The code survived the reload, and the generated text is Chinese too.
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
   await expect(page.locator('#result .status')).toHaveText('有效的 DX 编码');
-  await expect(page.locator('#hint')).toHaveText('有效编码。在你的胶片上，紧挨在这个条码前面的数字应为 23。');
+  await expect(page.locator('#hint')).toHaveText('有效编码。在你的胶片上，紧挨在这个条码前面印的数字应为 23。');
   await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，对应数字 64');
   await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^切换到/);
 

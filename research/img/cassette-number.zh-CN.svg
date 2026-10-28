@@ -10,7 +10,7 @@
 <rect x="246" y="64" width="46" height="52" rx="6" fill="none" stroke="#19865a" stroke-width="2"/>
 <text x="269" y="101" font-size="32" font-weight="700" fill="#1f2328" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace">3</text>
 <line x1="63" y1="116" x2="63" y2="180" stroke="#59636e" stroke-width="1.5"/>
-<text x="71" y="184" font-size="13" font-weight="400" fill="#59636e" text-anchor="start">首位数字，由制造厂自定</text>
+<text x="71" y="184" font-size="13" font-weight="400" fill="#59636e" text-anchor="start">首位数字，由制造厂自行安排</text>
 <line x1="166" y1="116" x2="166" y2="158" stroke="#2c66cf" stroke-width="1.5"/>
 <text x="174" y="162" font-size="13" font-weight="400" fill="#2c66cf" text-anchor="start">16 × 109 + 12 = 1756，即 DX 109-12</text>
 <line x1="269" y1="116" x2="269" y2="136" stroke="#19865a" stroke-width="1.5"/>

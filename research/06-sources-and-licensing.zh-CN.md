@@ -30,7 +30,7 @@
 - FUJIFILM，*FUJICOLOR C200* 产品资料 — <https://asset.fujifilm.com/master/emea/files/2020-10/98c3d5087c253f51c132a5d46059f131/films_c200_datasheet_01.pdf>
 - Wikipedia，*DX number* — <https://en.wikipedia.org/wiki/DX_number>
 - Wikipedia，*DX encoding* — <https://en.wikipedia.org/wiki/DX_encoding>
-- zxing-cpp，DX Film Edge 读取器（`ODDXFilmEdgeReader.cpp`），作者 Antoine Mérino 和 Axel Waggershauser — <https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp>
+- zxing-cpp，DX Film Edge 条码读出器（`ODDXFilmEdgeReader.cpp`），作者 Antoine Mérino 和 Axel Waggershauser — <https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp>
 - Zint，DX Film Edge 生成器（`backend/dxfilmedge.c`）及其测试和手册第 6.4.5 节，作者 Antoine Mérino — <https://github.com/zint/zint>
 - Antoine Mérino，*Identifying the manufacturer of your 35mm (and APS) films*，2024 — <https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/>
 - Aurélien Lawley，*Decoding 35mm DX film edge barcodes* — <https://aurelien.lawley.com.au/posts/decoding_35mm_dx_film_edge_barcodes/>
@@ -38,7 +38,7 @@
 - Wikimedia Commons，*Kodak Telegraph negativ23a.jpg*，作者 Sergio Fabris — <https://commons.wikimedia.org/wiki/File:Kodak_Telegraph_negativ23a.jpg>
 - Wikimedia Commons，*Dx-film-edge-barcode.jpg*，作者 User:Caltrop — <https://commons.wikimedia.org/wiki/File:Dx-film-edge-barcode.jpg>
 
-### 胶片数据和暗盒编码
+### 胶片数据和暗盒条码
 
 - International Imaging Industry Association，*DX Codes for 135-Size Film*，2008 年 2 月 — Aurélien Lawley 的文章中链接的 PDF，<https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf>（存档副本：<https://web.archive.org/web/20221222115315/https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf>）；也可以在 <https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association> 查看
 - The Big Film Database (dxdatabase)，作者 Dxdatabase — <https://github.com/dxdatabase/Open-source-film-database>，网站 <https://industrieplus.net/dxdatabase/>，帮助页面 <https://industrieplus.net/dxdatabase/help.html>

@@ -41,9 +41,10 @@ It assigns the Part 2 numbers itself, 0 to 15, and reports each new product's
 name and number to PIMA, which publishes a yearly report with the share of
 Part 1 numbers assigned, each sensitizer's name and every Part 1/Part 2
 combination with its product names. That is the structure of the 2008 list
-below. A *converter*, a company that only finishes and packages sensitized
-film, gets its DX number from the sensitizer; PIMA does not assign numbers to
-converters (A.2.1.2, A.3.7). One DX number may cover several products if they
+below. A *converter*, a company that works on sensitized film in other ways,
+including putting DX numbers on 135 cassettes and film, gets its DX number
+from the sensitizer; PIMA does not assign numbers to converters (A.2.1.2,
+A.3.7). One DX number may cover several products if they
 need the same processing (A.3.8).
 
 ## The February 2008 list

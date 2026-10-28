@@ -119,7 +119,7 @@
       const swipe = h('p', { class: 'strip__swipe' }, opts.interactive
         ? t('Swipe the strip sideways to reach every cell, or turn your phone to landscape.')
         : t('Swipe sideways to see the whole code.'));
-      const strip = h('div', { class: 'strip', style: { '--cells': n } }, h('div', { class: 'strip__viewport' }, scroller), swipe);
+      const strip = h('div', { class: 'strip', 'data-format': format, style: { '--cells': n } }, h('div', { class: 'strip__viewport' }, scroller), swipe);
       host.replaceChildren(strip);
 
       // Fade the edges that hide more of the strip on narrow screens.
@@ -331,7 +331,7 @@
       }
       for (const el of refs.weights) el.classList.toggle('is-error', issueCells.has(Number(el.dataset.cell)));
 
-      // Nothing entered yet: a blank strip, with no printed labels.
+      // Nothing entered yet: a blank strip.
       const empty = refs.layout.every((c) => !c.editable || state.cells[c.cell - 1] === '0');
       for (const b of refs.brackets) {
         const id = b.dataset.field;
@@ -348,12 +348,14 @@
         b.classList.toggle('is-error', bad);
       }
 
-      // Printed edge labels: the label before a code names that code's position.
-      const hasFrame = d.frame !== null && !empty;
+      // The printed number before a code names that code's position: the one
+      // the frame field stands for, faded until the code is entered and valid
+      // (on a blank strip, frame 0). The 23-cell layout has no frame field.
+      const hasFrame = d.frame !== null;
       refs.before.querySelector('.edge-text').textContent = hasFrame ? d.frameLabel : '';
       refs.before.classList.toggle('is-half', hasFrame && d.half);
       refs.film.classList.toggle('has-labels', hasFrame);
-      refs.film.classList.toggle('labels-uncertain', hasFrame && !d.valid);
+      refs.film.classList.toggle('labels-uncertain', hasFrame && (empty || !d.valid));
 
       const label = refs.photoRow.firstChild;
       if (state.photo) {

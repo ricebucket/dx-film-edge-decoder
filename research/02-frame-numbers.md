@@ -111,7 +111,8 @@ frames 0–60 and leaves it out for XX, X and 00.
 
 The 23-cell layout has no frame field at all (see [report 01](01-edge-code-format.md)).
 Film with short codes still has printed frame numbers, but they cannot be read
-from the barcode, so the tool shows no frame for it.
+from the barcode, so the tool shows no frame for it, and its strip leaves out
+the room for the printed number.
 
 ## Sources
 

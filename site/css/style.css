@@ -757,6 +757,18 @@ h1 {
   --film-plus: color-mix(in srgb, var(--film-mark) 40%, transparent);
 }
 
+/* A 23-cell code carries no frame number, so the strip leaves out the room
+   for the printed number. The film still ends just beyond a whole
+   perforation on each side, rather than cutting through one. */
+.strip[data-format="short"] {
+  --label-w: calc(var(--cell) * 2.6);
+  --tail-w: calc(var(--cell) * 3.1);
+}
+
+.strip[data-format="short"] .film__label {
+  padding: 0;
+}
+
 .strip[data-look="bw"],
 .looks__film[data-value="bw"] {
   --film-base: #c3cacf;
@@ -893,9 +905,10 @@ h1 {
 .film {
   position: relative;
   width: calc(var(--label-w) + var(--code-w) + var(--tail-w));
-  /* Film up to about half-way up the perforations; the data track runs along
-     the film edge, so there is no film below it. */
-  padding-top: calc(var(--cell) * 2.7);
+  /* Film up to 1.7 cells into the perforations (code 5.65 cells + 1), enough
+     for their rounded corners and the clock bars between them; the data
+     track runs along the film edge, so there is no film below it. */
+  padding-top: var(--cell);
   background: var(--film-base);
   border-radius: 2px;
   overflow: hidden;
@@ -1137,6 +1150,18 @@ h1 {
 .strip.is-mirrored .strip__photo-label {
   padding-right: 0;
   padding-left: 10px;
+  text-align: left;
+}
+
+/* With no room before a 23-cell code, "Your photo" goes above the photo. */
+.strip[data-format="short"] .strip__photo {
+  flex-wrap: wrap;
+  padding-inline: var(--label-w);
+}
+
+.strip[data-format="short"] .strip__photo-label {
+  width: 100%;
+  padding: 0 0 4px;
   text-align: left;
 }
 
@@ -1566,6 +1591,20 @@ h1 {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
+}
+
+/* The status and, once the strip is in use, the button that brings the
+   examples back. */
+.result__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.examples--panel {
+  margin-top: 12px;
 }
 
 .chip {

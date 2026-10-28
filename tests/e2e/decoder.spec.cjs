@@ -210,6 +210,30 @@ test('examples load a code with the matching film look', async ({ page }) => {
   await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'negative');
 });
 
+test('once the strip is in use, the examples can be brought back and hidden again', async ({ page }) => {
+  await page.goto('/?dx=96-12/14A');
+  const show = page.getByRole('button', { name: 'Show examples' });
+  await expect(page.getByRole('button', { name: 'Ilford HP5 Plus, frame 12' })).toBeHidden();
+  await expect(show).toHaveAttribute('aria-expanded', 'false');
+  await show.click();
+  await page.getByRole('button', { name: 'Ilford HP5 Plus, frame 12' }).click();
+  await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
+  // Still open, to compare one example after another.
+  await page.getByRole('button', { name: 'Fujichrome Velvia 50, frame 5A' }).click();
+  await expect(page.locator('#result-title')).toHaveText('FUJICHROME VELVIA 50');
+  await page.getByRole('button', { name: 'Hide examples' }).click();
+  await expect(page.getByRole('button', { name: 'Fujichrome Velvia 50, frame 5A' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Show examples' })).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('a blank strip shows the printed number faded; the 7-bar layout has none', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#strip .film__label--before')).toHaveText('0');
+  await expect(page.locator('#strip .film')).toHaveClass(/labels-uncertain/);
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
+  await expect(page.locator('#strip .film')).not.toHaveClass(/has-labels/);
+});
+
 test('links restore a code, and junk in the link is ignored', async ({ page }) => {
   await page.goto('/?dx=47-1/22A');
   await expect(page.locator('#result-title')).toHaveText('Perutz Primera 200 (from 01/2002 on)');

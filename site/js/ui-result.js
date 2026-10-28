@@ -197,9 +197,31 @@
       h('h2', { id: 'result-title', class: 'result__title', tabindex: '-1' },
         ctx.way === 'photo' ? t('Read a photo of your barcode') : t('Copy the lower row of your barcode')),
       h('p', { class: 'result__lead' }, t('The decoding appears here as you go. Not sure what a barcode looks like? Load an example and compare it with your film.')),
-      h('div', { class: 'examples' }, ctx.examples.map((ex) =>
-        h('button', { type: 'button', class: 'chip', onClick: () => ctx.onLoadExample(ex) }, ex.label))),
+      h('div', { class: 'examples' }, exampleChips(ctx)),
     ];
+  }
+
+  function exampleChips(ctx) {
+    return ctx.examples.map((ex) => h('button', { type: 'button', class: 'chip', onClick: () => ctx.onLoadExample(ex) }, ex.label));
+  }
+
+  /**
+   * Once the strip is in use the examples fold away behind a button beside
+   * the status, so they can be brought back. They stay open across re-renders
+   * (loading one after another to compare) until hidden again.
+   */
+  function examplesToggle(container, ctx) {
+    const open = Boolean(container.querySelector('#examples-panel:not([hidden])'));
+    const panel = h('div', { class: 'examples examples--panel', id: 'examples-panel', hidden: !open }, exampleChips(ctx));
+    const button = h('button', { type: 'button', class: 'text-button', 'aria-expanded': String(open), 'aria-controls': 'examples-panel' },
+      open ? t('Hide examples') : t('Show examples'));
+    button.addEventListener('click', () => {
+      const show = panel.hidden;
+      panel.hidden = !show;
+      button.setAttribute('aria-expanded', String(show));
+      button.textContent = show ? t('Hide examples') : t('Show examples');
+    });
+    return { button, panel };
   }
 
   /** An older 23-cell code entered in the 31-cell strip: offer to switch. */
@@ -367,8 +389,10 @@
       h('p', { class: 'raw__line' }, t('Clock track') + p.colon, h('code', { class: 'bits' }, codec.getFormat(d.format).clock)),
       h('p', { class: 'raw__line' }, t('Text form (as used by zxing-cpp and Zint)') + p.colon, h('code', null, textForm(d))));
 
+    const examples = examplesToggle(container, ctx);
     replace(container,
-      status,
+      h('div', { class: 'result__top' }, status, examples.button),
+      examples.panel,
       shortCodeHint(d, ctx),
       problems,
       h('div', { class: 'result__grid' },
