@@ -46,6 +46,7 @@ texts. Each file has a single license.
 
 ### Barcode format
 
+- Chinese national standard GB/T 9185-2003, *Photography — 135-size film and magazine — Specifications*, an identical adoption of ISO 1007:2000, issued 10 November 2003; Standards Press of China, 2004 — record on the National Public Service Platform for Standards Information: <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>
 - Olliver, Johnson & Patton (Eastman Kodak), US patent 4,965,628, *Photographic film with latent image multi-field bar code and eye-readable symbols*, 1990 — <https://patents.google.com/patent/US4965628A/en>
 - Shafer & Easterly (Eastman Kodak), US patent 5,448,049, *Film latent image bar-code (LIBC) reader*, 1995 — <https://patents.google.com/patent/US5448049A/en>
 - Rottner, Lindsay & Clare (Eastman Kodak), US patent 5,665,950, *Fat bit bar code reader*, 1997 — <https://patents.google.com/patent/US5665950A/en>
@@ -57,7 +58,6 @@ texts. Each file has a single license.
 - FUJIFILM, *FUJICOLOR C200* product information bulletin — <https://asset.fujifilm.com/master/emea/files/2020-10/98c3d5087c253f51c132a5d46059f131/films_c200_datasheet_01.pdf>
 - Wikipedia, *DX number* — <https://en.wikipedia.org/wiki/DX_number>
 - Wikipedia, *DX encoding* — <https://en.wikipedia.org/wiki/DX_encoding>
-- Chinese national standard GB/T 9185-2003, *Photography — 135-size film and magazine — Specifications*, 2003, an identical adoption of ISO 1007:2000: its record on the National Public Service Platform for Standards Information — <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>; the National Standards Full Text Disclosure System does not show its text, for copyright reasons — <https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=B197380D4FBB4B5E62D889D6902DE5DD>
 - zxing-cpp, DX Film Edge reader (`ODDXFilmEdgeReader.cpp`) by Antoine Mérino and Axel Waggershauser — <https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp>
 - Zint, DX Film Edge generator (`backend/dxfilmedge.c`), its tests and manual section 6.4.5, by Antoine Mérino — <https://github.com/zint/zint>
 - Antoine Mérino, *Identifying the manufacturer of your 35mm (and APS) films*, 2024 — <https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/>

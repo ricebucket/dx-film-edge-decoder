@@ -30,8 +30,9 @@ test('clicking the bars of a real code identifies the film', async ({ page }) =>
   await expect(result).toContainText('Part 1 = 79 is assigned to Eastman Kodak Company.');
   await expect(result.locator('.readout__value').first()).toHaveText('79-15');
   await expect(result.locator('.readout__value--edge')).toHaveText('23');
+  // The number printed before the code, as on film: a whole frame, so no arrow.
   await expect(page.locator('#strip .film__label--before')).toHaveText('23');
-  await expect(page.locator('#strip .film__label--after')).toHaveText('23A');
+  await expect(page.locator('#strip .film__label--before')).not.toHaveClass(/is-half/);
   await expect(page).toHaveURL(/\?dx=79-15\/23$/);
 });
 
@@ -108,6 +109,25 @@ test('a bar in an unused cell is explained', async ({ page }) => {
   await expect(page.locator('#result')).toContainText('Cell 14 should never have a bar');
   await expect(page.locator('#hint')).toContainText('shifted by one cell');
   await expect(dataCell(page, 14)).toHaveClass(/is-error/);
+});
+
+test('on phones the strip opens on cell 1, from the right end when mirrored', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'phones only: wider screens show the whole strip');
+  await page.goto('/?dx=79-15/23');
+  // Cell 1 sits just clear of the 32 px fade that marks more strip to the side
+  // (within 2 px: WebKit scrolls by whole pixels).
+  const cellOneInset = () => page.locator('#strip .strip__scroller').evaluate((sc) => {
+    const view = sc.getBoundingClientRect();
+    const cell = sc.querySelector('.track--data [data-cell="1"]').getBoundingClientRect();
+    return { left: Math.round(cell.left - view.left), right: Math.round(view.right - cell.right) };
+  });
+  await expect.poll(async () => Math.abs((await cellOneInset()).left - 32) <= 2).toBe(true);
+  await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
+  await expect.poll(async () => Math.abs((await cellOneInset()).right - 32) <= 2).toBe(true);
+  // Editing does not move the strip.
+  await page.locator('#strip .strip__scroller').evaluate((sc) => { sc.scrollLeft = 120; });
+  await dataCell(page, 20).tap();
+  expect(Math.abs(await page.locator('#strip .strip__scroller').evaluate((sc) => sc.scrollLeft) - 120)).toBeLessThanOrEqual(2);
 });
 
 test('mirror reverses the strip on screen but not the reading', async ({ page }) => {
@@ -202,7 +222,8 @@ test('links restore a code, and junk in the link is ignored', async ({ page }) =
 test('leader frames show their printed labels', async ({ page }) => {
   await page.goto('/?dx=79-2/XA');
   await expect(page.locator('.readout__value--edge')).toHaveText('XA');
-  await expect(page.locator('#strip .film__label--after')).toHaveText('00');
+  await expect(page.locator('#strip .film__label--before')).toHaveText('XA');
+  await expect(page.locator('#strip .film__label--before')).toHaveClass(/is-half/);
   await expect(page.locator('#result')).toContainText('also printed as SA');
 });
 

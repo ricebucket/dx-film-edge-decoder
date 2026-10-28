@@ -72,8 +72,8 @@ describe('reading synthetic film edges', () => {
     const module = 8;
     const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module });
     // Erase the data bar in cell 10 (Part 1, weight 8). The synthesizer puts
-    // the clock track at 42 % of the height, and each track is 2.2 cells tall.
-    const dataTop = syn.height * 0.42 + 2.2 * module;
+    // the clock track at 42 % of the height, 3.15 cells tall.
+    const dataTop = syn.height * 0.42 + 3.15 * module;
     const codeLeft = (syn.width - 31 * module) / 2;
     for (let y = Math.ceil(dataTop); y < syn.height; y++) {
       for (let x = 0; x < syn.width; x++) {

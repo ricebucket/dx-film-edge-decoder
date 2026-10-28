@@ -42,6 +42,8 @@
 
     const community = (communityData ? communityData.rows : []).map((row, index) => {
       const [extract, full, name, tags, original, manufacturer, reliability, country, from, to, distributor, ava] = row;
+      // Part 1 = 0 is valid (GB/T 9185-2003, Annex A.3.1), but no maker held it
+      // in 2008, so community numbers below 16 are not taken as edge codes.
       const inRange = extract >= 16 && extract <= 2047;
       return {
         source: 'community',

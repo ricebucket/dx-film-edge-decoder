@@ -38,7 +38,7 @@ test('the frame field of the search rejects labels it cannot read', async ({ pag
 test('search results without a usable DX number say why', async ({ page }) => {
   await page.locator('#finder-q').fill('neopan 400ug');
   const neopan = page.locator('.finder__item').first();
-  await expect(neopan.getByRole('button', { name: 'No full code' })).toHaveAttribute('title', 'Part 1 = 0 is never used on film.');
+  await expect(neopan.getByRole('button', { name: 'No full code' })).toHaveAttribute('title', 'Part 1 would be 0, which no maker held in 2008.');
   await expect(neopan.locator('.finder__dx')).toHaveCount(0); // no cassette number either
   await page.locator('#finder-q').fill('cinestill 800t');
   const cine = page.locator('.finder__item').first();
@@ -123,7 +123,20 @@ test('cassette input is validated', async ({ page }) => {
   await page.locator('#cassette-code').fill('832973');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText('KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
-  await expect(page.locator('.cassette__result')).toContainText('not a standard DX number');
+  // An augmented number (Annex A.4) names its maker, not a DX number.
+  await expect(page.locator('.cassette__result')).toContainText('3297 = 16 × 206 + 1: an augmented number');
+  await expect(page.locator('.cassette__result .readout__value').nth(1)).toHaveText('—');
+  await expect(page.locator('.cassette__result')).toContainText('Part 1 206 is 78 + 128, so the number belongs to Eastman Kodak');
+  await expect(page.getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
+  await page.locator('#cassette-code').fill('753914');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result')).toContainText('Part 1 336 is 80 + 256');
+  await expect(page.locator('.cassette__result')).toContainText('CineStill');
+  await expect(page.getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
+  await page.locator('#cassette-code').fill('012790');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result')).toContainText('1–8 exp.');
+  await expect(page.locator('.cassette__result')).toContainText('The 1994 standard used it for 72 exposures.');
 });
 
 test('the code list filters by Part 1 number', async ({ page }) => {

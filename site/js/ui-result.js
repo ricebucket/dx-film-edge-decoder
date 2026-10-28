@@ -59,9 +59,9 @@
   // copy: research/04.)
   const BFD_SEARCH = 'https://thebigfilmdatabase.merinorus.com/search?dx_number=';
 
-  /** A link to this DX number on The Big Film Database's site; null for Part 1 = 0, which film never uses. */
+  /** A link to this DX number on The Big Film Database's site. */
   function bfdLink(part1, part2) {
-    if (!(part1 > 0)) return null;
+    if (part1 === null || part1 === undefined) return null;
     const dx = `${part1}-${part2}`;
     return h('p', { class: 'source-block__link' },
       h('a', { href: BFD_SEARCH + dx, target: '_blank', rel: 'noopener' },
@@ -123,11 +123,6 @@
   /** Plain-language explanation for each problem the decoder reports. */
   function explainIssue(issue, d) {
     switch (issue.code) {
-      case 'part1-zero':
-        return {
-          title: t('Part 1 is 0, which no film uses'),
-          text: t('Part 1 sits in cells 7 to 13, right after the start pattern. Copy those bars first.'),
-        };
       case 'blank':
         return {
           title: t('Cell {cell} should never have a bar', { cell: issue.cell }),
@@ -159,9 +154,9 @@
       let ok = true;
       if (f.kind === 'fixed') { ok = bits === f.pattern; value = ok ? t('fixed pattern') : t('should be {pattern}', { pattern: f.pattern }); }
       else if (f.kind === 'blank') { ok = bits === '0'; value = ok ? t('empty, as it should be') : t('should be empty'); }
-      else if (f.id === 'part1') { value = String(d.part1); ok = d.part1 !== 0; }
+      else if (f.id === 'part1') value = String(d.part1);
       else if (f.id === 'part2') value = String(d.part2);
-      else if (f.id === 'frame') value = d.frame >= 62 ? t('{value} (printed {label})', { value: d.frame, label: codec.frameLabel(d.frame, false) }) : String(d.frame);
+      else if (f.id === 'frame') value = d.frame >= 61 ? t('{value} (printed {label})', { value: d.frame, label: codec.frameLabel(d.frame, false) }) : String(d.frame);
       else if (f.id === 'half') value = d.half ? t('A position') : t('whole frame');
       else if (f.kind === 'parity') {
         ok = d.parity.ok;
@@ -336,12 +331,9 @@
     }
 
     const info = ctx.lookup.byDx(d.part1, d.part2);
-    const real = d.issues.filter((i) => i.code !== 'part1-zero');
     const status = d.valid
       ? h('div', { class: 'status status--ok' }, icon('check'), h('span', null, d.format === 'short' ? t('Valid DX code (23-cell layout)') : t('Valid DX code')))
-      : real.length
-        ? h('div', { class: 'status status--error' }, icon('cross'), h('span', null, i18n.plural(real.length, 'One problem to check', '{n} problems to check')))
-        : h('div', { class: 'status status--idle' }, h('span', null, t('Not a film code yet')));
+      : h('div', { class: 'status status--error' }, icon('cross'), h('span', null, i18n.plural(d.issues.length, 'One problem to check', '{n} problems to check')));
 
     const problems = d.issues.length
       ? h('div', { class: 'problems' }, d.issues.map((issue) => {
@@ -352,24 +344,18 @@
 
     const main = [];
     const side = [];
-    if (d.part1 !== 0) {
-      const id = identity(d, info);
-      main.push(
-        h('h2', { id: 'result-title', class: `result__title${d.valid ? '' : ' result__title--tentative'}`, tabindex: '-1' }, id.title),
-        d.valid ? null : h('p', { class: 'fineprint' }, t('The code does not pass its checks yet, so this will probably change once the misread bar is fixed.')),
-        ...id.lines,
-        ...id.parts);
-      side.push(readouts(d));
-    } else {
-      main.push(h('h2', { id: 'result-title', class: 'result__title', tabindex: '-1' }, t('Keep copying')));
-    }
+    const id = identity(d, info);
+    main.push(
+      h('h2', { id: 'result-title', class: `result__title${d.valid ? '' : ' result__title--tentative'}`, tabindex: '-1' }, id.title),
+      d.valid ? null : h('p', { class: 'fineprint' }, t('The code does not pass its checks yet, so this will probably change once the misread bar is fixed.')),
+      ...id.lines,
+      ...id.parts);
+    side.push(readouts(d));
 
     const actions = h('div', { class: 'result__actions' });
-    if (d.part1 !== 0) {
-      const share = h('button', { type: 'button', class: 'tool' }, t('Copy link'));
-      share.addEventListener('click', () => copyText(ctx.shareUrl, share, t('Link copied')));
-      actions.append(share);
-    }
+    const share = h('button', { type: 'button', class: 'tool' }, t('Copy link'));
+    share.addEventListener('click', () => copyText(ctx.shareUrl, share, t('Link copied')));
+    actions.append(share);
 
     // Keep "Raw fields" open across re-renders while the user edits the strip.
     const wasOpen = Boolean(container.querySelector('details.raw[open]'));

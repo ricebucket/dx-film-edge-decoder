@@ -284,16 +284,26 @@
     }
     if (!best || best.score < 0.75) return { found: false, reason: 'no-clock' };
 
-    // The data track touches the clock track, above or below it.
+    // The data track touches the clock track, above or below it. A single row
+    // on the border between the tracks can read a wrong bar that happens to
+    // pass parity, so prefer bits that at least half a cell's height of rows
+    // agree on (falling back to the best row when no bits are that stable).
     const reach = Math.ceil(best.unit * 6);
-    let data = null;
+    const rows = [];
     for (let y = Math.max(0, best.y - reach); y <= Math.min(img.height - 1, best.y + reach); y++) {
       if (Math.abs(y - best.y) < best.unit * 0.5) continue;
       const row = readRow(img, y, best.slope, 0, best);
       const contrast = row.norm.reduce((s, v) => s + Math.abs(v - 0.5), 0) / row.norm.length;
-      const score = dataScore(row.bits, best.format) + contrast * 0.3;
-      if (!data || score > data.score) data = { y, score, bits: row.bits };
+      rows.push({ y, score: dataScore(row.bits, best.format) + contrast * 0.3, bits: row.bits });
     }
+    const support = new Map();
+    for (const r of rows) support.set(r.bits, (support.get(r.bits) || 0) + 1);
+    const stable = Math.max(2, best.unit * 0.5);
+    let data = null;
+    for (const r of rows) {
+      if (support.get(r.bits) >= stable && (!data || r.score > data.score)) data = r;
+    }
+    if (!data) for (const r of rows) if (!data || r.score > data.score) data = r;
     if (!data || data.score < 1.05) return Object.assign({ found: false, reason: 'no-data' }, describe(best, factor));
 
     // Read across the middle of the band of rows that give the same bits.
@@ -350,7 +360,6 @@
     0: '111101101101111', 1: '010110010010111', 2: '111001111100111', 3: '111001111001111',
     4: '101101111001001', 5: '111100111001111', 6: '111100111101111', 7: '111001010010010',
     8: '111101111101111', 9: '111101111001111', A: '010101111101101', X: '101101010101101',
-    '>': '100110111110100',
   };
 
   function mulberry32(seed) {
@@ -364,9 +373,18 @@
     };
   }
 
-  // Film geometry in cells (1 cell ≈ 0.41 mm): codes repeat every 19 mm,
-  // perforations every 4.75 mm, each track ≈ 0.9 mm tall.
-  const GEOMETRY = { pitch: 46.3, track: 2.2, perfPitch: 11.59, perfW: 6.8, perfH: 4.8, perfR: 1.1, glyph: 0.7 };
+  // Film geometry in cells (1 cell = 0.408 mm), as on the Kodak negative of
+  // research/05 and in GB/T 9185-2003 Tables 1 and 2: codes every 19 mm, four
+  // perforations of 4.75 mm; the data track 2.5 cells tall along the film edge
+  // and the clock track 3.15 above it; perforations 4.85 × 6.85 cells, their
+  // lower edge 4.95 cells from the film edge (so they cut the top of the clock
+  // track), one starting 2.32 cells before each code. Printed numbers: a whole
+  // frame 3.4 cells tall (0.68 per font pixel), an A position 2 cells (0.4).
+  const GEOMETRY = {
+    pitch: 46.56, clock: 3.15, data: 2.5,
+    perfPitch: 11.64, perfW: 4.85, perfH: 6.85, perfR: 1.2, perfEdge: 4.95, perfShift: -2.32,
+    glyphWhole: 0.68, glyphHalf: 0.4,
+  };
 
   /**
    * Draw a stretch of film edge carrying a DX code, with neighboring codes,
@@ -388,10 +406,9 @@
     const filmH = height / o.module;
     const codeX = (filmW - cells) / 2;
     const clockTop = filmH * 0.42;
-    const dataTop = clockTop + g.track;
-    const trackEnd = dataTop + g.track;
-    const edge = trackEnd + 0.7;
-    const perfBottom = clockTop - 0.35;
+    const dataTop = clockTop + g.clock;
+    const edge = dataTop + g.data;
+    const perfBottom = edge - g.perfEdge;
     const perfTop = perfBottom - g.perfH;
 
     const codes = new Map();
@@ -404,28 +421,39 @@
         codes.set(k, {
           bits: codec.encode({ part1: o.part1, part2: o.part2, frame, half }, o.format),
           label: o.format === 'long' ? codec.frameLabel(frame, half) : '',
+          half,
         });
       }
       return codes.get(k);
     }
 
-    // A label (arrow + frame number) ends just before the code it names.
-    function labelInk(text, x, y, codeStart) {
-      const glyphs = ['>', ...text];
-      const step = 4 * g.glyph;
-      const right = codeStart - 1.2;
-      const left = right - glyphs.length * step;
-      const top = clockTop + 0.4;
-      if (x < left || x >= right || y < top || y >= top + 5 * g.glyph) return false;
-      const gx = Math.floor(((x - left) % step) / g.glyph);
-      if (gx > 2) return false;
-      const glyph = GLYPHS[glyphs[Math.floor((x - left) / step)]];
-      const gy = Math.floor((y - top) / g.glyph);
-      return Boolean(glyph) && glyph[gy * 3 + gx] === '1';
+    // A printed number ends just before the code it names: a whole frame's
+    // 0.6 cells above the film edge and 1.6 cells before the code; an A
+    // position's higher and 2.8 cells before the code, over an arrow that runs
+    // 1 cell above the edge.
+    function labelInk(text, half, x, y, codeStart) {
+      if (!text) return false;
+      const size = half ? g.glyphHalf : g.glyphWhole;
+      const right = codeStart - (half ? 2.8 : 1.6);
+      const left = right - (4 * text.length - 1) * size;
+      if (x < left || x >= right) return false;
+      if (half) {
+        const tipStart = right - 1;
+        const arrowY = Math.abs(y - (edge - 1));
+        if (x < tipStart ? arrowY <= 0.1 : arrowY <= 0.3 * (right - x)) return true;
+      }
+      const bottom = edge - (half ? 2.4 : 0.6);
+      const top = bottom - 5 * size;
+      if (y < top || y >= bottom) return false;
+      const column = Math.floor((x - left) / size);
+      if (column % 4 > 2) return false;
+      const glyph = GLYPHS[text[Math.floor(column / 4)]];
+      const gy = Math.floor((y - top) / size);
+      return Boolean(glyph) && glyph[gy * 3 + (column % 4)] === '1';
     }
 
     function inPerforation(x, y) {
-      const px = ((x % g.perfPitch) + g.perfPitch) % g.perfPitch;
+      const px = (((x - codeX - g.perfShift) % g.perfPitch) + g.perfPitch) % g.perfPitch;
       if (px >= g.perfW || y < perfTop || y >= perfBottom) return false;
       const r = g.perfR;
       const dx = Math.max(r - px, px - (g.perfW - r), 0);
@@ -435,15 +463,14 @@
 
     /** [ink, hole] at film position (x, y), in cells. */
     function at(x, y) {
-      if (y >= edge) return [0, 1];
-      if (y >= clockTop && y < trackEnd) {
-        const k = Math.floor((x - codeX) / g.pitch);
-        const start = codeX + k * g.pitch;
-        const cell = Math.floor(x - start);
-        if (cell < cells) return [(y < dataTop ? fmt.clock : codeAt(k).bits)[cell] === '1' ? 1 : 0, 0];
-        return [labelInk(codeAt(k + 1).label, x, y, start + g.pitch) ? 1 : 0, 0];
-      }
-      return [0, inPerforation(x, y) ? 1 : 0];
+      if (y >= edge || inPerforation(x, y)) return [0, 1];
+      if (y < clockTop) return [0, 0];
+      const k = Math.floor((x - codeX) / g.pitch);
+      const start = codeX + k * g.pitch;
+      const cell = Math.floor(x - start);
+      if (cell < cells) return [(y < dataTop ? fmt.clock : codeAt(k).bits)[cell] === '1' ? 1 : 0, 0];
+      const next = codeAt(k + 1);
+      return [labelInk(next.label, next.half, x, y, start + g.pitch) ? 1 : 0, 0];
     }
 
     const ink = new Float32Array(width * height);

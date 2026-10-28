@@ -201,7 +201,7 @@
           <p data-i18n>Part 1 and Part 2 together form the film’s <strong>DX number</strong>, written like <code>79-15</code>. Part 1 numbers were assigned to manufacturers by their industry association (NAPM, then PIMA, then I3A), and each manufacturer used Part 2 to tell its products apart. The cassette carries the same number: the middle four digits of its barcode are 16 × Part 1 + Part 2, so 79-15 becomes 1279.</p>
 
           <h3 data-i18n>Frame numbers</h3>
-          <p data-i18n>The 31-cell layout, patented by Kodak in 1990, adds a frame number. The code is printed twice per frame, once at the frame (<code>23</code>) and once halfway to the next (<code>23A</code>), so a notch punched by a printing machine never removes every code. The number printed just before a barcode, to its left when reading, is the number it carries. Before frame 0, Kodak rolls for example run <code>X</code>, <code>XA</code>, <code>00</code>, <code>00A</code>; in the barcode these are stored as 62 and 63.</p>
+          <p data-i18n>The 31-cell layout, patented by Kodak in 1990, adds a frame number. The code is printed twice per frame, once at the frame (<code>23</code>) and once halfway to the next (<code>23A</code>), so a notch punched by a printing machine never removes every code. The number printed just before a barcode, to its left when reading, is the number it carries. Before frame 0 the numbers count down: <code>00</code> is stored as 63, <code>X</code> as 62 and <code>XX</code> as 61, so Kodak rolls for example run <code>X</code>, <code>XA</code>, <code>00</code>, <code>00A</code>, <code>0</code>.</p>
           <div class="table-scroll">
             <table class="frames-table">
               <caption data-i18n>Printed label and the value in the frame field</caption>
@@ -244,8 +244,8 @@
         <h2 id="sources-title" data-i18n>Sources and credits</h2>
         <h3 data-i18n>Barcode format</h3>
         <ul class="sources">
+          <li data-i18n>GB/T 9185-2003, <cite>Photography — 135-size film and magazine — Specifications</cite>, China’s identical adoption of ISO 1007:2000: section 7 for the edge barcode, section 9 for the cassette barcode and Annex A for DX numbers. Wikipedia’s <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> and <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> articles summarize ISO 1007.</li>
           <li data-i18n>Olliver, Johnson &amp; Patton (Eastman Kodak), <a href="https://patents.google.com/patent/US4965628A/en">US patent 4,965,628</a>, “Photographic film with latent image multi-field bar code and eye-readable symbols”, 1990.</li>
-          <li data-i18n>ISO 1007, <cite>Photography — 135-size film and magazine — Specifications</cite>, section 6, as summarized in Wikipedia’s <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> and <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> articles.</li>
           <li data-i18n>Fuji Photo Film, <a href="https://patents.google.com/patent/US5122645A/en">US patent 5,122,645</a>, describing the original layout with seven clock bars.</li>
           <li data-i18n>The DX Film Edge reader in <a href="https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp">zxing-cpp</a> and the generator in <a href="https://github.com/zint/zint/blob/master/backend/dxfilmedge.c">Zint</a> by Antoine Mérino, used to cross-check every rule on this page; Zint’s test vectors are part of this project’s tests.</li>
           <li data-i18n>Antoine Mérino, <a href="https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/">Identifying the manufacturer of your 35mm (and APS) films</a>, 2024.</li>

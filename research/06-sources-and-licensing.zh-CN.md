@@ -7,7 +7,7 @@
 `REUSE.toml` 以 [REUSE](https://reuse.software/) 格式记录了每个文件的版权和许可证，`LICENSES/` 存放各许可证的全文。每个文件只有一种许可证。
 
 - **代码、测试、脚本、样式、网站图标、各语言的界面文字、文档中的图示和截图，以及这些研究笔记的中英文版本**是为本项目编写的，采用 GNU General Public License v3.0 许可证（见 `LICENSE`）。图示由 `scripts/make-figures.mjs` 绘制，截图由 `scripts/screenshots.mjs` 生成。显示了 The Big Film Database 条目的截图（`.github/screenshot*.png` 和 `research/img/community-result*.png`）则采用 CC BY-SA 4.0 许可证。
-- **`data/i3a-2008/`** 存放 I3A 列表 *DX Codes for 135-Size Film*（2008 年 2 月）中事实内容的转录：Part 1（第一部分）的分配，以及与公布内容一致的 DX 编号和型号名称。它是用 `scripts/extract-i3a-pdf.py` 生成的，采用 GNU General Public License v3.0 许可证。I3A 文件的文本中没有版权声明或许可条款。
+- **`data/i3a-2008/`** 存放 I3A 列表 *DX Codes for 135-Size Film*（2008 年 2 月）中事实内容的转录：第 1 部分的分配，以及与公布内容一致的 DX 码和产品名称。它是用 `scripts/extract-i3a-pdf.py` 生成的，采用 GNU General Public License v3.0 许可证。I3A 文件的文本中没有版权声明或许可条款。
 - **`data/big-film-database/`** 存放 The Big Film Database 的一个改编子集，采用 CC BY-SA 4.0 许可证；其署名和修改清单见 [data/README.md](../data/README.zh-CN.md)。
 - **`site/js/dx-data.js`** 和 **`site/js/dx-data-community.js`** 由 `scripts/build-data.mjs` 根据 `data/` 生成，每个数据集一个文件。前者存放 I3A 数据表，采用 GNU General Public License v3.0 许可证；后者存放 The Big Film Database 的子集，文件头带有它的署名，采用 CC BY-SA 4.0 许可证。
 - **`tests/unit/zint-vectors.mjs`** 存放 11 个位串，取自 Zint 条码库针对该格式的测试文件（`backend/tests/test_dxfilmedge.c`，版权 2024–2025 Antoine Mérino），并附有该版权声明，采用 BSD-3-Clause 许可证。使用这些位串的测试在 `tests/unit/codec.test.mjs` 中。
@@ -18,6 +18,7 @@
 
 ### 条码格式
 
+- 中国国家标准 GB/T 9185-2003《摄影 135规格胶片和暗盒 规范》，等同采用 ISO 1007:2000，2003 年 11 月 10 日发布；中国标准出版社，2004 年 — 全国标准信息公共服务平台上的记录：<https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>
 - Olliver, Johnson & Patton（Eastman Kodak），美国专利 4,965,628，*Photographic film with latent image multi-field bar code and eye-readable symbols*，1990 — <https://patents.google.com/patent/US4965628A/en>
 - Shafer & Easterly（Eastman Kodak），美国专利 5,448,049，*Film latent image bar-code (LIBC) reader*，1995 — <https://patents.google.com/patent/US5448049A/en>
 - Rottner, Lindsay & Clare（Eastman Kodak），美国专利 5,665,950，*Fat bit bar code reader*，1997 — <https://patents.google.com/patent/US5665950A/en>
@@ -29,7 +30,6 @@
 - FUJIFILM，*FUJICOLOR C200* 产品资料 — <https://asset.fujifilm.com/master/emea/files/2020-10/98c3d5087c253f51c132a5d46059f131/films_c200_datasheet_01.pdf>
 - Wikipedia，*DX number* — <https://en.wikipedia.org/wiki/DX_number>
 - Wikipedia，*DX encoding* — <https://en.wikipedia.org/wiki/DX_encoding>
-- 中国国家标准 GB/T 9185-2003《摄影师 135规格胶片和暗盒 规范》，2003 年，等同采用 ISO 1007:2000：全国标准信息公共服务平台上的记录 — <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>；国家标准全文公开系统因涉及版权，不提供该标准的文本阅读 — <https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=B197380D4FBB4B5E62D889D6902DE5DD>
 - zxing-cpp，DX Film Edge 读取器（`ODDXFilmEdgeReader.cpp`），作者 Antoine Mérino 和 Axel Waggershauser — <https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp>
 - Zint，DX Film Edge 生成器（`backend/dxfilmedge.c`）及其测试和手册第 6.4.5 节，作者 Antoine Mérino — <https://github.com/zint/zint>
 - Antoine Mérino，*Identifying the manufacturer of your 35mm (and APS) films*，2024 — <https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/>

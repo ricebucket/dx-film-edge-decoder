@@ -22,7 +22,7 @@
     if (field.value.trim() === '') return { frame: 1, half: false };
     const frame = codec.parseFrameLabel(field.value);
     if (!frame) {
-      message.textContent = t('Write the frame as printed on film: a number up to 63, optionally followed by A, or X, 00.');
+      message.textContent = t('Write the frame as printed on film: a number up to 60, optionally followed by A, or XX, X, 00.');
       message.classList.add('is-error');
       field.focus();
     }
@@ -59,13 +59,13 @@
         : [entry.manufacturer && t('Made by {maker}', { maker: entry.manufacturer }), entry.original].filter(Boolean).join(i18n.punctuation().sentence);
       // Rows without a usable DX number can't be drawn: registry rows whose
       // Part 2 was never identified, and community numbers above 2047 or below
-      // 16 (where Part 1 would be 0).
+      // 16 (where Part 1 would be 0, which no maker held).
       const showable = dx !== null && !entry.wildcard;
       const why = entry.wildcard
         ? t('The registry does not give the Part 2 number for this film')
         : entry.extract > 2047
           ? t('This cassette number is outside the range a film edge code can hold')
-          : t('Part 1 = 0 is never used on film.');
+          : t('Part 1 would be 0, which no maker held in 2008.');
       const button = h('button', {
         type: 'button', class: 'tool', disabled: showable ? null : true,
         title: showable ? null : why,
@@ -128,14 +128,9 @@
       e.preventDefault();
       const dx = codec.parseDxNumber(dxInput.value);
       if (!dx) {
-        directMsg.textContent = t('That is not a DX number. Part 1 runs from 1 to 127 and Part 2 from 0 to 15, e.g. 79-15.');
+        directMsg.textContent = t('That is not a DX number. Part 1 runs from 0 to 127 and Part 2 from 0 to 15, e.g. 79-15.');
         directMsg.classList.add('is-error');
         dxInput.focus();
-        return;
-      }
-      if (dx.part1 === 0) {
-        directMsg.textContent = t('Part 1 = 0 is never used on film.');
-        directMsg.classList.add('is-error');
         return;
       }
       const frame = readFrame(directFrame, directMsg);
@@ -172,32 +167,59 @@
       h('button', { type: 'submit', class: 'tool tool--primary' }, t('Look up')),
       msg);
 
+    /** The exposures a cassette's last digit stands for, e.g. "24 exp." or "18–23 exp.". */
+    function exposuresText(e) {
+      if (e.to === null) return t('{n} or more exp.', { n: e.from });
+      return e.from === e.to ? t('{n} exp.', { n: e.from }) : t('{from}–{to} exp.', { from: e.from, to: e.to });
+    }
+
+    /** The last digit, and what the 1994 standard used it for where that differs. */
+    function exposuresNote(p) {
+      const digit = p.exposureDigit;
+      const before = p.exposures.before2000;
+      if (before === undefined) return t('Last digit {digit}.', { digit });
+      if (before === null) return t('Last digit {digit}. The 1994 standard did not use it.', { digit });
+      if (before === 'other') return t('Last digit {digit}. The 1994 standard used it for other lengths, such as 24 + 3.', { digit });
+      return t('Last digit {digit}. The 1994 standard used it for {n} exposures.', { digit, n: before });
+    }
+
     function render(hit) {
       const p = hit.parsed;
+      const a = p.augmented;
+      const dxNote = a
+        ? t('{extract} = 16 × {cassette} + {part2}: an augmented number, which only cassettes carry.', { extract: p.extractText, cassette: a.part1, part2: a.part2 })
+        : p.dxNumber === null
+          ? t('{extract} is above 8191, so it is not a DX number.', { extract: p.extractText })
+          : `${p.extractText} = 16 × ${p.part1} + ${p.part2}`;
       const facts = h('dl', { class: 'readouts readouts--inline' },
         h('div', { class: 'readout' }, h('dt', null, t('First digit')), h('dd', { class: 'readout__value readout__value--small' }, String(p.prefix)),
-          h('dd', { class: 'readout__note' }, t('Chosen by the maker.'))),
+          h('dd', { class: 'readout__note' }, t('For the maker’s own use; 0 if unused.'))),
         h('div', { class: 'readout' }, h('dt', null, t('DX number')), h('dd', { class: 'readout__value readout__value--small' }, p.dxNumber || '—'),
-          h('dd', { class: 'readout__note' }, p.dxNumber ? `${p.extractText} = 16 × ${p.part1} + ${p.part2}` : t('{extract} is above 2047, so it is not a standard DX number.', { extract: p.extractText }))),
-        h('div', { class: 'readout' }, h('dt', null, t('Roll length')), h('dd', { class: 'readout__value readout__value--small' },
-          typeof p.exposures === 'number' ? t('{n} exp.', { n: p.exposures }) : p.exposures === 'non-standard' ? t('other') : '—'),
-          h('dd', { class: 'readout__note' }, p.exposures === 'non-standard'
-            ? t('Code 7: a non-standard length such as 24 + 3.')
-            : p.exposures === null ? t('Last digit {digit} is not a defined length code.', { digit: p.exposureDigit }) : t('Last digit {digit}.', { digit: p.exposureDigit }))));
+          h('dd', { class: 'readout__note' }, dxNote)),
+        h('div', { class: 'readout' }, h('dt', null, t('Roll length')), h('dd', { class: 'readout__value readout__value--small' }, exposuresText(p.exposures)),
+          h('dd', { class: 'readout__note' }, exposuresNote(p))));
 
+      // An augmented number names a film only where the I3A list records it;
+      // Annex A.4 says which maker it belongs to, but not which DX number the
+      // film carries.
+      const registry = a
+        ? hit.augmented.map((entry) => h('li', { class: 'match' }, h('span', { class: 'match__name' }, entry.name),
+          h('span', { class: 'match__facts' }, t('Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.'))))
+        : (hit.dx ? hit.dx.products.map(ui.productItem) : []);
       const blocks = [];
-      if (hit.augmented.length) {
+      if (registry.length) {
         blocks.push(h('div', { class: 'source-block' },
           h('h4', { class: 'source-block__title' }, t('I3A registry, 2008')),
-          h('ul', { class: 'matches' }, hit.augmented.map((a) => h('li', { class: 'match' }, h('span', { class: 'match__name' }, a.name),
-            h('span', { class: 'match__facts' }, t('Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.')))))));
+          h('ul', { class: 'matches' }, registry)));
+      }
+      if (a) {
+        const s = lookup.part1Info(a.basePart1).sensitizer;
+        const parts = { cassette: a.part1, part1: a.basePart1, added: a.added };
+        blocks.push(h('p', { class: 'result__lead' }, s
+          ? t('Part 1 {cassette} is {part1} + {added}, so the number belongs to {maker}. The standard does not say which DX number the film carries.', { ...parts, maker: ui.sensitizerName(s) })
+          : t('Part 1 {cassette} is {part1} + {added}; Part 1 = {part1} was not assigned in the 2008 registry. The standard does not say which DX number the film carries.', parts)));
       }
       if (hit.dx) {
-        if (hit.dx.products.length) {
-          blocks.push(h('div', { class: 'source-block' },
-            h('h4', { class: 'source-block__title' }, t('I3A registry, 2008')),
-            h('ul', { class: 'matches' }, hit.dx.products.map(ui.productItem))));
-        }
         const s = hit.dx.part1Info.sensitizer;
         blocks.push(h('p', { class: 'result__lead' }, s
           ? t('Part 1 = {part1} is assigned to {maker}.', { part1: p.part1, maker: ui.sensitizerName(s) })
@@ -215,13 +237,13 @@
           h('summary', null, i18n.plural(similar.length, '{n} other film uses the same DX number', '{n} other films use the same DX number')),
           h('ul', { class: 'matches' }, similar.map(ui.communityItem))));
       }
-      const link = exact.length || similar.length ? ui.bfdLink(p.part1, p.part2) : null;
+      const link = (exact.length || similar.length) && p.part1 !== null ? ui.bfdLink(p.part1, p.part2) : null;
       if (link) blocks.push(link, h('p', { class: 'fineprint' }, t('The site has pictures of the films') + i18n.punctuation().period));
-      if (!blocks.length || (!hit.augmented.length && hit.dx && !hit.dx.products.length && !exact.length && !similar.length)) {
+      if (!registry.length && !exact.length && !similar.length) {
         blocks.push(h('p', { class: 'fineprint' }, t('This number is not in the 2008 registry or the community database.')));
       }
       const actions = [];
-      if (p.part1 !== null && p.part1 > 0) {
+      if (p.part1 !== null) {
         const show = h('button', { type: 'button', class: 'tool tool--primary' }, t('Show the edge barcode'));
         show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits }));
         actions.push(h('div', { class: 'result__actions' }, show));

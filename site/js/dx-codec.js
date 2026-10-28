@@ -13,9 +13,9 @@
  *
  * Cells are numbered from 1 in reading order (the wide clock mark comes first).
  *
- * Sources: ISO 1007 §6.1 as summarized on Wikipedia ("DX number"), Kodak US
- * 4,965,628, zxing-cpp ODDXFilmEdgeReader.cpp, Zint dxfilmedge.c. See
- * docs/dx-edge-code-format.md for the full write-up.
+ * Sources: GB/T 9185-2003 (identical to ISO 1007:2000) §7.2, §9 and Annex A,
+ * Kodak US 4,965,628, zxing-cpp ODDXFilmEdgeReader.cpp, Zint dxfilmedge.c. See
+ * research/01-edge-code-format.md for the full write-up.
  */
 (function (root, factory) {
   'use strict';
@@ -65,18 +65,34 @@
   // Fields that carry payload; parity is even over exactly these bits.
   const PAYLOAD = ['part1', 'part2', 'frame', 'half'];
 
-  // Frame-number values with special printed labels. Kodak rolls run
-  // X, XA, 00, 00A, 0, 0A, 1, 1A …; X and 00 are encoded as 62 and 63.
+  // Frame-number values with special printed labels. Before frame 0 the
+  // numbers count down in binary (GB/T 9185-2003 Table 5): 00 = 63, X = 62,
+  // XX = 61, so Kodak rolls run X, XA, 00, 00A, 0, 0A, 1, 1A …
   // Zint documents S/K/F as alternative labels for 62/63/0.
   const SPECIAL_FRAMES = {
+    61: { label: 'XX', aliases: [] },
     62: { label: 'X', aliases: ['S'] },
     63: { label: '00', aliases: ['K'] },
     0: { label: '0', aliases: ['F'] },
   };
 
-  // Last digit of the 6-digit cassette barcode (ANSI/NAPM IT1.14:1994 table,
-  // as quoted on Wikipedia "DX number").
-  const EXPOSURE_CODES = { 0: 72, 1: 12, 2: 20, 3: 24, 4: 36, 5: 48, 6: 60, 7: 'non-standard' };
+  // Last digit of the 6-digit cassette barcode: the number of exposures, from
+  // `from` to `to` (null: no upper limit), as in GB/T 9185-2003 (ISO 1007:2000)
+  // Table 9. `before2000` is the meaning in ANSI/NAPM IT1.14:1994, as quoted on
+  // Wikipedia "DX number", where it differs: a number of exposures, 'other'
+  // (other lengths such as 24 + 3) or null (not used).
+  const EXPOSURE_CODES = {
+    0: { from: 1, to: 8, before2000: 72 },
+    1: { from: 12, to: 12 },
+    2: { from: 18, to: 23, before2000: 20 },
+    3: { from: 24, to: 24 },
+    4: { from: 36, to: 36 },
+    5: { from: 9, to: 11, before2000: 48 },
+    6: { from: 13, to: 17, before2000: 60 },
+    7: { from: 25, to: 29, before2000: 'other' },
+    8: { from: 30, to: 35, before2000: null },
+    9: { from: 37, to: null, before2000: null },
+  };
 
   function getFormat(formatId) {
     const format = FORMATS[formatId || 'long'];
@@ -139,22 +155,23 @@
 
   /**
    * Position counted in half-frame steps from frame 0 (0, 0A, 1, 1A … → 0, 1, 2, 3 …),
-   * handy with half-frame cameras. Null for the leader labels X and 00.
+   * handy with half-frame cameras. Null for the leader labels XX, X and 00.
    */
   function halfFrameIndex(frame, half) {
-    if (frame === null || frame === undefined || frame >= 62) return null;
+    if (frame === null || frame === undefined || frame >= 61) return null;
     return frame * 2 + (half ? 1 : 0);
   }
 
-  /** Parse a printed frame label such as "23", "23A", "X", "00A" or "K". */
+  /** Parse a printed frame label such as "23", "23A", "XX", "X", "00A" or "K". */
   function parseFrameLabel(input) {
     const text = String(input || '').trim().toUpperCase();
-    const m = /^(X|S|K|F|00|\d{1,2})(A?)$/.exec(text);
+    const m = /^(XX|X|S|K|F|00|\d{1,2})(A?)$/.exec(text);
     if (!m) return null;
     const half = m[2] === 'A';
     const token = m[1];
     let frame;
-    if (token === 'X' || token === 'S') frame = 62;
+    if (token === 'XX') frame = 61;
+    else if (token === 'X' || token === 'S') frame = 62;
     else if (token === 'K' || token === '00') frame = 63;
     else if (token === 'F') frame = 0;
     else frame = parseInt(token, 10);
@@ -246,8 +263,6 @@
     const parityExpected = ones % 2;
     const parityOk = parityBit === parityExpected;
     if (!parityOk) issues.push({ code: 'parity', cell: parityField.from, expected: parityExpected, actual: parityBit });
-
-    if (part1 === 0) issues.push({ code: 'part1-zero' });
 
     const hasFrame = frame !== null;
     return {
@@ -379,7 +394,11 @@
 
   /**
    * Parse the 6-digit number printed under the cassette barcode (PHHHHE):
-   * P = maker's prefix, HHHH = 16 × Part 1 + Part 2, E = exposure code.
+   * P = the maker's own digit, HHHH = 16 × Part 1 + Part 2, E = exposure code
+   * (GB/T 9185-2003 §9.3). HHHH from 2048 to 8191 is an "augmented" number:
+   * the maker adds 128, 256 or 384 to its Part 1 on the cassette only
+   * (Annex A.4). The standard does not say what Part 2 then stands for, so no
+   * DX number is derived: `augmented` gives the parts and the base Part 1.
    */
   function parseCassette(input) {
     const digits = String(input || '').replace(/[\s-]/g, '');
@@ -390,16 +409,17 @@
     const issues = [];
     let part1 = null;
     let part2 = null;
-    if (extract > 2047) issues.push({ code: 'extract-range', extract });
-    else {
+    let augmented = null;
+    if (extract > 8191) issues.push({ code: 'extract-range', extract });
+    else if (extract > 2047) {
+      const cassettePart1 = extract >> 4;
+      const basePart1 = cassettePart1 % 128;
+      augmented = { part1: cassettePart1, part2: extract & 15, basePart1, added: cassettePart1 - basePart1 };
+    } else {
       part1 = extract >> 4;
       part2 = extract & 15;
-      if (part1 === 0) issues.push({ code: 'part1-zero' });
     }
-    const exposures = Object.prototype.hasOwnProperty.call(EXPOSURE_CODES, exposureDigit)
-      ? EXPOSURE_CODES[exposureDigit]
-      : null;
-    if (exposures === null) issues.push({ code: 'exposure-code', digit: exposureDigit });
+    const exposures = EXPOSURE_CODES[exposureDigit];
     return {
       digits,
       prefix,
@@ -407,6 +427,7 @@
       extractText: digits.slice(1, 5),
       part1,
       part2,
+      augmented,
       dxNumber: part1 === null ? null : formatDxNumber(part1, part2),
       exposureDigit,
       exposures,

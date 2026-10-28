@@ -123,14 +123,21 @@ describe('lookup with the real tables', () => {
 
   test('cassette 017563 is Ilford FP4 Plus, 24 exposures', () => {
     const hit = lookup.byCassette('017563');
-    assert.equal(hit.parsed.exposures, 24);
+    assert.deepEqual(hit.parsed.exposures, { from: 24, to: 24 });
     assert.deepEqual(hit.dx.products.map((p) => p.name), ['FP4 PLUS']);
   });
 
-  test('Kodak augmented cassette code resolves without a DX number', () => {
+  test('Kodak augmented cassette numbers name their maker and their I3A entry, but no DX number (Annex A.4)', () => {
+    // 832973: 3297 = 16 × 206 + 1, and 206 = 78 + 128, one of Kodak's Part 1 numbers.
     const hit = lookup.byCassette('832973');
     assert.equal(hit.dx, null);
     assert.equal(hit.augmented[0].name, 'KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
+    for (const [code, basePart1] of [['832973', 78], ['732983', 78], ['832983', 78], ['733633', 82], ['833633', 82]]) {
+      const other = lookup.byCassette(code);
+      assert.equal(other.parsed.augmented.basePart1, basePart1, code);
+      assert.match(lookup.part1Info(basePart1).sensitizer.label, /Kodak/, code);
+      assert.equal(other.augmented.length, 1, code);
+    }
   });
 
   test('stats are consistent', () => {

@@ -165,11 +165,11 @@
     if (state.cells === emptyCells(state.format)) {
       return t('Start right after the fixed start pattern: cells 7 to 13 hold Part 1. Drag across cells to fill several at once; keys 1 and 0 type bars and gaps.');
     }
-    const problem = d.issues.find((i) => i.code !== 'part1-zero');
+    const problem = d.issues[0];
     if (problem && problem.code === 'blank') return t('Cell {cell} is never used: if you see a bar there, the copy is shifted by one cell.', { cell: problem.cell });
     if (problem && problem.code === 'parity') return t('The parity check fails: one bar is probably misread. See the suggestions below.');
     if (problem) return t('The code does not pass its checks yet: see below.');
-    if (d.part1 === 0) return t('Part 1 is still 0: add the bars of cells 7 to 13.');
+    if (d.part1 === 0) return t('Part 1 is 0, which no maker held in 2008: if your film has bars in cells 7 to 13, add them.');
     if (d.frame === null) return t('Valid code. The 23-cell layout carries no frame number.');
     if (codec.shortCodeInLong(state.cells)) return t('Valid code, unless the top row of your film has only 7 thin bars: see below.');
     return t('Valid code. On your film, the number printed just before this barcode should read {frame}.', { frame: d.frameLabel });

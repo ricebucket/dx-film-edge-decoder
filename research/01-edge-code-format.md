@@ -8,15 +8,16 @@ track* is a fixed timing pattern; the lower *data track* carries a fixed start
 pattern, Part 1 (7 bits), an empty cell, Part 2 (4 bits), a frame number
 (6 bits), a half-frame flag, an empty cell, an even-parity bit and a fixed stop
 pattern: 31 cells in all. Film made before the frame-number extension uses a
-23-cell version without the frame fields. Every rule below is supported by at
-least two independent sources and was confirmed on a real negative.
+23-cell version without the frame fields. Every rule below is specified in
+GB/T 9185-2003, China's identical adoption of ISO 1007:2000, is supported by at
+least two other independent sources, and was confirmed on a real negative.
 
 ## Two tracks
 
 The code sits between the sprocket holes and the edge of the film; its exact
 position and size are in [report 05](05-reading-real-film.md). It has two rows
-of equal height that touch, so a clock bar and a data bar in the same column
-look like one tall bar:
+that touch, so a clock bar and a data bar in the same column look like one tall
+bar:
 
 - the **clock track**, nearer the sprocket holes, is the same on every film. It
   tells a reader where each cell is and which way the code runs;
@@ -25,7 +26,12 @@ look like one tall bar:
 
 Kodak's patent US 4,965,628 describes "a clock track 500 and a data track 505
 extending parallel with the clock track", and Wikipedia's *DX number* article
-places the clock track "closer to the sprocket holes".
+places the clock track "closer to the sprocket holes". GB/T 9185-2003 divides
+the code the same way, into a 时钟道 (clock track) and a 数据道 (data track), and
+its test method scans the data track 0.41 mm from the film edge and the clock
+track 1.63 mm from it (Annex B.2). Each change of density along the clock track
+marks the position of one data cell (§7.2.2), and the edges of the data bars
+should line up with the edges of the clock bars (Table 1, note 12).
 
 ## The 31-cell layout (with frame number)
 
@@ -48,11 +54,18 @@ Cells are numbered from 1 in reading order, starting at the wide clock mark.
 Clock track: `1111101010101010101010101010111`: a 5-cell mark, then 23 single
 cells alternating gap/bar (11 thin bars), then a 3-cell mark.
 
-Wikipedia's *DX number* article lists the same fields with section numbers of
-ISO 1007 (§6.1.1.1 entry code to §6.1.1.8 exit code). Wikipedia's *DX
-encoding* article describes the frame and half-frame bits together as "a
-seven-bit frame/half-frame number", which matches the Kodak patent's
-"seven bits defining the frame number … defined as half frame intervals".
+GB/T 9185-2003 specifies these fields one by one, from the start pattern
+(§7.2.1.1) to the stop pattern (§7.2.1.8), and draws a 31-cell code in its
+Figure 1f. Its details match the table: the last cell of the start pattern is
+always a gap; Part 1 is cells 7–13 and Part 2 cells 15–18, each with its first
+cell as the most significant; the frame field is cells 19–25, where a bar in
+cell 25 is the half-frame "flag"; cells 14 and 26 are unassigned gaps, and
+cell 26 exists only when the frame field does. Wikipedia's *DX number* article
+lists the same fields under the section numbers §6.1.1.1 (entry code) to
+§6.1.1.8 (exit code). Wikipedia's *DX encoding* article describes the frame and
+half-frame bits together as "a seven-bit frame/half-frame number", which
+matches the Kodak patent's "seven bits defining the frame number … defined as
+half frame intervals" and the standard's seven-cell frame field.
 
 ## The 23-cell layout (no frame number)
 
@@ -71,6 +84,12 @@ The original 1983 code has no frame fields:
 
 Clock track: `11111010101010101010111`: a 5-cell mark, 15 single cells
 (7 thin bars), a 3-cell mark.
+
+GB/T 9185-2003 still defines this 23-cell code as the basic code, the one that
+identifies the maker and the film (§7.1), and draws it in Figure 1e; the frame
+number is an optional extension of eight more cells. In Figure 1e the labels
+of Part 1 and Part 2 are swapped; the text (§7.2.1.2, §7.2.1.4) and Figure 1f
+place them as in the table above.
 
 Evidence: zxing-cpp's reader and Zint's generator both implement this version
 (clock run widths `5, 1×15, 3` against `5, 1×23, 3` for the long one), Fuji's
@@ -106,7 +125,8 @@ pattern fits inside the other.
 ## Bit order
 
 All numbers are written most significant bit first in reading order.
-Wikipedia's sample encodes 79 as `1001111` in cells 7–13; Lawley gives the
+GB/T 9185-2003 gives an example: Part 1 = 41 has bars in cells 8, 10 and 13
+(§7.2.1.2). Wikipedia's sample encodes 79 as `1001111` in cells 7–13; Lawley gives the
 weights 64 … 1 for cells 7–13 and 8 … 1 for cells 15–18; zxing-cpp reads fields
 with `ToInt` from the lowest index up; Zint writes them with
 `z_bin_append_posn`, which appends the most significant bit first.
@@ -119,6 +139,7 @@ parity is always even. The sources phrase this differently but agree:
 
 | Source | How it is expressed |
 |---|---|
+| GB/T 9185-2003 | the bars in the data cells plus the parity cell must make an even number; the unassigned cells count too, but they are always gaps (§7.2.1.7) |
 | zxing-cpp | parity bit must equal the sum of all data bits before it, modulo 2 (the empty cells are 0 and do not change the sum) |
 | Zint | parity = XOR of every bit after the start pattern |
 | alibosworth | "even parity over the 18 useful data bits" |
@@ -126,12 +147,17 @@ parity is always even. The sources phrase this differently but agree:
 | Wikipedia sample | 79-15 frame 23 has 13 payload bars and the parity cell set |
 
 Wikipedia's explanatory sentence ("positions 1 through 12 plus the parity bit")
-does not match its own table; the table is consistent with the rule above, so
-the sentence was treated as a wording slip.
+does not match its own table. The standard states the rule twice: over cells
+7–18, twelve cells, for the 23-cell code, and over cells 7–25 when the frame
+field is present (§7.2.1.7). Wikipedia's sentence fits the first; its table, a
+31-cell code, follows the second.
 
 ## Start and stop: two equivalent descriptions
 
-Wikipedia and Zint describe a 6-bit start `101010` and a 4-bit stop `0101`.
+GB/T 9185-2003 has a 6-cell start pattern, whose last cell is always a gap
+(§7.2.1.1), and a 4-cell stop pattern (§7.2.1.8); readers use them to find the
+beginning and the end of the code, and Figures 1e and 1f show them as `101010`
+and `0101`. Wikipedia and Zint describe the same 6-bit start and 4-bit stop.
 zxing-cpp treats the start as `10101` followed by a data bit that is always 0,
 and the stop as `101` preceded by a bit that is always 0. Both describe the same
 31 cells; the empty cells 6 and 28 separate the end marks of the clock track
@@ -152,16 +178,19 @@ Fields separated by spaces, in the order of the tables above.
 
 All of these, plus every other Zint test vector, are part of the project's unit
 tests (`tests/unit/codec.test.mjs`), together with an exhaustive round trip of
-all 2,032 possible DX numbers.
+all 2,048 possible DX numbers.
 
 ## Rules the decoder enforces
 
 | Check | Why |
 |---|---|
 | Start and stop patterns | fixed by the format (the tool draws them, but photos are checked) |
-| Cells 14 and 26 empty | "unassigned … left blank" (ISO 1007 via Wikipedia); zxing-cpp rejects codes that break this |
+| Cells 14 and 26 empty | unassigned, always a gap (GB/T 9185-2003, §7.2.1.3 and §7.2.1.6; "unassigned … left blank" in ISO 1007 via Wikipedia); zxing-cpp rejects codes that break this |
 | Parity | as above |
-| Part 1 ≠ 0 | zxing-cpp rejects product number 0, and the 2008 I3A list leaves 0 unassigned |
+
+The decoder accepts Part 1 = 0, which the standard counts as valid (Table 3;
+Annex A.3.1), although zxing-cpp rejects it and the 2008 I3A list leaves it
+unassigned.
 
 When parity fails, one bar has most likely been misread. Because a single
 parity bit cannot say which, the tool lists every single-cell change that
@@ -169,13 +198,15 @@ produces a valid code and puts those that match a known film first.
 
 ## Names for the fields
 
-| This project | Kodak patent | ISO 1007 via Wikipedia | Other names |
-|---|---|---|---|
-| Part 1 | product code; "film product class" in FIG. 5 | film product class identification | ProdCode (Pakon scanners), DXN1 |
-| Part 2 | generation number; "film specifier" in FIG. 5 | film specifier | GenCode, DXN2 |
-| Part 1-Part 2 | NAPM number | DX number | DX number |
-| 31-cell code with frame number | multi-field bar code | — | "DXN code" (Kodak's EP 0838718) |
-| Frame field + half-frame flag | frame number in half-frame intervals | frame number and half-frame indicator | "DXN" number (Wikipedia, *DX encoding*) |
+| This project | Kodak patent | GB/T 9185-2003 | ISO 1007 via Wikipedia | Other names |
+|---|---|---|---|---|
+| Clock track, data track | clock track, data track | 时钟道、数据道 | — | — |
+| Start, stop | — | 输入模式、输出模式 | entry code, exit code | — |
+| Part 1 | product code; "film product class" in FIG. 5 | DX 码第 1 部分 | film product class identification | ProdCode (Pakon scanners), DXN1 |
+| Part 2 | generation number; "film specifier" in FIG. 5 | DX 码第 2 部分 | film specifier | GenCode, DXN2 |
+| Part 1-Part 2 | NAPM number | DX 码 | DX number | DX number |
+| 31-cell code with frame number | multi-field bar code | 带任选画幅号的潜影双道条码 | — | "DXN code" (Kodak's EP 0838718) |
+| Frame field + half-frame flag | frame number in half-frame intervals | 画幅号识别行 | frame number and half-frame indicator | "DXN" number (Wikipedia, *DX encoding*) |
 
 Note that Mérino's "DXN1" and "DXN2" mean Part 1 and Part 2, while "DXN" in
 Kodak's and Wikipedia's usage refers to the frame-number extension.

@@ -742,11 +742,17 @@ h1 {
 
 /* ---- the film strip ---------------------------------------------------------------------- */
 
-/* At 1280 px the light table is ~1030 px wide inside: 31 × 26 + 2 × 94 fits. */
+/* Drawn to scale in cells (one cell = 0.41 mm), from GB/T 9185-2003 and a
+   real Kodak negative (research/05): the data track 2.5 cells tall, the clock
+   track 3.15, the perforations as below, and room before the code for its
+   printed number. At 1280 px the light table is ~1030 px wide inside:
+   (9.2 + 31 + 0.8) × 25 px fits. */
 .strip {
-  --cell: 26px;
-  --row: calc(var(--cell) * 2.1);
-  --label-w: calc(var(--cell) * 3.6);
+  --cell: 25px;
+  --data-h: calc(var(--cell) * 2.5);
+  --clock-h: calc(var(--cell) * 3.15);
+  --label-w: calc(var(--cell) * 9.2);
+  --tail-w: calc(var(--cell) * 0.8);
   --code-w: calc(var(--cells) * var(--cell));
   --film-plus: color-mix(in srgb, var(--film-mark) 40%, transparent);
 }
@@ -876,7 +882,7 @@ h1 {
 .strip__photo canvas {
   display: block;
   width: var(--code-w);
-  height: calc(var(--row) * 1.25);
+  height: calc(var(--cell) * 2.6);
   border-radius: 3px;
 }
 
@@ -886,9 +892,10 @@ h1 {
 
 .film {
   position: relative;
-  width: calc(var(--code-w) + 2 * var(--label-w));
-  padding-top: calc(var(--cell) * 1.6);
-  padding-bottom: calc(var(--cell) * 0.75);
+  width: calc(var(--label-w) + var(--code-w) + var(--tail-w));
+  /* Film up to about half-way up the perforations; the data track runs along
+     the film edge, so there is no film below it. */
+  padding-top: calc(var(--cell) * 2.7);
   background: var(--film-base);
   border-radius: 2px;
   overflow: hidden;
@@ -897,21 +904,25 @@ h1 {
   mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--cell) * 0.8), #000 calc(100% - var(--cell) * 0.8), transparent 100%);
 }
 
-/* Lower half of the perforation row: real proportions, 4.75 mm pitch. */
+/* The perforations: 1.98 mm along the film, 2.80 mm across, 4.75 mm apart,
+   starting 2.0 mm from the film edge (GB/T 9185-2003 Table 2). The clock
+   track reaches past their edge, so they cut its bars. As on the Kodak
+   negative, one starts 2.3 cells before the code. */
 .film__perfs {
   position: absolute;
-  top: calc(var(--cell) * -3.55);
-  left: calc(var(--label-w) - var(--cell) * 9.3);
+  z-index: 1;
+  bottom: calc(var(--cell) * 4.95);
+  left: calc(var(--label-w) - var(--cell) * 13.96);
   display: flex;
-  gap: calc(var(--cell) * 4.79);
+  gap: calc(var(--cell) * 6.79);
   pointer-events: none;
 }
 
 .perf {
   flex: none;
-  width: calc(var(--cell) * 6.8);
-  height: calc(var(--cell) * 4.8);
-  border-radius: calc(var(--cell) * 1.1);
+  width: calc(var(--cell) * 4.85);
+  height: calc(var(--cell) * 6.85);
+  border-radius: calc(var(--cell) * 1.2);
   background: var(--film-hole);
 }
 
@@ -922,7 +933,7 @@ h1 {
 
 .film__code {
   display: grid;
-  grid-template-rows: var(--row) var(--row);
+  grid-template-rows: var(--clock-h) var(--data-h);
 }
 
 .track {
@@ -933,13 +944,17 @@ h1 {
 .cell {
   display: block;
   width: var(--cell);
-  height: var(--row);
+  height: var(--data-h);
   margin: 0;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   -webkit-tap-highlight-color: transparent;
+}
+
+.track--clock .cell {
+  height: var(--clock-h);
 }
 
 .cell.is-bar {
@@ -1019,29 +1034,57 @@ h1 {
   outline-color: #ff8796;
 }
 
-/* Printed edge labels: the number before a code names that code. */
+/* The printed number before a code names that code (research/02). Sized and
+   placed as on the Kodak negative (research/05): a whole-frame number is
+   3.4 cells tall, 0.6 cells above the film edge and 1.6 cells before the code;
+   an A position is printed smaller, 2.8 cells before the code, over an arrow.
+   The next number starts at least 4.3 cells after the code, beyond this view. */
 .film__label {
   flex: none;
+  box-sizing: border-box;
   width: var(--label-w);
   display: flex;
-  align-items: center;
-  gap: calc(var(--cell) * 0.18);
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding-right: calc(var(--cell) * 1.6);
+  padding-bottom: calc(var(--cell) * 0.6);
   color: var(--film-mark);
-  font: 700 calc(var(--row) * 0.56) / 1 var(--font-edge);
-  font-stretch: condensed;
-  letter-spacing: -0.02em;
+  font: 700 calc(var(--cell) * 4.75) / 0.72 "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.film__label--before {
-  justify-content: flex-end;
-  padding-right: calc(var(--cell) * 0.4);
+.film__label.is-half {
+  padding-right: calc(var(--cell) * 2.8);
+  padding-bottom: calc(var(--cell) * 0.7);
+  font-size: calc(var(--cell) * 2.8);
 }
 
-.film__label--after {
-  justify-content: flex-start;
-  padding-left: calc(var(--cell) * 0.75);
+.edge-print {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.film__arrow {
+  display: none;
+}
+
+.film__label.is-half .film__arrow {
+  display: block;
+  position: relative;
+  height: calc(var(--cell) * 0.6);
+  margin-top: calc(var(--cell) * 1.1);
+  background: linear-gradient(currentColor, currentColor) left center / calc(100% - var(--cell) * 0.9) calc(var(--cell) * 0.2) no-repeat;
+}
+
+.film__label.is-half .film__arrow::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-style: solid;
+  border-width: calc(var(--cell) * 0.3) 0 calc(var(--cell) * 0.3) calc(var(--cell) * 1);
+  border-color: transparent transparent transparent currentColor;
 }
 
 .film:not(.has-labels) .film__label {
@@ -1076,13 +1119,31 @@ h1 {
   transform: scaleX(-1);
 }
 
-.strip.is-mirrored .film__label--before {
-  justify-content: flex-end;
+.strip.is-mirrored .film__perfs {
+  left: auto;
+  right: calc(var(--label-w) - var(--cell) * 13.96);
+  flex-direction: row-reverse;
+}
+
+.strip.is-mirrored .annot {
+  padding-left: var(--tail-w);
+  padding-right: var(--label-w);
+}
+
+.strip.is-mirrored .strip__photo {
+  flex-direction: row-reverse;
+}
+
+.strip.is-mirrored .strip__photo-label {
+  padding-right: 0;
+  padding-left: 10px;
+  text-align: left;
 }
 
 /* Field annotations under the strip. */
 .annot {
-  padding-inline: var(--label-w);
+  padding-left: var(--label-w);
+  padding-right: var(--tail-w);
   margin-top: 4px;
 }
 
@@ -2115,8 +2176,9 @@ thead th {
   overflow: hidden;
 }
 
+/* The prose column is 800 px wide: (9.2 + 31 + 0.8) × 19 px fits. */
 .layout-figure .strip {
-  --cell: 22px;
+  --cell: 19px;
 }
 
 .sources {
@@ -2195,7 +2257,6 @@ thead th {
 
   .strip {
     --cell: 22px;
-    --label-w: calc(var(--cell) * 3);
   }
 }
 
@@ -2304,10 +2365,6 @@ thead th {
   .tool,
   .segmented button {
     min-height: 40px;
-  }
-
-  .strip {
-    --row: calc(var(--cell) * 2.3);
   }
 }
 

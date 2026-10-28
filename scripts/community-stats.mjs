@@ -30,6 +30,8 @@ export async function communityStats() {
   // middle four digits of the cassette number.
   const extract = (r) => (digits(r['DX extract']) ? Number(r['DX extract']) : full(r) ? Number(full(r).slice(1, 5)) : -1);
 
+  // The same range as site/js/dx-lookup.js: Part 1 = 0 is valid, but no maker
+  // held it in 2008, so numbers below 16 are not taken as edge codes.
   const edge = new Set(rows.map(extract).filter((x) => x >= 16 && x <= 2047));
   return {
     commit: source.commit.slice(0, 7),

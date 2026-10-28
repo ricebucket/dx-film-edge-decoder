@@ -47,7 +47,7 @@ update the snapshot.
 |---|---|---|
 | DX extract disagrees with the middle digits of the DX full number | 12 | uses the extract, as the site's own "similar emulsions" search does |
 | Number above 2047, e.g. CineStill 50D and 800T cassettes at 5391 (cinema film, which has no DX edge code) | 42 | can match a cassette number, never an edge code |
-| Number below 16 (Part 1 would be 0) | 14 | same |
+| Number below 16, so Part 1 would be 0: valid under the standard, but held by no maker in 2008 | 14 | same |
 | HTML markup inside a field (`<i>…</i>`) | 3 | markup removed |
 | `#` search tags appended to the name | 441 | split off; still searchable |
 | Certainty recorded | 502 (0: 5, 1: 44, 2: 79, 3: 289, 4: 85) | shown as "certainty n/4" |
@@ -58,7 +58,9 @@ Two structural limits matter more than any single row:
 - **Cassette, not film.** Most numbers were read from cassettes. Rebranded
   films carry the brand's cassette, while the edge code is exposed by the
   factory that made the film. For the original manufacturers' own films the two
-  agree; for rebrands they usually do, but nothing guarantees it.
+  agree; for rebrands they usually do, but nothing guarantees it. GB/T 9185-2003
+  has companies that package another maker's film get their DX number from
+  that maker rather than from PIMA (Annex A.3.7).
 - **One number, many names.** A popular emulsion appears under every brand
   that sold it, so one code can list dozens of entries. The tool groups rows
   that differ only by cassette number and sorts the rest by name.

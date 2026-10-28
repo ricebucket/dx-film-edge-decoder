@@ -34,11 +34,6 @@
     stop: t('Stop'),
   };
 
-  /** Label of the next printed position: 23 → 23A → 24, …, X → XA → 00 → 00A → 0. */
-  function nextLabel(frame, half) {
-    return half ? codec.frameLabel((frame + 1) % 64, false) : codec.frameLabel(frame, true);
-  }
-
   function createStrip(host, options) {
     const opts = Object.assign({ interactive: true, onChange: null }, options);
     let state = null;
@@ -86,17 +81,17 @@
         'aria-hidden': opts.interactive ? null : 'true',
       }, dataCells);
 
+      // The number printed before the code, as on film; an A position has an
+      // arrow under it. The next number is printed beyond this view.
       const before = h('div', { class: 'film__label film__label--before', 'aria-hidden': 'true' },
-        h('span', { class: 'edge-arrow' }), h('span', { class: 'edge-text' }));
-      const after = h('div', { class: 'film__label film__label--after', 'aria-hidden': 'true' },
-        h('span', { class: 'edge-arrow' }), h('span', { class: 'edge-text' }));
+        h('span', { class: 'edge-print' }, h('span', { class: 'edge-text' }), h('span', { class: 'film__arrow' })));
 
       const perfs = h('div', { class: 'film__perfs', 'aria-hidden': 'true' },
-        Array.from({ length: 6 }, () => h('span', { class: 'perf' })));
+        Array.from({ length: 5 }, () => h('span', { class: 'perf' })));
 
       const film = h('div', { class: 'film' },
         perfs,
-        h('div', { class: 'film__row' }, before, h('div', { class: 'film__code' }, clock, data), after));
+        h('div', { class: 'film__row' }, before, h('div', { class: 'film__code' }, clock, data)));
 
       const fields = codec.getFormat(format).fields;
       const brackets = fields.map((f) =>
@@ -141,7 +136,7 @@
       requestAnimationFrame(overflow);
 
       if (opts.interactive) bindEvents(data);
-      return { format, strip, scroller, photoRow, film, clock, data, before, after, annot, layout, brackets, weights };
+      return { format, strip, scroller, photoRow, film, clock, data, before, annot, layout, brackets, weights };
     }
 
     // ---- editing ----------------------------------------------------------
@@ -284,6 +279,22 @@
 
     // ---- rendering ----------------------------------------------------------
 
+    /**
+     * On a screen too narrow for the whole strip (a phone), show the code from
+     * cell 1, just clear of the edge fade; the printed number before the code
+     * is then one swipe away. Mirrored, cell 1 is at the code's right end.
+     */
+    function startAtCellOne() {
+      const { scroller, clock } = refs;
+      requestAnimationFrame(() => {
+        if (scroller.scrollWidth <= scroller.clientWidth + 1) return;
+        const view = scroller.getBoundingClientRect();
+        const code = clock.getBoundingClientRect();
+        const fade = 32; // .strip__viewport::before and ::after
+        scroller.scrollLeft += state.mirrored ? code.right - view.right + fade : code.left - view.left - fade;
+      });
+    }
+
     function render(next) {
       // A change from outside (undo, a loaded code, a layout switch) ends any
       // drag in progress, so it cannot later record cells of another layout.
@@ -292,14 +303,20 @@
         stroke = null;
       }
       state = Object.assign({}, next);
-      if (!refs || refs.format !== state.format) {
+      const rebuilt = !refs || refs.format !== state.format;
+      if (rebuilt) {
         refs = build(state.format);
         const first = refs.layout.find((c) => c.editable);
         if (opts.interactive) setFocusCell(focusCell && refs.layout[focusCell - 1] && refs.layout[focusCell - 1].editable ? focusCell : first.cell);
       }
       const d = state.decoded || codec.decode(state.cells, state.format);
       refs.strip.dataset.look = state.look || 'negative';
-      refs.strip.classList.toggle('is-mirrored', Boolean(state.mirrored));
+      const mirrored = Boolean(state.mirrored);
+      if (rebuilt || refs.mirrored !== mirrored) {
+        refs.strip.classList.toggle('is-mirrored', mirrored);
+        refs.mirrored = mirrored;
+        startAtCellOne();
+      }
       refs.strip.classList.toggle('is-valid', d.valid);
 
       // Outline cells that are wrong in themselves. A parity failure means some
@@ -314,17 +331,16 @@
       }
       for (const el of refs.weights) el.classList.toggle('is-error', issueCells.has(Number(el.dataset.cell)));
 
-      const issues = new Set(d.issues.map((i) => i.code));
-      // Nothing entered yet is not an error, just a blank strip.
+      // Nothing entered yet: a blank strip, with no printed labels.
       const empty = refs.layout.every((c) => !c.editable || state.cells[c.cell - 1] === '0');
       for (const b of refs.brackets) {
         const id = b.dataset.field;
         const value = b.querySelector('.bracket__value');
         let text = '';
         let bad = false;
-        if (id === 'part1') { text = String(d.part1); bad = issues.has('part1-zero') && !empty; }
+        if (id === 'part1') text = String(d.part1);
         else if (id === 'part2') text = String(d.part2);
-        else if (id === 'frame') text = d.frame >= 62 ? `${d.frame} ${codec.frameLabel(d.frame, false)}` : String(d.frame);
+        else if (id === 'frame') text = d.frame >= 61 ? `${d.frame} ${codec.frameLabel(d.frame, false)}` : String(d.frame);
         else if (id === 'half') text = d.half ? 'A' : '–';
         else if (id === 'parity') { text = d.parity.ok ? '✓' : '✗'; bad = !d.parity.ok; }
         else if (id === 'blank1' || id === 'blank2') bad = d.blanks.some((x) => !x.ok && x.cell === Number(b.dataset.from));
@@ -333,9 +349,9 @@
       }
 
       // Printed edge labels: the label before a code names that code's position.
-      const hasFrame = d.frame !== null && d.part1 !== 0;
+      const hasFrame = d.frame !== null && !empty;
       refs.before.querySelector('.edge-text').textContent = hasFrame ? d.frameLabel : '';
-      refs.after.querySelector('.edge-text').textContent = hasFrame ? nextLabel(d.frame, d.half) : '';
+      refs.before.classList.toggle('is-half', hasFrame && d.half);
       refs.film.classList.toggle('has-labels', hasFrame);
       refs.film.classList.toggle('labels-uncertain', hasFrame && !d.valid);
 

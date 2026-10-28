@@ -26,19 +26,19 @@ test('choosing Chinese shows the page in Chinese, keeps the code, and is remembe
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
-  await expect(page).toHaveTitle('DX 片边码解码器');
-  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
+  await expect(page).toHaveTitle('DX 潜影条码解码器');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await expect(page.getByRole('button', { name: '11 根细条' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('navigation', { name: '页面各部分' }).getByRole('link', { name: '原理' })).toBeVisible();
   // The code survived the reload, and the generated text is Chinese too.
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
   await expect(page.locator('#result .status')).toHaveText('有效的 DX 编码');
   await expect(page.locator('#hint')).toHaveText('有效编码。在你的胶片上，紧挨在这个条码前面的数字应为 23。');
-  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：Part 1，对应数字 64');
+  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，对应数字 64');
   await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^切换到/);
 
   await page.goto('/');
-  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
 
   await chooseLanguage(page, 'English');
@@ -56,7 +56,7 @@ test('the language can be switched where the browser blocks storage', async ({ p
   });
   await page.goto('/?dx=79-15/23');
   await chooseLanguage(page, '简体中文');
-  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await chooseLanguage(page, 'English');
@@ -67,7 +67,7 @@ test('the language can be switched where the browser blocks storage', async ({ p
 test('a language in the URL that the page does not have is ignored', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('dx-lang', 'zh-CN'));
   await page.goto('/?dx=79-15/23&lang=fr');
-  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await expect(page).toHaveURL(/\?dx=79-15\/23$/);
 });
 
@@ -88,7 +88,7 @@ test('Copy link copies the code and the language it is shown in', async ({ page,
 
 test('a link can name the language: it stays in the URL as the code changes, without replacing the saved choice', async ({ page }) => {
   await page.goto('/?dx=79-15/23&lang=zh-cn');
-  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await page.locator('#strip .track--data [data-cell="8"]').click();
   await expect(page).toHaveURL(/\?bits=[01]+&lang=zh-CN$/);
@@ -101,7 +101,7 @@ test('a link can name the language: it stays in the URL as the code changes, wit
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
   await expect(page.getByLabel('Language')).toHaveValue('en');
   await page.goto('/');
-  await expect(page.locator('#decoder-title')).toHaveText('从片边条码识别胶片');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
 });
 
 test('in Chinese, searches, the cassette helper and the photo reader speak Chinese', async ({ page }) => {
@@ -117,7 +117,7 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
 
   await page.getByRole('tab', { name: '读取照片' }).click();
   await page.getByRole('button', { name: '试用示例' }).click();
-  await expect(page.locator('.photo__found')).toContainText('DX 96-12，第 14A 帧');
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12，画幅 14A');
   await expect(page.locator('.photo__found')).toContainText('：KODAK GOLD 200 Film');
 });
 
