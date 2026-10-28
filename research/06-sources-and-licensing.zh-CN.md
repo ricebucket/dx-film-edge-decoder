@@ -23,6 +23,10 @@
 - Rottner, Lindsay & Clare（Eastman Kodak），美国专利 5,665,950，*Fat bit bar code reader*，1997 — <https://patents.google.com/patent/US5665950A/en>
 - Hamilton（Eastman Kodak），欧洲专利 EP 0838718，*Method of printing frame numbers from DX-coded photographic film not having frame number codes*，2001 — <https://patents.google.com/patent/EP0838718B1/en>
 - Saeki 等（Fuji Photo Film），美国专利 5,122,645，*Method and apparatus for reading bar codes on photographic film and determining setting conditions of photographic film*，1992 — <https://patents.google.com/patent/US5122645A/en>
+- Ujiie（Fuji Photo Film），日本专利申请 JP H02-45890 A，*コマ番号用バーコードの読取り方法*，1990 — <https://patents.google.com/patent/JPH0245890A/ja>
+- Imamura（Fuji Photo Film），美国专利 5,336,873，*Photographic film having frame number bar codes*，1994 — <https://patents.google.com/patent/US5336873A/en>
+- Enomoto（Fuji Photo Film），美国专利 6,324,345，*Photographic film with recorded information, method of acquiring the information recorded on photographic film, image processing method using the acquired information, and print system using the same*，2001 — <https://patents.google.com/patent/US6324345B1/en>
+- FUJIFILM，*FUJICOLOR C200* 产品资料 — <https://asset.fujifilm.com/master/emea/files/2020-10/98c3d5087c253f51c132a5d46059f131/films_c200_datasheet_01.pdf>
 - Wikipedia，*DX number* — <https://en.wikipedia.org/wiki/DX_number>
 - Wikipedia，*DX encoding* — <https://en.wikipedia.org/wiki/DX_encoding>
 - 中国国家标准 GB/T 9185-2003《摄影师 135规格胶片和暗盒 规范》，2003 年，等同采用 ISO 1007:2000：全国标准信息公共服务平台上的记录 — <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>；国家标准全文公开系统因涉及版权，不提供该标准的文本阅读 — <https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=B197380D4FBB4B5E62D889D6902DE5DD>

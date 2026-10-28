@@ -86,7 +86,7 @@ from [the cell layout](research/01-edge-code-format.md) and
   rebranded films ([research/04](research/04-community-database.md)). When it
   lists films for a DX number, the decoder also links to that number on
   [Antoine Mérino's edition](https://thebigfilmdatabase.merinorus.com) of the
-  database.
+  database, which has pictures of the film boxes.
 
 The two are always labeled separately on the page. No code is given a meaning
 that neither source documents: an unknown code is reported as unknown, together

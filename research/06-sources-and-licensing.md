@@ -51,6 +51,10 @@ texts. Each file has a single license.
 - Rottner, Lindsay & Clare (Eastman Kodak), US patent 5,665,950, *Fat bit bar code reader*, 1997 — <https://patents.google.com/patent/US5665950A/en>
 - Hamilton (Eastman Kodak), European patent EP 0838718, *Method of printing frame numbers from DX-coded photographic film not having frame number codes*, 2001 — <https://patents.google.com/patent/EP0838718B1/en>
 - Saeki et al. (Fuji Photo Film), US patent 5,122,645, *Method and apparatus for reading bar codes on photographic film and determining setting conditions of photographic film*, 1992 — <https://patents.google.com/patent/US5122645A/en>
+- Ujiie (Fuji Photo Film), Japanese patent application JP H02-45890 A, *コマ番号用バーコードの読取り方法*, 1990 — <https://patents.google.com/patent/JPH0245890A/ja>
+- Imamura (Fuji Photo Film), US patent 5,336,873, *Photographic film having frame number bar codes*, 1994 — <https://patents.google.com/patent/US5336873A/en>
+- Enomoto (Fuji Photo Film), US patent 6,324,345, *Photographic film with recorded information, method of acquiring the information recorded on photographic film, image processing method using the acquired information, and print system using the same*, 2001 — <https://patents.google.com/patent/US6324345B1/en>
+- FUJIFILM, *FUJICOLOR C200* product information bulletin — <https://asset.fujifilm.com/master/emea/files/2020-10/98c3d5087c253f51c132a5d46059f131/films_c200_datasheet_01.pdf>
 - Wikipedia, *DX number* — <https://en.wikipedia.org/wiki/DX_number>
 - Wikipedia, *DX encoding* — <https://en.wikipedia.org/wiki/DX_encoding>
 - Chinese national standard GB/T 9185-2003, *Photography — 135-size film and magazine — Specifications*, 2003, an identical adoption of ISO 1007:2000: its record on the National Public Service Platform for Standards Information — <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>; the National Standards Full Text Disclosure System does not show its text, for copyright reasons — <https://openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=B197380D4FBB4B5E62D889D6902DE5DD>

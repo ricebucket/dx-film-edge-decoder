@@ -196,8 +196,10 @@
       "回到编码列表",
     "Example":
       "示例",
-    "Look up DX {dx} on The Big Film Database":
-      "在 The Big Film Database 上查看 DX {dx}",
+    "Look up DX {dx} on The Big Film Database, which has pictures of the film boxes":
+      "在 The Big Film Database 上查看 DX {dx}，该网站有胶片包装盒图片",
+    "(opens in a new tab)":
+      "（在新标签页中打开）",
     "Hide where this code came from":
       "隐藏编码来源",
     "edited since":
@@ -582,12 +584,12 @@
       "看齿孔和片边之间的窄条：两排紧挨着的细小条纹，长约 13&nbsp;mm，每帧重复两次。用放大镜或放大的扫描图会更容易看清。",
     "Turn the film the right way round":
       "把胶片转到正确的方向",
-    "Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <strong>Mirror</strong>.":
-      "拿着胶片，让条码位于齿孔<em>下方</em>，片边的小数字正常可读。这时上排应该从左边的一根宽条开始。如果宽条在右边，请打开<strong>镜像</strong>。",
+    "Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">Mirror</button>.":
+      "拿着胶片，让条码位于齿孔<em>下方</em>，片边的小数字正常可读。这时上排应该从左边的一根宽条开始。如果宽条在右边，请打开<button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">镜像</button>。",
     "Copy the lower row":
       "抄写下排",
-    "Click every cell of the lower row where your film has a bar. Drag to fill several. The top row and both ends are identical on every film, so they are already drawn. Older film may have a shorter code with only 7 thin bars in the top row: choose <strong>7 thin bars</strong> under Layout.":
-      "在下排中，你的胶片上有条的每一位都点一下。拖动可一次填满多个位。上排和两端在所有胶片上都相同，所以已经画好了。较旧的胶片可能用较短的编码，上排只有 7 根细条：请在“版式”中选择<strong>7 根细条</strong>。",
+    "Click every cell of the lower row where your film has a bar. Drag to fill several. The top row and both ends are identical on every film, so they are already drawn. Older film may have a shorter code with only 7 thin bars in the top row: choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button> under Layout.":
+      "在下排中，你的胶片上有条的每一位都点一下。拖动可一次填满多个位。上排和两端在所有胶片上都相同，所以已经画好了。较旧的胶片可能用较短的编码，上排只有 7 根细条：请在“版式”中选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>。",
     "Layout":
       "版式",
     "11 thin bars":
@@ -702,8 +704,8 @@
       "片边数字在工厂里曝光，与你的相机无关，所以很少正好对准每张照片。用它们来区分各帧，而不是去对应相机的计数器。如果用半格相机，请改为数位置：0、0A、1、1A … 就是半帧 0、1、2、3 …",
     "Older film":
       "较旧的胶片",
-    "The original code, from before the frame-number extension and still used on some film after it, is shorter: 23 cells, with only 7 thin bars in the top row instead of 11. They carry the film’s DX number but no frame number, so choose <strong>7 thin bars</strong> under Layout before copying one. If an old code is copied into the 31-cell strip anyway, it still reads as the right film, but with a meaningless frame number (10 or 42); the decoder points this out and offers to switch.":
-      "最初的编码出现在加入帧号之前，之后仍有部分胶片使用，它更短：23 位，上排只有 7 根细条，而不是 11 根。它带有胶片的 DX 编号，但没有帧号，所以抄写前请在“版式”中选择<strong>7 根细条</strong>。如果把旧编码抄进了 31 位的片条，仍能读出正确的胶片，但帧号没有意义（10 或 42）；解码器会指出这一点，并提供切换。",
+    "The original code, from before the frame-number extension and still used on some film after it, is shorter: 23 cells, with only 7 thin bars in the top row instead of 11. They carry the film’s DX number but no frame number, so choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button> under Layout before copying one. If an old code is copied into the 31-cell strip anyway, it still reads as the right film, but with a meaningless frame number (10 or 42); the decoder points this out and offers to switch.":
+      "最初的编码出现在加入帧号之前，之后仍有部分胶片使用，它更短：23 位，上排只有 7 根细条，而不是 11 根。它带有胶片的 DX 编号，但没有帧号，所以抄写前请在“版式”中选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>。如果把旧编码抄进了 31 位的片条，仍能读出正确的胶片，但帧号没有意义（10 或 42）；解码器会指出这一点，并提供切换。",
     "The parity check":
       "奇偶校验",
     "The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When your copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.":
@@ -714,7 +716,7 @@
       "从定位码的宽标记开始读。胶片方向正确时（通常是光亮的片基面朝向你），条码旁的数字正常可读，宽标记在左边。从另一面看，一切都是镜像的。在反转片上，片边是黑的，条显示为透明的标记。编码褪色或有划痕很常见；由于编码每半帧重复一次，如果某根条看不清，可以看下一个编码。",
     "What the code cannot tell you":
       "编码不能告诉你什么",
-    "The DX number names a product. The product’s name usually includes its speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.":
+    "The DX number names a product. The product name usually includes the speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.":
       "DX 编号代表一种型号。型号名称通常带有感光度，但并非总是如此。这里使用的官方列表是 2008 年的，所以较晚推出的胶片要靠社区资料来识别。很多胶片还以多个名称销售，而片边码由生产胶片的工厂曝光，所以一个编码可能对应一整组贴牌胶片。",
     "DX code list":
       "DX 编码列表",

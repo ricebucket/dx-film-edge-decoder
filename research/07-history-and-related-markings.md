@@ -83,10 +83,9 @@ promotions, single-use cameras or panoramic format.
 
 ## Other marks along the film edge
 
-- **Separate frame-number barcodes.** Fuji's late-1980s film carried a
-  dedicated frame-number barcode on the edge opposite the DX code (Kodak's
-  EP 0838718); Fuji's reader patent describes it as a "three of nine" code. It
-  is not part of the DX code and this tool does not read it.
+- **Fuji's frame-number barcode.** Some Fuji film carries a second barcode on
+  the edge opposite the DX code. It holds only the frame number and is
+  described in the next section.
 - **Camera-exposed "fat bits".** Some cameras exposed additional marks along
   the edge after manufacture, zero to two per frame, with bars "three or four
   times greater" in width than DX bars (Kodak's US 5,665,950). They are not
@@ -94,6 +93,47 @@ promotions, single-use cameras or panoramic format.
 - **Printed labels.** Frame numbers and arrows between the codes are described
   in [report 02](02-frame-numbers.md); the film name and other eye-readable
   information run along the opposite edge (Kodak's US 4,965,628).
+
+## Fuji's frame-number barcode
+
+Kodak's EP 0838718 says that "in the late 1980's, Fuji Photo Film, Ltd.,
+introduced a film that incorporated a dedicated frame number bar code on the
+opposite edge of the film from the DX coded edge". Fuji's patents describe the
+code; one from 1997 calls it the "FNS (film number system) code"
+(US 6,324,345).
+
+- **Where it is.** Like the DX code, it is exposed at the factory and appears
+  when the film is developed. It runs between the perforations and the edge
+  opposite the DX code, right after each printed frame number, at the same
+  pitch as the DX codes: one per half frame (US 5,122,645; US 6,324,345).
+- **What it holds.** Only the frame position: 00, 00A, 0, 0A, 1, 1A … 36, 36A
+  and E (US 5,336,873); on some film "S" takes the place of 0
+  (US 5,122,645). On 12-, 20- and 24-exposure rolls, frames 12, 12A, 20, 20A,
+  24 and 24A can carry a variant that also gives the roll length: "These
+  specific frame number bar codes indicate the exposed number of frames in
+  addition to the frame numbers" (US 5,336,873). The code says nothing about
+  the film itself.
+- **How it is built.** A single row, with no clock track (JP H02-45890 A).
+  Each code has 13 elements: "one wide bar followed by one narrow space", then
+  "five bars elements interleaved with four space elements, three of these
+  nine elements being wide and the remaining six being narrow", then "one
+  narrow space followed by one narrow bar" (US 6,324,345). A wide element is
+  twice as wide as a narrow one, and a narrow element is as wide as a DX bar
+  (US 5,122,645). The wide start bar shows which way to read the code. The
+  patents describe no check character.
+- **Values.** US 5,336,873 gives all 83 codes in its FIGS. 5A–5D. In
+  US 5,122,645, frame 12A is `1000100001100` (1 is a wide element), with
+  `001000011` in the nine data elements.
+- **Which film.** Fuji's 1997 patent says: "Since the expanded DX code contains
+  a portion representing the frame number, the code FNS is not recorded when
+  the expanded DX code is recorded" (US 6,324,345). Film with this code
+  therefore has the original 23-cell DX code, with 7 thin bars. Fujifilm's
+  data sheet for FUJICOLOR C200 shows a single latent-image barcode on 135
+  film.
+- The tool does not read this code: it repeats the frame number printed next
+  to it, adding only the roll length on the last frames of 12-, 20- and
+  24-exposure rolls. This project has not checked the values against real
+  film.
 
 ## Other formats
 

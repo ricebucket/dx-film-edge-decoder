@@ -40,7 +40,7 @@
 ## 胶片名称的来源
 
 - 国际影像行业协会（I3A）的 **2008 年 DX 登记表**，这是可以免费获取的最新官方列表（[research/03](research/03-dx-numbers-and-registry.zh-CN.md)）。
-- **[The Big Film Database](https://github.com/dxdatabase/Open-source-film-database)**，一个社区数据库，也收录了 2008 年以来推出的胶片和贴牌胶片（[research/04](research/04-community-database.zh-CN.md)）。如果该数据库中有某个 DX 编号下的胶片，解码器还会链接到 [Antoine Mérino 的修改版](https://thebigfilmdatabase.merinorus.com)数据库中的这个编号。
+- **[The Big Film Database](https://github.com/dxdatabase/Open-source-film-database)**，一个社区数据库，也收录了 2008 年以来推出的胶片和贴牌胶片（[research/04](research/04-community-database.zh-CN.md)）。如果该数据库中有某个 DX 编号下的胶片，解码器还会链接到 [Antoine Mérino 的修改版](https://thebigfilmdatabase.merinorus.com)数据库中的这个编号，那里有胶片包装盒图片。
 
 页面上始终分别标注这两个来源。任何编码都不会被赋予两个来源都没有记载的含义：未知编码会报告为未知，同时给出其 Part 1（第一部分）编号所属的生产商。
 

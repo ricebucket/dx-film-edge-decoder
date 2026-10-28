@@ -54,8 +54,9 @@
   }
 
   // Antoine Mérino's edition of The Big Film Database looks up a DX number on
-  // its site. Community matches link there once for their number, not once
-  // per film. (The database's box pictures are not ours to copy: research/04.)
+  // its site, with pictures of the film boxes. Community matches link there
+  // once for their number, not once per film. (The pictures are not ours to
+  // copy: research/04.)
   const BFD_SEARCH = 'https://thebigfilmdatabase.merinorus.com/search?dx_number=';
 
   /** A link to this DX number on The Big Film Database's site; null for Part 1 = 0, which film never uses. */
@@ -63,7 +64,10 @@
     if (!(part1 > 0)) return null;
     const dx = `${part1}-${part2}`;
     return h('p', { class: 'source-block__link' },
-      h('a', { href: BFD_SEARCH + dx }, t('Look up DX {dx} on The Big Film Database', { dx })));
+      h('a', { href: BFD_SEARCH + dx, target: '_blank', rel: 'noopener' },
+        t('Look up DX {dx} on The Big Film Database, which has pictures of the film boxes', { dx }),
+        icon('external'),
+        h('span', { class: 'visually-hidden' }, ' ', t('(opens in a new tab)'))));
   }
 
   function communityItem(e) {
@@ -193,7 +197,7 @@
 
   function emptyState(ctx) {
     return [
-      h('div', { class: 'status status--idle' }, icon('info'), h('span', null, t('Waiting for bars'))),
+      h('div', { class: 'status status--idle' }, h('span', null, t('Waiting for bars'))),
       h('h2', { id: 'result-title', class: 'result__title', tabindex: '-1' },
         ctx.way === 'photo' ? t('Read a photo of your barcode') : t('Copy the lower row of your barcode')),
       h('p', { class: 'result__lead' }, t('The decoding appears here as you go. Not sure what a barcode looks like? Load an example and compare it with your film.')),
@@ -337,7 +341,7 @@
       ? h('div', { class: 'status status--ok' }, icon('check'), h('span', null, d.format === 'short' ? t('Valid DX code (23-cell layout)') : t('Valid DX code')))
       : real.length
         ? h('div', { class: 'status status--error' }, icon('cross'), h('span', null, i18n.plural(real.length, 'One problem to check', '{n} problems to check')))
-        : h('div', { class: 'status status--idle' }, icon('info'), h('span', null, t('Not a film code yet')));
+        : h('div', { class: 'status status--idle' }, h('span', null, t('Not a film code yet')));
 
     const problems = d.issues.length
       ? h('div', { class: 'problems' }, d.issues.map((issue) => {

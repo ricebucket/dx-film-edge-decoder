@@ -128,7 +128,8 @@ test('every marked part of the page has its text in every language, exactly as t
     const out = [];
     for (const lang of i18n.languages.filter((l) => l.code !== 'en')) {
       for (const el of document.querySelectorAll('[data-i18n]')) {
-        const key = i18n.normalize(el.innerHTML);
+        // aria-pressed follows the page's state; the text is looked up as written.
+        const key = i18n.normalize(el.innerHTML.replace(/ aria-pressed="(?:true|false)"/g, ''));
         if (!(key in lang.strings)) out.push(`${lang.code}: ${key}`);
       }
       for (const el of document.querySelectorAll('[data-i18n-attr]')) {

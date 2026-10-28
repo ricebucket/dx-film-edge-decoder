@@ -186,6 +186,7 @@
     setPressed(document.querySelector('[data-control="format"]'), state.format);
     setPressed(document.querySelector('[data-control="look"]'), state.look);
     $('mirror-toggle').setAttribute('aria-pressed', String(state.mirrored));
+    for (const b of document.querySelectorAll('.inline-button')) b.setAttribute('aria-pressed', $(b.dataset.for).getAttribute('aria-pressed'));
     // aria-disabled rather than disabled, so keyboard focus stays on the button.
     $('undo').setAttribute('aria-disabled', String(past.length === 0));
     $('redo').setAttribute('aria-disabled', String(future.length === 0));
@@ -447,6 +448,8 @@
     const fromUrl = codeFromUrl();
     if (fromUrl) Object.assign(state, fromUrl);
     bindToolbar();
+    // A button named in running text ("turn on Mirror") works the one it names.
+    for (const b of document.querySelectorAll('.inline-button')) b.addEventListener('click', () => $(b.dataset.for).click());
     bindTheme();
     bindCompact();
     // Leaving or hiding the page writes a pending URL change at once.

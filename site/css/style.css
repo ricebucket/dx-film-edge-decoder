@@ -461,19 +461,17 @@ h1 {
   padding-left: 44px;
 }
 
+/* Step numbers are plain numerals: on this page a ring or an outline means
+   you can click it (the ? buttons, the × and the chips), so markers have none. */
 .steps li::before {
   content: counter(step);
   position: absolute;
   left: 0;
-  top: -2px;
+  top: -5px;
   width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1.5px solid var(--film-base);
-  color: var(--ink);
-  font: 700 0.95rem/1 var(--font-edge);
+  text-align: center;
+  color: var(--film-base);
+  font: 700 1.5rem/1 var(--font-edge);
 }
 
 /* The two ways in: copy the bars by hand, or read a photo. */
@@ -620,18 +618,25 @@ h1 {
   display: none;
 }
 
+/* Teal, like the page's links and the buttons in its text: a button. */
 .help-dot {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  border: 1px solid var(--rule-strong);
-  background: transparent;
-  color: var(--ink-2);
-  font-size: 0.8rem;
+  border: 1.5px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
   padding: 0;
+}
+
+@media (hover: hover) {
+  .help-dot:hover {
+    background: var(--accent-soft);
+  }
 }
 
 .help-dot[aria-expanded="true"] {
@@ -681,6 +686,27 @@ h1 {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--bg);
+}
+
+/* A button named in running text ("turn on Mirror"): it works the one it
+   names and, like it, fills in when on. */
+.inline-button {
+  font: inherit;
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 3px;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.inline-button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+  text-decoration: none;
 }
 
 .tool--primary {
@@ -1144,7 +1170,8 @@ h1 {
 }
 
 /* The reader's three steps, one under the other and joined by a line: the
-   next one to do is filled in, finished ones are ticked. */
+   next one to do has the film's color, finished ones are ticked. Plain
+   numerals, as in the copying steps. */
 .photo__steps {
   list-style: none;
   counter-reset: step;
@@ -1165,37 +1192,31 @@ h1 {
   content: counter(step);
   position: absolute;
   left: 0;
-  top: -2px;
-  z-index: 1;
+  top: -5px;
   width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1.5px solid var(--film-base);
-  background: var(--surface);
-  color: var(--ink);
-  font: 700 0.95rem/1 var(--font-edge);
+  text-align: center;
+  color: var(--ink-3);
+  font: 700 1.5rem/1 var(--font-edge);
 }
 
 .photo__step:not(:last-child)::after {
   content: "";
   position: absolute;
   left: 14px;
-  top: 30px;
-  bottom: -20px;
+  top: 26px;
+  bottom: -9px;
   width: 1.5px;
   background: var(--rule-strong);
 }
 
 .photo__step[aria-current="step"]::before {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--bg);
+  color: var(--film-base);
 }
 
 .photo__step.is-done::before {
   content: "✓";
+  top: -2px;
+  color: var(--ok);
 }
 
 /* Once the code is used: the steps in a row, all ticked, and a way back. */
@@ -1211,7 +1232,7 @@ h1 {
 }
 
 .photo.is-folded .photo__step > .steps__title {
-  margin: 4px 0 0;
+  margin: 0;
 }
 
 .photo__folded {
@@ -1291,6 +1312,14 @@ h1 {
   font-size: 0.9rem;
 }
 
+/* Opens in a new tab. */
+.source-block__link .icon {
+  width: 0.95em;
+  height: 0.95em;
+  margin-left: 0.25em;
+  vertical-align: -0.1em;
+}
+
 .photo__result {
   margin-top: 6px;
 }
@@ -1319,11 +1348,6 @@ h1 {
   display: grid;
   flex: none;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--rule);
-  border-radius: 50%;
-  background: var(--surface);
   color: var(--ink-2);
 }
 
@@ -1407,10 +1431,11 @@ h1 {
   color: var(--danger);
 }
 
+/* No outline (that would make it look like the example chips below) and no icon. */
 .status--idle {
-  background: transparent;
+  padding-left: 12px;
+  background: color-mix(in srgb, var(--ink-3) 16%, transparent);
   color: var(--ink-2);
-  border: 1px solid var(--rule);
 }
 
 .result__title {
@@ -1547,11 +1572,12 @@ h1 {
   color: var(--accent);
 }
 
+/* Labels: a soft tint, never an outline. */
 .source-tag {
   display: inline-block;
-  padding: 1px 8px;
+  padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid var(--rule-strong);
+  background: color-mix(in srgb, var(--ink-3) 16%, transparent);
   font-size: 0.74rem;
   font-weight: 600;
   color: var(--ink-2);
@@ -1559,8 +1585,8 @@ h1 {
 }
 
 .source-tag--i3a {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 .matches {

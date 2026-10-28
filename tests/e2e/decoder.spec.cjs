@@ -115,17 +115,50 @@ test('mirror reverses the strip on screen but not the reading', async ({ page })
   const first = await dataCell(page, 1).boundingBox();
   const last = await dataCell(page, 31).boundingBox();
   expect(first.x).toBeLessThan(last.x);
-  await page.getByRole('button', { name: 'Mirror' }).click();
-  await expect(page.getByRole('button', { name: 'Mirror' })).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
+  await expect(page.locator('#toolbar').getByRole('button', { name: 'Mirror' })).toHaveAttribute('aria-pressed', 'true');
   const mFirst = await dataCell(page, 1).boundingBox();
   const mLast = await dataCell(page, 31).boundingBox();
   expect(mFirst.x).toBeGreaterThan(mLast.x);
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
 });
 
+test('"7 thin bars" in the text chooses that layout and shows when it is chosen', async ({ page, isMobile }) => {
+  await page.goto('/');
+  if (isMobile) await page.getByRole('button', { name: 'How to copy the bars' }).click();
+  const layout = page.locator('[data-control="format"]');
+  const inStep = page.locator('#copy-steps').getByRole('button', { name: '7 thin bars' });
+  const inHow = page.locator('#how').getByRole('button', { name: '7 thin bars' });
+  await expect(inStep).toHaveAttribute('aria-pressed', 'false');
+  await inStep.click();
+  await expect(layout.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#strip .track--data button.cell')).toHaveCount(23 - 6 - 4);
+  await expect(inStep).toHaveAttribute('aria-pressed', 'true');
+  await expect(inHow).toHaveAttribute('aria-pressed', 'true');
+  await layout.getByRole('button', { name: '11 thin bars' }).click();
+  await expect(inHow).toHaveAttribute('aria-pressed', 'false');
+  await inHow.click();
+  await expect(layout.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('"Mirror" in the steps works the Mirror button and shows when it is on', async ({ page, isMobile }) => {
+  await page.goto('/');
+  if (isMobile) await page.getByRole('button', { name: 'How to copy the bars' }).click();
+  const inText = page.locator('#copy-steps').getByRole('button', { name: 'Mirror' });
+  const button = page.locator('#toolbar').getByRole('button', { name: 'Mirror' });
+  await expect(inText).toHaveAttribute('aria-pressed', 'false');
+  await inText.click();
+  await expect(page.locator('#strip .strip')).toHaveClass(/is-mirrored/);
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
+  await expect(inText).toHaveAttribute('aria-pressed', 'true');
+  await button.click();
+  await expect(page.locator('#strip .strip')).not.toHaveClass(/is-mirrored/);
+  await expect(inText).toHaveAttribute('aria-pressed', 'false');
+});
+
 test('switching layout keeps Part 1 and Part 2', async ({ page }) => {
   await page.goto('/?dx=109-9/12');
-  await page.getByRole('button', { name: '7 thin bars' }).click();
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
   await expect(page.locator('#strip .bracket--part1 .bracket__value')).toHaveText('109');
   await expect(page.locator('#strip .bracket--part2 .bracket__value')).toHaveText('9');
@@ -163,7 +196,7 @@ test('leader frames show their printed labels', async ({ page }) => {
 test.describe('film from before the 1990 frame-number extension', () => {
   test('a 7-bar code is copied and decoded without a frame number', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: '7 thin bars' }).click();
+    await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
     await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
     await expect(page.locator('#strip .track--clock .cell.is-bar')).toHaveCount(5 + 7 + 3);
     await setCells(page, VR200_SHORT);
@@ -186,7 +219,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
     await expect(hint).toContainText('Does the top row of your film have 7 thin bars?');
     await expect(hint).toContainText('DX 79-7');
     await hint.getByRole('button', { name: 'Switch to 7 thin bars' }).click();
-    await expect(page.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#result-title')).toHaveText('KODACOLOR VR200 Film');
     await page.getByRole('button', { name: 'Undo' }).click();
     await expect(page.getByRole('button', { name: '11 thin bars' })).toHaveAttribute('aria-pressed', 'true');
@@ -201,7 +234,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
 
   test('a link to a code without a frame opens the 7-bar layout', async ({ page }) => {
     await page.goto('/?dx=109-12');
-    await expect(page.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#result-title')).toHaveText('FP4 PLUS');
   });
 });
@@ -209,7 +242,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
 test('undo during a drag does not corrupt the history', async ({ page, isMobile }) => {
   test.skip(isMobile, 'mouse drag');
   await page.goto('/');
-  await page.getByRole('button', { name: '7 thin bars' }).click();
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await dataCell(page, 9).scrollIntoViewIfNeeded();
   const a = await dataCell(page, 9).boundingBox();
   const b = await dataCell(page, 11).boundingBox();
@@ -219,7 +252,7 @@ test('undo during a drag does not corrupt the history', async ({ page, isMobile 
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 4 });
   await page.mouse.up();
   await page.keyboard.press('Control+z');
-  await page.getByRole('button', { name: '7 thin bars' }).click();
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await page.getByRole('button', { name: '11 thin bars' }).click();
   await expect(page.locator('#strip .track--data .cell')).toHaveCount(31);
 });

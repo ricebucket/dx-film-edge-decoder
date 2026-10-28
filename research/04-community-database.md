@@ -87,9 +87,9 @@ Spot checks of codes beyond the 2008 list:
   mostly cassette-based and includes rebrands.
 - Where the community database lists films for a DX number, the result and
   the cassette helper show one link to that number on Antoine Mérino's edition
-  of the database (for DX 96-12,
+  of the database, which has pictures of the film boxes (for DX 96-12,
   `https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12`). The
-  database's box images are not copied into this project.
+  pictures are not copied into this project.
 
 The database's website also guesses a maker and film type from ranges of the
 DX extract (the ranges are listed in its repository as

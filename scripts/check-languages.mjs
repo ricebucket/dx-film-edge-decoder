@@ -108,7 +108,7 @@ export async function loadLanguages() {
 
 const placeholders = (text) => [...String(text).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
 const tags = (text) => [...String(text).matchAll(/<\/?([a-zA-Z][\w-]*)((?:[^>"']|"[^"]*")*)>/g)]
-  .map((m) => `${m[1].toLowerCase()}${(m[2].match(/\b(?:href|class)="[^"]*"/g) || []).sort().join(' ')}`).sort().join('|');
+  .map((m) => `${m[1].toLowerCase()}${(m[2].match(/\b(?:href|class|data-[\w-]+)="[^"]*"/g) || []).sort().join(' ')}`).sort().join('|');
 
 /** Problems with one language's dictionary, as readable lines. */
 export function checkLanguage(lang, used) {

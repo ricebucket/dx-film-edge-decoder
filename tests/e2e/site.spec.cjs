@@ -107,6 +107,47 @@ test('the chosen film look shows its full name, the others a short one', async (
   await expect(color).toHaveText('Color', shown);
 });
 
+test('only what can be clicked has a ring or a pill-shaped outline', async ({ page }) => {
+  // Step numbers, statuses, the source bar's icon and the source tags are
+  // plain or tinted, so they cannot be mistaken for the ? buttons or the chips.
+  const outlinedButNotClickable = () => page.evaluate(() => {
+    const CLICKABLE = 'button, a[href], input, select, textarea, summary, [role="tab"]';
+    const ringed = (el, pseudo) => {
+      const s = getComputedStyle(el, pseudo);
+      if (!(parseFloat(s.borderTopWidth) > 0) || s.borderTopStyle === 'none') return false;
+      const size = Math.min(parseFloat(s.width), parseFloat(s.height));
+      const r = s.borderTopLeftRadius;
+      const radius = r.endsWith('%') ? (parseFloat(r) / 100) * parseFloat(s.width) : parseFloat(r);
+      return radius >= size / 2 - 1;
+    };
+    const found = [];
+    for (const el of document.querySelectorAll('body *')) {
+      if (!el.getClientRects().length) continue; // not shown
+      // A group of buttons, such as the layout choice, may have one around it.
+      const group = el.children.length && [...el.children].every((c) => c.matches(CLICKABLE));
+      if (ringed(el) && !el.matches(CLICKABLE) && !group) found.push(el.className || el.tagName);
+      if (ringed(el, '::before')) found.push(`${el.className || el.tagName}::before`);
+    }
+    return found;
+  });
+  // A result with registry and community entries, search results and a cassette number.
+  await page.goto('/?dx=96-12/14A');
+  await page.locator('#finder-q').fill('cinestill');
+  await expect(page.locator('.finder__item').first()).toBeVisible();
+  await page.locator('#cassette-code').fill('017563');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result')).toBeVisible();
+  expect(await outlinedButNotClickable()).toEqual([]);
+  // The copying steps and "Waiting for bars"; then the photo reader's steps and the example's source bar.
+  await page.locator('#clear').click();
+  expect(await outlinedButNotClickable()).toEqual([]);
+  await page.locator('.examples .chip').first().click();
+  await page.locator('#tab-photo').click();
+  await expect(page.locator('#photo .photo__step').first()).toBeVisible();
+  await expect(page.locator('#source')).toBeVisible();
+  expect(await outlinedButNotClickable()).toEqual([]);
+});
+
 test('on phones the introduction can be folded away, and stays folded', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phones only: wider screens always show it');
   await page.goto('/');

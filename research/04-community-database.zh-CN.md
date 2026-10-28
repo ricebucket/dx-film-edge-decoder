@@ -52,7 +52,7 @@ The Big Film Database 由署名为“Dxdatabase”的作者于 2018 年 2 月以
 - 结果的标题尽可能取自登记表；只有在登记表中没有对应条目时才使用社区数据库中的名称，此时页面会注明这一点。
 - Part 1 编号对应的生产商始终取自登记表。
 - 社区数据库匹配结果的下方有一条说明，指出这些数据由社区维护，大多基于暗盒，并且包含贴牌胶片。
-- 如果社区数据库中有某个 DX 编号下的胶片，解码结果和暗盒编号查询都会给出一个链接，指向 Antoine Mérino 修改版数据库中的这个编号（DX 96-12 对应 `https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12`）。该数据库的包装盒图片没有复制到本项目中。
+- 如果社区数据库中有某个 DX 编号下的胶片，解码结果和暗盒编号查询都会给出一个链接，指向 Antoine Mérino 修改版数据库中的这个编号，那里有胶片包装盒图片（DX 96-12 对应 `https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12`）。这些图片没有复制到本项目中。
 
 该数据库的网站还会根据 DX extract 所在的范围推测生产商和胶片类型（这些范围列在其仓库的 `Various documentation/Film type by DX.txt` 中）。网站自己也把这种推测标为“not very accurate”（不太准确），而且有些范围相互重叠：46–127 是“Agfa Gevaert chrome (slide) film”（爱克发反转片），但其中又包含 64–79，即“Kodak Technical film”（柯达技术胶片）。本工具不使用这些范围。
 

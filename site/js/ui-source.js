@@ -14,7 +14,7 @@
     finder: { icon: 'search', from: t('From Find a film'), back: t('Back to the search') },
     cassette: { icon: 'cassette', from: t('From a cassette number'), back: t('Back to the cassette number') },
     list: { icon: 'list', from: t('From the code list'), back: t('Back to the code list') },
-    example: { icon: 'info', from: t('Example') },
+    example: { icon: 'barcode', from: t('Example') },
   };
 
   /**

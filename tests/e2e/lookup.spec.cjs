@@ -71,7 +71,7 @@ test('a DX number and frame can be entered directly', async ({ page }) => {
 });
 
 test('a code shown with a frame uses the 31-cell layout, even after the 23-cell one', async ({ page }) => {
-  await page.getByRole('button', { name: '7 thin bars' }).click();
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await page.locator('#direct-dx').fill('79-15');
   await page.locator('#direct-frame').fill('23A');
   await page.locator('.direct').getByRole('button', { name: 'Show barcode' }).click();
@@ -92,11 +92,12 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
 
 test('community matches link once to their DX number on The Big Film Database', async ({ page }) => {
   const SEARCH = 'https://thebigfilmdatabase.merinorus.com/search?dx_number=';
-  const links = (scope) => scope.getByRole('link', { name: /on The Big Film Database$/ });
+  const links = (scope) => scope.getByRole('link', { name: /on The Big Film Database/ });
   // One link for all the films listed with the decoded number...
   await page.goto('/?dx=96-12/14A');
   const result = links(page.locator('#result'));
-  await expect(result).toHaveText('Look up DX 96-12 on The Big Film Database');
+  await expect(result).toHaveText('Look up DX 96-12 on The Big Film Database, which has pictures of the film boxes (opens in a new tab)');
+  await expect(result).toHaveAttribute('target', '_blank');
   await expect(result).toHaveAttribute('href', `${SEARCH}96-12`);
   // ...and for those of a cassette number.
   await page.locator('#cassette-code').fill('017563');

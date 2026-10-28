@@ -70,7 +70,7 @@ test('a photo of an older 7-bar code switches the strip to that layout', async (
   await expect(page.locator('.photo__found')).toContainText('KODACOLOR VR200 Film');
   await expect(page.locator('.photo__notes')).toContainText('original 23-cell layout');
   await page.getByRole('button', { name: 'Use this code' }).click();
-  await expect(page.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
   await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
 });
@@ -214,10 +214,10 @@ test("the photo's barcode lines up over the strip's cells, also mirrored, while 
   expect(Math.abs(p.x - c.x)).toBeLessThan(1);
   expect(Math.abs(p.width - c.width)).toBeLessThan(1);
   // Mirrored, the photo turns with the strip, so each cell stays over its own.
-  await page.getByRole('button', { name: 'Mirror' }).click();
+  await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
   await expect(photo).toHaveCSS('transform', 'matrix(-1, 0, 0, 1, 0, 0)');
   // In the other layout the cells no longer match: the photo goes, the bar stays.
-  await page.getByRole('button', { name: '7 thin bars' }).click();
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await expect(photo).toBeHidden();
   await expect(page.locator('#source')).toContainText('edited since');
 });

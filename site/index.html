@@ -101,11 +101,11 @@
             </li>
             <li>
               <h2 class="steps__title" data-i18n>Turn the film the right way round</h2>
-              <p data-i18n>Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <strong>Mirror</strong>.</p>
+              <p data-i18n>Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <button type="button" class="inline-button" data-for="mirror-toggle">Mirror</button>.</p>
             </li>
             <li>
               <h2 class="steps__title" data-i18n>Copy the lower row</h2>
-              <p data-i18n>Click every cell of the lower row where your film has a bar. Drag to fill several. The top row and both ends are identical on every film, so they are already drawn. Older film may have a shorter code with only 7 thin bars in the top row: choose <strong>7 thin bars</strong> under Layout.</p>
+              <p data-i18n>Click every cell of the lower row where your film has a bar. Drag to fill several. The top row and both ends are identical on every film, so they are already drawn. Older film may have a shorter code with only 7 thin bars in the top row: choose <button type="button" class="inline-button" data-for="format-short">7 thin bars</button> under Layout.</p>
             </li>
           </ol>
           <!-- Phones only: the steps show their titles until this opens them (app.js). -->
@@ -123,7 +123,7 @@
               </button>
               <div class="segmented" data-control="format">
                 <button type="button" data-value="long" aria-pressed="true" data-i18n>11 thin bars</button>
-                <button type="button" data-value="short" aria-pressed="false" data-i18n>7 thin bars</button>
+                <button type="button" id="format-short" data-value="short" aria-pressed="false" data-i18n>7 thin bars</button>
               </div>
             </div>
             <div class="toolbar__group" role="group" aria-labelledby="look-label">
@@ -226,7 +226,7 @@
           <p data-i18n>Edge numbers are exposed at the factory, independently of your camera, so they rarely line up exactly with each picture. Use them to tell frames apart rather than to match your camera’s counter. With a half-frame camera, count positions instead: 0, 0A, 1, 1A … are half frames 0, 1, 2, 3 …</p>
 
           <h3 data-i18n>Older film</h3>
-          <p data-i18n>The original code, from before the frame-number extension and still used on some film after it, is shorter: 23 cells, with only 7 thin bars in the top row instead of 11. They carry the film’s DX number but no frame number, so choose <strong>7 thin bars</strong> under Layout before copying one. If an old code is copied into the 31-cell strip anyway, it still reads as the right film, but with a meaningless frame number (10 or 42); the decoder points this out and offers to switch.</p>
+          <p data-i18n>The original code, from before the frame-number extension and still used on some film after it, is shorter: 23 cells, with only 7 thin bars in the top row instead of 11. They carry the film’s DX number but no frame number, so choose <button type="button" class="inline-button" data-for="format-short">7 thin bars</button> under Layout before copying one. If an old code is copied into the 31-cell strip anyway, it still reads as the right film, but with a meaningless frame number (10 or 42); the decoder points this out and offers to switch.</p>
 
           <h3 data-i18n>The parity check</h3>
           <p data-i18n>The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When your copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.</p>
@@ -235,7 +235,7 @@
           <p data-i18n>Read the code with the wide clock mark first. When the film is the right way round, usually with its shiny base side toward you, the printed numbers beside the barcode read normally and the wide mark is on the left. Seen from the other side, everything is mirrored. On slide film the edge is black and the bars show as clear marks. Faded or scratched codes are common; since the code repeats every half frame, check the next one along if a bar is unclear.</p>
 
           <h3 data-i18n>What the code cannot tell you</h3>
-          <p data-i18n>The DX number names a product. The product’s name usually includes its speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.</p>
+          <p data-i18n>The DX number names a product. The product name usually includes the speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.</p>
         </div>
       </div>
     </section>

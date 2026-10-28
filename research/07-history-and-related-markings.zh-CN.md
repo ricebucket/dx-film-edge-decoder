@@ -63,9 +63,20 @@
 
 ## 片边上的其他标记
 
-- **单独的帧号条码**。富士 1980 年代末的胶片在片边码对侧的片边上带有专用的帧号条码（柯达的 EP 0838718）；富士的读码器专利把它描述为一种“three of nine”（九取三）码。它不属于片边码，本工具也不读取它。
+- **富士的帧号条码**。有些富士胶片在片边码对侧的片边上还有第二种条码。它只包含帧号，下一节专门介绍。
 - **相机曝光的“fat bits”（宽条标记）**。有些相机曾在胶片出厂后沿片边额外曝光一些标记，每帧零到两个，其中的条在宽度上比片边码的条“three or four times greater”（大三到四倍）（柯达的 US 5,665,950）。它们不属于片边码。
 - **片边印字**。条码之间的帧号和箭头在[报告 02](02-frame-numbers.zh-CN.md)中有介绍；胶片名称和其他肉眼可读的信息沿对侧片边排列（柯达的 US 4,965,628）。
+
+## 富士的帧号条码
+
+柯达的 EP 0838718 写道：“in the late 1980's, Fuji Photo Film, Ltd., introduced a film that incorporated a dedicated frame number bar code on the opposite edge of the film from the DX coded edge”（1980 年代末，富士推出了在片边码对侧片边上带专用帧号条码的胶片）。富士的专利描述了这种条码，其中 1997 年的一项称它为“FNS (film number system) code”（胶片编号系统码）（US 6,324,345）。
+
+- **位置**。它和片边码一样在工厂里曝光，冲洗后显现。它位于片边码对侧的齿孔与片边之间，紧跟在每个印出的帧号之后，间距与片边码相同：每半帧一个（US 5,122,645；US 6,324,345）。
+- **内容**。只有帧的位置：00、00A、0、0A、1、1A …… 36、36A 和 E（US 5,336,873）；有些胶片用“S”代替 0（US 5,122,645）。在 12 张、20 张和 24 张的胶片上，第 12、12A、20、20A、24 和 24A 帧可以用一种变体，同时给出卷长：“These specific frame number bar codes indicate the exposed number of frames in addition to the frame numbers”（这些特定的帧号条码除帧号外还表示可拍张数）（US 5,336,873）。这种条码不包含胶片本身的任何信息。
+- **结构**。只有一排，没有定位码（JP H02-45890 A）。每个条码有 13 个单元：先是“one wide bar followed by one narrow space”（一根宽条加一个窄空），然后是“five bars elements interleaved with four space elements, three of these nine elements being wide and the remaining six being narrow”（五个条与四个空交替排列，这九个单元中三个宽、六个窄），最后是“one narrow space followed by one narrow bar”（一个窄空加一根窄条）（US 6,324,345）。宽单元的宽度是窄单元的两倍，窄单元与片边码的一根条一样宽（US 5,122,645）。开头的宽条表示读取方向。专利中没有描述校验字符。
+- **取值**。US 5,336,873 在图 5A–5D 中列出了全部 83 个条码。在 US 5,122,645 中，第 12A 帧是 `1000100001100`（1 表示宽单元），九个数据单元为 `001000011`。
+- **哪些胶片**。富士 1997 年的专利写道：“Since the expanded DX code contains a portion representing the frame number, the code FNS is not recorded when the expanded DX code is recorded”（扩展片边码中已有表示帧号的部分，所以记录扩展片边码时不再记录 FNS）（US 6,324,345）。因此，带这种条码的胶片使用的是最初的 23 位片边码，上排有 7 根细条。富士 FUJICOLOR C200 的数据表显示，135 规格胶片上只有一种潜影条码。
+- 本工具不读取这种条码：它重复旁边印出的帧号，只在 12 张、20 张和 24 张胶片的最后几帧上多给出卷长。本项目也没有用实际胶片核对这些取值。
 
 ## 其他胶片规格
 
