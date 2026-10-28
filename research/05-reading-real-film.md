@@ -96,8 +96,15 @@ On negatives the bars are exposed, so they are dense: dark on the clear or
 orange-masked base. Reversal (slide) processing turns exposed areas clear, so
 on slide film the bars appear as clear marks on the black edge. This follows
 from how reversal processing works; none of the sources above describe slide
-edge codes specifically. The tool's "Slide" look draws the strip that way, and
-the photo reader detects either polarity by itself.
+edge codes specifically. The tool draws the strip that way when the black piece
+of film under it (the Slide look) is chosen, and the photo reader detects either
+polarity by itself.
+
+Black-and-white film developed in color-negative chemistry looks like color
+negative film. Of BW400CN, processed in C-41, Kodak says: "The appearance of
+processed negatives on BW400CN Film is similar to color negative films, but
+with no color in the negative images" (F-4036). The page's BW400CN example is
+therefore drawn in the color-negative look.
 
 ## Damage
 

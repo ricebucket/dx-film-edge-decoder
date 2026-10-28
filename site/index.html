@@ -126,18 +126,6 @@
                 <button type="button" id="format-short" data-value="short" aria-pressed="false" data-i18n>7 thin bars</button>
               </div>
             </div>
-            <div class="toolbar__group" role="group" aria-labelledby="look-label">
-              <span class="toolbar__label" id="look-label" data-i18n>Film</span>
-              <button type="button" class="help-dot" aria-expanded="false" aria-controls="look-help" data-help>
-                <span class="visually-hidden" data-i18n>What does the film look option do?</span>?
-              </button>
-              <div class="segmented" data-control="look">
-                <!-- The chosen look shows its full name, the others a short one. -->
-                <button type="button" data-value="negative" aria-pressed="true" aria-label="Color negative" data-i18n-attr="aria-label"><span class="when-on" data-i18n>Color negative</span><span class="when-off" data-i18n>Color</span></button>
-                <button type="button" data-value="bw" aria-pressed="false" aria-label="B&amp;W negative" data-i18n-attr="aria-label"><span class="when-on" data-i18n>B&amp;W negative</span><span class="when-off" data-i18n>B&amp;W</span></button>
-                <button type="button" data-value="slide" aria-pressed="false" data-i18n>Slide</button>
-              </div>
-            </div>
             <div class="toolbar__group toolbar__group--actions">
               <button type="button" class="tool" id="mirror-toggle" aria-pressed="false" data-i18n>Mirror</button>
               <button type="button" class="tool" id="undo" aria-disabled="true" data-i18n>Undo</button>
@@ -149,12 +137,15 @@
           <div class="help-panel" id="layout-help" hidden>
             <p data-i18n>Count the thin bars in the <strong>top</strong> row between the wide mark at the start and the shorter wide mark at the end. <strong>11 thin bars</strong>: the 31-cell layout with a frame number, introduced around 1990. <strong>7 thin bars</strong>: the original 23-cell layout from 1983, still used on some film in the 1990s; it identifies the film but carries no frame number.</p>
           </div>
-          <div class="help-panel" id="look-help" hidden>
-            <p data-i18n>This only changes how the strip is drawn, so it is easier to compare with your film. On color and black-and-white negatives the bars are dark. On slide film the edge is black and the bars are clear, because reversal processing turns exposed areas clear: treat the clear marks as bars.</p>
-          </div>
-
           <div class="source" id="source" hidden></div>
           <div class="strip-host" id="strip"></div>
+          <!-- How the strip is drawn, to look like your film: a small piece of
+               each kind of film, kept out of the toolbar since nothing else changes. -->
+          <div class="looks" role="group" aria-label="Film look" data-i18n-attr="aria-label" data-control="look">
+            <button type="button" class="looks__film" data-value="negative" aria-pressed="true" aria-label="Color negative" title="Color negative" data-i18n-attr="aria-label title"></button>
+            <button type="button" class="looks__film" data-value="bw" aria-pressed="false" aria-label="B&amp;W negative" title="B&amp;W negative" data-i18n-attr="aria-label title"></button>
+            <button type="button" class="looks__film" data-value="slide" aria-pressed="false" aria-label="Slide" title="Slide" data-i18n-attr="aria-label title"></button>
+          </div>
           <p class="hint" id="hint" aria-live="polite"></p>
         </div>
 

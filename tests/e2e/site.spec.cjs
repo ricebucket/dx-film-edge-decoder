@@ -75,8 +75,9 @@ test('no horizontal page scrolling down to 320 px wide; only the strip scrolls s
   // 320 px: the narrowest phones, and a 1280 px screen zoomed to 400%.
   await page.setViewportSize({ width: 320, height: 640 });
   expect(await sideOverflow(page)).toEqual([]);
-  await page.getByRole('button', { name: 'What does the film look option do?' }).click();
-  await expect(page.locator('#look-help')).toBeVisible();
+  await page.getByRole('button', { name: 'Which layout do I have?' }).click();
+  await expect(page.locator('#layout-help')).toBeVisible();
+  expect(await sideOverflow(page)).toEqual([]);
 });
 
 test('basic accessibility hooks are in place', async ({ page }) => {
@@ -93,18 +94,21 @@ test('basic accessibility hooks are in place', async ({ page }) => {
   }
 });
 
-test('the chosen film look shows its full name, the others a short one', async ({ page }) => {
+test('the film look is picked from small pieces of film under the strip, in its colors', async ({ page }) => {
   await page.goto('/');
-  const looks = page.locator('[data-control="look"]');
-  const color = looks.getByRole('button', { name: 'Color negative', exact: true });
-  const bw = looks.getByRole('button', { name: 'B&W negative', exact: true });
-  // What shows: the hidden label is still in the page, so compare the rendered text.
-  const shown = { useInnerText: true };
-  await expect(color).toHaveText('Color negative', shown);
-  await expect(bw).toHaveText('B&W', shown);
-  await bw.click();
-  await expect(bw).toHaveText('B&W negative', shown);
-  await expect(color).toHaveText('Color', shown);
+  const looks = page.locator('.looks');
+  const strip = page.locator('#strip .strip');
+  // Not in the toolbar, whose buttons change the code.
+  await expect(page.locator('#toolbar [data-control="look"]')).toHaveCount(0);
+  const colors = (el) => el.evaluate((e) => ['--film-base', '--film-mark'].map((v) => getComputedStyle(e).getPropertyValue(v).trim()));
+  for (const [name, look] of [['B&W negative', 'bw'], ['Slide', 'slide'], ['Color negative', 'negative']]) {
+    const film = looks.getByRole('button', { name, exact: true });
+    await film.click();
+    await expect(film).toHaveAttribute('aria-pressed', 'true');
+    await expect(looks.locator('[aria-pressed="true"]')).toHaveCount(1);
+    await expect(strip).toHaveAttribute('data-look', look);
+    expect(await colors(film)).toEqual(await colors(strip));
+  }
 });
 
 test('only what can be clicked has a ring or a pill-shaped outline', async ({ page }) => {

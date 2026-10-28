@@ -44,6 +44,7 @@
 - The Big Film Database (dxdatabase)，作者 Dxdatabase — <https://github.com/dxdatabase/Open-source-film-database>，网站 <https://industrieplus.net/dxdatabase/>，帮助页面 <https://industrieplus.net/dxdatabase/help.html>
 - The (Modified) Big Film Database，作者 Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>
 - Patton, Travis & McPherson（Eastman Kodak），美国专利 5,761,558，*Expanded film cartridge bar code*，1998 — <https://patents.google.com/patent/US5761558A/en>
+- Eastman Kodak Company，*KODAK PROFESSIONAL BW400CN Film*，技术资料 F-4036，2004 年 1 月 — 副本：<https://125px.com/docs/film/kodak/f4036-BW400CN.pdf>
 
 ### 许可证
 

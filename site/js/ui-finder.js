@@ -188,14 +188,14 @@
       const blocks = [];
       if (hit.augmented.length) {
         blocks.push(h('div', { class: 'source-block' },
-          h('h4', { class: 'source-block__title' }, t('Registered special cassette number'), h('span', { class: 'source-tag source-tag--i3a' }, t('I3A registry, 2008'))),
+          h('h4', { class: 'source-block__title' }, t('I3A registry, 2008')),
           h('ul', { class: 'matches' }, hit.augmented.map((a) => h('li', { class: 'match' }, h('span', { class: 'match__name' }, a.name),
             h('span', { class: 'match__facts' }, t('Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.')))))));
       }
       if (hit.dx) {
         if (hit.dx.products.length) {
           blocks.push(h('div', { class: 'source-block' },
-            h('h4', { class: 'source-block__title' }, t('Registered product'), h('span', { class: 'source-tag source-tag--i3a' }, t('I3A registry, 2008'))),
+            h('h4', { class: 'source-block__title' }, t('I3A registry, 2008')),
             h('ul', { class: 'matches' }, hit.dx.products.map(ui.productItem))));
         }
         const s = hit.dx.part1Info.sensitizer;
@@ -206,7 +206,7 @@
       const exact = ui.groupCommunity(hit.sameCode);
       if (exact.length) {
         blocks.push(h('div', { class: 'source-block' },
-          h('h4', { class: 'source-block__title' }, t('Cassettes with this number'), h('span', { class: 'source-tag source-tag--community' }, 'The Big Film Database')),
+          h('h4', { class: 'source-block__title' }, 'The Big Film Database'),
           h('ul', { class: 'matches' }, exact.map(ui.communityItem))));
       }
       const similar = ui.groupCommunity(hit.sameExtract);
@@ -216,7 +216,7 @@
           h('ul', { class: 'matches' }, similar.map(ui.communityItem))));
       }
       const link = exact.length || similar.length ? ui.bfdLink(p.part1, p.part2) : null;
-      if (link) blocks.push(link, h('p', { class: 'fineprint' }, t('The site has pictures of the film boxes') + i18n.punctuation().period));
+      if (link) blocks.push(link, h('p', { class: 'fineprint' }, t('The site has pictures of the films') + i18n.punctuation().period));
       if (!blocks.length || (!hit.augmented.length && hit.dx && !hit.dx.products.length && !exact.length && !similar.length)) {
         blocks.push(h('p', { class: 'fineprint' }, t('This number is not in the 2008 registry or the community database.')));
       }

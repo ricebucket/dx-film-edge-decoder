@@ -139,6 +139,14 @@ test('"7 thin bars" in the text chooses that layout and shows when it is chosen'
   await expect(inHow).toHaveAttribute('aria-pressed', 'false');
   await inHow.click();
   await expect(layout.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+  // Pressed again, the text goes back to 11 thin bars; the Layout button stays chosen when pressed again.
+  await inHow.click();
+  await expect(layout.getByRole('button', { name: '11 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(inHow).toHaveAttribute('aria-pressed', 'false');
+  await expect(inStep).toHaveAttribute('aria-pressed', 'false');
+  await layout.getByRole('button', { name: '7 thin bars' }).click();
+  await layout.getByRole('button', { name: '7 thin bars' }).click();
+  await expect(layout.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('"Mirror" in the steps works the Mirror button and shows when it is on', async ({ page, isMobile }) => {
@@ -175,6 +183,11 @@ test('examples load a code with the matching film look', async ({ page }) => {
   await expect(page.locator('#result-title')).toHaveText('FUJICHROME VELVIA 50');
   await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'slide');
   await expect(page.locator('#strip .film__label--before')).toHaveText('5A');
+  // BW400CN is black-and-white film developed like color negative film, and looks like one (Kodak F-4036).
+  await page.locator('#clear').click();
+  await page.getByRole('button', { name: 'Kodak BW400CN, frame 23' }).click();
+  await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
+  await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'negative');
 });
 
 test('links restore a code, and junk in the link is ignored', async ({ page }) => {

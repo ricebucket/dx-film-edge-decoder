@@ -53,7 +53,8 @@ sends nothing anywhere (including photos you open in it), and also works when
    film, 7 on older film. Choose the matching **Layout**.
 4. **Copy the lower row.** Click every cell where your film has a bar; drag to
    fill several, or click the first cell and type `1` and `0`. On slide film the
-   bars are clear marks on a black edge; the **Slide** look draws them that way.
+   bars are clear marks on a black edge; pick the black piece of film under the
+   strip to draw them that way.
 5. **Read the result.** The number printed just before the barcode on your film
    should match the decoded frame label. If the code fails its checks, look
    again at faint bars, compare with the next code along the film, or pick a
@@ -86,7 +87,7 @@ from [the cell layout](research/01-edge-code-format.md) and
   rebranded films ([research/04](research/04-community-database.md)). When it
   lists films for a DX number, the decoder also links to that number on
   [Antoine Mérino's edition](https://thebigfilmdatabase.merinorus.com) of the
-  database, which has pictures of the film boxes.
+  database, which has pictures of the films.
 
 The two are always labeled separately on the page. No code is given a meaning
 that neither source documents: an unknown code is reported as unknown, together

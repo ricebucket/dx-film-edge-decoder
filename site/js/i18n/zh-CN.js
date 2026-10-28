@@ -118,20 +118,14 @@
       "末位数字 {digit} 不是已定义的长度代码。",
     "Last digit {digit}.":
       "末位数字 {digit}。",
-    "Registered special cassette number":
-      "登记的特殊暗盒编号",
     "I3A registry, 2008":
       "I3A 登记表，2008 年",
     "Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
       "柯达登记的“augmented”（扩充）暗盒编号（ISO 1007，附录 A.4），在常规 DX 范围之外。",
-    "Registered product":
-      "登记的型号",
     "Part 1 = {part1} is assigned to {maker}.":
       "Part 1 = {part1} 分配给了 {maker}。",
     "Part 1 = {part1} was not assigned in the 2008 registry.":
       "在 2008 年登记表中，Part 1 = {part1} 没有分配。",
-    "Cassettes with this number":
-      "使用这个编号的暗盒",
     "This number is not in the 2008 registry or the community database.":
       "这个编号既不在 2008 年登记表中，也不在社区数据库中。",
     "Show the edge barcode":
@@ -198,8 +192,8 @@
       "示例",
     "Look up DX {dx} on The Big Film Database":
       "在 The Big Film Database 上查看 DX {dx}",
-    "The site has pictures of the film boxes":
-      "该网站有胶片包装盒图片",
+    "The site has pictures of the films":
+      "该网站有这些胶卷的图片",
     "(opens in a new tab)":
       "（在新标签页中打开）",
     "Hide where this code came from":
@@ -462,12 +456,6 @@
       "DX {dx} 不在 2008 年登记表中；上面的名称来自社区数据库。",
     "DX {dx} is in neither the 2008 registry nor the community database. Films introduced after 2008 are often missing.":
       "DX {dx} 既不在 2008 年登记表中，也不在社区数据库中。2008 年以后推出的胶片常常缺失。",
-    "Registered products with this number":
-      "使用这个编号的登记型号",
-    "Also listed for this number":
-      "这个编号下另外列出的胶片",
-    "Films listed for this number":
-      "这个编号下列出的胶片",
     "Part 1 = {part1}, Part 2 = {part2}":
       "Part 1 = {part1}，Part 2 = {part2}",
     "Half-frame (A) position":
@@ -600,22 +588,14 @@
       "7 根细条",
     "Which layout do I have?":
       "我的胶片是哪种版式？",
-    "Film":
-      "胶片",
+    "Film look":
+      "胶片外观",
     "Color negative":
       "彩色底片",
-    "Color":
-      "彩色",
-    "B&amp;W negative":
-      "黑白底片",
     "B&W negative":
       "黑白底片",
-    "B&amp;W":
-      "黑白",
     "Slide":
       "反转片",
-    "What does the film look option do?":
-      "“胶片”选项有什么用？",
     "Mirror":
       "镜像",
     "Undo":
@@ -626,8 +606,6 @@
       "清除",
     "Count the thin bars in the <strong>top</strong> row between the wide mark at the start and the shorter wide mark at the end. <strong>11 thin bars</strong>: the 31-cell layout with a frame number, introduced around 1990. <strong>7 thin bars</strong>: the original 23-cell layout from 1983, still used on some film in the 1990s; it identifies the film but carries no frame number.":
       "数一数<strong>上排</strong>开头的宽标记和结尾较短的宽标记之间有几根细条。<strong>11 根细条</strong>：带帧号的 31 位版式，约 1990 年推出。<strong>7 根细条</strong>：1983 年最初的 23 位版式，1990 年代仍有部分胶片使用；它能识别胶片，但不含帧号。",
-    "This only changes how the strip is drawn, so it is easier to compare with your film. On color and black-and-white negatives the bars are dark. On slide film the edge is black and the bars are clear, because reversal processing turns exposed areas clear: treat the clear marks as bars.":
-      "这只改变片条的画法，方便与你的胶片对照。在彩色和黑白底片上，条是深色的。在反转片上，片边是黑的，条是透明的，因为反转冲洗会让曝光过的区域变透明：请把透明的标记当作条。",
     "Find a film’s code":
       "查找胶片的编码",
     "Search by film name, maker or DX number, then put its barcode on the strip to compare it with your film. Results come from the 2008 I3A registry and the community-run Big Film Database.":

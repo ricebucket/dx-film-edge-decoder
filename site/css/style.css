@@ -612,12 +612,6 @@ h1 {
   color: var(--bg);
 }
 
-/* The chosen film look shows its full name, the others a short one. */
-.segmented button[aria-pressed="true"] .when-off,
-.segmented button[aria-pressed="false"] .when-on {
-  display: none;
-}
-
 /* Teal, like the page's links and the buttons in its text: a button. */
 .help-dot {
   width: 28px;
@@ -757,18 +751,51 @@ h1 {
   --film-plus: color-mix(in srgb, var(--film-mark) 40%, transparent);
 }
 
-.strip[data-look="bw"] {
+.strip[data-look="bw"],
+.looks__film[data-value="bw"] {
   --film-base: #c3cacf;
   --film-mark: #1f2327;
   --film-guide: rgba(31, 35, 39, 0.2);
   --film-hover: rgba(31, 35, 39, 0.4);
 }
 
-.strip[data-look="slide"] {
+.strip[data-look="slide"],
+.looks__film[data-value="slide"] {
   --film-base: #17161a;
   --film-mark: #efe6d0;
   --film-guide: rgba(239, 230, 208, 0.2);
   --film-hover: rgba(239, 230, 208, 0.42);
+}
+
+/* The film looks: a small piece of each kind of film, in the strip's own
+   colors, off to the side under it. They change nothing but the drawing. */
+.looks {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.looks__film {
+  width: 36px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--ink-3);
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent 20%, var(--film-mark) 20% 32%, transparent 32% 44%, var(--film-mark) 44% 56%, transparent 56% 68%, var(--film-mark) 68% 80%, transparent 80%) center / 100% 46% no-repeat,
+    var(--film-base);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .looks__film:hover {
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--rule-strong);
+  }
+}
+
+.looks__film[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink);
 }
 
 .strip__viewport {

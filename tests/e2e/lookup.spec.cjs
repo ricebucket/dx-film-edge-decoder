@@ -100,12 +100,12 @@ test('community matches link once to their DX number on The Big Film Database', 
   await expect(result).toHaveAttribute('target', '_blank');
   await expect(result).toHaveAttribute('href', `${SEARCH}96-12`);
   // What the site has is in the text under the link.
-  await expect(page.locator('#result p:has(> a[target="_blank"]) + .fineprint')).toHaveText(/^The site has pictures of the film boxes\. Community-maintained/);
+  await expect(page.locator('#result p:has(> a[target="_blank"]) + .fineprint')).toHaveText(/^The site has pictures of the films\. Community-maintained/);
   // ...and for those of a cassette number.
   await page.locator('#cassette-code').fill('017563');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(links(page.locator('.cassette__result'))).toHaveAttribute('href', `${SEARCH}109-12`);
-  await expect(page.locator('.cassette__result p:has(> a[target="_blank"]) + .fineprint')).toHaveText('The site has pictures of the film boxes.');
+  await expect(page.locator('.cassette__result p:has(> a[target="_blank"]) + .fineprint')).toHaveText('The site has pictures of the films.');
   // Search results lead to the decoder and its link; they have none of their own.
   await page.locator('#finder-q').fill('kentmere');
   await expect(page.locator('.finder__item').first()).toBeVisible();

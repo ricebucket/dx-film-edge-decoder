@@ -54,7 +54,7 @@
   }
 
   // Antoine Mérino's edition of The Big Film Database looks up a DX number on
-  // its site, with pictures of the film boxes. Community matches link there
+  // its site, with pictures of the films. Community matches link there
   // once for their number, not once per film. (The pictures are not ours to
   // copy: research/04.)
   const BFD_SEARCH = 'https://thebigfilmdatabase.merinorus.com/search?dx_number=';
@@ -96,13 +96,12 @@
       p.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null);
   }
 
-  function communityBlock(entries, title, d) {
+  function communityBlock(entries, d) {
     const groups = groupCommunity(entries);
     if (!groups.length) return null;
     const list = h('ul', { class: 'matches' }, groups.slice(0, COMMUNITY_PREVIEW).map(communityItem));
     const block = h('div', { class: 'source-block' },
-      h('h4', { class: 'source-block__title' }, title,
-        h('span', { class: 'source-tag source-tag--community' }, 'The Big Film Database')),
+      h('h4', { class: 'source-block__title' }, 'The Big Film Database'),
       list);
     if (groups.length > COMMUNITY_PREVIEW) {
       const more = h('button', { type: 'button', class: 'text-button' }, t('Show all {n}', { n: groups.length }));
@@ -117,7 +116,7 @@
     const about = t('Community-maintained and mostly based on cassette numbers, so it includes rebranded films. Entries are as reliable as their sources.');
     // What the linked site has goes in the text under the link, not in the link.
     block.append(h('p', { class: 'fineprint' },
-      link ? t('The site has pictures of the film boxes') + i18n.punctuation().sentence + about : about));
+      link ? t('The site has pictures of the films') + i18n.punctuation().sentence + about : about));
     return block;
   }
 
@@ -283,11 +282,10 @@
 
     if (products.length) {
       parts.push(h('div', { class: 'source-block' },
-        h('h4', { class: 'source-block__title' }, products.length > 1 ? t('Registered products with this number') : t('Registered product'),
-          h('span', { class: 'source-tag source-tag--i3a' }, t('I3A registry, 2008'))),
+        h('h4', { class: 'source-block__title' }, t('I3A registry, 2008')),
         h('ul', { class: 'matches' }, products.map(productItem))));
     }
-    const cb = communityBlock(info.community, products.length ? t('Also listed for this number') : t('Films listed for this number'), d);
+    const cb = communityBlock(info.community, d);
     if (cb) parts.push(cb);
     return { title, lines, parts };
   }

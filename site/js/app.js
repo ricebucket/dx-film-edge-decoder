@@ -9,13 +9,15 @@
 
   // Examples are documented codes: Wikipedia's sample (and a real BW400CN
   // negative), the Wikimedia photo of Perutz Primera 200, I3A entries, and
-  // Zint's test vector for the older 23-cell layout (79-7).
+  // Zint's test vector for the older 23-cell layout (79-7). Each is drawn in
+  // its film's look; BW400CN is black-and-white film developed like color
+  // negative film, and looks like it (Kodak F-4036; research/05).
   const EXAMPLES = [
-    { label: t('{film}, frame {frame}', { film: 'Kodak BW400CN', frame: '23' }), code: { part1: 79, part2: 15, frame: 23, half: false } },
-    { label: t('{film}, frame {frame}', { film: 'Perutz Primera 200', frame: '22A' }), code: { part1: 47, part2: 1, frame: 22, half: true } },
+    { label: t('{film}, frame {frame}', { film: 'Kodak BW400CN', frame: '23' }), code: { part1: 79, part2: 15, frame: 23, half: false }, look: 'negative' },
+    { label: t('{film}, frame {frame}', { film: 'Perutz Primera 200', frame: '22A' }), code: { part1: 47, part2: 1, frame: 22, half: true }, look: 'negative' },
     { label: t('{film}, frame {frame}', { film: 'Ilford HP5 Plus', frame: '12' }), code: { part1: 109, part2: 9, frame: 12, half: false }, look: 'bw' },
     { label: t('{film}, frame {frame}', { film: 'Fujichrome Velvia 50', frame: '5A' }), code: { part1: 32, part2: 6, frame: 5, half: true }, look: 'slide' },
-    { label: t('{film}, older 7-bar code', { film: 'Kodacolor VR200' }), code: { part1: 79, part2: 7 }, format: 'short' },
+    { label: t('{film}, older 7-bar code', { film: 'Kodacolor VR200' }), code: { part1: 79, part2: 7 }, format: 'short', look: 'negative' },
   ];
 
   const emptyCells = (format) =>
@@ -448,8 +450,16 @@
     const fromUrl = codeFromUrl();
     if (fromUrl) Object.assign(state, fromUrl);
     bindToolbar();
-    // A button named in running text ("turn on Mirror") works the one it names.
-    for (const b of document.querySelectorAll('.inline-button')) b.addEventListener('click', () => $(b.dataset.for).click());
+    // A button named in running text ("turn on Mirror") works the one it names,
+    // and pressed again turns it back off: "7 thin bars" goes back to the other layout.
+    for (const b of document.querySelectorAll('.inline-button')) {
+      b.addEventListener('click', () => {
+        const target = $(b.dataset.for);
+        const choice = target.closest('.segmented');
+        if (choice && target.getAttribute('aria-pressed') === 'true') choice.querySelector('button[aria-pressed="false"]').click();
+        else target.click();
+      });
+    }
     bindTheme();
     bindCompact();
     // Leaving or hiding the page writes a pending URL change at once.

@@ -72,6 +72,7 @@ texts. Each file has a single license.
 - The Big Film Database (dxdatabase) by Dxdatabase — <https://github.com/dxdatabase/Open-source-film-database>, website <https://industrieplus.net/dxdatabase/>, help page <https://industrieplus.net/dxdatabase/help.html>
 - The (Modified) Big Film Database by Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>
 - Patton, Travis & McPherson (Eastman Kodak), US patent 5,761,558, *Expanded film cartridge bar code*, 1998 — <https://patents.google.com/patent/US5761558A/en>
+- Eastman Kodak Company, *KODAK PROFESSIONAL BW400CN Film*, technical data F-4036, January 2004 — copy at <https://125px.com/docs/film/kodak/f4036-BW400CN.pdf>
 
 ### Licenses
 
