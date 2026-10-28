@@ -31,6 +31,16 @@ describe('clock-track matching', () => {
   });
 });
 
+// Track heights in cells: as measured on the Kodak negative (research/05),
+// equal as the page draws them, and the two limits GB/T 9185-2003 allows for
+// the border between the tracks (Table 1: T2 0.75–1.26 mm, T3 at least 2.06 mm).
+const TRACKS = [
+  ['measured', { clockHeight: 3.15, dataHeight: 2.5 }],
+  ['equal', { clockHeight: 2.55, dataHeight: 2.55 }],
+  ['thinnest data track', { clockHeight: 3.21, dataHeight: 1.84 }],
+  ['thickest data track', { clockHeight: 1.96, dataHeight: 3.09 }],
+];
+
 describe('reading synthetic film edges', () => {
   const cases = [
     ['color negative', { part1: 79, part2: 15, frame: 23 }, { look: 'negative' }],
@@ -44,18 +54,20 @@ describe('reading synthetic film edges', () => {
     ['original 23-cell layout', { part1: 40, part2: 9, format: 'short' }, { look: 'negative' }],
     ['leader position XA', { part1: 79, part2: 2, frame: 62, half: true }, { look: 'negative' }],
   ];
-  for (const [name, synthOptions, composeOptions] of cases) {
-    test(name, () => {
-      const { syn, gray } = photo(synthOptions, composeOptions);
-      const r = image.readBarcode(gray);
-      assert.equal(r.found, true, r.reason);
-      assert.equal(r.format, syn.truth.format);
-      assert.equal(r.bits, syn.truth.bits);
-      assert.equal(r.decoded.valid, true);
-      assert.equal(r.reversed, Boolean(synthOptions.mirrored || synthOptions.upsideDown));
-      assert.equal(r.polarity, composeOptions.look === 'slide' ? 'light' : 'dark');
-      assert.ok(r.confidence > 0.5, `confidence ${r.confidence}`);
-    });
+  for (const [tracksName, tracks] of TRACKS) {
+    for (const [name, synthOptions, composeOptions] of cases) {
+      test(`${name}, ${tracksName} tracks`, () => {
+        const { syn, gray } = photo(Object.assign({}, synthOptions, tracks), composeOptions);
+        const r = image.readBarcode(gray);
+        assert.equal(r.found, true, r.reason);
+        assert.equal(r.format, syn.truth.format);
+        assert.equal(r.bits, syn.truth.bits);
+        assert.equal(r.decoded.valid, true);
+        assert.equal(r.reversed, Boolean(synthOptions.mirrored || synthOptions.upsideDown));
+        assert.equal(r.polarity, composeOptions.look === 'slide' ? 'light' : 'dark');
+        assert.ok(r.confidence > 0.5, `confidence ${r.confidence}`);
+      });
+    }
   }
 
   test('a large scan is downscaled and coordinates map back to it', () => {
@@ -68,32 +80,38 @@ describe('reading synthetic film edges', () => {
     assert.ok(Math.abs(r.unit - 30) < 2, `unit ${r.unit}`);
   });
 
-  test('a scratched-out bar is still read, and the parity check catches it', () => {
-    const module = 8;
-    const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module });
-    // Erase the data bar in cell 10 (Part 1, weight 8). The synthesizer puts
-    // the clock track at 42 % of the height, 3.15 cells tall.
-    const dataTop = syn.height * 0.42 + 3.15 * module;
-    const codeLeft = (syn.width - 31 * module) / 2;
-    for (let y = Math.ceil(dataTop); y < syn.height; y++) {
-      for (let x = 0; x < syn.width; x++) {
-        if (Math.floor((x - codeLeft) / module) === 9) syn.ink[y * syn.width + x] = 0;
+  for (const [tracksName, tracks] of TRACKS) {
+    test(`a scratched-out bar is still read, and the parity check catches it, ${tracksName} tracks`, () => {
+      const module = 8;
+      const syn = image.synthesize(Object.assign({ part1: 79, part2: 15, frame: 23, module }, tracks));
+      // Erase the data bar in cell 10 (Part 1, weight 8). The synthesizer puts
+      // the clock track at 42 % of the height.
+      const dataTop = syn.height * 0.42 + tracks.clockHeight * module;
+      const codeLeft = (syn.width - 31 * module) / 2;
+      for (let y = Math.ceil(dataTop); y < syn.height; y++) {
+        for (let x = 0; x < syn.width; x++) {
+          if (Math.floor((x - codeLeft) / module) === 9) syn.ink[y * syn.width + x] = 0;
+        }
       }
-    }
-    const r = image.readBarcode(image.grayFromRGBA(image.compose(syn, { look: 'negative' }), syn.width, syn.height));
-    assert.equal(r.found, true);
-    assert.equal(r.decoded.parity.ok, false);
-    const fixes = codec.nearMisses(r.bits, r.format);
-    assert.ok(fixes.some((f) => f.cell === 10 && f.result.dxNumber === '79-15'));
-  });
+      const r = image.readBarcode(image.grayFromRGBA(image.compose(syn, { look: 'negative' }), syn.width, syn.height));
+      assert.equal(r.found, true);
+      assert.equal(r.decoded.parity.ok, false);
+      const fixes = codec.nearMisses(r.bits, r.format);
+      assert.ok(fixes.some((f) => f.cell === 10 && f.result.dxNumber === '79-15'));
+    });
+  }
 });
 
 describe('when there is nothing reliable to read', () => {
   test('a code tilted beyond the search range is not misread', () => {
-    for (const angle of [7, -7]) {
-      const { gray } = photo({ part1: 79, part2: 15, frame: 23, module: 8, angle }, {});
-      const r = image.readBarcode(gray);
-      assert.equal(r.found, false, `angle ${angle}`);
+    for (const [tracksName, tracks] of TRACKS) {
+      for (const angle of [7, -7]) {
+        const { syn, gray } = photo(Object.assign({ part1: 79, part2: 15, frame: 23, module: 8, angle }, tracks), {});
+        const r = image.readBarcode(gray);
+        // Taller tracks can still be read at this angle; what matters is that
+        // a code is never reported wrong.
+        assert.ok(!r.found || r.bits === syn.truth.bits, `${tracksName}, angle ${angle}`);
+      }
     }
   });
 

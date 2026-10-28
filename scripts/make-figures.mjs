@@ -134,14 +134,14 @@ function dimension(x1, x2, y, label) {
 }
 
 /** The cells of one code: clock and data bars on the film base. */
-function codeBars(format, bits, x0, clockY, dataY, cell, trackH, outlines, dataH = trackH) {
+function codeBars(format, bits, x0, clockY, dataY, cell, trackH, outlines) {
   const clock = codec.getFormat(format).clock;
   const out = [];
   for (let i = 0; i < bits.length; i++) {
     const x = x0 + i * cell;
     if (clock[i] === '1') out.push(rect(x, clockY, cell, trackH, `fill="${C.mark}"`));
-    if (bits[i] === '1') out.push(rect(x, dataY, cell, dataH, `fill="${C.mark}"`));
-    else if (outlines) out.push(rect(x + 0.5, dataY + 0.5, cell - 1, dataH - 1, `fill="none" stroke="${C.grid}"`));
+    if (bits[i] === '1') out.push(rect(x, dataY, cell, trackH, `fill="${C.mark}"`));
+    else if (outlines) out.push(rect(x + 0.5, dataY + 0.5, cell - 1, trackH - 1, `fill="none" stroke="${C.grid}"`));
   }
   return out;
 }
@@ -219,8 +219,8 @@ function layoutFigure(format, code, L) {
 // ---- the film edge -------------------------------------------------------------------------
 
 function filmEdgeFigure(L) {
-  // To scale, as the page's strip (research/05): 1 cell = 0.41 mm; the data
-  // track 2.5 cells tall along the film edge, the clock track 3.15 above it;
+  // To scale, as the page's strip (research/05): 1 cell = 0.41 mm; both
+  // tracks 2.55 cells tall, the data track along the film edge;
   // perforations 4.85 × 6.85 cells, 4.95 cells from the edge, every 11.64
   // cells, one starting 2.32 cells before each code; codes every 4 perforations.
   const u = 8.5; // pixels per cell
@@ -233,8 +233,8 @@ function filmEdgeFigure(L) {
   const top = 46;
   const Y = (cells) => top + cells * u;
   const edge = 9.35; // film shown from 9.35 cells above its edge
-  const dataTop = edge - 2.5;
-  const clockTop = edge - 5.65;
+  const dataTop = edge - 2.55;
+  const clockTop = edge - 5.1;
   const perfBottom = edge - 4.95;
   const codes = [{ at: 0, frame: 23, half: false }, { at: pitch, frame: 23, half: true }];
 
@@ -243,7 +243,7 @@ function filmEdgeFigure(L) {
   const film = [rect(X(from), Y(0), (to - from) * u, edge * u, `fill="${C.film}"`)];
   for (const c of codes) {
     const bits = codec.encode({ part1: 79, part2: 15, frame: c.frame, half: c.half }, 'long');
-    film.push(...codeBars('long', bits, X(c.at), Y(clockTop), Y(dataTop), u, 3.15 * u, false, 2.5 * u));
+    film.push(...codeBars('long', bits, X(c.at), Y(clockTop), Y(dataTop), u, 2.55 * u, false));
     // The number printed before each code names it: a whole frame 3.4 cells
     // tall; an A position 2 cells tall, over an arrow (as on the Kodak negative).
     const label = codec.frameLabel(c.frame, c.half);
@@ -269,8 +269,8 @@ function filmEdgeFigure(L) {
 
   const labels = [
     [perfBottom / 2, L.perforations],
-    [clockTop + 1.6, L.clockTrack],
-    [dataTop + 1.25, L.dataTrack],
+    [clockTop + 1.275, L.clockTrack],
+    [dataTop + 1.275, L.dataTrack],
     [edge, L.filmEdge],
   ];
   for (const [cy, label] of labels) {

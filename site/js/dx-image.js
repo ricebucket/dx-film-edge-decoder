@@ -222,8 +222,8 @@
 
   // ---- data track -------------------------------------------------------------------
 
-  /** How much a row looks like a DX data track: fixed cells, empty unused cells, parity. */
-  function dataScore(bits, format) {
+  /** The share of a row's fixed cells (start, stop, unused) that read as they should. */
+  function fixedFit(bits, format) {
     let ok = 0;
     let total = 0;
     for (const c of codec.layout(format)) {
@@ -231,8 +231,13 @@
       total++;
       if (Number(bits[c.cell - 1]) === c.fixed) ok++;
     }
+    return ok / total;
+  }
+
+  /** How much a row looks like a DX data track: fixed cells, empty unused cells, parity. */
+  function dataScore(bits, format) {
     const d = codec.decode(bits, format);
-    return ok / total + (d.parity.ok ? 0.25 : 0) + (d.part1 > 0 ? 0.05 : 0);
+    return fixedFit(bits, format) + (d.parity.ok ? 0.25 : 0) + (d.part1 > 0 ? 0.05 : 0);
   }
 
   function readRow(img, y, slope, band, clock) {
@@ -259,8 +264,13 @@
     const band = 1;
     const step = img.height > 400 ? 2 : 1;
 
-    let best = null;
-    for (const slope of SLOPES) {
+    // The best clock match for each slope, and each row's best score there.
+    // A tall clock track fits slightly tilted lines too, and one of them can
+    // score a hair better than the true angle, so the slope chosen is the one
+    // at which the most rows match nearly as well as the best: the clock track
+    // is thickest along its true direction.
+    const bySlope = SLOPES.map(() => ({ best: null, rows: new Map() }));
+    for (const [si, slope] of SLOPES.entries()) {
       for (let y = 1; y < img.height - 1; y += step) {
         const row = profile(img, y, slope, band);
         const [lo, hi] = percentiles(row, [0.05, 0.95]);
@@ -272,15 +282,27 @@
               const grid = refineGrid(img, y, slope, band, cand, format, minContrast);
               if (!grid) continue;
               const score = grid.score - cand.err * 0.02;
+              const at = bySlope[si];
+              at.rows.set(y, Math.max(at.rows.get(y) || 0, score));
               // Prefer the long layout on ties: its clock contains the short one's pattern.
+              const best = at.best;
               if (!best || score > best.score + 1e-6 || (score > best.score - 1e-6 && format === 'long' && best.format === 'short')) {
-                best = { score, y, slope, format, reversed: cand.reversed, x0: grid.x0, unit: grid.unit, cal: grid.cal,
+                at.best = { score, y, slope, format, reversed: cand.reversed, x0: grid.x0, unit: grid.unit, cal: grid.cal,
                   cells: codec.getFormat(format).cells, polarity: grid.cal.bar < grid.cal.gap ? 'dark' : 'light' };
               }
             }
           }
         }
       }
+    }
+    const top = Math.max(...bySlope.map((at) => (at.best ? at.best.score : -Infinity)));
+    let best = null;
+    let thickest = -1;
+    for (const at of bySlope) { // flattest first, so ties keep the flatter slope
+      if (!at.best) continue;
+      let rows = 0;
+      for (const score of at.rows.values()) if (score >= top - 0.02) rows++;
+      if (rows > thickest) { thickest = rows; best = at.best; }
     }
     if (!best || best.score < 0.75) return { found: false, reason: 'no-clock' };
 
@@ -301,8 +323,11 @@
     const stable = Math.max(2, best.unit * 0.5);
     let data = null;
     for (const r of rows) {
-      if (support.get(r.bits) >= stable && (!data || r.score > data.score)) data = r;
+      // Blank film agrees with itself too, so only rows with most fixed cells
+      // right count: a blank row gets 7 of 12, a scratched stop bar 11.
+      if (fixedFit(r.bits, best.format) >= 0.75 && support.get(r.bits) >= stable && (!data || r.score > data.score)) data = r;
     }
+    const agreed = Boolean(data);
     if (!data) for (const r of rows) if (!data || r.score > data.score) data = r;
     if (!data || data.score < 1.05) return Object.assign({ found: false, reason: 'no-data' }, describe(best, factor));
 
@@ -320,12 +345,13 @@
     // 0: some cell sits right on the bar/gap threshold; 1: every cell is clear-cut.
     const confidence = Math.round(margin * 200) / 100;
     const decoded = codec.decode(row.bits, best.format);
-    // A code that fails its checks with blurred cells or a less than clean
-    // clock match is more likely a stray pattern (say, a code tilted beyond
-    // the search range) than a misread code, so it is not offered as a result.
-    // Genuine reads, damaged ones included, fit the clock at 0.98 or better in
-    // the tests; the stray matches seen fit at 0.92–0.95.
-    if (!decoded.valid && (confidence < 0.3 || best.score < 0.97)) {
+    // A code that fails its checks with blurred cells, a less than clean clock
+    // match, or bits that no band of rows agrees on is more likely a stray
+    // pattern (say, a code tilted beyond the search range, read across both
+    // tracks) than a misread code, so it is not offered as a result. Genuine
+    // reads, damaged ones included, fit the clock at 0.98 or better in the
+    // tests; the stray matches seen fit at 0.92–0.95.
+    if (!decoded.valid && (!agreed || confidence < 0.3 || best.score < 0.97)) {
       return Object.assign({ found: false, reason: 'unclear' }, describe(best, factor));
     }
 
@@ -375,13 +401,14 @@
 
   // Film geometry in cells (1 cell = 0.408 mm), as on the Kodak negative of
   // research/05 and in GB/T 9185-2003 Tables 1 and 2: codes every 19 mm, four
-  // perforations of 4.75 mm; the data track 2.5 cells tall along the film edge
-  // and the clock track 3.15 above it; perforations 4.85 × 6.85 cells, their
-  // lower edge 4.95 cells from the film edge (so they cut the top of the clock
-  // track), one starting 2.32 cells before each code. Printed numbers: a whole
-  // frame 3.4 cells tall (0.68 per font pixel), an A position 2 cells (0.4).
+  // perforations of 4.75 mm; both tracks 2.55 cells tall, the smallest equal
+  // height the standard allows, the data track along the film edge;
+  // perforations 4.85 × 6.85 cells, their lower edge 4.95 cells from the film
+  // edge (so they cut the top of the clock track), one starting 2.32 cells
+  // before each code. Printed numbers: a whole frame 3.4 cells tall (0.68 per
+  // font pixel), an A position 2 cells (0.4).
   const GEOMETRY = {
-    pitch: 46.56, clock: 3.15, data: 2.5,
+    pitch: 46.56, clock: 2.55, data: 2.55,
     perfPitch: 11.64, perfW: 4.85, perfH: 6.85, perfR: 1.2, perfEdge: 4.95, perfShift: -2.32,
     glyphWhole: 0.68, glyphHalf: 0.4,
   };
@@ -396,6 +423,8 @@
     const o = Object.assign({
       part1: 79, part2: 15, frame: 23, half: false, format: 'long',
       module: 8, angle: 0, mirrored: false, upsideDown: false, width: null, height: null,
+      // Track heights in cells; the tests also draw other heights the standard allows.
+      clockHeight: GEOMETRY.clock, dataHeight: GEOMETRY.data,
     }, options);
     const g = GEOMETRY;
     const fmt = codec.getFormat(o.format);
@@ -406,8 +435,8 @@
     const filmH = height / o.module;
     const codeX = (filmW - cells) / 2;
     const clockTop = filmH * 0.42;
-    const dataTop = clockTop + g.clock;
-    const edge = dataTop + g.data;
+    const dataTop = clockTop + o.clockHeight;
+    const edge = dataTop + o.dataHeight;
     const perfBottom = edge - g.perfEdge;
     const perfTop = perfBottom - g.perfH;
 

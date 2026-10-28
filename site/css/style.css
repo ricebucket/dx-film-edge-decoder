@@ -30,9 +30,11 @@
   --film-base: #d0672d;
   --film-mark: #2b1a14;
   --film-hole: #f8fbfc;
+  /* A faint line along the film's cut edges and around its perforations,
+     drawn in the dark theme only. */
+  --film-edge: transparent;
   --film-guide: rgba(43, 26, 20, 0.2);
   --film-hover: rgba(43, 26, 20, 0.42);
-  --film-shadow: 0 1px 1px rgba(28, 38, 48, 0.12), 0 14px 30px -18px rgba(28, 38, 48, 0.55);
 
   /* data-track fields, used for brackets, swatches and table keys */
   --f-part1: #2c66cf;
@@ -69,8 +71,8 @@
   --ok: #63cf95;
   --ok-soft: #173326;
   --focus: #86cfdd;
-  --film-hole: #d7e1e7;
-  --film-shadow: 0 0 0 1px rgba(215, 225, 231, 0.06), 0 0 40px -6px rgba(215, 225, 231, 0.16);
+  --film-hole: var(--glow);
+  --film-edge: rgba(215, 225, 231, 0.32);
   --f-part1: #79a5f2;
   --f-part2: #b893e6;
   --f-frame: #5cc796;
@@ -99,8 +101,8 @@
     --ok: #63cf95;
     --ok-soft: #173326;
     --focus: #86cfdd;
-    --film-hole: #d7e1e7;
-    --film-shadow: 0 0 0 1px rgba(215, 225, 231, 0.06), 0 0 40px -6px rgba(215, 225, 231, 0.16);
+    --film-hole: var(--glow);
+  --film-edge: rgba(215, 225, 231, 0.32);
     --f-part1: #79a5f2;
     --f-part2: #b893e6;
     --f-frame: #5cc796;
@@ -743,14 +745,15 @@ h1 {
 /* ---- the film strip ---------------------------------------------------------------------- */
 
 /* Drawn to scale in cells (one cell = 0.41 mm), from GB/T 9185-2003 and a
-   real Kodak negative (research/05): the data track 2.5 cells tall, the clock
-   track 3.15, the perforations as below, and room before the code for its
-   printed number. At 1280 px the light table is ~1030 px wide inside:
-   (9.2 + 31 + 0.8) × 25 px fits. */
+   real Kodak negative (research/05): both tracks 2.55 cells (1.04 mm) tall,
+   the smallest equal height the standard allows (Table 1, T3), the
+   perforations as below, and room before the code for its printed number.
+   At 1280 px the light table is ~1030 px wide inside: (9.2 + 31 + 0.8) × 25 px
+   fits. */
 .strip {
   --cell: 25px;
-  --data-h: calc(var(--cell) * 2.5);
-  --clock-h: calc(var(--cell) * 3.15);
+  --data-h: calc(var(--cell) * 2.55);
+  --clock-h: calc(var(--cell) * 2.55);
   --label-w: calc(var(--cell) * 9.2);
   --tail-w: calc(var(--cell) * 0.8);
   --code-w: calc(var(--cells) * var(--cell));
@@ -905,22 +908,23 @@ h1 {
 .film {
   position: relative;
   width: calc(var(--label-w) + var(--code-w) + var(--tail-w));
-  /* Film up to 1.7 cells into the perforations (code 5.65 cells + 1), enough
-     for their rounded corners and the clock bars between them; the data
-     track runs along the film edge, so there is no film below it. */
-  padding-top: var(--cell);
+  /* Film up to 1.7 cells into the perforations (code 5.1 cells + 1.55),
+     enough for their rounded corners and the clock bars between them; the
+     data track runs along the film edge, so there is no film below it. */
+  padding-top: calc(var(--cell) * 1.55);
   background: var(--film-base);
   border-radius: 2px;
   overflow: hidden;
-  box-shadow: var(--film-shadow);
+  /* Inset, because the fade mask hides anything drawn outside the film. */
+  box-shadow: inset 0 0 0 1px var(--film-edge);
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--cell) * 0.8), #000 calc(100% - var(--cell) * 0.8), transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--cell) * 0.8), #000 calc(100% - var(--cell) * 0.8), transparent 100%);
 }
 
 /* The perforations: 1.98 mm along the film, 2.80 mm across, 4.75 mm apart,
    starting 2.0 mm from the film edge (GB/T 9185-2003 Table 2). The clock
-   track reaches past their edge, so they cut its bars. As on the Kodak
-   negative, one starts 2.3 cells before the code. */
+   track reaches just past their edge, so they cut the top of its bars. As on
+   the Kodak negative, one starts 2.3 cells before the code. */
 .film__perfs {
   position: absolute;
   z-index: 1;
@@ -937,6 +941,7 @@ h1 {
   height: calc(var(--cell) * 6.85);
   border-radius: calc(var(--cell) * 1.2);
   background: var(--film-hole);
+  box-shadow: inset 0 0 0 1px var(--film-edge);
 }
 
 .film__row {

@@ -82,9 +82,11 @@ These come from a single photo. The clock track reaches past the edge of the
 perforations, so it is cut short wherever a perforation lies. On this negative
 the data track is 2.5 cells tall and the clock track 3.15 (2.4 where a
 perforation cuts it). The page's strip, the photo reader's sample images and the
-diagram above are drawn to these measurements, with the perforations at their
+diagram above draw both tracks 2.55 cells (1.04 mm) tall instead, because equal
+tracks look better; that is the smallest equal height the standard allows
+(T3). Everything else follows this negative: the perforations are at their
 standard size, spacing and distance from the edge, placed against the code as
-on this negative.
+here.
 
 Two other sources agree. Kodak's US 5,665,950, filed in 1995, gives the DX code
 a minimum bar width of 0.015 in (0.38 mm); the 2000 edition of the standard
@@ -179,24 +181,31 @@ external service:
    (on color negatives the orange base lies halfway between dark bars and the
    white perforations, so one global threshold would fail).
 2. Runs of bars and gaps are matched against the clock pattern, in either
-   direction and for both layouts; the best match is refined by small shifts
-   of the cell grid.
+   direction and for both layouts, and the best match is refined by small
+   shifts of the cell grid. A tall clock track also fits slightly tilted lines,
+   so the slope taken is the one along which the most rows match nearly as
+   well as the best.
 3. The clock track's known bars and gaps give the gray levels of "bar" and
    "gap" in this photo, in either polarity.
 4. The data track is the neighboring row whose cells best fit the fixed
-   start and stop patterns and the parity rule, among rows whose bits at least
-   half a cell's height of rows agree on: a single row on the border between
-   the tracks can misread a bar and still pass parity. Bits are read in clock
-   order, so mirrored or upside-down photos come out right.
+   start and stop patterns and the parity rule, among rows that have most of
+   the fixed cells right and whose bits at least half a cell's height of rows
+   agree on: a single row on the border between the tracks can misread a bar
+   and still pass parity, and blank film agrees with itself. Bits are read in
+   clock order, so mirrored or upside-down photos come out right.
 
 It is tested on film edges drawn by the project's own renderer: color
 negative, black-and-white and slide; mirrored and upside down; tilted by up to
 2.5°; cells only 4 pixels wide; grain and blur; the 23-cell layout; leader
-frames; a scratched-out bar; and a large image that has to be downscaled. A
-code that fails its checks is only offered when its cells and its clock match
-are clear-cut; otherwise the photo is reported as unclear rather than misread,
-which is what happens to a code tilted by 7° (the page's Straighten control
-fixes that). It needs at least 3–4 pixels per cell; strong perspective or
+frames; a scratched-out bar; and a large image that has to be downscaled. Each
+case is drawn with four pairs of track heights: as measured on the Kodak
+negative, equal as the page draws them, and the thinnest and thickest data
+track the standard allows (T2 of 0.75 and 1.26 mm). A code that fails its
+checks is only offered when its cells and its clock match are clear-cut and a
+band of rows agrees on its bits; otherwise the photo is reported as unclear
+rather than misread. A code tilted by 7° is read correctly or reported as
+unclear, depending on the track heights; from about 8° it needs the page's
+Straighten control. It needs at least 3–4 pixels per cell; strong perspective or
 curled film is not handled. Photos larger than 1,600 pixels on the long side
 are reduced first; reading a 1,600 × 1,200 photo takes about a quarter of a
 second in Node.js (measured October 2026).

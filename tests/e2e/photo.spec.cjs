@@ -87,10 +87,11 @@ test('the sample is labeled, and further samples can be loaded', async ({ page }
 
 test('a scratched stop bar does not stick to the strip', async ({ page }, testInfo) => {
   const module = 8;
-  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module });
+  // Track heights as measured on a real Kodak negative (research/05).
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module, clockHeight: 3.15, dataHeight: 2.5 });
   // Erase the data-track bar of cell 31 (the last cell of the stop pattern).
   const codeLeft = (syn.width - 31 * module) / 2;
-  const dataTop = syn.height * 0.42 + 2.2 * module;
+  const dataTop = syn.height * 0.42 + 3.15 * module;
   for (let y = Math.ceil(dataTop); y < syn.height; y++) {
     for (let x = 0; x < syn.width; x++) {
       if (Math.floor((x - codeLeft) / module) === 30) syn.ink[y * syn.width + x] = 0;
@@ -124,14 +125,15 @@ test('a canceled drag leaves the reader usable', async ({ page }) => {
 });
 
 test('flip mirrors the straightened photo', async ({ page }, testInfo) => {
-  // Tilted beyond the reader's own ±3° tolerance, so it must be straightened.
-  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 8, angle: 7 }, {});
+  // Tilted well beyond the reader's own ±3° search (taller tracks still read
+  // at about 7°), so it must be straightened.
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 8, angle: 10 }, {});
   await expect(page.locator('.photo__result .is-error')).toBeVisible();
   await expect(page.locator('.photo__found')).toHaveCount(0);
   // The synthetic edge slopes down to the right (clockwise on screen), so
-  // straightening turns the view 7° the other way.
+  // straightening turns the view 10° the other way.
   await page.locator('#photo-fine').evaluate((input) => {
-    input.value = '-7';
+    input.value = '-10';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
   });
