@@ -216,7 +216,7 @@
           h('ul', { class: 'matches' }, similar.map(ui.communityItem))));
       }
       const link = exact.length || similar.length ? ui.bfdLink(p.part1, p.part2) : null;
-      if (link) blocks.push(link);
+      if (link) blocks.push(link, h('p', { class: 'fineprint' }, t('The site has pictures of the film boxes') + i18n.punctuation().period));
       if (!blocks.length || (!hit.augmented.length && hit.dx && !hit.dx.products.length && !exact.length && !similar.length)) {
         blocks.push(h('p', { class: 'fineprint' }, t('This number is not in the 2008 registry or the community database.')));
       }

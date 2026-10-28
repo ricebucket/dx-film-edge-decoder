@@ -65,7 +65,7 @@
     const dx = `${part1}-${part2}`;
     return h('p', { class: 'source-block__link' },
       h('a', { href: BFD_SEARCH + dx, target: '_blank', rel: 'noopener' },
-        t('Look up DX {dx} on The Big Film Database, which has pictures of the film boxes', { dx }),
+        t('Look up DX {dx} on The Big Film Database', { dx }),
         icon('external'),
         h('span', { class: 'visually-hidden' }, ' ', t('(opens in a new tab)'))));
   }
@@ -114,8 +114,10 @@
     }
     const link = bfdLink(d.part1, d.part2);
     if (link) block.append(link);
+    const about = t('Community-maintained and mostly based on cassette numbers, so it includes rebranded films. Entries are as reliable as their sources.');
+    // What the linked site has goes in the text under the link, not in the link.
     block.append(h('p', { class: 'fineprint' },
-      t('Community-maintained and mostly based on cassette numbers, so it includes rebranded films. Entries are as reliable as their sources.')));
+      link ? t('The site has pictures of the film boxes') + i18n.punctuation().sentence + about : about));
     return block;
   }
 

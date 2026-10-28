@@ -196,8 +196,10 @@
       "回到编码列表",
     "Example":
       "示例",
-    "Look up DX {dx} on The Big Film Database, which has pictures of the film boxes":
-      "在 The Big Film Database 上查看 DX {dx}，该网站有胶片包装盒图片",
+    "Look up DX {dx} on The Big Film Database":
+      "在 The Big Film Database 上查看 DX {dx}",
+    "The site has pictures of the film boxes":
+      "该网站有胶片包装盒图片",
     "(opens in a new tab)":
       "（在新标签页中打开）",
     "Hide where this code came from":
