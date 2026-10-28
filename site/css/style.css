@@ -1585,13 +1585,26 @@ h1 {
   margin-top: 22px;
 }
 
+/* The source of the films below: a small grey label on a hairline, so it
+   does not read as one of the films. */
 .source-block__title {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
-  font-size: 0.98rem;
-  font-weight: 650;
+  gap: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.source-block__title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.source-block__title + .matches {
+  border-top: 0;
 }
 
 .source-block--more summary {
