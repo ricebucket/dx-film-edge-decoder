@@ -76,8 +76,27 @@ describe('reading synthetic film edges', () => {
     const r = image.readBarcode(gray);
     assert.equal(r.bits, syn.truth.bits);
     const codeLeft = (syn.width - 31 * 30) / 2;
-    assert.ok(Math.abs(r.x0 - codeLeft) < 30, `x0 ${r.x0} vs ${codeLeft}`);
-    assert.ok(Math.abs(r.unit - 30) < 2, `unit ${r.unit}`);
+    assert.ok(Math.abs(r.x0 - codeLeft) < 30 / 4, `x0 ${r.x0} vs ${codeLeft}`);
+    assert.ok(Math.abs(r.unit - 30) < 0.5, `unit ${r.unit}`);
+  });
+
+  test('a scan just over the size limit keeps its detail', () => {
+    // Small cells, 3 pixels wide: halving the image would leave 1.5.
+    for (const width of [1600, 1601, 2000]) {
+      const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 3, width, height: 42 });
+      const r = image.readBarcode(image.grayFromRGBA(image.compose(syn, { look: 'negative' }), syn.width, syn.height));
+      assert.equal(r.found, true, `${width}: ${r.reason}`);
+      assert.equal(r.decoded.dxNumber, '79-15', String(width));
+    }
+  });
+
+  test('the search can run alongside a page, with the same result, and be stopped', async () => {
+    const { gray } = photo({ part1: 95, part2: 14, frame: 5, angle: 2 }, { look: 'negative', noise: 14 });
+    assert.deepEqual(await image.readBarcodeAsync(gray), image.readBarcode(gray));
+    const stop = new AbortController();
+    const reading = image.readBarcodeAsync(gray, null, stop.signal);
+    stop.abort();
+    assert.equal(await reading, null);
   });
 
   for (const [tracksName, tracks] of TRACKS) {

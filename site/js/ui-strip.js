@@ -331,8 +331,8 @@
       }
       for (const el of refs.weights) el.classList.toggle('is-error', issueCells.has(Number(el.dataset.cell)));
 
-      // Nothing entered yet: a blank strip.
-      const empty = refs.layout.every((c) => !c.editable || state.cells[c.cell - 1] === '0');
+      // Nothing entered yet: a blank strip (the page says so; on its own, no bars).
+      const empty = state.empty !== undefined ? state.empty : refs.layout.every((c) => !c.editable || state.cells[c.cell - 1] === '0');
       for (const b of refs.brackets) {
         const id = b.dataset.field;
         const value = b.querySelector('.bracket__value');

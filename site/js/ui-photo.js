@@ -1,6 +1,6 @@
 /*
  * "Read a photo": load an image of the film edge, straighten it, select one
- * barcode (optional) and let DX.image.readBarcode find the bars, in three
+ * barcode (optional) and let DX.image.readBarcodeAsync find the bars, in three
  * numbered steps. The image never leaves the browser. Once its code is used
  * the reader folds up, and the strip keeps the photo in sight: a thumbnail in
  * the bar above it (ui-source.js) and the barcode lined up over its cells.
@@ -50,6 +50,7 @@
     let flip = false;
     let selection = null; // in view coordinates
     let result = null;
+    let searching = null; // AbortController of the search in progress, which runs alongside the page
     let sampleIndex = 0;
 
     const fileInput = h('input', { type: 'file', accept: 'image/*', class: 'visually-hidden', id: 'photo-file', tabindex: '-1', 'aria-label': t('Photo of the film edge') });
@@ -179,6 +180,7 @@
     }
 
     function reset() {
+      stopSearch();
       source = null;
       view = null;
       result = null;
@@ -193,6 +195,7 @@
     // ---- view (rotation) and drawing --------------------------------------------
 
     function rebuildView() {
+      stopSearch(); // its result would be for the old view
       const angle = ((turns * 90 + fine) * Math.PI) / 180;
       const w = source.width;
       const hh = source.height;
@@ -372,28 +375,46 @@
 
     // ---- reading ---------------------------------------------------------------------
 
+    /** Stop the search in progress, if any: a newer one, another view of the photo or another photo replaces it. */
+    function stopSearch() {
+      if (!searching) return;
+      searching.abort();
+      searching = null;
+      readBtn.disabled = false;
+    }
+
     function find() {
       if (!view) return;
+      stopSearch();
+      const search = new AbortController();
+      searching = search;
       const usable = selection && selection.w >= 12 && selection.h >= 8;
       const region = usable ? selection : { x: 0, y: 0, w: view.width, h: view.height };
       showMessage(t('Looking for the barcode…'));
       readBtn.disabled = true;
-      // Let the message paint before the (short) search.
-      setTimeout(() => {
+      // Let the message paint before the search starts.
+      setTimeout(async () => {
+        if (search.signal.aborted) return;
+        let r = null;
         try {
           const data = view.getContext('2d').getImageData(region.x, region.y, region.w, region.h);
           const gray = reader.grayFromRGBA(data.data, region.w, region.h);
-          const r = reader.readBarcode(gray);
+          r = await reader.readBarcodeAsync(gray, null, search.signal);
+        } catch (err) {
+          r = null;
+        }
+        if (search.signal.aborted) return;
+        searching = null;
+        if (r) {
           result = Object.assign(r, { offset: { x: region.x, y: region.y }, regionWidth: region.w });
           showResult();
-        } catch (err) {
+        } else {
           result = null;
           showMessage(t('This part of the image could not be read. Select the barcode again, or clear the selection.'), true);
-        } finally {
-          readBtn.disabled = false;
-          setStep();
-          draw();
         }
+        readBtn.disabled = false;
+        setStep();
+        draw();
       }, 30);
     }
 

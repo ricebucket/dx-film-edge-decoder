@@ -197,7 +197,8 @@ external service:
 It is tested on film edges drawn by the project's own renderer: color
 negative, black-and-white and slide; mirrored and upside down; tilted by up to
 2.5°; cells only 4 pixels wide; grain and blur; the 23-cell layout; leader
-frames; a scratched-out bar; and a large image that has to be downscaled. Each
+frames; a scratched-out bar; and large images that have to be reduced, one of
+them with 3-pixel cells just over the size limit. Each
 case is drawn with four pairs of track heights: as measured on the Kodak
 negative, equal as the page draws them, and the thinnest and thickest data
 track the standard allows (T2 of 0.75 and 1.26 mm). A code that fails its
@@ -207,8 +208,11 @@ rather than misread. A code tilted by 7° is read correctly or reported as
 unclear, depending on the track heights; from about 8° it needs the page's
 Straighten control. It needs at least 3–4 pixels per cell; strong perspective or
 curled film is not handled. Photos larger than 1,600 pixels on the long side
-are reduced first; reading a 1,600 × 1,200 photo takes about a quarter of a
-second in Node.js (measured October 2026).
+are first reduced to that size, each new pixel the average of the area it
+covers, so a photo just over the limit keeps nearly all its detail. Reading a
+1,600 × 1,200 photo takes about a quarter of a second in Node.js (measured
+October 2026). On the page, the search lets the browser draw and respond every
+10 ms or so, so the page does not freeze while it runs.
 
 ![The photo reader after reading a computer-drawn sample: the cells it read are outlined in the photo](img/photo-reader.png)
 

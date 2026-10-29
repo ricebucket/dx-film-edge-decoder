@@ -64,6 +64,8 @@ test('dragging paints several cells in one stroke, undone in one step', async ({
   for (const n of [9, 10, 11, 12]) await expect(dataCell(page, n)).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Undo' }).click();
   for (const n of [9, 10, 11, 12]) await expect(dataCell(page, n)).toHaveAttribute('aria-pressed', 'false');
+  // Back to the empty strip, not to the all-zero code DX 0-0.
+  await expect(page.locator('#result')).toContainText('Waiting for bars');
   await page.getByRole('button', { name: 'Redo' }).click();
   await expect(dataCell(page, 12)).toHaveAttribute('aria-pressed', 'true');
 });
@@ -98,9 +100,11 @@ test('a misread bar fails parity and the right correction is offered', async ({ 
   await expect(result.locator('#result-title')).toContainText('As copied:');
   const fix = result.getByRole('button', { name: /Add the bar in cell 10/ });
   await expect(fix).toContainText('79-15, frame 23: KODAK Professional BW400CN Film');
-  await fix.click();
+  await fix.press('Enter');
   await expect(result.locator('.status')).toHaveText('Valid DX code');
   await expect(result.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
+  // The correction is gone with the old result: the keyboard carries on at the new one.
+  await expect(result.locator('#result-title')).toBeFocused();
 });
 
 test('a bar in an unused cell is explained', async ({ page }) => {
@@ -199,8 +203,9 @@ test('switching layout keeps Part 1 and Part 2', async ({ page }) => {
 
 test('examples load a code with the matching film look', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Fujichrome Velvia 50, frame 5A' }).click();
+  await page.getByRole('button', { name: 'Fujichrome Velvia 50, frame 5A' }).press('Enter');
   await expect(page.locator('#result-title')).toHaveText('FUJICHROME VELVIA 50');
+  await expect(page.locator('#result-title')).toBeFocused();
   await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'slide');
   await expect(page.locator('#strip .film__label--before')).toHaveText('5A');
   // BW400CN is black-and-white film developed like color negative film, and looks like one (Kodak F-4036).
@@ -241,6 +246,58 @@ test('links restore a code, and junk in the link is ignored', async ({ page }) =
   await expect(page.locator('#result')).toContainText('Waiting for bars');
   await page.goto('/?bits=10101');
   await expect(page.locator('#result')).toContainText('Waiting for bars');
+});
+
+test('a link to the all-zero code shows it, while bars taken off by hand leave an empty strip', async ({ page }) => {
+  // Part 1 = 0 is a valid code (GB/T 9185-2003, Annex A.3.1), not "nothing entered".
+  await page.goto('/?dx=0-0/0');
+  await expect(page.locator('#result .status')).toHaveText('Valid DX code');
+  await expect(page.locator('#result .readout__value').first()).toHaveText('0-0');
+  await expect(page).toHaveURL(/\?dx=0-0\/0$/);
+  await expect(page.locator('#strip .film')).not.toHaveClass(/labels-uncertain/);
+  await dataCell(page, 10).click();
+  await dataCell(page, 10).click();
+  await expect(page.locator('#result')).toContainText('Waiting for bars');
+  await expect(page.locator('#strip .film')).toHaveClass(/labels-uncertain/);
+  await expect(page).not.toHaveURL(/\?/);
+  await page.locator('#undo').click();
+  await page.locator('#undo').click();
+  await expect(page.locator('#result .readout__value').first()).toHaveText('0-0');
+  await page.locator('#clear').click();
+  await expect(page.locator('#result')).toContainText('Waiting for bars');
+  await expect(page).not.toHaveURL(/\?/);
+});
+
+test('undo brings back where a code came from, but not a source that was removed', async ({ page }) => {
+  await page.goto('/');
+  const bar = page.locator('#source');
+  const title = page.locator('#result-title');
+  await page.getByRole('button', { name: 'Kodak BW400CN, frame 23' }).click();
+  await expect(bar).toContainText('Example: Kodak BW400CN, frame 23');
+  await page.getByRole('tab', { name: 'Read a photo' }).click();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  await page.locator('#undo').click();
+  await expect(title).toHaveText('KODAK Professional BW400CN Film');
+  await expect(bar).toContainText('Example: Kodak BW400CN, frame 23');
+  await expect(bar).not.toContainText('edited since');
+  await expect(page.locator('#strip .strip__photo canvas')).toHaveCount(0);
+  await page.locator('#redo').click();
+  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  await expect(page.locator('#strip .strip__photo canvas')).toBeVisible();
+  // Clear, undone, brings the photo back with its code...
+  await page.locator('#clear').click();
+  await expect(bar).toBeHidden();
+  await page.locator('#undo').click();
+  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  // ...but a photo removed with × stays removed.
+  await bar.getByRole('button', { name: 'Remove the photo' }).click();
+  await page.locator('#undo').click();
+  await expect(bar).toContainText('Example: Kodak BW400CN, frame 23');
+  await page.locator('#redo').click();
+  await expect(title).toHaveText('KODAK GOLD 200 Film');
+  await expect(bar).toBeHidden();
 });
 
 test('leader frames show their printed labels', async ({ page }) => {

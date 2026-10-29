@@ -25,6 +25,7 @@ const communityFixture = {
     [81, '000811', 'Shop Brand 200 #cheap', '', 'ACME Color 200', 'Acme', 3, 'Nowhere', '1999', '', 'Shop', 2],
     [81, '200810', 'Other Brand 200', '', '', '', -1, '', '', '', '', 0],
     [5391, '753914', 'Out Of Range Cine', '', '', '', -1, '', '', '', '', 1],
+    [5, '000054', 'Low Number Pan', '', '', '', -1, '', '', '', '', 0],
   ],
 };
 
@@ -75,6 +76,16 @@ describe('lookup with a fixture', () => {
     assert.equal(lookup.search('cine')[0], cine, 'still searchable by name');
   });
 
+  test('numbers below 16 match cassettes only, not the bars of DX 0-n (research/04)', () => {
+    const low = lookup.community.find((c) => c.name === 'Low Number Pan');
+    assert.equal(low.part1, null);
+    assert.deepEqual(lookup.byDx(0, 5).community, []);
+    assert.equal(lookup.isKnown(0, 5), false);
+    assert.deepEqual(lookup.search('0-5'), []);
+    assert.deepEqual(lookup.byCassette('000054').sameCode, [low]);
+    assert.equal(lookup.search('low number')[0], low, 'still searchable by name');
+  });
+
   test('search ranks name matches and I3A entries first', () => {
     const names = lookup.search('acme').map((e) => e.name);
     assert.deepEqual(names.slice(0, 2), ['ACME Chrome 100', 'ACME Color 200']);
@@ -119,6 +130,26 @@ describe('lookup with the real tables', () => {
     assert.equal(lookup.search('79-15')[0].name, 'KODAK Professional BW400CN Film');
     assert.equal(lookup.search('79 15')[0].name, 'KODAK Professional BW400CN Film', 'space as separator');
     assert.ok(lookup.search('ilford delta').length > 0, 'ILFORD resolves through the sensitizer alias');
+  });
+
+  test('search reads a DX number in every form the codec does', () => {
+    // As typed in "Know the number already?": any separator, full-width
+    // signs, and the extract without its leading zero (Lawley writes 550).
+    for (const q of ['79-15', '79–15', '79—15', '79/15', '79.15', '79 15', '７９－１５', '1279', '012794']) {
+      assert.equal(lookup.search(q)[0].name, 'KODAK Professional BW400CN Film', q);
+    }
+    for (const q of ['550', '0550', '34-6']) assert.equal(lookup.search(q)[0].name, 'FUJICHROME ASTIA 100 PROFESSIONAL', q);
+  });
+
+  test('a bare number is a film speed first: its DX number comes after films with it in their name', () => {
+    // 1600 is also DX 100-0.
+    const results = lookup.search('1600');
+    const dx = lookup.byDx(100, 0).community;
+    assert.ok(dx.length > 0);
+    const firstDx = results.findIndex((e) => dx.includes(e));
+    assert.ok(firstDx > 0);
+    assert.ok(results.slice(0, firstDx).every((e) => /1600/.test(`${e.name} ${e.original || ''}`)));
+    assert.equal(firstDx, results.length - dx.length, 'last');
   });
 
   test('cassette 017563 is Ilford FP4 Plus, 24 exposures', () => {

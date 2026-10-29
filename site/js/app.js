@@ -29,7 +29,11 @@
 
   const scrollBehavior = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
-  const state = { format: 'long', cells: emptyCells('long'), mirrored: false, look: 'negative' };
+  // `loaded`: the code came from a link, an example, a search, a photo or a
+  // correction, and has not been edited by hand since. Only the all-zero
+  // strip needs it: loaded, it is DX 0-0; otherwise nothing is entered yet.
+  const state = { format: 'long', cells: emptyCells('long'), loaded: false, mirrored: false, look: 'negative' };
+  const isEmpty = () => !state.loaded && state.cells === emptyCells(state.format);
   const past = [];
   const future = [];
 
@@ -59,24 +63,23 @@
       const [num, frameText] = dx.split('/');
       const parsed = codec.parseDxNumber(num);
       if (!parsed || parsed.kind !== 'parts') return null;
-      if (frameText === undefined) return { format: 'short', cells: codec.encode(parsed, 'short') };
+      if (frameText === undefined) return { format: 'short', cells: codec.encode(parsed, 'short'), loaded: true };
       const frame = codec.parseFrameLabel(frameText);
       if (!frame) return null;
-      return { format: 'long', cells: codec.encode(Object.assign({}, parsed, frame), 'long') };
+      return { format: 'long', cells: codec.encode(Object.assign({}, parsed, frame), 'long'), loaded: true };
     }
     const bits = params.get('bits');
     if (bits && /^[01]+$/.test(bits)) {
       const format = bits.length === 31 ? 'long' : bits.length === 23 ? 'short' : null;
       if (format) {
-        return { format, cells: standardEnds(bits, format) };
+        return { format, cells: standardEnds(bits, format), loaded: true };
       }
     }
     return null;
   }
 
   function stateQuery(decoded) {
-    const empty = state.cells === emptyCells(state.format);
-    if (empty) return '';
+    if (isEmpty()) return '';
     if (decoded.valid) {
       return `?dx=${decoded.dxNumber}${decoded.frame === null ? '' : `/${decoded.frameLabel}`}`;
     }
@@ -128,8 +131,9 @@
 
   // ---- history --------------------------------------------------------------------------
 
+  /** What undo brings back: the code, and where it came from. */
   function snapshot() {
-    return { format: state.format, cells: state.cells };
+    return { format: state.format, cells: state.cells, loaded: state.loaded, origin };
   }
 
   function record(previous) {
@@ -144,6 +148,8 @@
     const s = from.pop();
     state.format = s.format;
     state.cells = s.cells;
+    state.loaded = s.loaded;
+    origin = s.origin;
     update();
   }
 
@@ -154,15 +160,17 @@
       // A snapshot of another layout (possible if the layout changed during
       // a drag) would corrupt the history, so only same-length ones are kept.
       if (meta.commit && meta.previous !== undefined && meta.previous !== cells && meta.previous.length === cells.length) {
-        record({ format: state.format, cells: meta.previous });
+        record(Object.assign(snapshot(), { cells: meta.previous }));
       }
       state.cells = cells;
+      // Edited by hand: taking the last bar off leaves an empty strip again.
+      if (meta.commit) state.loaded = false;
       update();
     },
   });
 
   function hint(d) {
-    if (state.cells === emptyCells(state.format)) {
+    if (isEmpty()) {
       return t('Start right after the fixed start pattern: cells 7 to 13 hold Part 1. Drag across cells to fill several at once; keys 1 and 0 type bars and gaps.');
     }
     const problem = d.issues[0];
@@ -183,7 +191,7 @@
     const decoded = codec.decode(state.cells, state.format);
     // A photo's barcode lines up over the strip only in the layout it was read in.
     const lined = origin && origin.lined && origin.format === state.format ? origin.lined : null;
-    strip.render(Object.assign({}, state, { decoded, photo: lined }));
+    strip.render(Object.assign({}, state, { decoded, empty: isEmpty(), photo: lined }));
     if (options && options.develop) strip.develop();
     setPressed(document.querySelector('[data-control="format"]'), state.format);
     setPressed(document.querySelector('[data-control="look"]'), state.look);
@@ -194,8 +202,11 @@
     $('redo').setAttribute('aria-disabled', String(future.length === 0));
     $('hint').textContent = hint(decoded);
     renderSource();
-    ui.renderResult($('result'), {
+    const result = $('result');
+    const hadFocus = result.contains(document.activeElement);
+    ui.renderResult(result, {
       decoded,
+      empty: isEmpty(),
       lookup,
       examples: EXAMPLES,
       shareUrl: shareUrl(decoded),
@@ -204,15 +215,20 @@
       onApplyCells(cells) {
         record();
         state.cells = cells;
+        state.loaded = true;
         update({ develop: true });
       },
       onUseShort(cells) {
         record();
         state.format = 'short';
         state.cells = cells;
+        state.loaded = true;
         update({ develop: true });
       },
     });
+    // A button used in the result (a correction, an example) is gone with
+    // the old result: carry on at the new one's heading.
+    if (hadFocus && !result.contains(document.activeElement)) $('result-title').focus({ preventScroll: true });
     syncUrl(decoded);
   }
 
@@ -221,6 +237,7 @@
     record();
     if (options && options.format) state.format = options.format;
     state.cells = codec.encode(code, state.format);
+    state.loaded = true;
     if (options && options.look) {
       state.look = options.look;
       savePrefs();
@@ -258,10 +275,11 @@
     $('undo').addEventListener('click', () => restore(past, future));
     $('redo').addEventListener('click', () => restore(future, past));
     $('clear').addEventListener('click', () => {
-      if (state.cells === emptyCells(state.format)) return;
+      if (isEmpty()) return;
       record();
       origin = null;
       state.cells = emptyCells(state.format);
+      state.loaded = false;
       update();
     });
 
@@ -364,6 +382,8 @@
       onBack: () => goBack(kind),
       onRemove() {
         if (kind === 'photo') photo.reset();
+        // Undo does not bring back what was removed.
+        for (const s of past.concat(future)) if (s.origin === origin) s.origin = null;
         origin = null;
         update();
         $(`tab-${way}`).focus();
@@ -474,6 +494,7 @@
         record();
         state.format = format;
         state.cells = standardEnds(cells, format);
+        state.loaded = true;
         if (look) {
           state.look = look;
           savePrefs();

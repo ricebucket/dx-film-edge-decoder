@@ -116,6 +116,25 @@ test('community matches link once to their DX number on The Big Film Database', 
   await expect(links(page.locator('#result'))).toHaveCount(0);
 });
 
+test('community entries are merged only when they differ in nothing but the cassette number', async ({ page }) => {
+  // DX 95-5: two Kodak HD2 rows, one of them sold by Kodak Australasia.
+  await page.goto('/?dx=95-5/1');
+  const all = page.locator('#result').getByRole('button', { name: /^Show all/ });
+  if (await all.count()) await all.click();
+  const hd2 = page.locator('#result .match--community').filter({ hasText: 'Kodak High Definition 200 Film HD2' });
+  await expect(hd2).toHaveCount(2);
+  await expect(hd2.filter({ hasText: 'sold by Kodak Australasia Pty Ltd' })).toContainText('Cassette number 315254');
+});
+
+test('community numbers below 16 name films by cassette only, never by the bars of DX 0-n', async ({ page }) => {
+  await page.goto('/?dx=0-5/1');
+  await expect(page.locator('#result-title')).toHaveText('Unregistered DX number');
+  await expect(page.locator('#result .match--community')).toHaveCount(0);
+  await page.locator('#cassette-code').fill('000054');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result')).toContainText('Orwo ORWOPAN 25');
+});
+
 test('cassette input is validated', async ({ page }) => {
   await page.locator('#cassette-code').fill('12');
   await page.getByRole('button', { name: 'Look up' }).click();

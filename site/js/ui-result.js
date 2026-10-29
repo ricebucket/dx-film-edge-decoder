@@ -37,7 +37,8 @@
   function groupCommunity(entries) {
     const groups = new Map();
     for (const e of entries) {
-      const key = [e.name, e.manufacturer, e.original, e.from, e.to].join('|');
+      // Everything communityItem shows, except the cassette number.
+      const key = JSON.stringify([e.name, e.manufacturer, e.original, e.reliability, e.country, e.from, e.to, e.distributor, e.availability]);
       const g = groups.get(key);
       if (g) {
         if (e.full && !g.cassettes.includes(e.full)) g.cassettes.push(e.full);
@@ -342,12 +343,12 @@
   }
 
   /**
-   * ctx: { decoded, lookup, examples, shareUrl, way ('copy' or 'photo'), onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
+   * ctx: { decoded, empty (nothing entered yet), lookup, examples, shareUrl, way ('copy' or 'photo'),
+   *        onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
    */
   function renderResult(container, ctx) {
     const d = ctx.decoded;
-    const empty = codec.layout(d.format).every((c) => !c.editable || d.bits[c.cell - 1] === '0');
-    if (empty) {
+    if (ctx.empty) {
       container.replaceChildren(...emptyState(ctx));
       return;
     }

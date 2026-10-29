@@ -235,6 +235,8 @@ describe('frame numbers', () => {
       assert.deepEqual(dx.parseFrameLabel(input), { frame, half }, input);
     }
     for (const bad of ['', 'A', '64', '123', '2B', 'XXX', null]) assert.equal(dx.parseFrameLabel(bad), null, String(bad));
+    // Full-width, as a Chinese input method may type it.
+    assert.deepEqual(dx.parseFrameLabel('２３Ａ'), { frame: 23, half: true });
   });
 
   test('half-frame index counts 0, 0A, 1, 1A … as 0, 1, 2, 3 …', () => {
@@ -264,6 +266,9 @@ describe('DX numbers and cassette codes', () => {
     for (const bad of ['128-0', '79-16', '2048', 'abc', '', '12345', '1-2-3']) {
       assert.equal(dx.parseDxNumber(bad), null, bad);
     }
+    // Full-width, as a Chinese input method may type it.
+    assert.deepEqual(dx.parseDxNumber('７９－１５'), { part1: 79, part2: 15, kind: 'parts' });
+    assert.equal(dx.parseDxNumber('３１５２２３').kind, 'cassette');
   });
 
   test('parseDxNumber does not read a lone Part 1 as an extract', () => {

@@ -36,24 +36,55 @@
     return { width, height, data };
   }
 
-  /** Downscale by an integer factor (box filter) so the long side stays manageable. */
+  /**
+   * Shrink an image so its long side is at most maxSide. Each new pixel is the
+   * average of the area it covers, parts of pixels included, so an image just
+   * over the limit keeps nearly all its detail. `scale` maps positions back:
+   * x in the input is (x' + 0.5) * scale.x - 0.5, and likewise y.
+   */
   function shrink(img, maxSide) {
-    const factor = Math.max(1, Math.ceil(Math.max(img.width, img.height) / maxSide));
-    if (factor === 1) return { img, factor };
-    const width = Math.floor(img.width / factor);
-    const height = Math.floor(img.height / factor);
-    const data = new Float32Array(width * height);
-    for (let y = 0; y < height; y++) {
+    const long = Math.max(img.width, img.height);
+    if (long <= maxSide) return { img, scale: { x: 1, y: 1 } };
+    const width = Math.max(1, Math.round((img.width * maxSide) / long));
+    const height = Math.max(1, Math.round((img.height * maxSide) / long));
+    // Across, then down.
+    const across = new Float32Array(width * img.height);
+    const xs = areaSpans(img.width, width);
+    for (let y = 0; y < img.height; y++) {
+      const row = y * img.width;
       for (let x = 0; x < width; x++) {
+        const { first, weights } = xs[x];
         let sum = 0;
-        for (let dy = 0; dy < factor; dy++) {
-          const row = (y * factor + dy) * img.width + x * factor;
-          for (let dx = 0; dx < factor; dx++) sum += img.data[row + dx];
-        }
-        data[y * width + x] = sum / (factor * factor);
+        for (let k = 0; k < weights.length; k++) sum += img.data[row + first + k] * weights[k];
+        across[y * width + x] = sum;
       }
     }
-    return { img: { width, height, data }, factor };
+    const data = new Float32Array(width * height);
+    const ys = areaSpans(img.height, height);
+    for (let y = 0; y < height; y++) {
+      const { first, weights } = ys[y];
+      const out = y * width;
+      for (let k = 0; k < weights.length; k++) {
+        const from = (first + k) * width;
+        for (let x = 0; x < width; x++) data[out + x] += across[from + x] * weights[k];
+      }
+    }
+    return { img: { width, height, data }, scale: { x: img.width / width, y: img.height / height } };
+  }
+
+  /** For each of `m` new pixels along a line of `n` (m < n): the first old pixel it covers and the weights of those it covers. */
+  function areaSpans(n, m) {
+    const step = n / m;
+    const spans = [];
+    for (let i = 0; i < m; i++) {
+      const a = i * step;
+      const b = (i + 1) * step;
+      const first = Math.floor(a);
+      const weights = [];
+      for (let j = first; j < Math.min(n, Math.ceil(b)); j++) weights.push((Math.min(b, j + 1) - Math.max(a, j)) / step);
+      spans.push({ first, weights });
+    }
+    return spans;
   }
 
   /** Percentiles of gray values (0–255) via a histogram: linear time, no sorting. */
@@ -253,8 +284,50 @@
    * the input image's pixels.
    */
   function readBarcode(input, options) {
+    const steps = search(input, options);
+    for (;;) {
+      const step = steps.next();
+      if (step.done) return step.value;
+    }
+  }
+
+  /**
+   * The same, without holding up a page: every 10 ms or so the search lets
+   * the browser draw and handle input. If `signal` (an AbortSignal) fires,
+   * the search stops and the promise resolves to null.
+   */
+  async function readBarcodeAsync(input, options, signal) {
+    const steps = search(input, options);
+    let since = -Infinity; // the caller has just been busy too (reading the pixels): give way at once
+    for (;;) {
+      const step = steps.next();
+      if (step.done) return step.value;
+      if (performance.now() - since > 10) {
+        await giveWay();
+        if (signal && signal.aborted) return null;
+        since = performance.now();
+      }
+    }
+  }
+
+  /** A turn for whatever else is waiting (unlike setTimeout, with no minimum delay). */
+  function giveWay() {
+    return new Promise((resolve) => {
+      const channel = new MessageChannel();
+      channel.port1.onmessage = () => {
+        channel.port1.close();
+        resolve();
+      };
+      channel.port2.postMessage(null);
+    });
+  }
+
+  /** The search behind readBarcode, as a generator that pauses (yields) between rows. */
+  function* search(input, options) {
     const opts = Object.assign({ formats: ['long', 'short'], maxSide: 1600 }, options);
-    const { img, factor } = shrink(input, opts.maxSide);
+    yield;
+    const { img, scale } = shrink(input, opts.maxSide);
+    yield;
     const [p2, p98] = percentiles(img.data, [0.02, 0.98]);
     const range = p98 - p2;
     if (range < 20) return { found: false, reason: 'flat' };
@@ -272,6 +345,7 @@
     const bySlope = SLOPES.map(() => ({ best: null, rows: new Map() }));
     for (const [si, slope] of SLOPES.entries()) {
       for (let y = 1; y < img.height - 1; y += step) {
+        yield;
         const row = profile(img, y, slope, band);
         const [lo, hi] = percentiles(row, [0.05, 0.95]);
         if (hi - lo < minContrast) continue;
@@ -329,7 +403,7 @@
     }
     const agreed = Boolean(data);
     if (!data) for (const r of rows) if (!data || r.score > data.score) data = r;
-    if (!data || data.score < 1.05) return Object.assign({ found: false, reason: 'no-data' }, describe(best, factor));
+    if (!data || data.score < 1.05) return Object.assign({ found: false, reason: 'no-data' }, describe(best, scale));
 
     // Read across the middle of the band of rows that give the same bits.
     const side = Math.sign(data.y - best.y);
@@ -352,12 +426,12 @@
     // reads, damaged ones included, fit the clock at 0.98 or better in the
     // tests; the stray matches seen fit at 0.92–0.95.
     if (!decoded.valid && (!agreed || confidence < 0.3 || best.score < 0.97)) {
-      return Object.assign({ found: false, reason: 'unclear' }, describe(best, factor));
+      return Object.assign({ found: false, reason: 'unclear' }, describe(best, scale));
     }
 
-    return Object.assign(describe(best, factor), {
+    return Object.assign(describe(best, scale), {
       found: true,
-      dataY: mid * factor,
+      dataY: back(mid, scale.y),
       bits: row.bits,
       decoded,
       confidence,
@@ -365,15 +439,18 @@
     });
   }
 
-  function describe(best, factor) {
+  /** A position in the shrunk image, back in the input's pixels (see shrink). */
+  const back = (v, s) => (v + 0.5) * s - 0.5;
+
+  function describe(best, scale) {
     return {
       format: best.format,
       reversed: best.reversed,
       polarity: best.polarity,
-      slope: best.slope,
-      clockY: best.y * factor,
-      x0: best.x0 * factor,
-      unit: best.unit * factor,
+      slope: (best.slope * scale.y) / scale.x,
+      clockY: back(best.y, scale.y),
+      x0: back(best.x0, scale.x),
+      unit: best.unit * scale.x,
       cells: best.cells,
       clockScore: Math.round(best.score * 1000) / 1000,
     };
@@ -589,5 +666,5 @@
     }
   }
 
-  return { grayFromRGBA, readBarcode, synthesize, compose, matchClock, runs };
+  return { grayFromRGBA, readBarcode, readBarcodeAsync, synthesize, compose, matchClock, runs };
 });

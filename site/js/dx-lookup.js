@@ -73,8 +73,14 @@
       if (p.wildcard) push(wildcardByPart1, p.part1, p);
       else push(productsByDx, codec.dxExtract(p.part1, p.part2), p);
     }
+    // Every community number can match a cassette; only those that fit an
+    // edge code (part1 set) can match the bars on a film's edge.
     const communityByExtract = new Map();
-    for (const c of community) push(communityByExtract, c.extract, c);
+    const communityByDx = new Map();
+    for (const c of community) {
+      push(communityByExtract, c.extract, c);
+      if (c.part1 !== null) push(communityByDx, c.extract, c);
+    }
 
     function push(map, key, value) {
       const list = map.get(key);
@@ -97,13 +103,13 @@
         extract,
         part1Info: part1Info(part1),
         products: [...(productsByDx.get(extract) || []), ...(wildcardByPart1.get(part1) || [])],
-        community: communityByExtract.get(extract) || [],
+        community: communityByDx.get(extract) || [],
       };
     }
 
     function isKnown(part1, part2) {
       const extract = codec.dxExtract(part1, part2);
-      return productsByDx.has(extract) || wildcardByPart1.has(part1) || communityByExtract.has(extract);
+      return productsByDx.has(extract) || wildcardByPart1.has(part1) || communityByDx.has(extract);
     }
 
     /** Matches for a 6-digit cassette number (see codec.parseCassette). */
@@ -136,26 +142,27 @@
     for (const h of haystacks) h.compact = compact(h.text);
 
     /**
-     * Search by film name, maker or DX number. DX-like queries ("79-15",
-     * "1279", "315223") list that code's entries first.
+     * Search by film name, maker or DX number. A DX number in any form the
+     * codec reads ("79-15", "1279", "315223") lists that code's entries
+     * first; a bare number such as "400" or "1600" can also be a film speed,
+     * so its code's entries come after films with the number in their name.
      */
     function search(query, limit) {
       const q = normalize(query).trim();
       if (!q) return [];
-      const results = [];
-      const seen = new Set();
+      const ranks = new Map();
       const add = (entry, rank) => {
         const key = `${entry.source}:${entry.index}`;
-        if (seen.has(key)) return;
-        seen.add(key);
-        results.push({ entry, rank });
+        const known = ranks.get(key);
+        if (!known || rank < known.rank) ranks.set(key, { entry, rank });
       };
 
-      const dx = /^\d{1,3}(\s*[-–/]\s*|\s+)\d{1,2}$|^\d{4}$|^\d{6}$/.test(q) ? codec.parseDxNumber(q) : null;
+      const dx = codec.parseDxNumber(q);
       if (dx) {
         const hit = byDx(dx.part1, dx.part2);
-        hit.products.forEach((p) => add(p, 0));
-        hit.community.forEach((c) => add(c, 1));
+        const base = dx.kind === 'extract' ? 7 : 0;
+        hit.products.forEach((p) => add(p, base));
+        hit.community.forEach((c) => add(c, base + 1));
       }
 
       // Rank: whole words in the name, then word starts, then any substring,
@@ -173,7 +180,7 @@
         add(h.entry, rank + (h.entry.source === 'community' ? 0.5 : 0));
       }
 
-      results.sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name));
+      const results = [...ranks.values()].sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name));
       const out = results.map((r) => r.entry);
       return limit ? out.slice(0, limit) : out;
     }

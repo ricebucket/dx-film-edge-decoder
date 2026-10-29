@@ -164,7 +164,7 @@
 
   /** Parse a printed frame label such as "23", "23A", "XX", "X", "00A" or "K". */
   function parseFrameLabel(input) {
-    const text = String(input || '').trim().toUpperCase();
+    const text = String(input || '').normalize('NFKC').trim().toUpperCase();
     const m = /^(XX|X|S|K|F|00|\d{1,2})(A?)$/.exec(text);
     if (!m) return null;
     const half = m[2] === 'A';
@@ -370,10 +370,11 @@
    * (16 × Part 1 + Part 2, e.g. "1279", or "550" as Lawley writes it) or a
    * 6-digit cassette number ("012794"). Returns null when the input cannot be
    * a DX number. A shorter number up to 127 could be a Part 1 on its own
-   * ("79"), so as an extract it needs four digits ("0079").
+   * ("79"), so as an extract it needs four digits ("0079"). Full-width
+   * digits and signs, as typed with a Chinese input method, count too.
    */
   function parseDxNumber(input) {
-    const text = String(input || '').trim();
+    const text = String(input || '').normalize('NFKC').trim();
     let m = /^(\d{1,3})\s*[-–—/.\s]\s*(\d{1,2})$/.exec(text);
     if (m) {
       const part1 = parseInt(m[1], 10);
@@ -401,7 +402,7 @@
    * DX number is derived: `augmented` gives the parts and the base Part 1.
    */
   function parseCassette(input) {
-    const digits = String(input || '').replace(/[\s-]/g, '');
+    const digits = String(input || '').normalize('NFKC').replace(/[\s-]/g, '');
     if (!/^\d{6}$/.test(digits)) return null;
     const prefix = Number(digits[0]);
     const extract = parseInt(digits.slice(1, 5), 10);
