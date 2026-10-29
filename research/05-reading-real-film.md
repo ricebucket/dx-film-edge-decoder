@@ -1,7 +1,7 @@
 # 05 – Reading real film
 
 **Question:** where exactly is the code on a negative, how big is it, which
-way round should it be read, and does the documented layout match real film?
+way around should it be read, and does the documented layout match real film?
 
 **Answer in short:** the code runs along the bottom edge, between the sprocket
 holes and the film edge, repeating every 19 mm. GB/T 9185-2003, China's
@@ -51,11 +51,15 @@ measured on a real negative (described below):
 | Both tracks, from the film edge (T3) | 2.06–2.60 mm | 2.3 mm |
 | Perforations, from the film edge (Table 2, E) | 2.00 ± 0.15 mm | 2.0 mm |
 | Whole code, 31 cells | 10.9–16.4 mm (31 × T1) | 12.6 mm |
-| Code with the blank space at its ends (Y14) | 11.61 mm | more than 12.6 mm |
+| Code with the blank space at its ends (Y14) | 11.61 mm (basic dimension) | more than 12.6 mm |
 | Blank space at each end of the code (T4) | at least 0.38 mm | — |
 
-The negative fits every limit except Y14. A 31-cell code fits in 11.61 mm only
-with the narrowest cells and the shortest blank space
+Apart from Y14, the measurements agree with the standard's ranges, as far as
+one photo can show: the scale comes from the standard's perforation pitch, and
+the standard's sizes apply to film when it is made (§4) and change over time
+(§5.1). Y14 is listed as a basic dimension, a theoretically exact size with no
+limits of its own (§3.4), and this negative's code is longer. A 31-cell code is
+as short as 11.61 mm only with the narrowest cells and the shortest blank space
 (31 × 0.35 + 2 × 0.38 = 11.61 mm); with this negative's 0.41 mm cells, the code
 alone is 12.6 mm. The standard leaves the distance to the next code (Y13, at
 least 6.35 mm) unspecified for codes with frame numbers (note 8), but does not
@@ -82,16 +86,16 @@ These come from a single photo. The clock track reaches past the edge of the
 perforations, so it is cut short wherever a perforation lies. On this negative
 the data track is 2.5 cells tall and the clock track 3.15 (2.4 where a
 perforation cuts it). The page's strip, the photo reader's sample images and the
-diagram above draw both tracks 2.55 cells (1.04 mm) tall instead, because equal
-tracks look better; that is the smallest equal height the standard allows
-(T3). Everything else follows this negative: the perforations are at their
+diagram above draw both tracks 2.525 cells (1.03 mm) tall instead, because equal
+tracks look better; that is the smallest equal height the standard allows (T3:
+2.06 mm for both). Everything else follows this negative: the perforations are at their
 standard size, spacing and distance from the edge, placed against the code as
 here.
 
 Two other sources agree. Kodak's US 5,665,950, filed in 1995, gives the DX code
 a minimum bar width of 0.015 in (0.38 mm); the 2000 edition of the standard
-allows narrower cells than its previous edition did (foreword, item d), down to
-0.35 mm. Zint's generator
+allows narrower cells than GB/T 9185-1996 (the 1993 draft) did (foreword, item
+d), down to 0.35 mm. Zint's generator
 draws each track 3 cells tall by default and no less than 2.2; its source
 code says the ratio was measured on 35 mm film and varies "depending on the
 brands". The tracks on the Kodak photo, 2.5 and 3.15 cells tall, are close to
@@ -126,7 +130,7 @@ position's number is 2 cells tall, over an arrow, 2.8 cells before its code.
 The next number starts at least 4.3 cells after a code, so the strip, which
 shows one code, draws only the number before it.
 
-## Which way round
+## Which way around
 
 - Read with the wide (5-cell) clock mark first. On both photos, with the
   printed numbers reading normally, the wide mark is on the left.
@@ -149,8 +153,10 @@ shows one code, draws only the number before it.
 On negatives the bars are exposed, so they are dense: dark on the clear or
 orange-masked base. The standard designs the code for color negative
 processing and leaves it optional on other film (§7.1). It sets the contrast
-for processed film: a gap may have a Status M red density of at most 0.50, and
-a bar must be at least 0.50 denser (§7.4). Reversal (slide) processing turns
+for processed film, assuming it was stored as recommended before and after
+exposure, had not expired and was processed to standard: a gap may have a
+Status M red density of at most 0.50, with bars at least 0.50 denser, and a
+density at 690 nm of at most 0.65, with bars at least 0.90 denser (§7.4). Reversal (slide) processing turns
 exposed areas clear, so on slide film the bars appear as clear marks on the
 black edge. This follows from how reversal processing works; none of the
 sources, the standard included, describe edge codes on slide film. The tool draws the strip that way when the black piece

@@ -4,35 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n>DX Film Edge Decoder</title>
-  <meta name="description" content="Identify 35 mm film from the DX barcode along the edge of your negatives and slides. Copy the bars you see to get the film, its maker and the frame number. Runs entirely in your browser.">
+  <meta name="description" content="Identify 35 mm film from the DX barcode along the edge of your negatives and slides. Copy the bars you see to get the film, its maker and the frame number. Runs entirely in your browser." data-i18n-attr="content">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#eef3f6" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151c23" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
-  <script>
-    // Apply the saved theme, language and folded introduction (phones) before
-    // first paint to avoid a flash. A language in the URL (?lang=) wins over the
-    // saved one.
-    (function () {
-      let theme = null;
-      let intro = null;
-      let lang = new URLSearchParams(location.search).get('lang');
-      try {
-        theme = localStorage.getItem('dx-theme');
-        intro = localStorage.getItem('dx-intro');
-        lang = lang || localStorage.getItem('dx-lang');
-      } catch (e) { /* storage unavailable: follow the system theme */ }
-      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-      if (intro === 'hidden') document.documentElement.dataset.intro = 'hidden';
-      if (lang && lang.toLowerCase() !== 'en') {
-        // Hidden until js/i18n.js has put in that language's text (or after 3 s regardless).
-        document.documentElement.lang = lang;
-        document.documentElement.setAttribute('data-i18n-pending', '');
-        setTimeout(() => document.documentElement.removeAttribute('data-i18n-pending'), 3000);
-      }
-    })();
-  </script>
+  <script src="js/prepaint.js"></script>
   <script src="js/i18n.js" defer></script>
   <script src="js/i18n/zh-CN.js" defer></script>
   <script src="js/dx-codec.js" defer></script>
@@ -41,6 +19,7 @@
   <script src="js/dx-lookup.js" defer></script>
   <script src="js/dx-image.js" defer></script>
   <script src="js/ui-dom.js" defer></script>
+  <script src="js/ui-header.js" defer></script>
   <script src="js/ui-strip.js" defer></script>
   <script src="js/ui-result.js" defer></script>
   <script src="js/ui-finder.js" defer></script>
@@ -77,6 +56,15 @@
   </header>
 
   <main id="top">
+    <noscript>
+      <!-- Without JavaScript the page cannot tell a visitor's language, and the
+           language files cannot supply this text, so it comes in every language
+           of the page; npm run check:languages checks that none is missing. -->
+      <div class="noscript">
+        <p lang="en">This decoder needs JavaScript. It runs entirely in your browser, and photos never leave your device.</p>
+        <p lang="zh-CN">这个解码器需要 JavaScript。它完全在你的浏览器中运行，照片永远不会离开你的设备。</p>
+      </div>
+    </noscript>
     <section class="decoder" id="decoder" aria-labelledby="decoder-title">
       <div class="wrap">
         <div class="intro">
@@ -100,7 +88,7 @@
               <p data-i18n>Look at the strip between the sprocket holes and the edge of the film: two touching rows of small bars, about 13&nbsp;mm long, repeated twice per frame. A loupe or a zoomed-in scan helps.</p>
             </li>
             <li>
-              <h2 class="steps__title" data-i18n>Turn the film the right way round</h2>
+              <h2 class="steps__title" data-i18n>Turn the film the right way around</h2>
               <p data-i18n>Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <button type="button" class="inline-button" data-for="mirror-toggle">Mirror</button>.</p>
             </li>
             <li>
@@ -119,7 +107,7 @@
             <div class="toolbar__group" role="group" aria-labelledby="layout-label">
               <span class="toolbar__label" id="layout-label" data-i18n>Layout</span>
               <button type="button" class="help-dot" aria-expanded="false" aria-controls="layout-help" data-help>
-                <span class="visually-hidden" data-i18n>Which layout do I have?</span>?
+                <span class="visually-hidden" data-i18n>Which layout do I have?</span><span aria-hidden="true">?</span>
               </button>
               <div class="segmented" data-control="format">
                 <button type="button" data-value="long" aria-pressed="true" data-i18n>11 thin bars</button>
@@ -143,7 +131,7 @@
                each kind of film, kept out of the toolbar since nothing else changes. -->
           <div class="looks" role="group" aria-label="Film look" data-i18n-attr="aria-label" data-control="look">
             <button type="button" class="looks__film" data-value="negative" aria-pressed="true" aria-label="Color negative" title="Color negative" data-i18n-attr="aria-label title"></button>
-            <button type="button" class="looks__film" data-value="bw" aria-pressed="false" aria-label="B&amp;W negative" title="B&amp;W negative" data-i18n-attr="aria-label title"></button>
+            <button type="button" class="looks__film" data-value="bw" aria-pressed="false" aria-label="Black-and-white negative" title="Black-and-white negative" data-i18n-attr="aria-label title"></button>
             <button type="button" class="looks__film" data-value="slide" aria-pressed="false" aria-label="Slide" title="Slide" data-i18n-attr="aria-label title"></button>
           </div>
           <p class="hint" id="hint" aria-live="polite"></p>
@@ -164,7 +152,7 @@
     <section class="band" id="cassette" aria-labelledby="cassette-title">
       <div class="wrap">
         <h2 id="cassette-title" data-i18n>Have the cassette?</h2>
-        <p class="section-lead" data-i18n>The six digits printed under the barcode on a 35&nbsp;mm cassette carry the same DX number as the film edge, plus the roll length. Enter them to identify the film.</p>
+        <p class="section-lead" data-i18n>The six digits printed between the barcode and the film slot of a 35&nbsp;mm cassette usually carry the same DX number as the film edge, plus the roll length. Enter them to identify the film.</p>
         <div class="cassette" id="cassette-ui"></div>
       </div>
     </section>
@@ -173,7 +161,7 @@
       <div class="wrap">
         <h2 id="how-title" data-i18n>How the DX edge code works</h2>
         <div class="prose">
-          <p data-i18n>Kodak introduced DX encoding in 1983. Besides the checkerboard contacts and barcode on the cassette, every roll carries a <em>latent image</em> barcode exposed along one edge of the film during manufacture. It stays invisible until development, and photofinishing machines read it to recognize the film and, later, to number the frames.</p>
+          <p data-i18n>Kodak introduced DX encoding in 1983. Besides the checkerboard contacts and barcode on the cassette, film for color negative processing carries a <em>latent image</em> barcode, exposed along one edge of the film during manufacture; on other film it is optional. It stays invisible until development, and photofinishing machines read it to recognize the film and, later, to number the frames.</p>
 
           <h3 data-i18n>Two tracks</h3>
           <p data-i18n>The code has two rows that touch. The <strong>clock track</strong> on top, nearest the sprocket holes, is the same on every film: a wide mark, a run of thin bars and a shorter wide mark. Machines use it to find each cell. The <strong>data track</strong> below, along the film edge, holds the information: every cell is either a bar (1) or a gap (0).</p>
@@ -198,19 +186,20 @@
           </div>
 
           <h3 data-i18n>The DX number</h3>
-          <p data-i18n>Part 1 and Part 2 together form the film’s <strong>DX number</strong>, written like <code>79-15</code>. Part 1 numbers were assigned to manufacturers by their industry association (NAPM, then PIMA, then I3A), and each manufacturer used Part 2 to tell its products apart. The cassette carries the same number: the middle four digits of its barcode are 16 × Part 1 + Part 2, so 79-15 becomes 1279.</p>
+          <p data-i18n>Part 1 and Part 2 together form the film’s <strong>DX number</strong>, written like <code>79-15</code>. Part 1 numbers were assigned to manufacturers by their industry association (NAPM, then PIMA, then I3A), and each manufacturer used Part 2 to tell its products apart. The cassette usually carries the same number: the middle four digits of its barcode are 16 × Part 1 + Part 2, so 79-15 becomes 1279. A maker may also add 128, 256 or 384 to Part 1 on the cassette alone, so a few cassettes carry a number that cannot appear on the film edge.</p>
 
           <h3 data-i18n>Frame numbers</h3>
           <p data-i18n>The 31-cell layout, patented by Kodak in 1990, adds a frame number. The code is printed twice per frame, once at the frame (<code>23</code>) and once halfway to the next (<code>23A</code>), so a notch punched by a printing machine never removes every code. The number printed just before a barcode, to its left when reading, is the number it carries. Before frame 0 the numbers count down: <code>00</code> is stored as 63, <code>X</code> as 62 and <code>XX</code> as 61, so Kodak rolls for example run <code>X</code>, <code>XA</code>, <code>00</code>, <code>00A</code>, <code>0</code>.</p>
           <div class="table-scroll">
             <table class="frames-table">
-              <caption data-i18n>Printed label and the value in the frame field</caption>
+              <caption data-i18n>Printed label and the value in the frame field (cells 19–24)</caption>
               <thead><tr><th scope="col" data-i18n>Printed</th><th scope="col" data-i18n>Frame field</th><th scope="col" data-i18n>A cell</th><th scope="col" data-i18n>Also printed as</th></tr></thead>
               <tbody>
+                <tr><td>XX / XXA</td><td>61</td><td data-i18n>empty / bar</td><td></td></tr>
                 <tr><td>X / XA</td><td>62</td><td data-i18n>empty / bar</td><td>S</td></tr>
                 <tr><td>00 / 00A</td><td>63</td><td data-i18n>empty / bar</td><td>K</td></tr>
                 <tr><td>0 / 0A</td><td>0</td><td data-i18n>empty / bar</td><td>F</td></tr>
-                <tr><td>1 … 61</td><td data-i18n>the same number</td><td data-i18n>empty / bar</td><td></td></tr>
+                <tr><td>1 … 60</td><td data-i18n>the same number</td><td data-i18n>empty / bar</td><td></td></tr>
               </tbody>
             </table>
           </div>
@@ -223,7 +212,7 @@
           <p data-i18n>The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When your copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.</p>
 
           <h3 data-i18n>Reading direction and film type</h3>
-          <p data-i18n>Read the code with the wide clock mark first. When the film is the right way round, usually with its shiny base side toward you, the printed numbers beside the barcode read normally and the wide mark is on the left. Seen from the other side, everything is mirrored. On slide film the edge is black and the bars show as clear marks. Faded or scratched codes are common; since the code repeats every half frame, check the next one along if a bar is unclear.</p>
+          <p data-i18n>Read the code with the wide clock mark first. When the film is the right way around, usually with its shiny base side toward you, the printed numbers beside the barcode read normally and the wide mark is on the left. Seen from the other side, everything is mirrored. On slide film the edge is black and the bars show as clear marks. Faded or scratched codes are common; since the code repeats every half frame, check the next one along if a bar is unclear.</p>
 
           <h3 data-i18n>What the code cannot tell you</h3>
           <p data-i18n>The DX number names a product. The product name usually includes the speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.</p>
@@ -238,39 +227,13 @@
         <div id="reference-ui"></div>
       </div>
     </section>
-
-    <section class="band" id="sources" aria-labelledby="sources-title">
-      <div class="wrap prose">
-        <h2 id="sources-title" data-i18n>Sources and credits</h2>
-        <h3 data-i18n>Barcode format</h3>
-        <ul class="sources">
-          <li data-i18n>GB/T 9185-2003, <cite>Photography — 135-size film and magazine — Specifications</cite>, China’s identical adoption of ISO 1007:2000: section 7 for the edge barcode, section 9 for the cassette barcode and Annex A for DX numbers. Wikipedia’s <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> and <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> articles summarize ISO 1007.</li>
-          <li data-i18n>Olliver, Johnson &amp; Patton (Eastman Kodak), <a href="https://patents.google.com/patent/US4965628A/en">US patent 4,965,628</a>, “Photographic film with latent image multi-field bar code and eye-readable symbols”, 1990.</li>
-          <li data-i18n>Fuji Photo Film, <a href="https://patents.google.com/patent/US5122645A/en">US patent 5,122,645</a>, describing the original layout with seven clock bars.</li>
-          <li data-i18n>The DX Film Edge reader in <a href="https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp">zxing-cpp</a> and the generator in <a href="https://github.com/zint/zint/blob/master/backend/dxfilmedge.c">Zint</a> by Antoine Mérino, used to cross-check every rule on this page; Zint’s test vectors are part of this project’s tests.</li>
-          <li data-i18n>Antoine Mérino, <a href="https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/">Identifying the manufacturer of your 35mm (and APS) films</a>, 2024.</li>
-          <li data-i18n>Aurélien Lawley, <a href="https://aurelien.lawley.com.au/posts/decoding_35mm_dx_film_edge_barcodes/">Decoding 35mm DX film edge barcodes</a>.</li>
-          <li data-i18n>alibosworth, <a href="https://github.com/alibosworth/35mm-dx-edge-code/blob/main/readme.md">DX Latent Edge Code — Format Reference</a>.</li>
-        </ul>
-        <h3 data-i18n>Film data</h3>
-        <ul class="sources">
-          <li data-i18n>International Imaging Industry Association, <cite>DX Codes for 135-Size Film</cite>, February 2008: Part 1 assignments and the product list, transcribed as factual data. <a href="https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association">View the document</a>.</li>
-          <li id="community-credit" data-i18n><a href="https://github.com/dxdatabase/Open-source-film-database">The Big Film Database</a> (dxdatabase) © 2018 by Dxdatabase, licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Adapted: only entries with a DX number are kept, the image-name column is removed, “#” search tags are split from names and HTML markup is removed. Thanks also to Antoine Mérino’s <a href="https://thebigfilmdatabase.merinorus.com">modified edition</a>.</li>
-        </ul>
-        <h3 data-i18n>This tool</h3>
-        <p data-i18n>Free software under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3</a>. Source code, tests and data scripts are on <a href="https://github.com/ricebucket/dx-film-edge-decoder">GitHub</a>. Everything runs in your browser: nothing you enter or load, including photos, leaves your device.</p>
-      </div>
-    </section>
   </main>
 
   <footer class="site-footer">
     <div class="wrap">
-      <p data-i18n>DX Film Edge Decoder. Film data: I3A registry (2008) and <a href="#community-credit">The Big Film Database</a> (CC BY-SA 4.0). Code: <a href="https://github.com/ricebucket/dx-film-edge-decoder">GPL-3.0 on GitHub</a>.</p>
+      <p data-i18n>DX Film Edge Decoder. Film data: I3A registry (2008) and <a href="sources.html#community-credit">The Big Film Database</a> (CC BY-SA 4.0). Code: <a href="https://github.com/ricebucket/dx-film-edge-decoder">GPL-3.0 on GitHub</a>. <a href="sources.html">Sources and credits</a></p>
     </div>
   </footer>
 
-  <noscript>
-    <div class="noscript">This decoder needs JavaScript. It runs entirely in your browser and sends nothing anywhere.</div>
-  </noscript>
 </body>
 </html>

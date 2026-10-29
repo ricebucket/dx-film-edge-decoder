@@ -37,8 +37,8 @@ texts. Each file has a single license.
   copyright 2024–2025 Antoine Mérino), with that copyright notice, and is
   licensed under BSD-3-Clause. The tests that use them are in
   `tests/unit/codec.test.mjs`.
-- The web page uses the fonts installed on the visitor's device and no
-  third-party code, and it makes no network requests.
+- The web pages use the fonts installed on the visitor's device and no
+  third-party code, and they make no network requests.
 - Playwright, used for the browser tests, is installed separately and is not
   part of the repository.
 
@@ -46,7 +46,7 @@ texts. Each file has a single license.
 
 ### Barcode format
 
-- Chinese national standard GB/T 9185-2003, *Photography — 135-size film and magazine — Specifications*, an identical adoption of ISO 1007:2000, issued 10 November 2003; Standards Press of China, 2004 — record on the National Public Service Platform for Standards Information: <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>
+- Chinese national standard GB/T 9185-2003, *Photography — 135-size film and magazine — Specifications*, an identical adoption of ISO 1007:2000, issued November 10, 2003; Standards Press of China, 2004 — record on the National Public Service Platform for Standards Information: <https://std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7655ED3A7E05397BE0A0AB82A>
 - Olliver, Johnson & Patton (Eastman Kodak), US patent 4,965,628, *Photographic film with latent image multi-field bar code and eye-readable symbols*, 1990 — <https://patents.google.com/patent/US4965628A/en>
 - Shafer & Easterly (Eastman Kodak), US patent 5,448,049, *Film latent image bar-code (LIBC) reader*, 1995 — <https://patents.google.com/patent/US5448049A/en>
 - Rottner, Lindsay & Clare (Eastman Kodak), US patent 5,665,950, *Fat bit bar code reader*, 1997 — <https://patents.google.com/patent/US5665950A/en>

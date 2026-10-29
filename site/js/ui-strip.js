@@ -115,7 +115,8 @@
       // A photo's barcode, stretched so each cell sits over its own (render's state.photo).
       const photoRow = h('div', { class: 'strip__photo', hidden: true, 'aria-hidden': 'true' },
         h('span', { class: 'strip__photo-label' }, t('Your photo')));
-      const scroller = h('div', { class: 'strip__scroller' }, h('div', { class: 'strip__canvas' }, photoRow, film, annot));
+      // The read-only diagram's scroller is no tab stop (Chromium makes scrolling boxes ones).
+      const scroller = h('div', { class: 'strip__scroller', tabindex: opts.interactive ? null : '-1' }, h('div', { class: 'strip__canvas' }, photoRow, film, annot));
       const swipe = h('p', { class: 'strip__swipe' }, opts.interactive
         ? t('Swipe the strip sideways to reach every cell, or turn your phone to landscape.')
         : t('Swipe sideways to see the whole code.'));

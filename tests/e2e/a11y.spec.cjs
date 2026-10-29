@@ -76,5 +76,13 @@ for (const lang of LANGUAGES) {
       await expect(page.locator('#strip .track--data button.is-bar')).toHaveCount(0);
       expect(await problems(page, '#decoder')).toEqual([]);
     });
+
+    test(`axe finds no WCAG A or AA problems on the sources page (${lang}, ${colorScheme})`, async ({ page }) => {
+      await page.addInitScript((code) => localStorage.setItem('dx-lang', code), lang);
+      await page.emulateMedia({ colorScheme });
+      await page.goto('/sources.html');
+      await expect(page.locator('#lang-select option')).toHaveCount(LANGUAGES.length);
+      expect(await problems(page)).toEqual([]);
+    });
   }
 }

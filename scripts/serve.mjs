@@ -21,7 +21,8 @@ const TYPES = {
 
 const server = createServer(async (req, res) => {
   try {
-    const path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    // The path as requested: resolved against a base, "//other.host/" would name another host.
+    const path = decodeURIComponent(new URL(`http://localhost${req.url}`).pathname);
     let file = normalize(join(ROOT, path));
     if (file !== ROOT && !file.startsWith(ROOT + sep)) {
       res.writeHead(403).end('Forbidden');

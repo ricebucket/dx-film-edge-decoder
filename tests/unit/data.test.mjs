@@ -5,7 +5,12 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { buildData } from '../../scripts/build-data.mjs';
 import { communityStats } from '../../scripts/community-stats.mjs';
+import { resolveCommit, sourceRecord } from '../../scripts/update-community-data.mjs';
+import { parseCsv } from '../../scripts/lib/csv.mjs';
 import { SHOTS } from '../../scripts/screenshots.mjs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, symlinkSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const require = createRequire(import.meta.url);
 const ROOT = new URL('../..', import.meta.url).pathname;
@@ -123,6 +128,31 @@ describe('community data', () => {
   });
 });
 
+describe('updating the community data (scripts/update-community-data.mjs)', () => {
+  test('--commit takes only a full commit hash, as source.json records it', async () => {
+    const full = community.source.commit;
+    assert.equal(await resolveCommit(['--commit', full], null), full);
+    await assert.rejects(resolveCommit(['--commit', full.slice(0, 7)], null), /full 40-character/);
+    await assert.rejects(resolveCommit(['--commit'], null), /full 40-character/);
+    assert.equal(await resolveCommit([], community.source), full);
+  });
+
+  test('a quote left open stops the CSV reader, instead of swallowing the rows after it', () => {
+    assert.deepEqual(parseCsv('a;b\n1;"x;""y"""\n2;3\n', ';'), [['a', 'b'], ['1', 'x;"y"'], ['2', '3']]);
+    assert.throws(() => parseCsv('a;b\n1;"open\n2;3\n4;5\n', ';'), /quote is not closed/);
+  });
+
+  test('downloading the recorded commit again leaves source.json as it is', async () => {
+    const text = await readFile(join(ROOT, 'data/big-film-database/source.json'), 'utf8');
+    const recorded = JSON.parse(text);
+    const later = new Date('2030-01-15T12:00:00Z');
+    const again = sourceRecord(recorded, recorded, later);
+    assert.equal(`${JSON.stringify(again, null, 2)}\n`, text);
+    // Another commit is dated the day it is downloaded.
+    assert.equal(sourceRecord(Object.assign({}, recorded, { commit: 'f'.repeat(40) }), recorded, later).retrieved, '2030-01-15');
+  });
+});
+
 describe('documentation screenshots', () => {
   test('those that show community entries are the ones REUSE.toml puts under CC BY-SA', async () => {
     const reuse = await readFile(join(ROOT, 'REUSE.toml'), 'utf8');
@@ -132,6 +162,19 @@ describe('documentation screenshots', () => {
       assert.equal(ccBySa.includes(`"${shot.file}*.png"`), Boolean(shot.communityData), shot.file);
       const dx = /dx=(\d+)-(\d+)/.exec(shot.query);
       if (dx) assert.equal(lookup.byDx(Number(dx[1]), Number(dx[2])).community.length > 0, Boolean(shot.communityData), shot.file);
+    }
+  });
+});
+
+describe('the scripts', () => {
+  test('run when the project is reached through a symbolic link, instead of quietly doing nothing', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dx-link-'));
+    try {
+      symlinkSync(ROOT, join(dir, 'repo'));
+      const run = spawnSync(process.execPath, [join(dir, 'repo', 'scripts', 'build-data.mjs'), '--check'], { encoding: 'utf8' });
+      assert.match(run.stdout, /Up to date/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
     }
   });
 });

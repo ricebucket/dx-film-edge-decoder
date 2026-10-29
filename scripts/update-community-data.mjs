@@ -3,7 +3,7 @@
 //
 //   node scripts/update-community-data.mjs              # the commit in source.json (reproducible)
 //   node scripts/update-community-data.mjs --latest     # newest commit that changed film_database.csv
-//   node scripts/update-community-data.mjs --commit <sha>
+//   node scripts/update-community-data.mjs --commit <full 40-character hash>
 //
 // The steps that follow an update are in data/README.md, "Updating the data".
 //
@@ -16,26 +16,52 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { parseCsv, formatCsv } from './lib/csv.mjs';
+import { isMain } from './lib/main.mjs';
 
 const REPO = 'dxdatabase/Open-source-film-database';
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'big-film-database');
 
-async function resolveCommit(args) {
+/** The commit to download: the one named, the newest (--latest) or the one recorded. */
+export async function resolveCommit(args, recorded) {
   const i = args.indexOf('--commit');
   if (i !== -1) {
-    if (!/^[0-9a-f]{7,40}$/.test(args[i + 1] || '')) throw new Error('--commit needs a commit hash');
+    // GitHub also serves a short hash, but one can become ambiguous as the repository grows.
+    if (!/^[0-9a-f]{40}$/.test(args[i + 1] || '')) throw new Error('--commit needs the full 40-character commit hash');
     return args[i + 1];
   }
-  if (!args.includes('--latest')) {
-    return JSON.parse(await readFile(join(OUT_DIR, 'source.json'), 'utf8')).commit;
-  }
+  if (!args.includes('--latest')) return recorded.commit;
   const res = await fetch(`https://api.github.com/repos/${REPO}/commits?path=film_database.csv&per_page=1`);
   if (!res.ok) throw new Error(`GitHub API: HTTP ${res.status}`);
   return (await res.json())[0].sha;
 }
 
+/**
+ * What source.json records. Downloaded again, the recorded commit keeps the
+ * date it was first retrieved: a commit's content never changes, so the files
+ * stay unchanged.
+ */
+export function sourceRecord({ commit, rowsUpstream, rowsKept }, recorded, today = new Date()) {
+  return {
+    title: 'The Big Film Database',
+    author: 'Dxdatabase',
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    repository: `https://github.com/${REPO}`,
+    commit,
+    file: 'film_database.csv',
+    retrieved: recorded && recorded.commit === commit ? recorded.retrieved : today.toISOString().slice(0, 10),
+    rowsUpstream,
+    rowsKept,
+    changes: [
+      'Kept only rows with a "DX extract" or "DX full" number.',
+      'Removed the "Pic" column (box-image file names).',
+    ],
+  };
+}
+
 async function main() {
-  const commit = await resolveCommit(process.argv.slice(2));
+  const recorded = JSON.parse(await readFile(join(OUT_DIR, 'source.json'), 'utf8'));
+  const commit = await resolveCommit(process.argv.slice(2), recorded);
   const url = `https://raw.githubusercontent.com/${REPO}/${commit}/film_database.csv`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
@@ -60,28 +86,15 @@ async function main() {
   const dropPic = (r) => r.filter((_, i) => i !== pic);
   await writeFile(join(OUT_DIR, 'film_database_dx.csv'), formatCsv([dropPic(header), ...keep.map(dropPic)], ';'));
 
-  const source = {
-    title: 'The Big Film Database',
-    author: 'Dxdatabase',
-    license: 'CC BY-SA 4.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
-    repository: `https://github.com/${REPO}`,
-    commit,
-    file: 'film_database.csv',
-    retrieved: new Date().toISOString().slice(0, 10),
-    rowsUpstream: rows.length,
-    rowsKept: keep.length,
-    changes: [
-      'Kept only rows with a "DX extract" or "DX full" number.',
-      'Removed the "Pic" column (box-image file names).',
-    ],
-  };
+  const source = sourceRecord({ commit, rowsUpstream: rows.length, rowsKept: keep.length }, recorded);
   await writeFile(join(OUT_DIR, 'source.json'), JSON.stringify(source, null, 2) + '\n');
   console.log(`Kept ${keep.length} of ${rows.length} rows from ${REPO}@${commit.slice(0, 7)}`);
   console.log('Next: npm run build:data, then follow "Updating the data" in data/README.md.');
 }
 
-main().catch((err) => {
-  console.error(err.message);
-  process.exit(1);
-});
+if (isMain(import.meta)) {
+  main().catch((err) => {
+    console.error(err.message);
+    process.exit(1);
+  });
+}

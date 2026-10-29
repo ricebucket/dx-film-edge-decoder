@@ -58,14 +58,14 @@ GB/T 9185-2003 specifies these fields one by one, from the start pattern
 (§7.2.1.1) to the stop pattern (§7.2.1.8), and draws a 31-cell code in its
 Figure 1f. Its details match the table: the last cell of the start pattern is
 always a gap; Part 1 is cells 7–13 and Part 2 cells 15–18, each with its first
-cell as the most significant; the frame field is cells 19–25, where a bar in
-cell 25 is the half-frame "flag"; cells 14 and 26 are unassigned gaps, and
-cell 26 exists only when the frame field does. Wikipedia's *DX number* article
+cell as the most significant; the frame row is cells 19–25: the frame field
+in cells 19–24 and, in cell 25, the half-frame "flag"; cells 14 and 26 are
+unassigned gaps, and cell 26 exists only when the frame row does. Wikipedia's *DX number* article
 lists the same fields under the section numbers §6.1.1.1 (entry code) to
 §6.1.1.8 (exit code). Wikipedia's *DX encoding* article describes the frame and
 half-frame bits together as "a seven-bit frame/half-frame number", which
 matches the Kodak patent's "seven bits defining the frame number … defined as
-half frame intervals" and the standard's seven-cell frame field.
+half frame intervals" and the standard's seven-cell frame row.
 
 ## The 23-cell layout (no frame number)
 
@@ -218,7 +218,7 @@ Kodak's and Wikipedia's usage refers to the frame-number extension.
   This project's shareable links use the same form (`?dx=79-15/23`). It
   rejects codes whose unused cells hold a bar, whose parity fails or whose
   Part 1 is 0, and accepts runs of up to 20 equal cells, the longest possible
-  in a valid data track (for example `96-0/0`).
+  in a valid data track whose Part 1 is not 0 (for example `96-0/0`).
 - **Zint** (generator) accepts the same text form, a four-digit "DX extract"
   (16 × Part 1 + Part 2, 16 to 2047) or a six-digit "DX full" cassette number,
   and the frame labels `X`/`S` (62), `00`/`K` (63) and `F` (0).

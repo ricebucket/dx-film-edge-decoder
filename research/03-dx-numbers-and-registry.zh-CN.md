@@ -8,9 +8,9 @@
 
 DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7 位（0–127），第 2 部分有 4 位（0–15）。该标准把 0–127 都算作有效的第 1 部分编号（附录 A.3.1），所以共有 2,048 个可能的 DX 码；2008 年的列表没有分配 0。DX 码代表一种胶片产品；它的各位并不编码感光度或加工工艺，这些由产品决定（alibosworth；维基百科 *DX number*）。不过该标准把第 1 部分和加工工艺联系在一起：同一个第 1 部分编号下的所有胶片都应使用同样的加工方法，例如彩色负片、彩色反转片或黑白片（附录 A.3.3）。2008 年列表中的产品名称大多带有感光度，但并非全部。
 
-暗盒上也使用同一个 DX 码，暗盒条码数字的中间四位为 16 × 第 1 部分 + 第 2 部分（见下文）。柯达 1990 年的专利把这对数字称为“NAPM number”（NAPM 编号），这个名称来自最早分配第 1 部分编号的 National Association of Photographic Manufacturers（全国摄影器材制造商协会）。这项工作后来先后移交给 PIMA 和 I3A（alibosworth 对这段沿革的总结）；维基百科称 I3A “published and sold a proprietary list of DX numbers … yearly or as needed”（每年或按需出版并出售一份专有的 DX 码列表），最后一版的日期为 2009 年 1 月。网上没有找到这一版。The Big Film Database 提到了从影像科学与技术学会（IS&T）获得的 2011–2014 年 DX 码，这些 DX 码尚未公开。
+暗盒上也使用同一个 DX 码，暗盒条码的中间四位为 16 × 第 1 部分 + 第 2 部分（见下文）。柯达 1990 年的专利把这对数字称为“NAPM number”（NAPM 编号），这个名称来自最早分配第 1 部分编号的 National Association of Photographic Manufacturers（全国摄影器材制造商协会）。这项工作后来先后移交给 PIMA 和 I3A（alibosworth 对这段沿革的总结）；维基百科称 I3A “published and sold a proprietary list of DX numbers … yearly or as needed”（每年或按需出版并出售一份专有的 DX 码列表），最后一版的日期为 2009 年 1 月。网上没有找到这一版。The Big Film Database 提到了从影像科学与技术学会（IS&T）获得的 2011–2014 年 DX 码，这些 DX 码尚未公开。
 
-该标准的附录 A 说明了 2000 年时由 PIMA 主管的分配程序（A.3、A.5）。感光厂，即把乳剂涂布到片基上的制造厂（A.2.1.1），向 PIMA 书面申请第 1 部分编号，可以申请某个特定的编号，并须在 36 个月后确认保留它。第 2 部分编号（0 到 15）由感光厂自己分配，每推出一种新产品，就把产品名称和编号报告给 PIMA；PIMA 发布年度报告，列出已分配的第 1 部分编号所占的比例、每家感光厂的名称，以及每个第 1 部分/第 2 部分组合及其产品名称。下文 2008 年列表的结构正是如此。整理厂，即对感光胶片进行各种操作、包括在 135 暗盒和胶片上附加 DX 码的公司，从感光厂取得 DX 码；PIMA 不给整理厂分配 DX 码（A.2.1.2、A.3.7）。几种产品只要加工工艺相同，就可以共用一个 DX 码（A.3.8）。
+该标准的附录 A 说明了 2000 年时由 PIMA 主管的分配程序（A.3、A.5）。感光厂，即把乳剂涂布到片基上的制造厂（A.2.1.1），向 PIMA 书面申请第 1 部分编号，可以申请某个特定的编号，并须在颁布日期 36 个月后确认保留它。第 2 部分编号（0 到 15）由感光厂自己分配，每推出一种新产品，就把产品名称和编号报告给 PIMA；PIMA 发布年度报告，列出已分配的第 1 部分编号所占的比例、每家感光厂的名称，以及每个第 1 部分/第 2 部分组合及其产品名称。下文 2008 年列表的结构正是如此。整理厂，即对感光胶片进行各种操作、包括在 135 暗盒和胶片上附加 DX 码的公司，从感光厂取得 DX 码；PIMA 不给整理厂分配 DX 码（A.2.1.2、A.3.7）。几种产品只要加工工艺相同，就可以共用一个 DX 码（A.3.8）。
 
 ## 2008 年 2 月的列表
 
@@ -33,7 +33,7 @@ DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7
 | SVEMA Production | 1 | 1 |
 | Xiamen FUDA | 1 | 3 |
 
-**产品列表**。每家感光厂下有若干行，每行是第 1 部分、第 2 部分和产品名称。Agfa-Gevaert、Eastman Kodak 和 Konica Minolta 把各自的行分为两类：“DX numbers that are currently being used”（目前正在使用的 DX 码），以及“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片；本工具把这一区分显示为“2008 年仍在生产”或“2008 年前已停产”。列表共印有 389 行。
+**产品列表**。每家感光厂下有若干行，每行是第 1 部分、第 2 部分和产品名称。Agfa-Gevaert、Eastman Kodak 和 Konica Minolta 把各自的行分为两类：“DX numbers that are currently being used”（目前正在使用的 DX 码），以及“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片；本工具把这一区分显示为“2008 年仍在生产”或“截至 2008 年已停产”。列表共印有 389 行。
 
 ### 文件中发现的不寻常之处
 
@@ -41,7 +41,7 @@ DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7
 - 爱克发有三行（第 1 部分为 17，第 2 部分为 2）各印了两次；本工具每行只保留一份，剩下 386 行。
 - Shanghai General 的四个品牌（Shenguang、Shanghai、Seagull、Rainbow）的第 2 部分标为“not identified”（未指明），因此在第 1 部分为 88 时，任何第 2 部分都与它们匹配。
 - Ferrania 的第 2 部分编号印成带前导零的形式（`01` … `10`）。
-- 有 17 个 DX 码由两个或更多产品共用，例如 `3-9` 由五种 Agfachrome 和 Perutz 反转片共用，`95-2` 由 Kodak High Definition 400 和 Kodak Hawkeye Traffic Surveillance 胶片共用，这是该标准允许的。本工具会把它们全部显示出来。
+- 有 16 个 DX 码由两个或更多产品共用，例如 `3-9` 由五种 Agfachrome 和 Perutz 反转片共用，`95-2` 由 Kodak High Definition 400 和 Kodak Hawkeye Traffic Surveillance 胶片共用，这是该标准允许的；Shanghai General 的四个品牌也共用第 1 部分 88。本工具会把它们全部显示出来。
 - 列表中没有把 Harman Technologies 称为 ILFORD；它的产品（HP5 PLUS、FP4 PLUS、DELTA 等）都是 ILFORD 胶片，而且维基百科的表格把这些编号标为“Ilford Photo”，所以本工具在括号里加上了这个名称。
 
 ### 列表是如何转录的
@@ -66,7 +66,7 @@ DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7
 | HHHH | 16 × 第 1 部分 + 第 2 部分，例如 79-15 → `1279` |
 | E | 可拍摄画幅数，见下表 |
 
-ISO 1007:2000 修改了 E 位的含义，以容纳更多的胶片长度（GB/T 9185-2003 前言，第 e 项）：
+与 GB/T 9185-1996（即 1993 年草案）相比，ISO 1007:2000 修改了 E 位的含义，以容纳更多的胶片长度（GB/T 9185-2003 前言，第 e 项）：
 
 | E | 维基百科引用的 ANSI/NAPM IT1.14:1994 | GB/T 9185-2003（ISO 1007:2000），表 9 |
 |---|---|---|

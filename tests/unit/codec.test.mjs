@@ -237,6 +237,9 @@ describe('frame numbers', () => {
     for (const bad of ['', 'A', '64', '123', '2B', 'XXX', null]) assert.equal(dx.parseFrameLabel(bad), null, String(bad));
     // Full-width, as a Chinese input method may type it.
     assert.deepEqual(dx.parseFrameLabel('２３Ａ'), { frame: 23, half: true });
+    // As the standard prints the X labels (GB/T 9185-2003, Table 5).
+    assert.deepEqual(dx.parseFrameLabel('\u00D7'), { frame: 62, half: false });
+    assert.deepEqual(dx.parseFrameLabel('\u00D7\u00D7A'), { frame: 61, half: true });
   });
 
   test('half-frame index counts 0, 0A, 1, 1A … as 0, 1, 2, 3 …', () => {
@@ -269,6 +272,24 @@ describe('DX numbers and cassette codes', () => {
     // Full-width, as a Chinese input method may type it.
     assert.deepEqual(dx.parseDxNumber('７９－１５'), { part1: 79, part2: 15, kind: 'parts' });
     assert.equal(dx.parseDxNumber('３１５２２３').kind, 'cassette');
+  });
+
+  test('parseDxNumber also reads "DX" in front, leading zeros and other dashes', () => {
+    const parts = { part1: 79, part2: 15, kind: 'parts' };
+    // As the page itself writes numbers; a run of dashes, as a Chinese input
+    // method types "——"; the hyphen, non-breaking hyphen and minus signs.
+    for (const q of ['DX 79-15', 'dx79-15', 'DX-79-15', '0079-15', '79——15', '79\u201015', '79\u201115', '79\u221215']) {
+      assert.deepEqual(dx.parseDxNumber(q), parts, q);
+    }
+    // Four digits and two, split by a hyphen: Part 1 with zeros, not cassette 011201.
+    assert.deepEqual(dx.parseDxNumber('0112-01'), { part1: 112, part2: 1, kind: 'parts' });
+    // Parts out of range can still be a cassette number written with a hyphen, or any dash.
+    assert.equal(dx.parseDxNumber('0127-94').kind, 'cassette');
+    assert.equal(dx.parseCassette('0127\u201394').dxNumber, '79-15');
+    // Long input is refused at once (no backtracking over the spaces).
+    const started = Date.now();
+    assert.equal(dx.parseDxNumber(`79${' '.repeat(50000)}x`), null);
+    assert.ok(Date.now() - started < 100);
   });
 
   test('parseDxNumber does not read a lone Part 1 as an extract', () => {

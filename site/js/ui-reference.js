@@ -69,8 +69,11 @@
           h('th', { scope: 'row' }, t('Earlier assignments')),
           h('td', null, h('ul', { class: 'history' }, history.map((u) => h('li', null, `${u.part1}: ${u.previously}`)))))));
 
+    /** The DX number as listed: Shanghai's four brands have no Part 2. */
+    const label = (p) => (p.wildcard ? `${p.part1}-?` : codec.formatDxNumber(p.part1, p.part2));
+
     function rowFor(p) {
-      const dx = p.wildcard ? `${p.part1}-?` : codec.formatDxNumber(p.part1, p.part2);
+      const dx = label(p);
       const show = h('button', { type: 'button', class: 'tool tool--small', disabled: p.wildcard ? true : null,
         'aria-label': p.wildcard ? null : t('Show the barcode of {name}', { name: p.name }),
         title: p.wildcard ? t('Part 2 not identified in the registry') : null }, t('Show'));
@@ -84,14 +87,22 @@
     }
 
     function render() {
-      const q = text.value.trim().toLowerCase();
+      // As the finder reads it: full-width characters, "DX" in front, any
+      // dash, and a DX number in any form ("79 15", "1279", "012794").
+      const q = text.value.normalize('NFKC').trim().toLowerCase();
+      const typed = q.replace(/^dx\s*/, '').replace(/\s*[-\u2010-\u2015\u2212]+\s*/g, '-');
+      // A bare number such as "200" is more likely a film speed than a DX
+      // extract: only "DX 200" or four digits ("1279") are read as one.
+      const read = q ? codec.parseDxNumber(q) : null;
+      const dx = read && (read.kind !== 'extract' || /^dx/.test(q) || /^\d{4}$/.test(q)) ? read : null;
       const m = maker.value === '' ? null : lookup.sensitizers[Number(maker.value)];
       const st = status.value;
       const rows = lookup.products
         .filter((p) => part1Filter.value === null || p.part1 === part1Filter.value)
         .filter((p) => !m || p.sensitizer === m)
         .filter((p) => !st || (st === 'live') === p.inUse)
-        .filter((p) => !q || p.name.toLowerCase().includes(q) || codec.formatDxNumber(p.part1, p.part2 || 0).startsWith(q))
+        .filter((p) => !q || p.name.toLowerCase().includes(q) || label(p).startsWith(typed)
+          || (dx !== null && p.part1 === dx.part1 && (p.wildcard || p.part2 === dx.part2)))
         .sort((a, b) => a.part1 - b.part1 || (a.part2 === null ? -1 : a.part2) - (b.part2 === null ? -1 : b.part2) || a.name.localeCompare(b.name));
       tbody.replaceChildren(...rows.map(rowFor));
       clearPart1.hidden = part1Filter.value === null;

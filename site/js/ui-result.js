@@ -33,12 +33,16 @@
     }[value] || value;
   }
 
+  /** Everything communityItem shows, except the cassette number: rows alike in this look like one film. */
+  function communityKey(e) {
+    return JSON.stringify([e.name, e.manufacturer, e.original, e.reliability, e.country, e.from, e.to, e.distributor, e.availability]);
+  }
+
   /** Merge community rows that differ only by cassette number (e.g. 24 and 36 exposures). */
   function groupCommunity(entries) {
     const groups = new Map();
     for (const e of entries) {
-      // Everything communityItem shows, except the cassette number.
-      const key = JSON.stringify([e.name, e.manufacturer, e.original, e.reliability, e.country, e.from, e.to, e.distributor, e.availability]);
+      const key = communityKey(e);
       const g = groups.get(key);
       if (g) {
         if (e.full && !g.cassettes.includes(e.full)) g.cassettes.push(e.full);
@@ -79,14 +83,21 @@
     if (y) facts.push(y);
     if (e.country) facts.push(e.country);
     if (e.distributor) facts.push(t('sold by {distributor}', { distributor: e.distributor }));
+    // How sure the database is: after the notes, or on its own line where there
+    // are none (two entries, both rated 0, a guess).
+    const certainty = (...text) => h('span', { class: 'certainty', title: t('How sure the database is about this (0 = guess, 4 = certain)') }, ...text);
+    let notes = null;
+    if (e.original) {
+      notes = h('span', { class: 'match__original' }, t('Notes: {notes}', { notes: e.original }),
+        e.reliability !== null ? certainty(p.space, t('(certainty {n}/4)', { n: e.reliability })) : null);
+    } else if (e.reliability !== null) {
+      notes = h('span', { class: 'match__original' }, certainty(t('Certainty {n}/4', { n: e.reliability })));
+    }
     return h('li', { class: 'match match--community' },
       h('span', { class: 'match__name' }, e.name),
       e.availability ? h('span', { class: `pill pill--${e.availability === 'on the market' ? 'live' : 'gone'}` }, availabilityLabel(e.availability)) : null,
       facts.length ? h('span', { class: 'match__facts' }, facts.join(p.comma) + p.period) : null,
-      e.original
-        ? h('span', { class: 'match__original' }, t('Notes: {notes}', { notes: e.original }),
-          e.reliability !== null ? h('span', { class: 'certainty', title: t('How sure the database is about this (0 = guess, 4 = certain)') }, ' ', t('(certainty {n}/4)', { n: e.reliability })) : null)
-        : null,
+      notes,
       e.cassettes.length ? h('span', { class: 'match__cassette' }, i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.comma) })) : null);
   }
 
@@ -102,12 +113,16 @@
     if (!groups.length) return null;
     const list = h('ul', { class: 'matches' }, groups.slice(0, COMMUNITY_PREVIEW).map(communityItem));
     const block = h('div', { class: 'source-block' },
-      h('h4', { class: 'source-block__title' }, 'The Big Film Database'),
+      h('h3', { class: 'source-block__title' }, 'The Big Film Database'),
       list);
     if (groups.length > COMMUNITY_PREVIEW) {
       const more = h('button', { type: 'button', class: 'text-button' }, t('Show all {n}', { n: groups.length }));
       more.addEventListener('click', () => {
         list.replaceChildren(...groups.map(communityItem));
+        // The button goes: carry on at the first entry it brought.
+        const first = list.children[COMMUNITY_PREVIEW];
+        first.tabIndex = -1;
+        first.focus();
         more.remove();
       });
       block.append(more);
@@ -187,7 +202,16 @@
       await navigator.clipboard.writeText(text);
       button.textContent = done;
     } catch (e) {
-      button.textContent = t('Copy failed: select and copy by hand');
+      // No clipboard (a page over plain http, say): the text to copy, chosen already.
+      button.textContent = t('Copy failed: copy the link below');
+      let field = button.parentNode.querySelector('.copy-field');
+      if (!field) {
+        field = h('input', { type: 'text', class: 'input copy-field', readonly: true, 'aria-label': t('Link to this code') });
+        button.after(field);
+      }
+      field.value = text;
+      field.focus();
+      field.select();
     }
     button.resetTimer = setTimeout(() => { button.textContent = button.dataset.label; }, 1800);
   }
@@ -257,7 +281,8 @@
         h('span', { class: 'fix__what' }, name ? t('{code}: {name}', { code, name }) : t('{code} (not in the lists)', { code }))));
     };
     const block = h('div', { class: 'fixes' },
-      h('h3', { class: 'fixes__title' }, t('Possible one-bar corrections')),
+      // Not a heading: it comes before the result's own heading.
+      h('p', { class: 'fixes__title' }, t('Possible one-bar corrections')),
       known.length ? h('ul', { class: 'fixes__list' }, known.map(item)) : h('p', { class: 'fineprint' }, t('No single-bar correction gives a listed film.')));
     if (unknown.length) {
       const list = h('ul', { class: 'fixes__list' }, unknown.map(item));
@@ -289,7 +314,7 @@
         : t('Part 1 = {part1} is assigned to {maker}.', part1)));
     } else {
       lines.push(h('p', { class: 'result__lead' }, t('Part 1 = {part1} was not assigned to any manufacturer in the 2008 registry.', part1),
-        info.part1Info.previously ? [' ', t('History: {history}', { history: info.part1Info.previously })] : ''));
+        info.part1Info.previously ? [i18n.punctuation().space, t('History: {history}', { history: info.part1Info.previously })] : ''));
     }
     if (!products.length && groups.length) {
       lines.push(h('p', { class: 'fineprint' }, t('DX {dx} is not in the 2008 registry; the name above comes from the community database.', part1)));
@@ -300,7 +325,7 @@
 
     if (products.length) {
       parts.push(h('div', { class: 'source-block' },
-        h('h4', { class: 'source-block__title' }, t('I3A registry, 2008')),
+        h('h3', { class: 'source-block__title' }, t('I3A registry, 2008')),
         h('ul', { class: 'matches' }, products.map(productItem))));
     }
     const cb = communityBlock(info.community, d);
@@ -405,6 +430,7 @@
   root.DX.ui = root.DX.ui || {};
   root.DX.ui.renderResult = renderResult;
   root.DX.ui.groupCommunity = groupCommunity;
+  root.DX.ui.communityKey = communityKey;
   root.DX.ui.sensitizerName = sensitizerName;
   root.DX.ui.communityItem = communityItem;
   root.DX.ui.bfdLink = bfdLink;

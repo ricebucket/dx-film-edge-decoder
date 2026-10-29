@@ -16,6 +16,94 @@ test('the page is self-contained: every request stays on the site', async ({ pag
   check();
 });
 
+test.describe('without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('the page says it needs JavaScript in every language it has, since it cannot tell which is wanted', async ({ page }) => {
+    await page.goto('/?lang=zh-CN');
+    await expect(page.locator('.noscript p[lang="en"]')).toHaveText(/^This decoder needs JavaScript\./);
+    await expect(page.locator('.noscript p[lang="zh-CN"]')).toHaveText(/^这个解码器需要 JavaScript。/);
+  });
+});
+
+test('in Windows contrast themes the strip keeps its film and bars, and pressed controls stand out', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.goto('/?dx=79-15/23');
+  const bar = await page.locator('#strip .track--data [data-cell="1"]').evaluate((el) => getComputedStyle(el).backgroundColor);
+  const gap = await page.locator('#strip .track--data [data-cell="2"]').evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bar).not.toBe(gap);
+  const style = (name) => page.locator('[data-control="format"]').getByRole('button', { name }).evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(await style('11 thin bars')).not.toBe(await style('7 thin bars'));
+});
+
+test('in Windows contrast themes the labels around the strip take the theme\'s colors, and the steps\' buttons show when on', async ({ page, browserName, isMobile }) => {
+  test.skip(browserName !== 'chromium' || isMobile, 'contrast themes are a Windows desktop feature');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.goto('/?dx=79-15/23');
+  const adjust = (sel) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).forcedColorAdjust);
+  expect(await adjust('#strip .film')).toBe('none');
+  expect(await adjust('#strip .annot')).toBe('auto');
+  const mirror = page.locator('.inline-button[data-for="mirror-toggle"]').first();
+  const before = await mirror.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await mirror.click();
+  await expect(mirror).toHaveAttribute('aria-pressed', 'true');
+  expect(await mirror.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(before);
+});
+
+test('without JavaScript the notice comes first, before the decoder that needs it', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto('/');
+  const notice = await page.locator('.noscript').boundingBox();
+  const decoder = await page.locator('#decoder').boundingBox();
+  expect(notice.y).toBeLessThan(decoder.y);
+  await context.close();
+});
+
+test('on a phone, "Copy failed" and the bar above the strip stay inside the page', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto('/?dx=79-15/23');
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }));
+  await page.getByRole('button', { name: 'Copy link' }).click();
+  await expect(page.getByRole('button', { name: 'Copy failed: copy the link below' })).toBeVisible();
+  expect(await sideOverflow(page)).toEqual([]);
+  // The longest "back" button, after a cassette lookup.
+  await page.locator('#cassette-code').fill('017563');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await page.getByRole('button', { name: 'Show the edge barcode' }).click();
+  const fits = await page.locator('#source').evaluate((bar) => {
+    const edge = bar.getBoundingClientRect().right - parseFloat(getComputedStyle(bar).paddingRight);
+    return [...bar.querySelectorAll('button')].every((b) => b.getBoundingClientRect().right <= edge + 0.5);
+  });
+  expect(fits).toBe(true);
+});
+
+test('a pressed button stays legible under the mouse', async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  const mirror = page.locator('#toolbar').getByRole('button', { name: 'Mirror' });
+  await mirror.click(); // the mouse stays on it
+  const { color, background } = await mirror.evaluate((el) => ({ color: getComputedStyle(el).color, background: getComputedStyle(el).backgroundColor }));
+  expect(color).not.toBe(background);
+  expect(background).not.toBe('rgb(255, 255, 255)');
+});
+
+test('the browser bar follows the theme chosen on the page', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/');
+  await page.locator('#theme-toggle').click(); // to dark
+  const colors = await page.locator('meta[name="theme-color"]').evaluateAll((metas) => metas.map((m) => [m.getAttribute('media'), m.getAttribute('content')]));
+  expect(colors).toEqual([[null, '#151c23'], [null, '#151c23']]);
+});
+
+test('headings step down one level at a time, and the help button is named by its words', async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  await expect(page.locator('#result h4')).toHaveCount(0);
+  await expect(page.locator('#result h3.source-block__title').first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Which layout do I have?', exact: true })).toBeVisible();
+  // The read-only diagram in "How it works" is no tab stop.
+  await expect(page.locator('#layout-figure .strip__scroller')).toHaveAttribute('tabindex', '-1');
+});
+
 test('it also works opened straight from disk (file://)', async ({ page }) => {
   const check = watchConsole(page);
   await page.goto(pathToFileURL(path.join(__dirname, '..', '..', 'site', 'index.html')).href);
@@ -24,6 +112,43 @@ test('it also works opened straight from disk (file://)', async ({ page }) => {
   await page.locator('#finder-q').fill('hp5 plus');
   await page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode of / }).click();
   await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
+  check();
+});
+
+test('the sources and credits have a page of their own, reached from the footer', async ({ page, baseURL }) => {
+  const check = watchConsole(page);
+  const requests = [];
+  page.on('request', (req) => requests.push(req.url()));
+  await page.goto('/?dx=79-15/23');
+  await expect(page.locator('#community-credit')).toHaveCount(0);
+  const footer = page.locator('.site-footer');
+  await footer.getByRole('link', { name: 'The Big Film Database' }).click();
+  await expect(page).toHaveURL(/\/sources\.html#community-credit$/);
+  await expect(page).toHaveTitle('Sources and credits – DX Film Edge Decoder');
+  await expect(page.locator('h1')).toHaveText('Sources and credits');
+  await expect(page.locator('#community-credit')).toContainText('licensed under CC BY-SA 4.0');
+  // Back on the decoder, the code is still on the strip.
+  await page.goBack();
+  await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
+  // The header works on the sources page too: a theme chosen there stays, and the name leads back.
+  await footer.getByRole('link', { name: 'Sources and credits' }).click();
+  await expect(page).toHaveURL(/\/sources\.html$/);
+  await page.locator('#theme-toggle').click();
+  const theme = await page.evaluate(() => document.documentElement.dataset.theme);
+  await page.getByRole('link', { name: 'DX Film Edge Decoder', exact: true }).click();
+  await expect(page).toHaveURL(/\/index\.html$/);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  const external = requests.filter((u) => !u.startsWith(baseURL) && !u.startsWith('data:') && !u.startsWith('blob:'));
+  expect(external).toEqual([]);
+  check();
+});
+
+test('the sources page also works opened straight from disk (file://)', async ({ page }) => {
+  const check = watchConsole(page);
+  await page.goto(pathToFileURL(path.join(__dirname, '..', '..', 'site', 'index.html')).href);
+  await page.locator('.site-footer').getByRole('link', { name: 'Sources and credits' }).click();
+  await expect(page.locator('h1')).toHaveText('Sources and credits');
+  await expect(page.locator('#lang-select option')).toHaveCount(2);
   check();
 });
 
@@ -41,7 +166,7 @@ test('the theme choice is remembered', async ({ page }) => {
 
 test('the film look is remembered', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'B&W negative' }).click();
+  await page.getByRole('button', { name: 'Black-and-white negative' }).click();
   await page.reload();
   await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'bw');
 });
@@ -59,10 +184,10 @@ test('the film look is saved when chosen, not on every edit', async ({ page }) =
   await dataCell(page, 8).click();
   await dataCell(page, 9).click();
   expect(await page.evaluate(() => window.prefWrites)).toBe(0);
-  await page.getByRole('button', { name: 'B&W negative' }).click();
+  await page.getByRole('button', { name: 'Black-and-white negative' }).click();
   expect(await page.evaluate(() => window.prefWrites)).toBe(1);
   // Choosing the look already shown saves it too: another tab may have saved a different one.
-  await page.getByRole('button', { name: 'B&W negative' }).click();
+  await page.getByRole('button', { name: 'Black-and-white negative' }).click();
   expect(await page.evaluate(() => window.prefWrites)).toBe(2);
 });
 
@@ -101,7 +226,7 @@ test('the film look is picked from small pieces of film under the strip, in its 
   // Not in the toolbar, whose buttons change the code.
   await expect(page.locator('#toolbar [data-control="look"]')).toHaveCount(0);
   const colors = (el) => el.evaluate((e) => ['--film-base', '--film-mark'].map((v) => getComputedStyle(e).getPropertyValue(v).trim()));
-  for (const [name, look] of [['B&W negative', 'bw'], ['Slide', 'slide'], ['Color negative', 'negative']]) {
+  for (const [name, look] of [['Black-and-white negative', 'bw'], ['Slide', 'slide'], ['Color negative', 'negative']]) {
     const film = looks.getByRole('button', { name, exact: true });
     await film.click();
     await expect(film).toHaveAttribute('aria-pressed', 'true');

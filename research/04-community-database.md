@@ -46,7 +46,7 @@ update the snapshot.
 | Finding | Rows | How the tool handles it |
 |---|---|---|
 | DX extract disagrees with the middle digits of the DX full number | 12 | uses the extract, as the site's own "similar emulsions" search does |
-| Number above 2047, e.g. CineStill 50D and 800T cassettes at 5391 (cinema film, which has no DX edge code) | 42 | can match a cassette number, never an edge code |
+| Number above 2047, e.g. CineStill 50D and 800T cassettes at 5391 (motion-picture film, which has no DX edge code) | 42 | can match a cassette number, never an edge code |
 | Number below 16, so Part 1 would be 0: valid under the standard, but held by no maker in 2008 | 14 | same |
 | HTML markup inside a field (`<i>…</i>`) | 3 | markup removed |
 | `#` search tags appended to the name | 441 | split off; still searchable |

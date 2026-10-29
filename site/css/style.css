@@ -223,6 +223,12 @@ select {
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: var(--surface);
+  display: grid;
+  gap: 8px;
+}
+
+.noscript p {
+  margin: 0;
 }
 
 /* ---- header and footer ------------------------------------------------------------ */
@@ -667,9 +673,13 @@ h1 {
   white-space: nowrap;
 }
 
-.tool:hover:not(:disabled, [aria-disabled="true"]) {
-  border-color: var(--ink-3);
-  background: var(--glow);
+/* Only where a pointer hovers (on a touch screen a tap leaves it on), and
+   not over a pressed button, whose fill it would hide. */
+@media (hover: hover) {
+  .tool:hover:not(:disabled, [aria-disabled="true"], [aria-pressed="true"]) {
+    border-color: var(--ink-3);
+    background: var(--glow);
+  }
 }
 
 .tool:disabled,
@@ -712,9 +722,11 @@ h1 {
   font-weight: 600;
 }
 
-.tool--primary:hover:not(:disabled) {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
+@media (hover: hover) {
+  .tool--primary:hover:not(:disabled, [aria-disabled="true"]) {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
 }
 
 .tool--small {
@@ -744,16 +756,17 @@ h1 {
 
 /* ---- the film strip ---------------------------------------------------------------------- */
 
-/* Drawn to scale in cells (one cell = 0.41 mm), from GB/T 9185-2003 and a
-   real Kodak negative (research/05): both tracks 2.55 cells (1.04 mm) tall,
-   the smallest equal height the standard allows (Table 1, T3), the
-   perforations as below, and room before the code for its printed number.
+/* Drawn to scale in cells (one cell = 0.408 mm), from GB/T 9185-2003 and a
+   real Kodak negative (research/05): both tracks 2.525 cells (1.03 mm) tall,
+   the smallest equal height the standard allows (Table 1, T3: 2.06 mm for
+   both), the perforations as below, and room before the code for its printed
+   number.
    At 1280 px the light table is ~1030 px wide inside: (9.2 + 31 + 0.8) × 25 px
    fits. */
 .strip {
   --cell: 25px;
-  --data-h: calc(var(--cell) * 2.55);
-  --clock-h: calc(var(--cell) * 2.55);
+  --data-h: calc(var(--cell) * 2.525);
+  --clock-h: calc(var(--cell) * 2.525);
   --label-w: calc(var(--cell) * 9.2);
   --tail-w: calc(var(--cell) * 0.8);
   --code-w: calc(var(--cells) * var(--cell));
@@ -854,6 +867,7 @@ h1 {
 .strip__scroller {
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  scroll-padding-inline: 32px; /* the width of the edge fades */
   padding: 6px 2px 4px;
   scrollbar-width: thin;
 }
@@ -908,10 +922,10 @@ h1 {
 .film {
   position: relative;
   width: calc(var(--label-w) + var(--code-w) + var(--tail-w));
-  /* Film up to 1.7 cells into the perforations (code 5.1 cells + 1.55),
+  /* Film up to 1.7 cells into the perforations (code 5.05 cells + 1.6),
      enough for their rounded corners and the clock bars between them; the
      data track runs along the film edge, so there is no film below it. */
-  padding-top: calc(var(--cell) * 1.55);
+  padding-top: calc(var(--cell) * 1.6);
   background: var(--film-base);
   border-radius: 2px;
   overflow: hidden;
@@ -1288,7 +1302,7 @@ h1 {
 }
 
 /* The reader's three steps, one under the other and joined by a line: the
-   next one to do has the film's color, finished ones are ticked. Plain
+   next one to do has the film's color, finished ones are checked off. Plain
    numerals, as in the copying steps. */
 .photo__steps {
   list-style: none;
@@ -1337,7 +1351,7 @@ h1 {
   color: var(--ok);
 }
 
-/* Once the code is used: the steps in a row, all ticked, and a way back. */
+/* Once the code is used: the steps in a row, all checked off, and a way back. */
 .photo.is-folded .photo__steps {
   display: flex;
   flex-wrap: wrap;
@@ -1424,6 +1438,11 @@ h1 {
   touch-action: none;
 }
 
+/* The photo's keys, while it has keyboard focus. */
+.photo__keys {
+  margin: 8px 0 0;
+}
+
 /* The one link from community matches to their DX number on The Big Film Database's site. */
 .source-block__link {
   margin: 8px 0 6px;
@@ -1487,6 +1506,7 @@ h1 {
 
 .source__actions {
   display: flex;
+  flex-wrap: wrap; /* "Back to the cassette number" and × on a phone */
   align-items: center;
   gap: 8px;
 }
@@ -1591,6 +1611,17 @@ h1 {
   margin-top: 16px;
 }
 
+/* "Copy failed: …" may wrap on a phone. */
+.result__actions .tool {
+  white-space: normal;
+}
+
+/* The link to copy by hand when the clipboard can't be used. */
+.copy-field {
+  flex-basis: 100%;
+  min-width: 0;
+}
+
 .examples {
   display: flex;
   flex-wrap: wrap;
@@ -1690,7 +1721,7 @@ h1 {
   margin-top: 22px;
 }
 
-/* The source of the films below: a small grey label on a hairline, so it
+/* The source of the films below: a small gray label on a hairline, so it
    does not read as one of the films. */
 .source-block__title {
   display: flex;
@@ -1816,6 +1847,7 @@ h1 {
 
 .fixes__title {
   font-size: 0.98rem;
+  font-weight: 700;
   margin-top: 6px;
 }
 
@@ -2234,14 +2266,17 @@ thead th {
   margin-top: 6px;
 }
 
-#sources h2 {
-  margin-bottom: 6px;
+/* ---- sources page ------------------------------------------------------------------------ */
+
+.sources-page {
+  padding-block: 40px 56px;
 }
 
-#sources h3 {
+.sources-page h2 {
   margin-top: 22px;
   margin-bottom: 8px;
   font-size: 1.02rem;
+  font-weight: 680;
 }
 
 /* ---- responsive ---------------------------------------------------------------------------- */
@@ -2435,5 +2470,41 @@ thead th {
   #cassette,
   #codes {
     display: none !important;
+  }
+}
+
+/* ---- Windows contrast themes (forced colors) ---------------------------------------------
+
+   They replace backgrounds with the theme's own colors, and the strip's film,
+   bars and cells are backgrounds: keep the film's colors, as for a picture,
+   and the film-look swatches'. The labels around the film take the theme's
+   colors, like the rest of the page. Show focus and pressed, selected or
+   open controls in the theme's highlight color. */
+@media (forced-colors: active) {
+  .film,
+  .strip__photo,
+  .looks__film {
+    forced-color-adjust: none;
+  }
+
+  .cell--edit:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: -3px;
+  }
+
+  .tool[aria-pressed="true"],
+  .segmented button[aria-pressed="true"],
+  .inline-button[aria-pressed="true"],
+  .help-dot[aria-expanded="true"],
+  .ways__tab[aria-selected="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+
+  .looks__film[aria-pressed="true"] {
+    outline: 3px solid Highlight;
+    outline-offset: 3px;
   }
 }

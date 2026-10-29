@@ -18,21 +18,22 @@ code as the basic code and offers both ways of adding frame numbers.
 | Year | Event | Source |
 |---|---|---|
 | 1977 | Fuji encodes film speed with electrical contacts on 135 cassettes | Wikipedia, *DX encoding* (citing Fuji's US patent 4,024,557) |
-| 3 Jan 1983 | Kodak introduces DX encoding: cassette contacts, cassette barcode and edge barcode | Wikipedia, *DX encoding* |
-| Mar 1983 | First DX-coded film, Kodacolor VR 1000 | Wikipedia, *DX encoding* |
+| January 3, 1983 | Kodak introduces DX encoding: cassette contacts, cassette barcode and edge barcode | Wikipedia, *DX encoding* |
+| March 1983 | First DX-coded film, Kodacolor VR 1000 | Wikipedia, *DX encoding* |
 | 1984–1985 | First cameras to set film speed from the cassette (e.g. Pentax Super Sport 35, Minolta AF-E; SLRs from 1985) | Wikipedia, *DX encoding* |
 | 1988 | First edition of China's standard for 135 film and cassettes, GB/T 9185-1988 | GB/T 9185-2003, foreword |
 | late 1980s | Fuji film with a dedicated frame-number barcode on the edge opposite the DX code | Kodak, EP 0838718 |
 | 1989 | Fuji patent application for readers of DX codes and separate frame-number barcodes (a "three of nine" code) | Fuji, US 5,122,645 |
 | 1989–1990 | Kodak's 31-cell code with frame number, filed 1989, granted 1990; "generally referred to as a DXN code" | Kodak, US 4,965,628; EP 0838718 |
 | 1994 | ANSI PH1.14 superseded by NAPM IT1.14; DX now part of ISO 1007 (latest revision 2000) | Wikipedia, *DX encoding* |
-| 1995 | ISO 1007:1995, with frame-number codes up to 36A; China adopts its 1993 draft as GB/T 9185-1996 | GB/T 9185-2003, foreword |
+| 1995 | ISO 1007:1995 published | GB/T 9185-2003, foreword |
 | 1995 | Kodak still describes the DX code as "a 23-bit, two track DX bar code" | Kodak, US 5,665,950 |
+| 1996 | China adopts the 1993 draft of ISO 1007 as GB/T 9185-1996, with frame-number codes up to 36A | GB/T 9185-2003, foreword |
 | 1996 | DX-iX introduced with the Advanced Photo System (APS) | Wikipedia, *DX encoding* |
 | 1997 | Kodak notes "a substantial usage of DX coded film" without frame-number codes | Kodak, EP 0838718 |
 | 1998 | Fuji's "Barcode System" for 120 and 220 roll film | Wikipedia, *DX encoding* |
-| 2000 | ISO 1007:2000 adds the single-track frame-number barcode as an option, frame-number codes beyond 36A, narrower cells, new roll-length codes on the cassette barcode and "augmented" cassette numbers | GB/T 9185-2003, foreword |
-| 2003 | China publishes GB/T 9185-2003, an identical adoption of ISO 1007:2000, issued 10 November 2003, in force from 1 May 2004 | GB/T 9185-2003 |
+| 2000 | ISO 1007:2000; compared with GB/T 9185-1996, it adds the single-track frame-number barcode as an option, frame-number codes beyond 36A, narrower cells, new roll-length codes on the cassette barcode and "augmented" cassette numbers | GB/T 9185-2003, foreword |
+| 2003 | China publishes GB/T 9185-2003, an identical adoption of ISO 1007:2000, issued November 10, 2003, in force from May 1, 2004 | GB/T 9185-2003 |
 | 2008–2009 | Last I3A lists of DX numbers ([report 03](03-dx-numbers-and-registry.md)) | I3A; Wikipedia, *DX number* |
 
 ## Cassette contacts (DX CAS)
@@ -89,7 +90,8 @@ This tool does not use the contacts: they are on the cassette, not the film.
 ## Cassette barcode
 
 The six-digit barcode next to the film slot carries the same DX number as the
-edge code; it is described in [report 03](03-dx-numbers-and-registry.md).
+edge code, except on the few cassettes with an augmented number; it is
+described in [report 03](03-dx-numbers-and-registry.md).
 Kodak's US 5,761,558 also describes an "enhanced" eight-digit cassette barcode,
 printed above a shortened standard code, carrying order information such as
 promotions, single-use cameras or panoramic format.
@@ -121,7 +123,8 @@ Kodak's EP 0838718 says that "in the late 1980's, Fuji Photo Film, Ltd.,
 introduced a film that incorporated a dedicated frame number bar code on the
 opposite edge of the film from the DX coded edge". Fuji's patents describe the
 code; one from 1997 calls it the "FNS (film number system) code"
-(US 6,324,345). ISO 1007:2000 made it an optional part of the standard:
+(US 6,324,345). ISO 1007:2000 includes it as an option, added after the 1993
+draft:
 GB/T 9185-2003 describes a 13-element, single-track, modified three-of-nine
 code (§7.1, §7.3).
 

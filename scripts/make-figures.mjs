@@ -11,6 +11,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { isMain } from './lib/main.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'research', 'img');
@@ -48,7 +49,7 @@ const LABELS = {
     row2: 'Row 2: ground, length (L1–L3) and exposure tolerance (T1–T2)',
     metal: 'bare metal = 1',
     painted: 'painted = 0',
-    cassetteTitle: 'The six-digit number under the cassette barcode: {digits}',
+    cassetteTitle: 'The six digits of the cassette barcode: {digits}',
     prefixNote: 'first digit, chosen by the maker',
     extractNote: '16 × {part1} + {part2} = {extract}, so DX {dx}',
     exposureNote: '{digit} = {n} exposures',
@@ -81,7 +82,7 @@ const LABELS = {
     row2: '第 2 行：公用接触区、可拍摄画幅数（L1–L3）和曝光宽容度（T1–T2）',
     metal: '导电区（裸露金属）= 1',
     painted: '绝缘区（涂漆）= 0',
-    cassetteTitle: '暗盒条码下方的六位数字：{digits}',
+    cassetteTitle: '暗盒条码的六位数字：{digits}',
     prefixNote: '首位数字，由制造厂自行安排',
     extractNote: '16 × {part1} + {part2} = {extract}，即 DX {dx}',
     exposureNote: '{digit} = {n} 张',
@@ -219,8 +220,8 @@ function layoutFigure(format, code, L) {
 // ---- the film edge -------------------------------------------------------------------------
 
 function filmEdgeFigure(L) {
-  // To scale, as the page's strip (research/05): 1 cell = 0.41 mm; both
-  // tracks 2.55 cells tall, the data track along the film edge;
+  // To scale, as the page's strip (research/05): 1 cell = 0.408 mm; both
+  // tracks 2.525 cells tall, the data track along the film edge;
   // perforations 4.85 × 6.85 cells, 4.95 cells from the edge, every 11.64
   // cells, one starting 2.32 cells before each code; codes every 4 perforations.
   const u = 8.5; // pixels per cell
@@ -233,8 +234,8 @@ function filmEdgeFigure(L) {
   const top = 46;
   const Y = (cells) => top + cells * u;
   const edge = 9.35; // film shown from 9.35 cells above its edge
-  const dataTop = edge - 2.55;
-  const clockTop = edge - 5.1;
+  const dataTop = edge - 2.525;
+  const clockTop = edge - 5.05;
   const perfBottom = edge - 4.95;
   const codes = [{ at: 0, frame: 23, half: false }, { at: pitch, frame: 23, half: true }];
 
@@ -243,7 +244,7 @@ function filmEdgeFigure(L) {
   const film = [rect(X(from), Y(0), (to - from) * u, edge * u, `fill="${C.film}"`)];
   for (const c of codes) {
     const bits = codec.encode({ part1: 79, part2: 15, frame: c.frame, half: c.half }, 'long');
-    film.push(...codeBars('long', bits, X(c.at), Y(clockTop), Y(dataTop), u, 2.55 * u, false));
+    film.push(...codeBars('long', bits, X(c.at), Y(clockTop), Y(dataTop), u, 2.525 * u, false));
     // The number printed before each code names it: a whole frame 3.4 cells
     // tall; an A position 2 cells tall, over an arrow (as on the Kodak negative).
     const label = codec.frameLabel(c.frame, c.half);
@@ -388,7 +389,7 @@ async function main() {
   console.log(`wrote ${Object.keys(files).length} diagrams to research/img/`);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta)) {
   main().catch((err) => {
     console.error(err);
     process.exit(1);

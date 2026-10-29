@@ -36,7 +36,8 @@ Imaging Science and Technology (IS&T), which have not been published.
 Annex A of the standard sets out the procedure as it stood in 2000, with PIMA
 in charge (A.3, A.5). A *sensitizer*, the company that coats the emulsion onto
 the film base (A.2.1.1), applies to PIMA in writing for a Part 1 number, may ask
-for a particular one, and must confirm after 36 months that it is keeping it.
+for a particular one, and must confirm, 36 months after the date of issue,
+that it is keeping it.
 It assigns the Part 2 numbers itself, 0 to 15, and reports each new product's
 name and number to PIMA, which publishes a yearly report with the share of
 Part 1 numbers assigned, each sensitizer's name and every Part 1/Part 2
@@ -87,13 +88,13 @@ production in 2008" or "discontinued by 2008". In total 389 rows are printed.
 - Shanghai General's four brands (Shenguang, Shanghai, Seagull, Rainbow) are
   listed with Part 2 "not identified", so they match any Part 2 under 88.
 - Ferrania's Part 2 numbers are printed with leading zeros (`01` … `10`).
-- 17 DX numbers are shared by two or more products, e.g. `3-9` by five
+- 16 DX numbers are shared by two or more products, e.g. `3-9` by five
   Agfachrome and Perutz slide films, and `95-2` by Kodak High Definition 400
-  and Kodak Hawkeye Traffic Surveillance film, as the standard allows. The
-  tool shows all of them.
+  and Kodak Hawkeye Traffic Surveillance film, as the standard allows; Shanghai
+  General's four brands also share Part 1 88. The tool shows all of them.
 - Harman Technologies is not named as ILFORD in the list; its products (HP5
   PLUS, FP4 PLUS, DELTA …) are ILFORD films, and Wikipedia's table labels these
-  numbers "Ilford Photo", so the tool adds that name in brackets.
+  numbers "Ilford Photo", so the tool adds that name in parentheses.
 
 ### How the list was transcribed
 
@@ -128,8 +129,8 @@ centered on the barcode (§9.1):
 | HHHH | 16 × Part 1 + Part 2, e.g. 79-15 → `1279` |
 | E | number of exposures, see below |
 
-ISO 1007:2000 changed the meaning of E to allow more roll lengths (foreword of
-GB/T 9185-2003, item e):
+Compared with GB/T 9185-1996 (the 1993 draft), ISO 1007:2000 changed the
+meaning of E to allow more roll lengths (foreword of GB/T 9185-2003, item e):
 
 | E | ANSI/NAPM IT1.14:1994, as quoted by Wikipedia | GB/T 9185-2003 (ISO 1007:2000), Table 9 |
 |---|---|---|

@@ -21,6 +21,28 @@
     return text.replace(/[^a-z0-9]/g, '');
   }
 
+  /** The words of a normalized text, letters and digits only ("t-max 100" gives t, max, 100). */
+  function wordsOf(text) {
+    return text.split(/[^a-z0-9]+/).filter(Boolean);
+  }
+
+  /**
+   * A field's words written together from each word on, up to six of them,
+   * as people also type them: "t", "max", "400" gives tmax400, max400, 400.
+   */
+  function runsFrom(words) {
+    return words.map((_, i) => words.slice(i, i + 6).join(''));
+  }
+
+  /** Every run of neighboring words written together, a whole name's words included: t, tmax, tmax400, max … */
+  function joinsOf(words) {
+    const out = [];
+    for (let i = 0; i < words.length; i++) for (let j = i + 1; j <= Math.min(words.length, i + 6); j++) out.push(words.slice(i, j).join(''));
+    return out;
+  }
+
+  const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   const AVAILABILITY = { 0: 'discontinued', 1: 'possibly discontinued', 2: 'on the market' };
 
   /** `data` from dx-data.js; `communityData` from dx-data-community.js, if loaded. */
@@ -126,26 +148,34 @@
       };
     }
 
-    // Search index: one normalized haystack per entry.
+    // Search index: one per entry, with the words of each field and those
+    // words written together, so that matches never run from one field into
+    // the next ("PhotoPoint / Max" is no "tmax").
+    const haystack = (entry, fields) => {
+      const normal = fields.filter(Boolean).map(normalize);
+      const words = normal.map(wordsOf);
+      const nameWords = wordsOf(normalize(entry.name));
+      return {
+        entry,
+        name: normalize(entry.name),
+        text: normal.join(' '),
+        words: words.flat(),
+        runs: words.flatMap(runsFrom),
+        nameRuns: runsFrom(nameWords),
+        nameJoins: joinsOf(nameWords),
+      };
+    };
     const haystacks = [
-      ...products.map((p) => ({
-        entry: p,
-        name: normalize(p.name),
-        text: normalize([p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.aka].join(' ')),
-      })),
-      ...community.map((c) => ({
-        entry: c,
-        name: normalize(c.name),
-        text: normalize([c.name, c.tags, c.original, c.manufacturer, c.distributor].join(' ')),
-      })),
+      ...products.map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.aka])),
+      ...community.map((c) => haystack(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor])),
     ];
-    for (const h of haystacks) h.compact = compact(h.text);
 
     /**
-     * Search by film name, maker or DX number. A DX number in any form the
-     * codec reads ("79-15", "1279", "315223") lists that code's entries
-     * first; a bare number such as "400" or "1600" can also be a film speed,
-     * so its code's entries come after films with the number in their name.
+     * Search by film name, maker or DX number. A DX number written as one
+     * ("79-15", "DX 1279", the cassette number "315223") lists only that
+     * code's entries; a bare number such as "400" or "1600" can also be a
+     * film speed, so its code's entries come after films with the number in
+     * their name.
      */
     function search(query, limit) {
       const q = normalize(query).trim();
@@ -160,29 +190,43 @@
       const dx = codec.parseDxNumber(q);
       if (dx) {
         const hit = byDx(dx.part1, dx.part2);
-        const base = dx.kind === 'extract' ? 7 : 0;
-        hit.products.forEach((p) => add(p, base));
-        hit.community.forEach((c) => add(c, base + 1));
+        // How it was typed says whether it can only be a DX number: "79-15",
+        // "DX 1279" or six plain digits can; "400" (a film speed) or "400 135"
+        // can also be part of a name, so their code's entries come last.
+        const only = dx.kind === 'parts' || /^dx/.test(q) || (dx.kind === 'cassette' && /^\d{6}$/.test(q));
+        hit.products.forEach((p) => add(p, only ? 0 : 7));
+        hit.community.forEach((c) => add(c, only ? 1 : 8));
+        if (dx.kind === 'parts') {
+          // Names that carry it as typed ("AGFACOLOR OPTIMA 100-2", "VR100-4")
+          // come next; "20-0" is still no "200", nor part of "120-0".
+          const typed = new RegExp(`(^|[^0-9])${escapeRegExp(q)}($|[^0-9])`);
+          for (const h of haystacks) if (typed.test(h.text)) add(h.entry, 4 + (h.entry.source === 'community' ? 0.5 : 0));
+        }
+        if (only) return finish();
       }
 
+      // A token matches the text as typed, part of one word, or the start of
+      // neighboring words written together ("tmax" or "tmax400" for "T-MAX 400").
+      const tokens = q.split(/\s+/).filter(Boolean).map((t) => ({ t, c: compact(t) || t }));
+      const found = (h, { t, c }) => h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c));
       // Rank: whole words in the name, then word starts, then any substring,
       // then matches in other fields; registry entries before community ones.
-      const tokens = q.split(/\s+/).filter(Boolean);
       for (const h of haystacks) {
-        const ok = tokens.every((t) => h.text.includes(t) || (compact(t) && h.compact.includes(compact(t))));
-        if (!ok) continue;
-        const words = h.name.split(/[^a-z0-9]+/).filter(Boolean);
+        if (!tokens.every((k) => found(h, k))) continue;
         let rank = 6;
-        if (tokens.every((t) => words.includes(compact(t) || t))) rank = 2;
-        else if (tokens.every((t) => words.some((w) => w.startsWith(compact(t) || t)))) rank = 3;
+        if (tokens.every(({ c }) => h.nameJoins.includes(c))) rank = 2;
+        else if (tokens.every(({ c }) => h.nameRuns.some((r) => r.startsWith(c)))) rank = 3;
         else if (h.name.includes(q)) rank = 4;
-        else if (tokens.every((t) => h.name.includes(t))) rank = 5;
+        else if (tokens.every(({ t }) => h.name.includes(t))) rank = 5;
         add(h.entry, rank + (h.entry.source === 'community' ? 0.5 : 0));
       }
+      return finish();
 
-      const results = [...ranks.values()].sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name));
-      const out = results.map((r) => r.entry);
-      return limit ? out.slice(0, limit) : out;
+      function finish() {
+        const results = [...ranks.values()].sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name));
+        const out = results.map((r) => r.entry);
+        return limit ? out.slice(0, limit) : out;
+      }
     }
 
     function stats() {

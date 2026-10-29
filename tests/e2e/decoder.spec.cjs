@@ -98,6 +98,8 @@ test('a misread bar fails parity and the right correction is offered', async ({ 
   await expect(result.locator('.status')).toHaveText('One problem to check');
   await expect(result).toContainText('The parity check fails');
   await expect(result.locator('#result-title')).toContainText('As copied:');
+  // Before the result's own heading, so not a heading itself.
+  await expect(result.locator('.fixes__title')).toHaveJSProperty('tagName', 'P');
   const fix = result.getByRole('button', { name: /Add the bar in cell 10/ });
   await expect(fix).toContainText('79-15, frame 23: KODAK Professional BW400CN Film');
   await fix.press('Enter');
@@ -132,6 +134,19 @@ test('on phones the strip opens on cell 1, from the right end when mirrored', as
   await page.locator('#strip .strip__scroller').evaluate((sc) => { sc.scrollLeft = 120; });
   await dataCell(page, 20).tap();
   expect(Math.abs(await page.locator('#strip .strip__scroller').evaluate((sc) => sc.scrollLeft) - 120)).toBeLessThanOrEqual(2);
+});
+
+test('the strip draws both tracks at the smallest equal height the standard allows (GB/T 9185-2003, Table 1, T3)', async ({ page }) => {
+  await page.goto('/');
+  // In millimeters, at the 0.408 mm cell of the Kodak negative in research/05.
+  const mm = await page.evaluate(() => {
+    const cell = parseFloat(getComputedStyle(document.querySelector('#strip .strip')).getPropertyValue('--cell'));
+    const height = (selector) => (document.querySelector(selector).getBoundingClientRect().height / cell) * 0.408;
+    return { clock: height('#strip .track--clock'), data: height('#strip .track--data') };
+  });
+  expect(mm.clock).toBeCloseTo(mm.data, 3);
+  expect(mm.clock + mm.data).toBeGreaterThanOrEqual(2.06);
+  expect(mm.clock + mm.data).toBeLessThan(2.065);
 });
 
 test('mirror reverses the strip on screen but not the reading', async ({ page }) => {
@@ -171,6 +186,34 @@ test('"7 thin bars" in the text chooses that layout and shows when it is chosen'
   await layout.getByRole('button', { name: '7 thin bars' }).click();
   await layout.getByRole('button', { name: '7 thin bars' }).click();
   await expect(layout.getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('the table of printed frame labels agrees with the decoder for every value 0–63 (GB/T 9185-2003, Table 5)', async ({ page }) => {
+  await page.goto('/');
+  const problems = await page.locator('.frames-table tbody tr').evaluateAll((rows) => {
+    const codec = window.DX.codec;
+    const found = [];
+    const seen = [];
+    for (const row of rows) {
+      const [printed, value, , alias] = [...row.cells].map((td) => td.textContent.trim());
+      const range = /^(\d+) … (\d+)$/.exec(printed);
+      if (range) {
+        for (let n = Number(range[1]); n <= Number(range[2]); n++) {
+          if (codec.frameLabel(n, false) !== String(n)) found.push(`${n} is printed ${codec.frameLabel(n, false)}`);
+          seen.push(n);
+        }
+        continue;
+      }
+      const n = Number(value);
+      if (printed !== `${codec.frameLabel(n, false)} / ${codec.frameLabel(n, true)}`) found.push(`${n} is not printed ${printed}`);
+      if (alias && !codec.frameAliases(n, false).includes(alias)) found.push(`${n} is not printed ${alias}`);
+      seen.push(n);
+    }
+    seen.sort((a, b) => a - b);
+    if (seen.join() !== Array.from({ length: 64 }, (_, n) => n).join()) found.push(`values listed: ${seen.join()}`);
+    return found;
+  });
+  expect(problems).toEqual([]);
 });
 
 test('"Mirror" in the steps works the Mirror button and shows when it is on', async ({ page, isMobile }) => {
@@ -392,6 +435,94 @@ test('a reload straight after quick edits keeps the latest code', async ({ page 
   await page.reload();
   await expect(page).toHaveURL(/\?dx=127-15\/23$/);
   await expect(dataCell(page, 9)).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('Back and Forward move around the page, and the address keeps the code on the strip', async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  await page.locator('.site-nav').getByRole('link', { name: 'Find a film' }).click();
+  await page.locator('#direct-dx').fill('109-9');
+  await page.locator('#direct-frame').fill('12');
+  await page.locator('.finder__direct').getByRole('button', { name: 'Show barcode' }).click();
+  await expect(page).toHaveURL(/\?dx=109-9\/12#finder$/);
+  // Back returns to the top of the page, not to the earlier code.
+  await page.goBack();
+  await expect(page).toHaveURL(/\?dx=109-9\/12$/);
+  await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
+  await page.goForward();
+  await expect(page).toHaveURL(/\?dx=109-9\/12#finder$/);
+  await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
+});
+
+test('focus follows the content it was on: Show barcode, Show all, Undo to another layout', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#finder-q').fill('hp5 plus');
+  const show = page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode/ });
+  await show.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#result-title')).toBeFocused();
+  // "Show all" goes; the first entry it brought takes focus.
+  await page.goto('/?dx=3-9/1');
+  const all = page.locator('#result').getByRole('button', { name: /^Show all/ });
+  await all.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#result .match--community').nth(6)).toBeFocused();
+  // Undo back to the other layout draws a new strip; focus stays on its cell.
+  await page.goto('/');
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
+  await dataCell(page, 9).click();
+  await page.keyboard.press('Control+z');
+  await page.keyboard.press('Control+z');
+  await expect(page.locator('#strip .track--data .cell')).toHaveCount(31);
+  await expect(dataCell(page, 9)).toBeFocused();
+});
+
+test('Undo to the 7-bar layout keeps focus on the strip, also from a cell it does not have', async ({ page }) => {
+  await page.goto('/?layout=23');
+  await page.locator('[data-control="format"]').getByRole('button', { name: '11 thin bars' }).click();
+  await dataCell(page, 21).focus(); // the stop pattern in the 7-bar layout
+  await page.keyboard.press('Control+z');
+  await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
+  expect(await page.evaluate(() => document.activeElement.matches('#strip button.cell--edit'))).toBe(true);
+});
+
+test('loading the same code from the same place again adds no step to undo', async ({ page }) => {
+  await page.goto('/');
+  const example = page.getByRole('button', { name: 'Kodak BW400CN, frame 23' });
+  await example.click();
+  await page.getByRole('button', { name: 'Show examples' }).click();
+  await page.getByRole('button', { name: 'Kodak BW400CN, frame 23' }).click();
+  await page.locator('#undo').click();
+  await expect(page.locator('#result')).toContainText('Waiting for bars');
+});
+
+test('an empty strip in the 7-bar layout stays so on reload and in the link', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
+  await expect(page).toHaveURL(/\?layout=23$/);
+  await page.reload();
+  await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
+  await expect(page.locator('#result')).toContainText('Waiting for bars');
+});
+
+test('Copy link without a clipboard shows the link, selected, to copy by hand', async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }));
+  await page.getByRole('button', { name: 'Copy link' }).click();
+  const field = page.getByRole('textbox', { name: 'Link to this code' });
+  await expect(field).toBeFocused();
+  await expect(field).toHaveValue(/\?dx=79-15\/23&lang=en$/);
+  expect(await field.evaluate((el) => el.selectionEnd - el.selectionStart)).toBe((await field.inputValue()).length);
+});
+
+test('the hint under the strip is only rewritten when it changes', async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  await page.locator('#hint').evaluate((el) => {
+    window.hintChanges = 0;
+    new MutationObserver(() => window.hintChanges++).observe(el, { childList: true, characterData: true, subtree: true });
+  });
+  await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
+  await page.locator('[data-control="look"]').getByRole('button', { name: 'Slide' }).click();
+  expect(await page.evaluate(() => window.hintChanges)).toBe(0);
 });
 
 test('empty cells that can be clicked show a faint +, which a bar replaces', async ({ page }) => {

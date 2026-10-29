@@ -14,6 +14,11 @@
   const t = i18n.t;
 
   const MAX_WORKING_SIDE = 2400;
+  // How far a press may move and still count as a click, in CSS pixels: a
+  // finger drifts further than a mouse.
+  const CLICK = { mouse: 5, pen: 10, touch: 12 };
+  // The smallest box, on screen (CSS pixels) and in the photo (its pixels).
+  const MIN_BOX = { screen: [24, 16], photo: [12, 8] };
 
   const SAMPLES = [
     { synth: { part1: 96, part2: 12, frame: 14, half: true, module: 9, angle: -1.2 }, look: 'negative', note: t('Sample: a computer-drawn film edge, a color negative.') },
@@ -23,9 +28,10 @@
 
   const REASONS = {
     flat: t('This image has almost no contrast. Try a sharper, closer photo of the film edge.'),
-    'no-clock': t('No clock track found: the row with a wide mark, a run of thin bars and a shorter mark. Turn the image so the film edge is horizontal, then drag a box around one barcode, including both rows.'),
+    'no-clock': t('No clock track found: the row with a wide mark, a run of thin bars and a shorter mark. If the film edge is not horizontal, turn the image, then draw a box around one barcode, including both rows. If it is, the bars may be too faint or damaged: try a sharper photo in even light.'),
     'no-data': t('The clock track was found, but not a readable data row next to it. Make sure your box includes both rows, or try a sharper photo.'),
-    unclear: t('Something like a barcode was found, but it could not be read reliably. Straighten the image so the film edge runs left to right, or drag a box around one barcode.'),
+    unclear: t('Something like a barcode was found, but it could not be read reliably. Straighten the image so the film edge runs left to right, or draw a box around one barcode.'),
+    eleven: t('This looks like a barcode with 11 thin bars in its top row, cut off at the end or damaged there. Draw the box with a little room at both ends of the barcode, or try a sharper photo.'),
   };
 
   /** A copy of a box of a canvas, fitted into maxW × maxH CSS pixels. */
@@ -42,28 +48,36 @@
     return c;
   }
 
-  function createPhoto(section, { lookup, onApply }) {
+  function createPhoto(section, { lookup, onApply, onOpen }) {
+    let picture = null; // what is loaded, to load it again: { blob } or { sample, seed }
+    let loads = 0; // counts photos chosen and removed: one still opening when the next comes is dropped
+    let opening = null; // the photo still opening, if any
     let source = null; // canvas with the loaded image, at working resolution
     let view = null; // source after rotation/flip
     let turns = 0;
     let fine = 0;
     let flip = false;
     let selection = null; // in view coordinates
+    let corner = null; // the first corner of a box made by clicks, in view coordinates
+    let pointer = null; // where the mouse is, so that the box follows it from that corner
     let result = null;
     let searching = null; // AbortController of the search in progress, which runs alongside the page
     let sampleIndex = 0;
 
-    const fileInput = h('input', { type: 'file', accept: 'image/*', class: 'visually-hidden', id: 'photo-file', tabindex: '-1', 'aria-label': t('Photo of the film edge') });
+    const fileInput = h('input', { type: 'file', accept: 'image/*', class: 'visually-hidden', id: 'photo-file', tabindex: '-1', 'aria-hidden': 'true' });
     const chooseBtn = h('button', { type: 'button', class: 'tool' }, t('Choose a photo'));
     const sampleBtn = h('button', { type: 'button', class: 'tool' }, t('Try a sample'));
     const sourceNote = h('p', { class: 'photo__source' });
 
-    const canvas = h('canvas', { class: 'photo__canvas', 'aria-label': t('Photo of the film edge. Drag to select one barcode.'), role: 'img' });
+    const canvas = h('canvas', { class: 'photo__canvas', role: 'application', tabindex: '0', 'aria-label': t('Photo of the film edge'), 'aria-describedby': 'photo-keys' });
+    // Shown while the photo has keyboard focus; screen readers read it as the photo's description.
+    const keysHint = h('p', { class: 'fineprint photo__keys', id: 'photo-keys', hidden: true },
+      t('Arrow keys move the box, and with Shift change its size. Enter reads it; Escape clears it.'));
     const rotateLeft = h('button', { type: 'button', class: 'tool tool--small', 'aria-label': t('Rotate left 90 degrees') }, '⟲ 90°');
     const rotateRight = h('button', { type: 'button', class: 'tool tool--small', 'aria-label': t('Rotate right 90 degrees') }, '⟳ 90°');
     const flipBtn = h('button', { type: 'button', class: 'tool tool--small', 'aria-pressed': 'false' }, t('Flip'));
     const fineInput = h('input', { type: 'range', min: '-15', max: '15', step: '0.5', value: '0', id: 'photo-fine', class: 'range' });
-    const fineOut = h('output', { for: 'photo-fine', class: 'range__out' }, '0°');
+    const fineOut = h('output', { for: 'photo-fine', class: 'range__out', 'aria-hidden': 'true' }, '0°');
     const readBtn = h('button', { type: 'button', class: 'tool' }, t('Read again'));
     const clearSel = h('button', { type: 'button', class: 'tool tool--small', hidden: true }, t('Clear selection'));
     const stage = h('div', { class: 'photo__stage', hidden: true }, canvas);
@@ -78,12 +92,13 @@
         h('p', { class: 'fineprint' }, t('A close-up of the film edge works best: phone macro photo, loupe photo or scan. The image stays on your device.')),
         sourceNote),
       step(2, t('Check the barcode'),
-        h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right (within a few degrees), then drag a box around one barcode, including both rows. Without a box the whole image is searched.')),
+        h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right (within a few degrees), then drag a box around one barcode, including both rows, or click two opposite corners. Without a box the whole image is searched.')),
         h('div', { class: 'photo__controls' },
           h('div', { class: 'photo__control' }, h('span', { class: 'toolbar__label' }, t('Turn')), rotateLeft, rotateRight, flipBtn),
           h('div', { class: 'photo__control photo__control--range' }, h('label', { for: 'photo-fine', class: 'toolbar__label' }, t('Straighten')), fineInput, fineOut),
           h('div', { class: 'photo__control' }, readBtn, clearSel)),
-        stage),
+        stage,
+        keysHint),
       step(3, t('Use the code'), out));
     // Shown instead of the steps' contents once the code has been used.
     const folded = h('p', { class: 'photo__folded' }, t('The code from your photo is on the strip below.'), ' ', unfoldBtn);
@@ -125,66 +140,114 @@
 
     // ---- loading ------------------------------------------------------------
 
-    async function loadBlob(blob) {
-      if (!blob || !/^image\//.test(blob.type)) {
+    /**
+     * Load a photo ({ blob }) or a sample ({ sample, seed }) and read it.
+     * `kept`, from "Use this code", brings it back as it was then: turned,
+     * straightened, flipped, boxed and read.
+     */
+    async function load(p, kept) {
+      const ticket = ++loads;
+      if (p.sample) {
+        const syn = reader.synthesize(Object.assign({ width: 640, height: 150 }, p.sample.synth));
+        const rgba = reader.compose(syn, { look: p.sample.look, noise: 12, blur: 1, seed: p.seed });
+        const c = document.createElement('canvas');
+        c.width = syn.width;
+        c.height = syn.height;
+        c.getContext('2d').putImageData(new ImageData(rgba, syn.width, syn.height), 0, 0);
+        const another = h('button', { type: 'button', class: 'text-button', onClick: () => load(nextSample()) }, t('Show another sample'));
+        const hadFocus = sourceNote.contains(document.activeElement);
+        setSource(p, c, c.width, c.height, [p.sample.note, ' ', another], kept);
+        if (hadFocus) another.focus();
+        return;
+      }
+      // A file of another type is refused; one of unknown type (no extension,
+      // or one the system doesn't know, such as ".HEIC") is tried anyway.
+      const unknown = p.blob && (p.blob.type === '' || p.blob.type === 'application/octet-stream');
+      const other = !p.blob || (!unknown && !/^image\//.test(p.blob.type));
+      if (other) {
         showMessage(t('That file is not an image.'), true);
         return;
       }
-      const url = URL.createObjectURL(blob);
+      stopSearch(); // the photo shown now: its reading would come after this one's message
+      showMessage(t('Opening the photo…'));
+      opening = p;
+      const url = URL.createObjectURL(p.blob);
       try {
         const img = new Image();
         img.src = url;
         await img.decode();
-        setSource(img, img.naturalWidth, img.naturalHeight, [t('Your photo, {width} × {height} pixels.', { width: img.naturalWidth, height: img.naturalHeight })]);
+        if (ticket !== loads) return; // another photo, or Remove, came first
+        opening = null;
+        setSource(p, img, img.naturalWidth, img.naturalHeight, [t('Your photo, {width} × {height} pixels.', { width: img.naturalWidth, height: img.naturalHeight })], kept);
       } catch (e) {
-        showMessage(t('This image could not be opened. JPEG, PNG and WebP photos work in every browser.'), true);
+        if (ticket === loads) {
+          opening = null;
+          showMessage(t('This image could not be opened. JPEG, PNG and WebP photos work in every browser.'), true);
+        }
       } finally {
         URL.revokeObjectURL(url);
       }
     }
 
-    function setSource(drawable, w, hgt, note) {
+    function nextSample() {
+      const sample = SAMPLES[sampleIndex++ % SAMPLES.length];
+      return { sample, seed: sampleIndex };
+    }
+
+    function setSource(p, drawable, w, hgt, note, kept) {
+      picture = p;
       const scale = Math.min(1, MAX_WORKING_SIDE / Math.max(w, hgt));
       source = document.createElement('canvas');
       source.width = Math.round(w * scale);
       source.height = Math.round(hgt * scale);
       source.getContext('2d').drawImage(drawable, 0, 0, source.width, source.height);
-      turns = 0;
-      fine = 0;
-      flip = false;
-      fineInput.value = '0';
-      fineOut.textContent = '0°';
-      flipBtn.setAttribute('aria-pressed', 'false');
-      selection = null;
       result = null;
       stage.hidden = false;
       section.classList.remove('is-folded');
       replace(sourceNote, ...note);
-      rebuildView();
+      if (kept) {
+        restore(kept);
+        return;
+      }
+      setView(0, 0, false);
       setStep();
       find();
     }
 
-    function loadSample() {
-      const s = SAMPLES[sampleIndex++ % SAMPLES.length];
-      const syn = reader.synthesize(Object.assign({ width: 640, height: 150 }, s.synth));
-      const rgba = reader.compose(syn, { look: s.look, noise: 12, blur: 1, seed: sampleIndex });
-      const c = document.createElement('canvas');
-      c.width = syn.width;
-      c.height = syn.height;
-      c.getContext('2d').putImageData(new ImageData(rgba, syn.width, syn.height), 0, 0);
-      setSource(c, c.width, c.height, [
-        s.note, ' ',
-        h('button', { type: 'button', class: 'text-button', onClick: loadSample }, t('Show another sample')),
-      ]);
+    /** Turn, straighten and flip the photo as given, and show it so. */
+    function setView(quarterTurns, degrees, flipped) {
+      turns = quarterTurns;
+      fine = degrees;
+      flip = flipped;
+      fineInput.value = String(fine);
+      canvas.style.transform = '';
+      showFine();
+      flipBtn.setAttribute('aria-pressed', String(flip));
+      rebuildView();
+    }
+
+    /** The photo as it was when its code was used: the same view, so the same reading, without searching again. */
+    function restore(kept) {
+      setView(kept.turns, kept.fine, kept.flip);
+      selection = kept.selection;
+      clearSel.hidden = !selection;
+      result = kept.result;
+      showResult();
+      setStep();
+      draw();
     }
 
     function reset() {
+      loads++; // a photo still opening stays away too
+      opening = null;
       stopSearch();
+      picture = null;
       source = null;
       view = null;
       result = null;
       selection = null;
+      corner = null;
+      pointer = null;
       stage.hidden = true;
       clearSel.hidden = true;
       sourceNote.replaceChildren();
@@ -204,7 +267,8 @@
       view = document.createElement('canvas');
       view.width = Math.round(w * cos + hh * sin);
       view.height = Math.round(w * sin + hh * cos);
-      const ctx = view.getContext('2d');
+      // Read back again and again (getImageData): kept in memory rather than on the GPU.
+      const ctx = view.getContext('2d', { willReadFrequently: true });
       ctx.fillStyle = '#808080';
       ctx.fillRect(0, 0, view.width, view.height);
       // Rotate first, then mirror the rotated image left to right as shown.
@@ -213,8 +277,16 @@
       ctx.rotate(angle);
       ctx.drawImage(source, -w / 2, -hh / 2);
       selection = null;
+      corner = null;
+      pointer = null;
       clearSel.hidden = true;
       draw();
+    }
+
+    /** The straightening shown beside the slider, and read out by it. */
+    function showFine(degrees = fine) {
+      fineOut.textContent = `${degrees > 0 ? '+' : ''}${degrees}°`;
+      fineInput.setAttribute('aria-valuetext', t('{n} degrees', { n: degrees }));
     }
 
     function displayScale() {
@@ -236,18 +308,34 @@
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(view, 0, 0, canvas.width, canvas.height);
       const k = displayScale();
-      if (selection) {
+      // The box, or the one being made from a first corner to the mouse.
+      const box = corner && pointer ? rect(corner, pointer) : selection;
+      if (box && box.w > 0 && box.h > 0) {
         ctx.save();
         ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(view, selection.x, selection.y, selection.w, selection.h, selection.x * k, selection.y * k, selection.w * k, selection.h * k);
+        ctx.drawImage(view, box.x, box.y, box.w, box.h, box.x * k, box.y * k, box.w * k, box.h * k);
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2 * dpr;
         ctx.setLineDash([6 * dpr, 4 * dpr]);
-        ctx.strokeRect(selection.x * k, selection.y * k, selection.w * k, selection.h * k);
+        ctx.strokeRect(box.x * k, box.y * k, box.w * k, box.h * k);
         ctx.restore();
       }
       if (result && result.found) drawGrid(ctx, k, dpr);
+      if (corner) drawCorner(ctx, corner, k, dpr);
+    }
+
+    /** The first corner of a box made by clicks: a white dot with a dark ring. */
+    function drawCorner(ctx, p, k, dpr) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(p.x * k, p.y * k, 4.5 * dpr, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 2 * dpr;
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.stroke();
+      ctx.restore();
     }
 
     /** Outline every cell that was read, on both tracks, in the photo itself. */
@@ -316,7 +404,11 @@
 
     // ---- selection ----------------------------------------------------------------
 
+    // A box is dragged, or made by clicking two opposite corners (for those
+    // who can click but not drag), or moved with the keyboard.
     let dragStart = null;
+    let pressedAt = null; // on screen, to tell a click from a drag
+    let dragging = false;
     let selectionBefore = null;
     canvas.addEventListener('pointerdown', (e) => {
       if (!view || e.button !== 0) return;
@@ -327,29 +419,45 @@
       }
       selectionBefore = selection;
       dragStart = toView(e);
+      pressedAt = { x: e.clientX, y: e.clientY, slack: CLICK[e.pointerType] || CLICK.mouse };
+      dragging = false;
     });
     canvas.addEventListener('pointermove', (e) => {
-      if (!dragStart) return;
-      const p = toView(e);
-      selection = rect(dragStart, p);
+      if (!dragStart) {
+        // After a first click, the box follows the mouse.
+        if (corner && e.pointerType === 'mouse') {
+          pointer = toView(e);
+          draw();
+        }
+        return;
+      }
+      if (!dragging && Math.hypot(e.clientX - pressedAt.x, e.clientY - pressedAt.y) < pressedAt.slack) return;
+      dragging = true;
+      corner = null;
+      selection = rect(dragStart, toView(e));
+      draw();
+    });
+    canvas.addEventListener('pointerleave', () => {
+      if (!pointer) return;
+      pointer = null;
       draw();
     });
     const endDrag = (e) => {
       if (!dragStart) return;
-      const p = toView(e);
-      const r = rect(dragStart, p);
+      const start = dragStart;
       dragStart = null;
-      if (r.w < 12 || r.h < 8) {
-        // A tap clears the selection; search the whole image again if there was one.
-        selection = null;
-        clearSel.hidden = true;
-        if (selectionBefore) find();
-        else draw();
+      if (!dragging) {
+        markCorner(start);
         return;
       }
-      selection = r;
-      clearSel.hidden = false;
-      find();
+      const r = rect(start, toView(e));
+      if (tooSmall(r)) {
+        // Too small to hold a barcode: keep the box there was.
+        selection = selectionBefore;
+        draw();
+        return;
+      }
+      setBox(r);
     };
     canvas.addEventListener('pointerup', endDrag);
     canvas.addEventListener('pointercancel', () => {
@@ -357,6 +465,102 @@
       dragStart = null;
       selection = selectionBefore;
       draw();
+    });
+
+    /** A click marks one corner of a box; the next marks the opposite corner and reads the box. */
+    function markCorner(p) {
+      if (!corner) {
+        corner = p;
+        draw();
+        return;
+      }
+      const r = rect(corner, p);
+      corner = null;
+      pointer = null;
+      if (tooSmall(r)) {
+        draw(); // the same place twice: no box
+        return;
+      }
+      setBox(r);
+    }
+
+    /** Whether a box is too small to be meant, on screen or in the photo. */
+    function tooSmall(r) {
+      const k = canvas.getBoundingClientRect().width / view.width; // CSS pixels per photo pixel
+      return r.w < MIN_BOX.photo[0] || r.h < MIN_BOX.photo[1] || r.w * k < MIN_BOX.screen[0] || r.h * k < MIN_BOX.screen[1];
+    }
+
+    function setBox(r) {
+      selection = r;
+      clearSel.hidden = false;
+      find();
+    }
+
+    function clearSelection() {
+      selection = null;
+      corner = null;
+      pointer = null;
+      clearSel.hidden = true;
+      find();
+    }
+
+    const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const clamp = (v, lo, hi) => Math.round(Math.min(hi, Math.max(lo, v)));
+
+    /** The keyboard's box starts around the barcode that was read, or on the middle of the photo. */
+    function startBox() {
+      const r = result;
+      if (!r || !r.found) {
+        return { x: Math.round(view.width / 4), y: Math.round(view.height / 4), w: Math.round(view.width / 2), h: Math.round(view.height / 2) };
+      }
+      const w = r.cells * r.unit;
+      const tilt = (Math.abs(r.slope) * w) / 2;
+      const middle = (r.x0 + w / 2 - r.regionWidth / 2) * r.slope; // how far the rows rise or fall at the code's middle
+      const gap = Math.abs(r.dataY - r.clockY);
+      const left = clamp(r.offset.x + r.x0 - 2 * r.unit, 0, view.width);
+      const top = clamp(r.offset.y + Math.min(r.clockY, r.dataY) + middle - gap - tilt, 0, view.height);
+      const right = clamp(r.offset.x + r.x0 + w + 2 * r.unit, 0, view.width);
+      const bottom = clamp(r.offset.y + Math.max(r.clockY, r.dataY) + middle + gap + tilt, 0, view.height);
+      return { x: left, y: top, w: right - left, h: bottom - top };
+    }
+
+    canvas.addEventListener('keydown', (e) => {
+      if (!view || e.altKey || e.ctrlKey || e.metaKey) return;
+      keysHint.hidden = false; // also after a click gave the photo focus
+      const dir = ARROWS[e.key];
+      if (dir) {
+        e.preventDefault();
+        // A step is a 50th of the photo's width, or a 25th of its height.
+        const dx = dir[0] * Math.max(2, Math.round(view.width / 50));
+        const dy = dir[1] * Math.max(2, Math.round(view.height / 25));
+        const b = selection;
+        corner = null;
+        if (!b) selection = startBox();
+        else if (e.shiftKey) selection = { x: b.x, y: b.y, w: clamp(b.w + dx, 12, view.width - b.x), h: clamp(b.h + dy, 8, view.height - b.y) };
+        else selection = { x: clamp(b.x + dx, 0, view.width - b.w), y: clamp(b.y + dy, 0, view.height - b.h), w: b.w, h: b.h };
+        clearSel.hidden = false;
+        draw();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (selection) setBox(selection);
+      } else if (e.key === 'Escape') {
+        if (corner) {
+          corner = null;
+          pointer = null;
+          draw();
+        } else if (selection) {
+          clearSelection();
+        } else {
+          return;
+        }
+        e.preventDefault();
+      }
+    });
+    canvas.addEventListener('focus', () => {
+      keysHint.hidden = !canvas.matches(':focus-visible');
+    });
+    canvas.addEventListener('blur', () => {
+      keysHint.hidden = true;
     });
 
     function toView(e) {
@@ -380,7 +584,7 @@
       if (!searching) return;
       searching.abort();
       searching = null;
-      readBtn.disabled = false;
+      readBtn.removeAttribute('aria-disabled');
     }
 
     function find() {
@@ -391,7 +595,8 @@
       const usable = selection && selection.w >= 12 && selection.h >= 8;
       const region = usable ? selection : { x: 0, y: 0, w: view.width, h: view.height };
       showMessage(t('Looking for the barcode…'));
-      readBtn.disabled = true;
+      // aria-disabled rather than disabled, so keyboard focus stays on the button.
+      readBtn.setAttribute('aria-disabled', 'true');
       // Let the message paint before the search starts.
       setTimeout(async () => {
         if (search.signal.aborted) return;
@@ -406,13 +611,13 @@
         if (search.signal.aborted) return;
         searching = null;
         if (r) {
-          result = Object.assign(r, { offset: { x: region.x, y: region.y }, regionWidth: region.w });
+          result = Object.assign(r, { offset: { x: region.x, y: region.y }, regionWidth: region.w, box: usable ? region : null });
           showResult();
         } else {
           result = null;
           showMessage(t('This part of the image could not be read. Select the barcode again, or clear the selection.'), true);
         }
-        readBtn.disabled = false;
+        readBtn.removeAttribute('aria-disabled');
         setStep();
         draw();
       }, 30);
@@ -437,12 +642,16 @@
       if (r.polarity === 'light') notes.push(t('Clear bars on a dark edge: read as slide film.'));
       if (r.format === 'short') notes.push(t('This is the original 23-cell layout without a frame number.'));
       if (r.confidence < 0.3) notes.push(t('Some cells were hard to tell apart; compare the result with your film.'));
+      if (r.weak) notes.push(t('The bars are faint or damaged in this photo; compare the result with your film.'));
+      if (r.elevenBars) notes.push(t('If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with a little room at both ends of the barcode.'));
       if (!d.valid) notes.push(t('The code as read does not pass all checks. Use it, then look at the suggested corrections.'));
       const apply = h('button', { type: 'button', class: 'tool tool--primary' }, t('Use this code'));
       apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity === 'light' ? 'slide' : null, {
         label: what,
         photo: thumbnail(view, { x: 0, y: 0, w: view.width, h: view.height }, 120, 72),
         lined: lineUp(r),
+        // For "Open the photo", once the reader has moved on to another.
+        kept: { picture, turns, fine, flip, selection: r.box, result: r },
       }));
       replace(out,
         h('p', { class: `photo__found${d.valid ? '' : ' is-error'}` },
@@ -456,14 +665,12 @@
 
     chooseBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', () => {
-      if (fileInput.files[0]) loadBlob(fileInput.files[0]);
+      if (fileInput.files[0]) load({ blob: fileInput.files[0] });
       fileInput.value = '';
     });
-    sampleBtn.addEventListener('click', loadSample);
-    unfoldBtn.addEventListener('click', () => {
-      unfold();
-      readBtn.focus();
-    });
+    sampleBtn.addEventListener('click', () => load(nextSample()));
+    // The same as "Open the photo" above the strip, which app.js handles.
+    unfoldBtn.addEventListener('click', onOpen);
     rotateLeft.addEventListener('click', () => { turns = (turns + 3) % 4; result = null; rebuildView(); find(); });
     rotateRight.addEventListener('click', () => { turns = (turns + 1) % 4; result = null; rebuildView(); find(); });
     flipBtn.addEventListener('click', () => {
@@ -473,19 +680,31 @@
       rebuildView();
       find();
     });
+    // While the slider moves, the photo on screen turns by the difference;
+    // the full-size view is rebuilt and read once it stops. Back where it
+    // started, nothing changes.
     fineInput.addEventListener('input', () => {
+      const degrees = Number(fineInput.value);
+      showFine(degrees);
+      const turn = degrees - fine;
+      canvas.style.transform = turn ? `rotate(${flip ? -turn : turn}deg)` : '';
+    });
+    fineInput.addEventListener('change', () => {
+      canvas.style.transform = '';
+      if (Number(fineInput.value) === fine) return;
       fine = Number(fineInput.value);
-      fineOut.textContent = `${fine > 0 ? '+' : ''}${fine}°`;
       result = null;
       rebuildView();
       setStep();
-    });
-    fineInput.addEventListener('change', find);
-    readBtn.addEventListener('click', find);
-    clearSel.addEventListener('click', () => {
-      selection = null;
-      clearSel.hidden = true;
       find();
+    });
+    readBtn.addEventListener('click', () => {
+      if (readBtn.getAttribute('aria-disabled') !== 'true') find();
+    });
+    // The button goes with the box: carry on at the photo.
+    clearSel.addEventListener('click', () => {
+      clearSelection();
+      canvas.focus();
     });
 
     section.addEventListener('dragover', (e) => {
@@ -497,14 +716,15 @@
       e.preventDefault();
       section.classList.remove('is-dragging');
       const file = e.dataTransfer && e.dataTransfer.files[0];
-      if (file) loadBlob(file);
+      if (file) load({ blob: file });
     });
     document.addEventListener('paste', (e) => {
-      if (section.hidden) return;
+      const target = e.target;
+      if (section.hidden || (target && (target.isContentEditable || /^(INPUT|TEXTAREA)$/.test(target.tagName)))) return;
       const item = [...(e.clipboardData ? e.clipboardData.items : [])].find((i) => i.type.startsWith('image/'));
       if (item) {
         e.preventDefault();
-        loadBlob(item.getAsFile());
+        load({ blob: item.getAsFile() });
       }
     });
     window.addEventListener('resize', draw);
@@ -513,9 +733,23 @@
     setStep();
 
     return {
-      /** Show the reader, unfolded; with focus, also bring it into view and focus its next step. */
+      /**
+       * Show the reader, unfolded; with focus, also bring it into view and
+       * focus its next step. With `kept` (from "Use this code"), show that
+       * reading as it was, if the reader has moved on from it: to another
+       * photo, or to the same one turned, flipped or boxed differently.
+       */
       open(options) {
         section.hidden = false;
+        const kept = options && options.kept;
+        if (kept && kept.result !== result) {
+          if (kept.picture === picture) {
+            loads++; // a photo still opening gives way
+            restore(kept);
+          } else {
+            load(kept.picture, kept);
+          }
+        }
         unfold();
         if (options && options.focus) {
           section.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
@@ -526,8 +760,14 @@
         section.hidden = true;
       },
       fold,
-      /** Forget the photo: back to step 1. */
-      reset,
+      /** Forget the photo `p` if it is the one loaded or opening (and so stop any photo opening): back to step 1. */
+      forget(p) {
+        if (p === picture || p === opening) reset();
+      },
+      /** Show the steps again if folded: the strip no longer has this photo's code. */
+      unfold() {
+        if (section.classList.contains('is-folded')) unfold();
+      },
     };
   }
 

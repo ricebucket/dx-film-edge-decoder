@@ -14,9 +14,9 @@ there on negatives and slides long after the cassette has been thrown away.
 This tool is for film photographers, collectors and archivists who want to
 know what a strip of film is.
 
-Everything runs in your browser. The page loads nothing from other servers,
-sends nothing anywhere (including photos you open in it), and also works when
-`site/index.html` is opened straight from disk.
+Everything runs in your browser. The page loads nothing from other servers and
+makes no requests of its own, so photos you open in it never leave your device.
+It also works when `site/index.html` is opened straight from disk.
 
 ## What it does
 
@@ -45,12 +45,13 @@ sends nothing anywhere (including photos you open in it), and also works when
 1. **Find the barcode.** It runs between the sprocket holes and the edge of the
    film: two touching rows of small bars, about 13 mm long, repeated twice per
    frame. Use a loupe, a light table or a zoomed-in scan.
-2. **Turn the film the right way round**, so the barcode is *below* the
+2. **Turn the film the right way around**, so the barcode is *below* the
    sprocket holes and the small printed numbers read normally. The top row then
    starts with a wide bar on the left. If the wide bar is on the right, you are
    looking at the back of the film: turn it over or switch on **Mirror**.
-3. **Count the thin bars in the top row** between the wide bars: 11 on most
-   film, 7 on older film. Choose the matching **Layout**.
+3. **Count the thin bars in the top row** between the wide bars: 11, or 7 for
+   the original layout, found on older film and on some later film. Choose the
+   matching **Layout**.
 4. **Copy the lower row.** Click every cell where your film has a bar; drag to
    fill several, or click the first cell and type `1` and `0`. On slide film the
    bars are clear marks on a black edge; pick the black piece of film under the
@@ -101,7 +102,7 @@ build step: open `site/index.html`, or run `npm start` and visit
 [Node.js](https://nodejs.org/) 22 or later.
 
 ```
-site/                 the web page (deployed as is)
+site/                 the web pages (deployed as is)
   js/dx-codec.js      barcode layout, encoding, decoding, checks
   js/dx-lookup.js     film lookups and search
   js/dx-image.js      reading codes from photos; synthetic test images
@@ -160,10 +161,10 @@ change.
 
 ### Languages
 
-The page comes in English and Simplified Chinese; visitors choose the language
-from the menu at the top. The code and `site/index.html` hold the English text,
-and every other language is one file in `site/js/i18n/` that gives, for every
-English text of the page, the text in that language.
+The pages come in English and Simplified Chinese; visitors choose the language
+from the menu at the top. The code and the pages (`site/*.html`) hold the
+English text, and every other language is one file in `site/js/i18n/` that
+gives, for every English text of the pages, the text in that language.
 
 To add a language:
 
@@ -173,11 +174,15 @@ To add a language:
    new language's. Keep the `{placeholders}`, any HTML tags, and film and
    product names as they are. Where the language has several plural forms, a
    text can be an object such as `{ one: …, few: …, many: …, other: … }`.
-2. Load the file in `site/index.html`, next to the line for `js/i18n/zh-CN.js`.
-   The language menu lists it from then on.
+2. Load the file in `site/index.html` and `site/sources.html`, next to the
+   line for `js/i18n/zh-CN.js`. The language menu lists it from then on. In
+   `site/index.html`, also add the language's version of the message for
+   visitors without JavaScript to the `<noscript>` block, marked with `lang`:
+   the language files cannot supply it, since they need JavaScript.
 3. Run `npm run check:languages`. It lists English texts the language lacks,
    texts whose English is no longer used, and texts whose placeholders or tags
-   differ from the English. `npm test` runs the same check.
+   differ from the English, and says if the message for visitors without
+   JavaScript is missing. `npm test` runs the same check.
 4. Add the language's labels to `LABELS` in `scripts/make-figures.mjs`, then
    run `npm run figures` and `npm run screenshots` so the diagrams and
    screenshots exist in the new language.

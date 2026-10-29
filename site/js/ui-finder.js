@@ -17,6 +17,19 @@
     return entry.part1 === null ? null : codec.formatDxNumber(entry.part1, entry.part2);
   }
 
+  /** Search results without community rows that differ only by cassette number: in this list they look the same. */
+  function distinct(entries) {
+    const seen = new Set();
+    return entries.filter((e) => {
+      if (e.source !== 'community') return true;
+      // Rows without a DX number are listed by cassette number, so that tells them apart.
+      const key = `${e.extract}:${e.part1 === null ? e.full : ''}:${ui.communityKey(e)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   /** The frame typed in `field` (1 when empty), or null after saying in `message` why it can't be read. */
   function readFrame(field, message) {
     if (field.value.trim() === '') return { frame: 1, half: false };
@@ -102,10 +115,13 @@
       const q = input.value.trim();
       list.replaceChildren();
       shown = 0;
-      results = q.length >= 2 || /\d/.test(q) ? lookup.search(q) : [];
-      if (!q) status.textContent = t('Type at least two letters, or a DX number such as 79-15.');
-      else if (!results.length) status.textContent = t('Nothing matches “{q}”. Try fewer words, or part of the name.', { q });
-      else status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
+      const tooShort = q.length < 2 && !/\d/.test(q);
+      results = q && !tooShort ? distinct(lookup.search(q)) : [];
+      const dx = results.length ? null : codec.parseDxNumber(q);
+      if (!q || tooShort) status.textContent = t('Type at least two letters, or a DX number such as 79-15.');
+      else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
+      else if (dx) status.textContent = t('No film in the lists has DX {dx}.', { dx: codec.formatDxNumber(dx.part1, dx.part2) });
+      else status.textContent = t('Nothing matches “{q}”. Try fewer words, or part of the name.', { q });
       showPage();
     }
     input.addEventListener('input', () => {
@@ -160,17 +176,17 @@
       placeholder: '017563', maxlength: '8', 'aria-describedby': 'cassette-help',
     });
     const msg = h('p', { class: 'form-message', id: 'cassette-help', 'aria-live': 'polite' },
-      t('Six digits, printed under the barcode next to the film slot.'));
+      t('Six digits, printed between the barcode and the film slot.'));
     const out = h('div', { class: 'cassette__result' });
     const form = h('form', { class: 'cassette__form', novalidate: true },
       h('div', { class: 'field' }, h('label', { for: 'cassette-code' }, t('Cassette number')), input),
       h('button', { type: 'submit', class: 'tool tool--primary' }, t('Look up')),
       msg);
 
-    /** The exposures a cassette's last digit stands for, e.g. "24 exp." or "18–23 exp.". */
+    /** The exposures a cassette's last digit stands for, e.g. "24 exposures" or "18–23 exposures". */
     function exposuresText(e) {
-      if (e.to === null) return t('{n} or more exp.', { n: e.from });
-      return e.from === e.to ? t('{n} exp.', { n: e.from }) : t('{from}–{to} exp.', { from: e.from, to: e.to });
+      if (e.to === null) return t('{n} or more exposures', { n: e.from });
+      return e.from === e.to ? t('{n} exposures', { n: e.from }) : t('{from}–{to} exposures', { from: e.from, to: e.to });
     }
 
     /** The last digit, and what the 1994 standard used it for where that differs. */
@@ -209,14 +225,14 @@
       const blocks = [];
       if (registry.length) {
         blocks.push(h('div', { class: 'source-block' },
-          h('h4', { class: 'source-block__title' }, t('I3A registry, 2008')),
+          h('h3', { class: 'source-block__title' }, t('I3A registry, 2008')),
           h('ul', { class: 'matches' }, registry)));
       }
       if (a) {
         const s = lookup.part1Info(a.basePart1).sensitizer;
         const parts = { cassette: a.part1, part1: a.basePart1, added: a.added };
         blocks.push(h('p', { class: 'result__lead' }, s
-          ? t('Part 1 {cassette} is {part1} + {added}, so the number belongs to {maker}. The standard does not say which DX number the film carries.', { ...parts, maker: ui.sensitizerName(s) })
+          ? t('Part 1 {cassette} is {part1} + {added}. Part 1 = {part1} is assigned to {maker} in the 2008 registry; under the standard, a maker adds 128, 256 or 384 only to its own Part 1 number. The standard does not say which DX number the film carries.', { ...parts, maker: ui.sensitizerName(s) })
           : t('Part 1 {cassette} is {part1} + {added}; Part 1 = {part1} was not assigned in the 2008 registry. The standard does not say which DX number the film carries.', parts)));
       }
       if (hit.dx) {
@@ -228,13 +244,16 @@
       const exact = ui.groupCommunity(hit.sameCode);
       if (exact.length) {
         blocks.push(h('div', { class: 'source-block' },
-          h('h4', { class: 'source-block__title' }, 'The Big Film Database'),
+          h('h3', { class: 'source-block__title' }, 'The Big Film Database'),
           h('ul', { class: 'matches' }, exact.map(ui.communityItem))));
       }
       const similar = ui.groupCommunity(hit.sameExtract);
       if (similar.length) {
         blocks.push(h('details', { class: 'source-block source-block--more' },
-          h('summary', null, i18n.plural(similar.length, '{n} other film uses the same DX number', '{n} other films use the same DX number')),
+          // Without a DX number (augmented, or above 8191), they share only the digits.
+          h('summary', null, p.part1 === null
+            ? i18n.plural(similar.length, '{n} other film has the same middle four digits', '{n} other films have the same middle four digits')
+            : i18n.plural(similar.length, '{n} other film uses the same DX number', '{n} other films use the same DX number')),
           h('ul', { class: 'matches' }, similar.map(ui.communityItem))));
       }
       const link = (exact.length || similar.length) && p.part1 !== null ? ui.bfdLink(p.part1, p.part2) : null;

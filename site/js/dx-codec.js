@@ -164,7 +164,8 @@
 
   /** Parse a printed frame label such as "23", "23A", "XX", "X", "00A" or "K". */
   function parseFrameLabel(input) {
-    const text = String(input || '').normalize('NFKC').trim().toUpperCase();
+    // The standard prints the X labels as "×" and "××" (Table 5).
+    const text = String(input || '').normalize('NFKC').trim().toUpperCase().replace(/\u00D7/g, 'X');
     const m = /^(XX|X|S|K|F|00|\d{1,2})(A?)$/.exec(text);
     if (!m) return null;
     const half = m[2] === 'A';
@@ -365,22 +366,26 @@
     return decode(head, 'short').valid ? head : null;
   }
 
+  // Part 1 and Part 2 apart: spaces, or a run of hyphens, dashes (a Chinese
+  // input method types "——") or minus signs, or a slash or a dot. Part 1 may
+  // have leading zeros ("0079-15").
+  const PARTS = /^(0*\d{1,3})(?:\s*[-\u2010-\u2015\u2212/.]+\s*|\s+)(\d{1,2})$/;
+
   /**
-   * Parse a DX number as written by people: "79-15", "79 15", a "DX extract"
-   * (16 × Part 1 + Part 2, e.g. "1279", or "550" as Lawley writes it) or a
-   * 6-digit cassette number ("012794"). Returns null when the input cannot be
-   * a DX number. A shorter number up to 127 could be a Part 1 on its own
-   * ("79"), so as an extract it needs four digits ("0079"). Full-width
+   * Parse a DX number as written by people: "79-15", "79 15", "DX 79-15", a
+   * "DX extract" (16 × Part 1 + Part 2, e.g. "1279", or "550" as Lawley writes
+   * it) or a 6-digit cassette number ("012794"). Returns null when the input
+   * cannot be a DX number. A shorter number up to 127 could be a Part 1 on its
+   * own ("79"), so as an extract it needs four digits ("0079"). Full-width
    * digits and signs, as typed with a Chinese input method, count too.
    */
   function parseDxNumber(input) {
-    const text = String(input || '').normalize('NFKC').trim();
-    let m = /^(\d{1,3})\s*[-–—/.\s]\s*(\d{1,2})$/.exec(text);
+    const text = String(input || '').normalize('NFKC').trim().replace(/^dx[\s\-\u2010-\u2015\u2212]*/i, '');
+    let m = PARTS.exec(text);
     if (m) {
       const part1 = parseInt(m[1], 10);
       const part2 = parseInt(m[2], 10);
-      if (part1 > 127 || part2 > 15) return null;
-      return { part1, part2, kind: 'parts' };
+      if (part1 <= 127 && part2 <= 15) return { part1, part2, kind: 'parts' };
     }
     m = /^\d{1,4}$/.exec(text);
     if (m) {
@@ -394,7 +399,7 @@
   }
 
   /**
-   * Parse the 6-digit number printed under the cassette barcode (PHHHHE):
+   * Parse the 6-digit number printed between the cassette barcode and the film slot (PHHHHE):
    * P = the maker's own digit, HHHH = 16 × Part 1 + Part 2, E = exposure code
    * (GB/T 9185-2003 §9.3). HHHH from 2048 to 8191 is an "augmented" number:
    * the maker adds 128, 256 or 384 to its Part 1 on the cassette only
@@ -402,7 +407,7 @@
    * DX number is derived: `augmented` gives the parts and the base Part 1.
    */
   function parseCassette(input) {
-    const digits = String(input || '').normalize('NFKC').replace(/[\s-]/g, '');
+    const digits = String(input || '').normalize('NFKC').replace(/[\s\-\u2010-\u2015\u2212]/g, '');
     if (!/^\d{6}$/.test(digits)) return null;
     const prefix = Number(digits[0]);
     const extract = parseInt(digits.slice(1, 5), 10);

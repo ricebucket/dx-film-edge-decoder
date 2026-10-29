@@ -73,9 +73,10 @@ in [research/04](../research/04-community-database.md).
    ```
 
    This fetches `film_database.csv` from GitHub, keeps the rows with a DX
-   number and records the commit in `big-film-database/source.json`. Use
-   `-- --commit <hash>` for a particular commit. Without an option, the
-   recorded commit is downloaded again, which leaves the files unchanged.
+   number and records the commit in `big-film-database/source.json`. For a
+   particular commit, use `-- --commit` with its full 40-character hash.
+   Without an option, the recorded commit is downloaded again, which leaves
+   the files unchanged.
 2. Rebuild the page's data file and run the tests:
 
    ```sh

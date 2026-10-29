@@ -16,7 +16,8 @@ Kodak's patent US 4,965,628 explains the design: photofinishing machines punch
 a notch into the film edge at every frame, which can destroy a barcode. A code
 short enough to fit twice per frame guarantees that "at least alternate ones of
 the multi-field bar code images will always be readable", and missing ones "may
-be reconstructed by interpolation". The patent describes the frame field as
+be reconstructed by interpolation". The patent describes the frame row (the
+frame field and the A cell) as
 "seven bits defining the frame number … defined as half frame intervals", so a
 36-exposure roll has 72 frame numbers.
 
@@ -32,7 +33,8 @@ Kodak's EP 0838718 describes how printers used this: Kodak's CLAS35 printer
 read one frame number as a reference and used the fixed pitch between codes to
 work out the frame number at every frame notch, so each print could carry its
 frame number. The alternative, a separate frame-number barcode on the opposite
-edge, was used by Fuji in the late 1980s and became an option in ISO 1007:2000
+edge, was used by Fuji in the late 1980s and is an option in ISO 1007:2000,
+which added it after the 1993 draft
 ([report 07](07-history-and-related-markings.md)).
 
 ## What is printed around the codes
@@ -63,7 +65,7 @@ numbers as part of the optional single-track frame-number barcode (§6;
 
 Before frame 1, rolls carry a few extra positions that are normally lost when
 the film is loaded. GB/T 9185-2003 calls frame 1 the first designated number
-(Figure 1a) and finds the frame numbers before 0 by counting down in binary
+(Table 6, note 1) and finds the frame numbers before 0 by counting down in binary
 (§7.2.1.5). Its Table 5 therefore lists 00 as 63, X as 62 and XX as 61, each
 with an A position; the standard writes these labels as × and ××.
 

@@ -37,7 +37,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
 | 列 | 含义 |
 |---|---|
 | `DX extract` | 16 × 第 1 部分 + 第 2 部分（四位数字） |
-| `DX full` | 六位数的暗盒条码数字 |
+| `DX full` | 六位数的暗盒条码 |
 | `Name` | 产品名称，可以带有 `#` 搜索标签 |
 | `Original Film or informations` | 备注，常常是贴牌胶片背后的原厂乳剂 |
 | `Manufacturer`、`Country`、`Distributor` | 自由文本 |
@@ -57,7 +57,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
    npm run update:community-data -- --latest
    ```
 
-   这会从 GitHub 获取 `film_database.csv`，保留带有 DX 码的行，并在 `big-film-database/source.json` 中记录该提交。要获取某个特定的提交，使用 `-- --commit <hash>`。不加选项时，会重新下载已记录的那个提交，文件因此保持不变。
+   这会从 GitHub 获取 `film_database.csv`，保留带有 DX 码的行，并在 `big-film-database/source.json` 中记录该提交。要获取某个特定的提交，使用 `-- --commit` 加上它完整的 40 位哈希值。不加选项时，会重新下载已记录的那个提交，文件因此保持不变。
 2. 重新生成页面的数据文件并运行测试：
 
    ```sh

@@ -141,6 +141,44 @@ describe('lookup with the real tables', () => {
     for (const q of ['550', '0550', '34-6']) assert.equal(lookup.search(q)[0].name, 'FUJICHROME ASTIA 100 PROFESSIONAL', q);
   });
 
+  test('a DX number written as one lists only that code\'s films, if any', () => {
+    // "20-0" is not "200", "0-5" is not "400-5".
+    assert.deepEqual(lookup.search('20-0'), []);
+    assert.deepEqual(lookup.search('0-5'), []);
+    for (const q of ['79-15', 'DX 79-15', 'DX 1279', '012794']) {
+      const results = lookup.search(q);
+      assert.ok(results.length > 0, q);
+      assert.ok(results.every((e) => e.part1 === 79 && e.part2 === 15), q);
+    }
+  });
+
+  test('names match by words within one field, or neighboring words written together', () => {
+    // Not "PhotoPoint / Max" for tmax, nor "exp 2008" for xp2.
+    const fields = (e) => [e.name, e.tags, e.original].join(' ');
+    assert.ok(lookup.search('tmax').every((e) => /t[\s-]?max/i.test(fields(e))));
+    assert.ok(lookup.search('xp2').every((e) => /xp\s?2/i.test(fields(e))));
+    assert.equal(lookup.search('portra400')[0].name, 'KODAK Professional PORTRA 400 Film');
+    // A hyphenated name is a whole-word match too, so the registry entry comes first.
+    assert.equal(lookup.search('T-MAX')[0].source, 'i3a');
+    assert.equal(lookup.search('Tri-X')[0].name, 'KODAK TRI-X Pan Film');
+    // Three or more words written together.
+    assert.equal(lookup.search('tmax400')[0].name, 'KODAK T-MAX 400 Professional Film');
+    assert.equal(lookup.search('kodakgold200')[0].name, 'KODAK GOLD 200 Film');
+    assert.match(lookup.search('superiaxtra400')[0].name, /SUPERIA X-TRA 400/i);
+  });
+
+  test('a number typed with a space, or a DX number also printed in names, finds those names too', () => {
+    // "400 135" is no cassette number, though its six digits could be one.
+    assert.ok(lookup.search('400 135').some((e) => /135/.test(e.name) && /400/.test(e.name)));
+    // 100-2 is a DX number and a generation code: the code's films first, then names with it.
+    const gen2 = lookup.search('100-2');
+    assert.ok(gen2[0].part1 === 100 && gen2[0].part2 === 2);
+    assert.ok(gen2.some((e) => e.name === 'AGFACOLOR OPTIMA 100-2'));
+    assert.ok(lookup.search('100-4').some((e) => /VR100-4/.test(e.name)));
+    // Still: "20-0" is not "200", nor part of "120-0".
+    assert.deepEqual(lookup.search('20-0'), []);
+  });
+
   test('a bare number is a film speed first: its DX number comes after films with it in their name', () => {
     // 1600 is also DX 100-0.
     const results = lookup.search('1600');

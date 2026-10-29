@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { collectKeys, loadLanguages, checkLanguage, scriptKeys, pageKeys } from '../../scripts/check-languages.mjs';
+import { collectKeys, loadLanguages, checkLanguage, scriptKeys, pageKeys, noscriptLanguages } from '../../scripts/check-languages.mjs';
 import { buildFigures } from '../../scripts/make-figures.mjs';
 
 const require = createRequire(import.meta.url);
@@ -94,17 +94,39 @@ describe('which language a visitor sees', () => {
 
 describe('interface languages', () => {
   test('every language has every English text of the page, with matching placeholders and tags', async () => {
-    const { used, problems } = await collectKeys();
+    const { used, problems, noscript } = await collectKeys();
     assert.deepEqual(problems, []);
     assert.ok(used.size > 300, `${used.size} texts`);
     const languages = await loadLanguages();
     assert.ok(languages.some((l) => l.code === 'zh-CN'));
-    for (const lang of languages) assert.deepEqual(checkLanguage(lang, used), [], lang.file);
+    for (const lang of languages) assert.deepEqual(checkLanguage(lang, used, noscript), [], lang.file);
+  });
+
+  test('a language cannot add a tag or attribute the English lacks, however it is written', () => {
+    const used = new Map([['Go <em>here</em>', { where: 'x', html: true }]]);
+    const check = (text) => checkLanguage({ code: 'de', name: 'Deutsch', strings: { 'Go <em>here</em>': text } }, used, null);
+    assert.deepEqual(check('Geh <em>hierhin</em>'), []);
+    for (const bad of [
+      "Geh <em>hierhin</em><img src='x' onerror='alert(1)'>",
+      'Geh <em onmouseover="alert(1)">hierhin</em>',
+      'Geh <em style=color:red>hierhin</em>',
+      // Stray quotes: a browser finds onmouseover in this tag, a plain comparison of attributes doesn't.
+      'Geh <em " <=">" onmouseover=alert(1)>hierhin</em>',
+    ]) assert.equal(check(bad).length, 1, bad);
+  });
+
+  test('the message for visitors without JavaScript is in index.html in every language, as the language files cannot supply it', () => {
+    const html = '<p lang="fr">elsewhere</p><noscript><!-- x --><div><p lang="en">a</p><p lang="zh-CN">b</p></div></noscript>';
+    assert.deepEqual(noscriptLanguages(html), ['en', 'zh-CN']);
+    const lines = checkLanguage({ code: 'de', name: 'Deutsch', strings: {} }, new Map(), noscriptLanguages(html));
+    assert.equal(lines.length, 1);
+    assert.match(lines[0], /lang="de"/);
   });
 
   test('Chinese uses its own punctuation when joining pieces', async () => {
     const zh = (await loadLanguages()).find((l) => l.code === 'zh-CN');
-    assert.deepEqual(zh.punctuation, { comma: '，', colon: '：', semicolon: '；', period: '。', sentence: '。' });
+    // No space between pieces of Chinese text, as between "（可信度 3/4）" and the notes before it.
+    assert.deepEqual(zh.punctuation, { comma: '，', colon: '：', semicolon: '；', period: '。', sentence: '。', space: '' });
   });
 
   test('the key extractor finds literal texts and flags calls it cannot read', () => {

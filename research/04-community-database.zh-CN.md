@@ -14,13 +14,13 @@ The Big Film Database 由署名为“Dxdatabase”的作者于 2018 年 2 月以
 
 ## 所用快照
 
-该数据库 GitHub 仓库的提交 `9aa3890`（2026 年 10 月 10 日）：共 8,710 行，其中 1,676 行带有 DX 码——1,674 行有“DX extract”（四位数编号），2 行只有暗盒条码数字，由其中间几位可以得出 DX extract。`npm run stats:community-data` 会输出这些数字以及下一张表中的数字；[data/README.md](../data/README.zh-CN.md#更新数据) 说明了如何更新快照。
+该数据库 GitHub 仓库的提交 `9aa3890`（2026 年 10 月 10 日）：共 8,710 行，其中 1,676 行带有 DX 码——1,674 行有“DX extract”（四位数编号），2 行只有暗盒条码，由其中间几位可以得出 DX extract。`npm run stats:community-data` 会输出这些数字以及下一张表中的数字；[data/README.md](../data/README.zh-CN.md#更新数据) 说明了如何更新快照。
 
 ## 数据质量方面的发现
 
 | 发现 | 行数 | 本工具的处理方式 |
 |---|---|---|
-| DX extract 与 DX full（六位暗盒条码数字）的中间几位数字不一致 | 12 | 采用 DX extract，与该网站自己的“similar emulsions”（相似乳剂）搜索的做法相同 |
+| DX extract 与 DX full（六位暗盒条码）的中间几位数字不一致 | 12 | 采用 DX extract，与该网站自己的“similar emulsions”（相似乳剂）搜索的做法相同 |
 | 编号大于 2047，例如编号为 5391 的 CineStill 50D 和 800T 暗盒（电影胶片，没有 DX 潜影条码） | 42 | 可以匹配暗盒条码，但从不匹配潜影条码 |
 | 编号小于 16，所以第 1 部分会是 0：按该标准有效，但 2008 年时没有分配给任何感光厂 | 14 | 同上 |
 | 字段中含有 HTML 标记（`<i>…</i>`） | 3 | 去除标记 |

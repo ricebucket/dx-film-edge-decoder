@@ -35,6 +35,8 @@ export function parseCsv(text, delimiter = ',') {
       field += ch;
     }
   }
+  // Otherwise one stray quote would swallow every row after it unnoticed.
+  if (quoted) throw new Error('CSV ends inside a quoted field: a quote is not closed');
   if (field !== '' || row.length) {
     row.push(field);
     rows.push(row);

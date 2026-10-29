@@ -1,12 +1,12 @@
 /*
- * Interface languages. English is the source: the code and index.html are
+ * Interface languages. English is the source: the code and the pages are
  * written in English, and every other language is one file in js/i18n/ that
  * registers a dictionary from the English text to its own. Adding a language
- * means adding such a file and a <script> tag for it; the language menu and
- * the tests pick it up from the registry.
+ * means adding such a file and a <script> tag for it in each page; the
+ * language menu and the tests pick it up from the registry.
  *
  * Text in the code goes through t('English text {name}', { name }). Elements
- * of index.html marked data-i18n get their content in the current language,
+ * of the pages marked data-i18n get their content in the current language,
  * and data-i18n-attr="aria-label title …" names attributes that do too; in
  * both cases the key is the English text with runs of white space collapsed.
  *
@@ -29,7 +29,7 @@
     code: 'en',
     name: 'English',
     // Separators used when the code joins pieces of text; `sentence` goes between two sentences.
-    punctuation: { comma: ', ', colon: ': ', semicolon: '; ', period: '.', sentence: '. ' },
+    punctuation: { comma: ', ', colon: ': ', semicolon: '; ', period: '.', sentence: '. ', space: ' ' },
     strings: {},
   };
   const languages = [ENGLISH];
@@ -109,7 +109,7 @@
     }
   }
 
-  /** Put the current language's text into the marked parts of a page (index.html). */
+  /** Put the current language's text into the marked parts of a page. */
   function applyLanguage(doc) {
     doc.documentElement.lang = current.code;
     if (current !== ENGLISH) {
@@ -142,9 +142,12 @@
     try {
       localStorage.setItem(STORAGE_KEY, code);
     } catch (e) { /* storage blocked: the URL alone keeps the choice */ }
-    // Built by hand: URLSearchParams would escape the "/" in ?dx=79-15/23.
+    // The query built by hand (URLSearchParams would escape the "/" in
+    // ?dx=79-15/23), on the page's own address, so it can't lead elsewhere.
     const others = location.search.slice(1).split('&').filter((p) => p && !/^lang=/i.test(p));
-    location.replace(`${location.pathname}?${[...others, `lang=${encodeURIComponent(code)}`].join('&')}${location.hash}`);
+    const url = new URL(location.href);
+    url.search = `?${[...others, `lang=${encodeURIComponent(code)}`].join('&')}`;
+    location.replace(url.href);
   }
 
   return {

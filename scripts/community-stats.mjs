@@ -9,6 +9,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { readCsvObjects } from './lib/csv.mjs';
+import { isMain } from './lib/main.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => readFile(join(ROOT, path), 'utf8');
@@ -70,7 +71,7 @@ Data-quality findings:
   availability: ${n(s.availability[0])} discontinued, ${s.availability[1]} unsure, ${s.availability[2]} on the market`);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta)) {
   main().catch((err) => {
     console.error(err.message);
     process.exit(1);

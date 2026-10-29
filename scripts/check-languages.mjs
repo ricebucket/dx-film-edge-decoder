@@ -1,20 +1,22 @@
 #!/usr/bin/env node
 // Check the interface languages in site/js/i18n/ against the English text
-// of the page: every t('…') and plural(…) call in site/js, every element of
-// site/index.html marked data-i18n and every attribute named in
-// data-i18n-attr.
+// of the pages: every t('…') and plural(…) call in site/js, every element of
+// site/*.html marked data-i18n and every attribute named in data-i18n-attr.
 //
 //   node scripts/check-languages.mjs              # report on every language
 //   node scripts/check-languages.mjs --template   # print a dictionary of all English texts
 //
 // For each language it lists English texts it lacks, texts whose English is no
-// longer used, and texts whose {placeholders} or HTML tags differ from the
-// English. The exit code is 1 if anything is wrong.
+// longer used, texts whose {placeholders} or HTML tags differ from the English,
+// and a missing version of the message for visitors without JavaScript (the
+// <noscript> block of site/index.html, which the language files cannot supply).
+// The exit code is 1 if anything is wrong.
 
 import { readFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { isMain } from './lib/main.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = join(ROOT, 'site');
@@ -56,7 +58,7 @@ export function scriptKeys(file, text) {
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
 const decode = (s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
 
-/** English texts of the elements and attributes that index.html marks for other languages. */
+/** English texts of the elements and attributes that a page marks for other languages. */
 export function pageKeys(file, html) {
   const keys = [];
   const stack = [];
@@ -84,6 +86,12 @@ export function pageKeys(file, html) {
   return keys;
 }
 
+/** The languages, by their lang attributes, of the message for visitors without JavaScript. */
+export function noscriptLanguages(html) {
+  const block = /<noscript>([\s\S]*?)<\/noscript>/.exec(html);
+  return block ? [...block[1].matchAll(/\slang="([^"]+)"/g)].map((m) => m[1]) : [];
+}
+
 export async function collectKeys() {
   const used = new Map();
   const problems = [];
@@ -96,8 +104,13 @@ export async function collectKeys() {
     r.keys.forEach(add);
     problems.push(...r.problems);
   }
-  pageKeys('site/index.html', await readFile(join(SITE, 'index.html'), 'utf8')).forEach(add);
-  return { used, problems };
+  for (const name of (await readdir(SITE)).filter((n) => n.endsWith('.html')).sort()) {
+    pageKeys(`site/${name}`, await readFile(join(SITE, name), 'utf8')).forEach(add);
+  }
+  // Only the decoder needs JavaScript; the sources page reads fine without it, in English.
+  const noscript = noscriptLanguages(await readFile(join(SITE, 'index.html'), 'utf8'));
+  if (!noscript.includes('en')) problems.push('site/index.html: the message for visitors without JavaScript has no English version (lang="en")');
+  return { used, problems, noscript };
 }
 
 export async function loadLanguages() {
@@ -107,12 +120,34 @@ export async function loadLanguages() {
 }
 
 const placeholders = (text) => [...String(text).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
-const tags = (text) => [...String(text).matchAll(/<\/?([a-zA-Z][\w-]*)((?:[^>"']|"[^"]*")*)>/g)]
-  .map((m) => `${m[1].toLowerCase()}${(m[2].match(/\b(?:href|class|data-[\w-]+)="[^"]*"/g) || []).sort().join(' ')}`).sort().join('|');
 
-/** Problems with one language's dictionary, as readable lines. */
-export function checkLanguage(lang, used) {
+/**
+ * Every tag with all its attributes, however they are quoted, so that a
+ * language can't add an attribute (an event handler, say) or a tag that the
+ * English lacks: i18n.js puts these texts into the page as HTML.
+ */
+const tags = (text) => [...String(text).matchAll(/<\/?([a-zA-Z][\w-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g)]
+  .map((m) => {
+    const attrs = [...m[2].matchAll(/([^\s"'=<>/]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g)]
+      .map(([, name, value = '']) => `${name.toLowerCase()}=${value.replace(/^["']|["']$/g, '')}`);
+    return `${m[1].toLowerCase()}[${attrs.sort().join(' ')}]`;
+  }).sort().join('|');
+
+/**
+ * Whether every "<" in a text starts a tag written plainly, as the English
+ * ones are: a name and double-quoted attributes. A browser reads stray quotes
+ * in a tag differently from the comparison above, and could find an attribute
+ * there that the comparison missed.
+ */
+const PLAIN_TAG = /<\/?[a-zA-Z][\w-]*(?:\s+[\w:-]+="[^"<>]*")*\s*>/g;
+const plainTags = (text) => (String(text).match(/</g) || []).length === (String(text).match(PLAIN_TAG) || []).length;
+
+/** Problems with one language's dictionary, and its message for visitors without JavaScript, as readable lines. */
+export function checkLanguage(lang, used, noscript) {
   const lines = [];
+  if (noscript && !noscript.includes(lang.code)) {
+    lines.push(`no version of the message for visitors without JavaScript: add one with lang="${lang.code}" to the <noscript> block of site/index.html`);
+  }
   for (const [key, info] of used) {
     if (!(key in lang.strings)) lines.push(`missing: ${JSON.stringify(key)} (${info.where})`);
   }
@@ -131,6 +166,7 @@ export function checkLanguage(lang, used) {
       else {
         if (placeholders(v) !== placeholders(key)) lines.push(`placeholders differ: ${JSON.stringify(key)} → ${JSON.stringify(v)}`);
         if (used.get(key).html && tags(v) !== tags(key)) lines.push(`HTML tags differ: ${JSON.stringify(key)} → ${JSON.stringify(v)}`);
+        else if (used.get(key).html && !plainTags(v)) lines.push(`HTML tags not written plainly (name and double-quoted attributes only): ${JSON.stringify(key)} → ${JSON.stringify(v)}`);
       }
     }
   }
@@ -139,7 +175,7 @@ export function checkLanguage(lang, used) {
 }
 
 async function main() {
-  const { used, problems } = await collectKeys();
+  const { used, problems, noscript } = await collectKeys();
   if (process.argv.includes('--template')) {
     const entries = [...used.keys()].map((k) => `    ${JSON.stringify(k)}: ${JSON.stringify(k)},`);
     console.log(`  strings: {\n${entries.join('\n')}\n  },`);
@@ -148,7 +184,7 @@ async function main() {
   let failed = problems.length > 0;
   for (const p of problems) console.log(p);
   for (const lang of await loadLanguages()) {
-    const lines = checkLanguage(lang, used);
+    const lines = checkLanguage(lang, used, noscript);
     failed = failed || lines.length > 0;
     console.log(`${lang.file} (${lang.code}, ${lang.name}): ${lines.length ? `${lines.length} problems` : `all ${used.size} texts present`}`);
     for (const l of lines) console.log(`  ${l}`);
@@ -156,7 +192,7 @@ async function main() {
   process.exit(failed ? 1 : 0);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta)) {
   main().catch((err) => {
     console.error(err.message);
     process.exit(1);

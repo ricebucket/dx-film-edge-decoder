@@ -10,6 +10,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { readCsvObjects } from './lib/csv.mjs';
+import { isMain } from './lib/main.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -174,7 +175,7 @@ async function main() {
   }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta)) {
   main().catch((err) => {
     console.error(err.message);
     process.exit(1);

@@ -64,6 +64,23 @@ test('the language can be switched where the browser blocks storage', async ({ p
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=en$/);
 });
 
+test('where the browser blocks storage, the language goes along to the sources page and back', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() { throw new DOMException('Blocked', 'SecurityError'); },
+    });
+  });
+  await page.goto('/?lang=zh-CN');
+  await page.locator('.site-footer').getByRole('link', { name: '来源与致谢' }).click();
+  await expect(page).toHaveURL(/\/sources\.html\?lang=zh-CN$/);
+  await expect(page).toHaveTitle('来源与致谢 – DX 潜影条码解码器');
+  await expect(page.locator('h1')).toHaveText('来源与致谢');
+  await page.getByRole('navigation', { name: '页面各部分' }).getByRole('link', { name: '原理' }).click();
+  await expect(page).toHaveURL(/\/index\.html\?lang=zh-CN#how$/);
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+});
+
 test('a language in the URL that the page does not have is ignored', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('dx-lang', 'zh-CN'));
   await page.goto('/?dx=79-15/23&lang=fr');
@@ -161,4 +178,14 @@ test('every language fits the screen without sideways scrolling, down to 320 px 
       expect(Math.abs(menu.y + menu.height / 2 - (brand.y + brand.height / 2))).toBeLessThan(12);
     }
   }
+});
+
+test('Chinese pieces of text are joined without spaces', async ({ page }) => {
+  await page.goto('/?dx=28-5/1&lang=zh-CN');
+  // (Playwright trims expected text, so the raw text is compared.)
+  const notes = page.locator('#result .match__original').filter({ hasText: '可信度' }).first();
+  await expect(notes).toBeVisible();
+  expect(await notes.textContent()).not.toContain(' （');
+  await page.goto('/?dx=21-0/1&lang=zh-CN');
+  await expect(page.locator('#result .result__lead').first()).toContainText('。历史：');
 });

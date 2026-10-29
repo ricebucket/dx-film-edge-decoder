@@ -75,11 +75,13 @@
         return { format, cells: standardEnds(bits, format), loaded: true };
       }
     }
+    // An empty strip in the 23-cell layout ("7 thin bars").
+    if (params.get('layout') === '23') return { format: 'short', cells: emptyCells('short'), loaded: false };
     return null;
   }
 
   function stateQuery(decoded) {
-    if (isEmpty()) return '';
+    if (isEmpty()) return state.format === 'short' ? '?layout=23' : '';
     if (decoded.valid) {
       return `?dx=${decoded.dxNumber}${decoded.frame === null ? '' : `/${decoded.frameLabel}`}`;
     }
@@ -187,7 +189,16 @@
     for (const b of group.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.value === value));
   }
 
+  // What the result shows: the code, and the way in while the strip is empty.
+  // The film look and Mirror change neither, so the result stays as it is,
+  // with any list opened in it.
+  let resultShown = '';
+
   function update(options) {
+    // Keyboard focus in the strip or the bar above it, which may be drawn anew.
+    const focused = document.activeElement;
+    const focusedCell = $('strip').contains(focused) ? focused.dataset.cell : undefined;
+    const focusedBar = $('source').contains(focused);
     const decoded = codec.decode(state.cells, state.format);
     // A photo's barcode lines up over the strip only in the layout it was read in.
     const lined = origin && origin.lined && origin.format === state.format ? origin.lined : null;
@@ -200,50 +211,75 @@
     // aria-disabled rather than disabled, so keyboard focus stays on the button.
     $('undo').setAttribute('aria-disabled', String(past.length === 0));
     $('redo').setAttribute('aria-disabled', String(future.length === 0));
-    $('hint').textContent = hint(decoded);
+    // A live region: rewritten only when its words change, so they are read out once.
+    const text = hint(decoded);
+    if ($('hint').textContent !== text) $('hint').textContent = text;
     renderSource();
-    const result = $('result');
-    const hadFocus = result.contains(document.activeElement);
-    ui.renderResult(result, {
-      decoded,
-      empty: isEmpty(),
-      lookup,
-      examples: EXAMPLES,
-      shareUrl: shareUrl(decoded),
-      way,
-      onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label } }),
-      onApplyCells(cells) {
-        record();
-        state.cells = cells;
-        state.loaded = true;
-        update({ develop: true });
-      },
-      onUseShort(cells) {
-        record();
-        state.format = 'short';
-        state.cells = cells;
-        state.loaded = true;
-        update({ develop: true });
-      },
-    });
-    // A button used in the result (a correction, an example) is gone with
-    // the old result: carry on at the new one's heading.
-    if (hadFocus && !result.contains(document.activeElement)) $('result-title').focus({ preventScroll: true });
+    // The folded reader says its photo's code is on the strip: once another
+    // code (or none) is there, it shows its steps again.
+    if (!origin || origin.kind !== 'photo') photo.unfold();
+    const shown = `${state.format}:${state.cells}:${isEmpty() ? way : ''}`;
+    if (shown !== resultShown) {
+      resultShown = shown;
+      const result = $('result');
+      const hadFocus = result.contains(document.activeElement);
+      ui.renderResult(result, {
+        decoded,
+        empty: isEmpty(),
+        lookup,
+        examples: EXAMPLES,
+        shareUrl: shareUrl(decoded),
+        way,
+        onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label } }),
+        onApplyCells(cells) {
+          record();
+          state.cells = cells;
+          state.loaded = true;
+          update({ develop: true });
+        },
+        onUseShort(cells) {
+          record();
+          state.format = 'short';
+          state.cells = cells;
+          state.loaded = true;
+          update({ develop: true });
+        },
+      });
+      // A button used in the result (a correction, an example) is gone with
+      // the old result: carry on at the new one's heading.
+      if (hadFocus && !result.contains(document.activeElement)) $('result-title').focus({ preventScroll: true });
+    }
+    // The cell or button that had focus went with the old strip or bar: carry on
+    // at the same cell, or at the bar's first button (Undo, if the bar went).
+    if (focused !== document.body && !document.contains(focused)) {
+      const again = focusedCell !== undefined
+        ? $('strip').querySelector(`.track--data button.cell--edit[data-cell="${focusedCell}"]`) || $('strip').querySelector('.track--data .cell--edit')
+        : focusedBar ? $('source').querySelector('button') || $('undo') : null;
+      if (again) again.focus({ preventScroll: true });
+    }
     syncUrl(decoded);
   }
 
   /** Put a code on the strip (in the current layout unless one is given) and bring the strip into view. */
   function loadCode(code, options) {
-    record();
-    if (options && options.format) state.format = options.format;
-    state.cells = codec.encode(code, state.format);
-    state.loaded = true;
+    const format = (options && options.format) || state.format;
+    const cells = codec.encode(code, format);
+    const from = options && options.origin;
+    // The same code from the same place again changes nothing, so there is nothing to undo.
+    const same = state.loaded && state.format === format && state.cells === cells && Boolean(origin) && Boolean(from) &&
+      origin.kind === from.kind && origin.cells === cells && origin.label === originLabel(from, cells, format);
+    if (!same) {
+      record();
+      state.format = format;
+      state.cells = cells;
+      state.loaded = true;
+      setOrigin(from);
+    }
     if (options && options.look) {
       state.look = options.look;
       savePrefs();
     }
-    setOrigin(options && options.origin);
-    update({ develop: true });
+    update({ develop: !same });
     if (!options || options.scroll !== false) {
       $('lighttable').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
     }
@@ -342,8 +378,9 @@
   // ---- where the code came from ----------------------------------------------------------
 
   // The bar above the strip says where its code came from (ui-source.js):
-  // { kind, label, use, format, cells }, plus a photo's thumbnail and its
-  // barcode lined up for the strip; null for a code copied by hand.
+  // { kind, label, use, format, cells }, plus a photo's thumbnail, its
+  // barcode lined up for the strip and what the reader needs to show it again
+  // (kept); null for a code copied by hand.
   let origin = null;
   let originUses = 0;
   let sourceShown = '';
@@ -354,15 +391,20 @@
       origin = null;
       return;
     }
-    const d = codec.decode(state.cells, state.format);
-    const label = from.label || (d.frame === null ? from.name : t('{name}, frame {frame}', { name: from.name, frame: d.frameLabel }));
-    origin = Object.assign({}, from, { label, use: ++originUses, format: state.format, cells: state.cells });
+    origin = Object.assign({}, from, { label: originLabel(from, state.cells, state.format), use: ++originUses, format: state.format, cells: state.cells });
+  }
+
+  /** What the bar says a code from `from` is: its label, or its name and frame. */
+  function originLabel(from, cells, format) {
+    const d = codec.decode(cells, format);
+    return from.label || (d.frame === null ? from.name : t('{name}, frame {frame}', { name: from.name, frame: d.frameLabel }));
   }
 
   /** "Back to …": the place the code came from, with focus where to carry on. */
   function goBack(kind) {
     if (kind === 'photo') {
-      setWay('photo', { focus: true });
+      // The photo this code came from, also when the reader has moved on to another.
+      setWay('photo', { focus: true, kept: origin && origin.kind === 'photo' ? origin.kept : null });
       return;
     }
     const target = $({ finder: 'finder-q', cassette: 'cassette-code', list: 'codes-title' }[kind]);
@@ -381,9 +423,13 @@
       edited,
       onBack: () => goBack(kind),
       onRemove() {
-        if (kind === 'photo') photo.reset();
-        // Undo does not bring back what was removed.
-        for (const s of past.concat(future)) if (s.origin === origin) s.origin = null;
+        if (kind === 'photo') photo.forget(origin.kept.picture);
+        // Undo does not bring back what was removed: a photo, in none of its uses.
+        const photoOf = (o) => (o && o.kind === 'photo' ? o.kept.picture : null);
+        const removed = photoOf(origin);
+        for (const s of past.concat(future)) {
+          if (s.origin === origin || (removed && photoOf(s.origin) === removed)) s.origin = null;
+        }
         origin = null;
         update();
         $(`tab-${way}`).focus();
@@ -395,7 +441,7 @@
 
   /**
    * On phones the introduction folds away with the chevron by the title (kept
-   * for later visits; index.html applies it before first paint), and the
+   * for later visits; js/prepaint.js applies it before first paint), and the
    * copying steps show their titles until "How to copy the bars" opens them.
    */
   function bindCompact() {
@@ -424,48 +470,12 @@
     });
   }
 
-  // ---- theme ------------------------------------------------------------------------------
-
-  function bindTheme() {
-    const button = $('theme-toggle');
-    const media = matchMedia('(prefers-color-scheme: dark)');
-    const current = () => document.documentElement.dataset.theme || (media.matches ? 'dark' : 'light');
-    const paint = () => {
-      const dark = current() === 'dark';
-      button.replaceChildren(DX.dom.icon(dark ? 'sun' : 'moon'));
-      button.setAttribute('aria-label', dark ? t('Switch to light theme') : t('Switch to dark theme'));
-    };
-    button.addEventListener('click', () => {
-      const next = current() === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      try { localStorage.setItem('dx-theme', next); } catch (e) { /* ignore */ }
-      paint();
-    });
-    media.addEventListener('change', paint);
-    paint();
-  }
-
-  // ---- language -----------------------------------------------------------------------------
-
-  function bindLanguage() {
-    const select = $('lang-select');
-    for (const lang of i18n.languages) {
-      select.append(DX.dom.h('option', { value: lang.code, lang: lang.code, selected: lang.code === i18n.current }, lang.name));
-    }
-    select.before(DX.dom.icon('globe', 'lang-picker__globe'));
-    select.after(DX.dom.icon('chevron', 'lang-picker__chevron'));
-    select.addEventListener('change', () => {
-      // The page reloads from its URL, so write any pending change first.
-      flushUrl();
-      i18n.select(select.value);
-    });
-  }
-
   // ---- start --------------------------------------------------------------------------------
 
   function start() {
     i18n.applyLanguage(document);
-    bindLanguage();
+    // Choosing a language reloads the page from its URL, so write any pending change first.
+    ui.bindHeader({ beforeLanguageChange: flushUrl });
     loadPrefs();
     const fromUrl = codeFromUrl();
     if (fromUrl) Object.assign(state, fromUrl);
@@ -480,13 +490,15 @@
         else target.click();
       });
     }
-    bindTheme();
     bindCompact();
     // Leaving or hiding the page writes a pending URL change at once.
     addEventListener('pagehide', flushUrl);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') flushUrl();
     });
+    // Back and Forward between places on the page (the header's links) only
+    // scroll, so the address they bring back gets the strip's code again.
+    addEventListener('popstate', () => writeUrl());
 
     photo = ui.createPhoto($('photo'), {
       lookup,
@@ -507,12 +519,17 @@
         // The button that had focus is gone: continue at the result.
         $('result-title').focus({ preventScroll: true });
       },
+      onOpen: () => goBack('photo'),
     });
     bindWays();
     setWay('copy');
 
     // Every "Show" button asks for a frame, which only the 31-cell layout has.
-    const show = (code, from) => loadCode(code, { format: 'long', origin: from });
+    // The page scrolls to the strip; focus goes along, to the result's heading.
+    const show = (code, from) => {
+      loadCode(code, { format: 'long', origin: from });
+      $('result-title').focus({ preventScroll: true });
+    };
     ui.createFinder($('finder-ui'), { lookup, onShow: show });
     ui.createCassette($('cassette-ui'), { lookup, onShow: show });
     ui.createReference($('reference-ui'), { lookup, onShow: show });
@@ -524,7 +541,7 @@
       look: 'negative',
     });
 
-    update({ develop: Boolean(fromUrl) });
+    update({ develop: Boolean(fromUrl && fromUrl.loaded) });
     ready = true;
   }
 

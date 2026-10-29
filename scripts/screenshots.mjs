@@ -14,6 +14,7 @@ import { readdir, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadPlaywright } from './lib/playwright.mjs';
+import { isMain } from './lib/main.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PAGE = pathToFileURL(join(ROOT, 'site', 'index.html')).href;
@@ -93,7 +94,7 @@ async function main() {
   }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta)) {
   main().catch((err) => {
     console.error(err);
     process.exit(1);

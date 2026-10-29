@@ -16,6 +16,9 @@
  *   3. The data track is the nearby row whose cells best fit the fixed start
  *      and stop patterns and the parity rule. A reversed clock pattern means
  *      the film was mirrored or upside down; bits are read in clock order.
+ *   4. If no clock track turns up, a second look allows for a faded or
+ *      damaged one: less contrast, light that changes along the film, and one
+ *      clock bar scratched off or one gap filled.
  */
 (function (root, factory) {
   'use strict';
@@ -116,6 +119,25 @@
     return (d[i] * (1 - fx) + d[i + 1] * fx) * (1 - fy) + (d[i + w] * (1 - fx) + d[i + w + 1] * fx) * fy;
   }
 
+  /** The lowest (sign 1) or highest (sign -1) value within `half` pixels of each position, in linear time. */
+  function envelope(values, half, sign) {
+    const n = values.length;
+    const out = new Float32Array(n);
+    const queue = new Int32Array(n);
+    let head = 0;
+    let tail = 0;
+    let next = 0;
+    for (let x = 0; x < n; x++) {
+      for (const end = Math.min(n - 1, x + half); next <= end; next++) {
+        while (tail > head && sign * values[queue[tail - 1]] >= sign * values[next]) tail--;
+        queue[tail++] = next;
+      }
+      while (queue[head] < x - half) head++;
+      out[x] = values[queue[head]];
+    }
+    return out;
+  }
+
   /** Gray values along a row, slanted by `slope` around the image center, averaged over ±band rows. */
   function profile(img, y, slope, band) {
     const out = new Float32Array(img.width);
@@ -176,28 +198,46 @@
 
   /**
    * Candidate clock tracks in one row, from its "markness" profile (1 = bar).
-   * A candidate is reversed when the shorter mark comes first.
+   * A candidate is reversed when the shorter mark comes first. With `damaged`,
+   * three neighboring single cells may also have run together (a bar
+   * scratched off, or a gap filled by dust).
    */
-  function matchClock(marks, format) {
-    const expected = clockRuns(format);
-    const reversedPattern = [...expected].reverse();
+  function matchClock(marks, format, damaged) {
     const cells = codec.getFormat(format).cells;
     const rs = runs(marks);
+    // Running totals of the run lengths: a window's width is one subtraction.
+    const sum = new Float64Array(rs.length + 1);
+    for (let i = 0; i < rs.length; i++) sum[i + 1] = sum[i] + rs[i].len;
     const found = [];
-    for (let i = 0; i + expected.length <= rs.length; i++) {
-      if (!rs[i].on) continue;
-      const window = rs.slice(i, i + expected.length);
-      const total = window.reduce((s, r) => s + r.len, 0);
-      const unit = total / cells;
-      if (unit < 1.5) continue;
-      for (const reversed of [false, true]) {
-        const pattern = reversed ? reversedPattern : expected;
-        let err = 0;
-        for (let k = 0; k < pattern.length && err < 2; k++) {
-          const d = window[k].len / unit - pattern[k];
-          err += d * d;
+    for (const reversed of [false, true]) {
+      const expected = reversed ? [...clockRuns(format)].reverse() : clockRuns(format);
+      const first = expected[0];
+      const last = expected[expected.length - 1];
+      for (const size of damaged ? [expected.length, expected.length - 2] : [expected.length]) {
+        for (let i = 0; i + size <= rs.length; i++) {
+          if (!rs[i].on) continue;
+          const unit = (sum[i + size] - sum[i]) / cells;
+          if (unit < 1.5) continue;
+          // The two end marks are in every pattern: if they alone miss, so does the window.
+          const a = rs[i].len / unit - first;
+          const b = rs[i + size - 1].len / unit - last;
+          if (a * a + b * b >= 1.5) continue;
+          const window = rs.slice(i, i + size);
+          // Undamaged, the runs follow the pattern; damaged, one run in the
+          // single cells is three cells long.
+          const patterns = size === expected.length ? [expected] : [];
+          for (let k = 1; size < expected.length && k + 1 < size; k++) {
+            if (Math.abs(window[k].len / unit - 3) < 0.7) patterns.push([...expected.slice(0, k), 3, ...expected.slice(k + 3)]);
+          }
+          for (const pattern of patterns) {
+            let err = 0;
+            for (let k = 0; k < pattern.length && err < 2; k++) {
+              const d = window[k].len / unit - pattern[k];
+              err += d * d;
+            }
+            if (err < 1.5) found.push({ x0: window[0].start, unit, reversed, err });
+          }
         }
-        if (err < 1.5) found.push({ x0: window[0].start, unit, reversed, err });
       }
     }
     return found;
@@ -208,22 +248,45 @@
     return reversed ? [...clock].reverse().join('') : clock;
   }
 
-  /** Gray levels of bars and gaps, from cells whose expected state is known. */
-  function calibrate(values, pattern) {
-    let bar = 0;
-    let gap = 0;
-    let nb = 0;
-    let ng = 0;
-    for (let i = 0; i < values.length; i++) {
-      if (pattern[i] === '1') { bar += values[i]; nb++; } else { gap += values[i]; ng++; }
-    }
-    return { bar: bar / nb, gap: gap / ng };
+  /**
+   * Gray levels of bars and gaps, from cells whose expected state is known:
+   * their means at the middle cell, and with `drift` also how much each
+   * changes per cell (a straight-line fit), for light that changes along the
+   * film.
+   */
+  function calibrate(values, pattern, drift) {
+    const mid = (values.length - 1) / 2;
+    const fit = (want) => {
+      let n = 0;
+      let sx = 0;
+      let sv = 0;
+      let sxx = 0;
+      let sxv = 0;
+      for (let i = 0; i < values.length; i++) {
+        if (pattern[i] !== want) continue;
+        const x = i - mid;
+        n++;
+        sx += x;
+        sv += values[i];
+        sxx += x * x;
+        sxv += x * values[i];
+      }
+      const slope = drift && n > 2 ? (n * sxv - sx * sv) / (n * sxx - sx * sx) : 0;
+      return { level: (sv - slope * sx) / n, slope };
+    };
+    const bar = fit('1');
+    const gap = fit('0');
+    return { bar: bar.level, gap: gap.level, barSlope: bar.slope, gapSlope: gap.slope, mid };
   }
 
   /** Map gray values to 0 (gap) … 1 (bar) using a calibration. */
   function normalize(values, cal) {
-    const span = cal.bar - cal.gap;
-    return values.map((v) => Math.min(1, Math.max(0, (v - cal.gap) / span)));
+    return values.map((v, i) => {
+      const x = i - cal.mid;
+      const gap = cal.gap + cal.gapSlope * x;
+      const bar = cal.bar + cal.barSlope * x;
+      return Math.min(1, Math.max(0, (v - gap) / (bar - gap)));
+    });
   }
 
   function fitScore(norm, pattern) {
@@ -233,7 +296,7 @@
   }
 
   /** Nudge origin and cell width so the sampled cells fit the clock pattern best. */
-  function refineGrid(img, y, slope, band, cand, format, minContrast) {
+  function refineGrid(img, y, slope, band, cand, format, minContrast, drift) {
     const cells = codec.getFormat(format).cells;
     const pattern = clockPattern(format, cand.reversed);
     let best = null;
@@ -242,13 +305,31 @@
         const unit = cand.unit * (1 + du);
         const x0 = cand.x0 + dx * unit;
         const values = sampleCells(img, y, slope, x0, unit, cells, band);
-        const cal = calibrate(values, pattern);
+        const cal = calibrate(values, pattern, drift);
         if (Math.abs(cal.bar - cal.gap) < minContrast) continue;
         const score = fitScore(normalize(values, cal), pattern);
         if (!best || score > best.score) best = { x0, unit, cal, score };
       }
     }
     return best;
+  }
+
+  /**
+   * A 31-cell clock with one gap filled can pass for the 23-cell clock: its
+   * cells 21–23 then form the 3-cell end mark. It would go on with cells
+   * 24–31 (01010111), while the film after a real 23-cell code is blank. How
+   * well the next cells (up to 8) fit the rest of the 31-cell clock, or null
+   * when fewer than 2 of them are in the image (cell 25 is the first bar).
+   */
+  function longTail(img, clock, band) {
+    const room = clock.reversed ? clock.x0 / clock.unit : (img.width - clock.x0) / clock.unit - 23;
+    const n = Math.min(8, Math.floor(room));
+    if (n < 2) return null;
+    const tail = codec.getFormat('long').clock.slice(23, 23 + n);
+    const x = clock.reversed ? clock.x0 - n * clock.unit : clock.x0 + 23 * clock.unit;
+    const values = sampleCells(img, clock.y, clock.slope, x, clock.unit, n, band);
+    const cal = Object.assign({}, clock.cal, { mid: clock.cal.mid + (clock.reversed ? n : -23) });
+    return fitScore(normalize(values, cal), clock.reversed ? [...tail].reverse().join('') : tail);
   }
 
   // ---- data track -------------------------------------------------------------------
@@ -331,11 +412,30 @@
     const [p2, p98] = percentiles(img.data, [0.02, 0.98]);
     const range = p98 - p2;
     if (range < 20) return { found: false, reason: 'flat' };
-    const minContrast = Math.max(10, range * 0.12);
+    // A code as printed first. Only if no clock track turns up, a second look
+    // for a faded or damaged one, so that a code that reads at once reads the
+    // same way it always did.
+    // The rows' gray values are the same on both looks: kept for the second.
+    const profiles = new Map();
+    const first = yield* look(img, scale, opts, { minContrast: Math.max(10, range * 0.12), weak: false, profiles });
+    if (first.found || first.reason !== 'no-clock') return first;
+    return yield* look(img, scale, opts, { minContrast: Math.max(6, range * 0.05), weak: true, profiles });
+  }
+
+  /**
+   * One look for a code. `weak`: bars fainter than the perforations and the
+   * film around them would suggest, light that changes along the row, and one
+   * clock run damaged.
+   */
+  function* look(img, scale, opts, { minContrast, weak, profiles }) {
     // Average three rows when scanning (enough against grain, thin enough for
     // small codes), and on tall images look at every other row.
     const band = 1;
     const step = img.height > 400 ? 2 : 1;
+    // For light that changes along the row: each pixel against the darkest and
+    // lightest within an eighth of the width on either side.
+    const around = Math.max(16, Math.round(img.width / 8));
+    const marks = new Float32Array(img.width); // one row's, filled anew for each
 
     // The best clock match for each slope, and each row's best score there.
     // A tall clock track fits slightly tilted lines too, and one of them can
@@ -346,14 +446,31 @@
     for (const [si, slope] of SLOPES.entries()) {
       for (let y = 1; y < img.height - 1; y += step) {
         yield;
-        const row = profile(img, y, slope, band);
-        const [lo, hi] = percentiles(row, [0.05, 0.95]);
+        const key = si * img.height + y;
+        let kept = profiles.get(key);
+        if (!kept) {
+          const values = profile(img, y, slope, band);
+          const [lo, hi] = percentiles(values, [0.05, 0.95]);
+          kept = { values, lo, hi };
+          profiles.set(key, kept);
+        }
+        const { values: row, lo, hi } = kept;
         if (hi - lo < minContrast) continue;
+        const near = weak ? { lo: envelope(row, around, 1), hi: envelope(row, around, -1) } : null;
         for (const polarity of ['dark', 'light']) {
-          const marks = row.map((v) => (polarity === 'dark' ? hi - v : v - lo) / (hi - lo));
+          // How much each pixel looks like a bar (1) or a gap (0).
+          for (let x = 0; x < row.length; x++) {
+            const v = row[x];
+            if (near) {
+              const span = Math.max(near.hi[x] - near.lo[x], minContrast);
+              marks[x] = (polarity === 'dark' ? near.hi[x] - v : v - near.lo[x]) / span;
+            } else {
+              marks[x] = (polarity === 'dark' ? hi - v : v - lo) / (hi - lo);
+            }
+          }
           for (const format of opts.formats) {
-            for (const cand of matchClock(marks, format)) {
-              const grid = refineGrid(img, y, slope, band, cand, format, minContrast);
+            for (const cand of matchClock(marks, format, weak)) {
+              const grid = refineGrid(img, y, slope, band, cand, format, minContrast, weak);
               if (!grid) continue;
               const score = grid.score - cand.err * 0.02;
               const at = bySlope[si];
@@ -378,8 +495,42 @@
       for (const score of at.rows.values()) if (score >= top - 0.02) rows++;
       if (rows > thickest) { thickest = rows; best = at.best; }
     }
-    if (!best || best.score < 0.75) return { found: false, reason: 'no-clock' };
+    // On the second look, chance patterns in grain fit a clock at up to about
+    // 0.85; faded and damaged codes in the tests fit at 0.94 or better.
+    if (!best || best.score < (weak ? 0.9 : 0.75)) return { found: false, reason: 'no-clock' };
 
+    // A 23-cell clock that goes on as a 31-cell one is most likely a 31-cell
+    // clock with a filled gap: it is read as one if its data track reads.
+    // Otherwise, and where the clock runs to the edge of the image so that
+    // this can't be seen, the code is read as it looks; `elevenBars` warns
+    // when that reading may be an 11-bar code's, cut short.
+    if (best.format === 'short' && opts.formats.includes('long')) {
+      const tail = longTail(img, best, band);
+      const asShort = readData(img, scale, best, weak);
+      if (tail !== null && tail >= 0.75) {
+        const cand = { x0: best.reversed ? best.x0 - 8 * best.unit : best.x0, unit: best.unit, reversed: best.reversed };
+        const grid = refineGrid(img, best.y, best.slope, band, cand, 'long', minContrast, weak);
+        const long = grid && Object.assign({}, best, { format: 'long', cells: 31, x0: grid.x0, unit: grid.unit, cal: grid.cal, score: grid.score });
+        const asLong = long && readData(img, scale, long, weak);
+        // A reading that passes its checks wins; if neither does, the 31-cell one.
+        const valid = (r) => r && r.found && r.decoded.valid;
+        const chosen = valid(asLong) || (!valid(asShort) && asLong && asLong.found) ? asLong : asShort;
+        if (chosen === asShort && asShort.found) asShort.elevenBars = true;
+        // Neither reads: most likely an 11-bar code, cut short or damaged.
+        if (!chosen.found) return Object.assign({}, chosen, { reason: 'eleven' });
+        return chosen;
+      }
+      // At the edge, a reading that passes its checks is very unlikely to be
+      // an 11-bar code's: that takes dust in one gap, and its frame bits
+      // passing the checks by chance (about 1 in 32).
+      if (tail === null && asShort.found && !asShort.decoded.valid) asShort.elevenBars = true;
+      return asShort;
+    }
+    return readData(img, scale, best, weak);
+  }
+
+  /** Read the data track along the clock track found (`best`), and decide whether the reading can be offered. */
+  function readData(img, scale, best, weak) {
     // The data track touches the clock track, above or below it. A single row
     // on the border between the tracks can read a wrong bar that happens to
     // pass parity, so prefer bits that at least half a cell's height of rows
@@ -428,9 +579,16 @@
     if (!decoded.valid && (!agreed || confidence < 0.3 || best.score < 0.97)) {
       return Object.assign({ found: false, reason: 'unclear' }, describe(best, scale));
     }
+    // From the second look, only readings that pass their checks, with
+    // clear-cut cells. A code tilted past the search range can fit the
+    // clock well there and give a stray reading that fails them; chance
+    // patterns that pass them have cells near the threshold (0.26 or less in
+    // the tests).
+    if (weak && (!decoded.valid || confidence < 0.3)) return Object.assign({ found: false, reason: 'unclear' }, describe(best, scale));
 
     return Object.assign(describe(best, scale), {
       found: true,
+      weak, // found on the second look: faint, damaged or unevenly lit
       dataY: back(mid, scale.y),
       bits: row.bits,
       decoded,
@@ -478,14 +636,14 @@
 
   // Film geometry in cells (1 cell = 0.408 mm), as on the Kodak negative of
   // research/05 and in GB/T 9185-2003 Tables 1 and 2: codes every 19 mm, four
-  // perforations of 4.75 mm; both tracks 2.55 cells tall, the smallest equal
-  // height the standard allows, the data track along the film edge;
-  // perforations 4.85 × 6.85 cells, their lower edge 4.95 cells from the film
-  // edge (so they cut the top of the clock track), one starting 2.32 cells
+  // perforations of 4.75 mm; both tracks 2.525 cells tall, the smallest equal
+  // height the standard allows (Table 1, T3), the data track along the film
+  // edge; perforations 4.85 × 6.85 cells, their lower edge 4.95 cells from the
+  // film edge (so they cut the top of the clock track), one starting 2.32 cells
   // before each code. Printed numbers: a whole frame 3.4 cells tall (0.68 per
   // font pixel), an A position 2 cells (0.4).
   const GEOMETRY = {
-    pitch: 46.56, clock: 2.55, data: 2.55,
+    pitch: 46.56, clock: 2.525, data: 2.525,
     perfPitch: 11.64, perfW: 4.85, perfH: 6.85, perfR: 1.2, perfEdge: 4.95, perfShift: -2.32,
     glyphWhole: 0.68, glyphHalf: 0.4,
   };
