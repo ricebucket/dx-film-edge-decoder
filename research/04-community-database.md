@@ -85,7 +85,8 @@ Spot checks of codes beyond the 2008 list:
 - The title of a result comes from the registry when possible; the community
   name is used only when the registry has no entry, and the page then says so.
 - The manufacturer of a Part 1 number always comes from the registry.
-- A note under community matches says that the data is community-maintained.
+- In the decoder's result, a note under community matches says that the data is
+  community-maintained.
 - Where the community database lists films for a DX number, the result and
   the cassette helper show one link to that number on Antoine Mérino's edition
   of the database, which has pictures of the films (for DX 96-12,

@@ -328,3 +328,20 @@ test('wider screens show the introduction and the steps in full', async ({ page,
   await expect(page.locator('#steps-more')).toBeHidden();
   for (const p of await page.locator('#copy-steps li p').all()) await expect(p).toBeVisible();
 });
+
+test('a link to the code list lands at its heading, and a reload comes back to the same place', async ({ page }) => {
+  // The list is built after the page is drawn, unless the page opens at a place below.
+  await page.goto('/index.html#codes');
+  await expect(page.locator('#reference-ui .assign-table')).toHaveCount(1);
+  const heading = () => page.locator('#codes-title').evaluate((el) => el.getBoundingClientRect().top);
+  expect(await heading()).toBeLessThan(150);
+  await page.goto('/');
+  await expect(page.locator('#reference-ui .assign-table')).toHaveCount(1);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight - innerHeight - 300));
+  // A moment for the browser to note the place in its history, as it does when scrolling by hand.
+  await page.waitForTimeout(300);
+  const before = await page.evaluate(() => window.scrollY);
+  await page.reload();
+  await expect(page.locator('#reference-ui .assign-table')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before - 40);
+});

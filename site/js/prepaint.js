@@ -39,16 +39,20 @@
   // has failed to load, and the page is in English).
   const script = document.createElement('script');
   script.src = `js/i18n/${lang.code}.js`;
+  script.fetchPriority = 'high'; // the page waits for it, so ahead of the other scripts
+  let settle = null;
   root.DX.languageLoaded = new Promise((resolve) => {
+    settle = resolve;
     script.onload = resolve;
     script.onerror = resolve;
   });
   document.head.append(script);
   // Hidden until js/i18n.js has put in that language's text, or after 3 s
-  // regardless, then in English and marked so.
+  // regardless: then in English and marked so, and app.js starts it so.
   document.documentElement.lang = lang.code;
   document.documentElement.setAttribute('data-i18n-pending', '');
   setTimeout(() => {
+    settle();
     if (!document.documentElement.hasAttribute('data-i18n-pending')) return;
     document.documentElement.lang = 'en';
     document.documentElement.removeAttribute('data-i18n-pending');

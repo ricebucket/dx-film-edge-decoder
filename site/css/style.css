@@ -36,16 +36,22 @@
   --film-guide: rgba(43, 26, 20, 0.2);
   --film-hover: rgba(43, 26, 20, 0.42);
 
-  /* the cassette drawing: metal shading, end caps, felt-lined slot, printed label */
-  --cassette-light: #f1f4f6;
-  --cassette-mid: #c9d1d8;
-  --cassette-dark: #9aa6b0;
-  --cassette-cap: #8b97a1;
-  --cassette-knob: #6c7883;
-  --cassette-lip: #1d2024;
+  /* the cassette drawing: painted metal with bare contact areas, end caps, the
+     spool's knob, the felt-lined slot, the printed label; light and shade */
+  --cassette-paint: #262b31;
+  --cassette-metal: #d9dfe4;
+  --cassette-cap: #30363d;
+  --cassette-end: #444c54;
+  --cassette-end-ring: #586169;
+  --cassette-knob: #2a2f35;
+  --cassette-knob-end: #5a636c;
+  --cassette-slot: #15181b;
   --cassette-label: #ffffff;
   --cassette-ink: #1c2630;
-  --cassette-mark: rgba(255, 200, 50, 0.6);
+  --cassette-mark: rgba(255, 200, 50, 0.65);
+  --cassette-shine: rgba(255, 255, 255, 0.5);
+  --cassette-shade: rgba(0, 0, 0, 0.45);
+  --cassette-drop: rgba(20, 28, 36, 0.28);
   /* unprocessed film: no film look applies yet */
   --cassette-film: #7f878e;
 
@@ -92,13 +98,18 @@
   --f-half: #e0a64a;
   --f-parity: #ef7ba0;
   --f-fixed: #7d8a96;
-  --cassette-light: #8e9aa5;
-  --cassette-mid: #5d6974;
-  --cassette-dark: #3a4550;
-  --cassette-cap: #4b5763;
-  --cassette-knob: #3a4550;
-  --cassette-lip: #0b0d0f;
+  --cassette-paint: #343c45;
+  --cassette-metal: #b4bec7;
+  --cassette-cap: #424b55;
+  --cassette-end: #56606a;
+  --cassette-end-ring: #6a7581;
+  --cassette-knob: #3a424b;
+  --cassette-knob-end: #6e7984;
+  --cassette-slot: #0b0d0f;
   --cassette-label: #e7ecf0;
+  --cassette-shine: rgba(255, 255, 255, 0.32);
+  --cassette-shade: rgba(0, 0, 0, 0.5);
+  --cassette-drop: rgba(0, 0, 0, 0.55);
   --cassette-film: #69727a;
 }
 
@@ -130,13 +141,18 @@
     --f-half: #e0a64a;
     --f-parity: #ef7ba0;
     --f-fixed: #7d8a96;
-    --cassette-light: #8e9aa5;
-    --cassette-mid: #5d6974;
-    --cassette-dark: #3a4550;
-    --cassette-cap: #4b5763;
-    --cassette-knob: #3a4550;
-    --cassette-lip: #0b0d0f;
+    --cassette-paint: #343c45;
+    --cassette-metal: #b4bec7;
+    --cassette-cap: #424b55;
+    --cassette-end: #56606a;
+    --cassette-end-ring: #6a7581;
+    --cassette-knob: #3a424b;
+    --cassette-knob-end: #6e7984;
+    --cassette-slot: #0b0d0f;
     --cassette-label: #e7ecf0;
+    --cassette-shine: rgba(255, 255, 255, 0.32);
+    --cassette-shade: rgba(0, 0, 0, 0.5);
+    --cassette-drop: rgba(0, 0, 0, 0.55);
     --cassette-film: #69727a;
   }
 }
@@ -1325,6 +1341,26 @@ h1 {
   background: var(--surface);
 }
 
+/* While the reader loads the first time, a band of shade runs along a thin line. */
+.photo[aria-busy="true"]:empty::before {
+  content: "";
+  display: block;
+  height: 3px;
+  margin: 10px 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--ink-3), transparent) 0 0 / 40% 100% no-repeat, var(--rule);
+  animation: photo-loading 1.2s ease-in-out infinite;
+}
+
+@keyframes photo-loading {
+  from { background-position: -60% 0, 0 0; }
+  to { background-position: 160% 0, 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo[aria-busy="true"]:empty::before { animation-duration: 3s; }
+}
+
 .photo.is-dragging {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
@@ -2193,7 +2229,7 @@ thead th {
 /* The form, and beside it (above it on phones) the cassette drawing. */
 .cassette__top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
   gap: 18px 40px;
   align-items: start;
   max-width: 52rem;
@@ -2204,27 +2240,36 @@ thead th {
   width: 100%;
   height: auto;
   forced-color-adjust: none;
+  filter: drop-shadow(0 3px 4px var(--cassette-drop));
 }
 
-.cassette-figure__light { stop-color: var(--cassette-light); }
-.cassette-figure__mid { stop-color: var(--cassette-mid); }
-.cassette-figure__dark { stop-color: var(--cassette-dark); }
-.cassette-figure__body { fill: url(#cassette-shade); }
-.cassette-figure__cap { fill: var(--cassette-cap); }
-.cassette-figure__knob { fill: var(--cassette-knob); }
-.cassette-figure__lip { fill: var(--cassette-lip); }
+.cassette-figure__paint { fill: var(--cassette-paint); }
+.cassette-figure__metal { fill: var(--cassette-metal); }
 .cassette-figure__label { fill: var(--cassette-label); }
 .cassette-figure__bar { fill: var(--cassette-ink); }
 .cassette-figure__mark { fill: var(--cassette-mark); }
+.cassette-figure__slot { fill: var(--cassette-slot); }
+.cassette-figure__cap { fill: var(--cassette-cap); }
+.cassette-figure__end { fill: var(--cassette-end); }
+.cassette-figure__end-ring { fill: none; stroke: var(--cassette-end-ring); stroke-width: 0.5px; }
+.cassette-figure__knob { fill: var(--cassette-knob); }
+.cassette-figure__knob-end { fill: var(--cassette-knob-end); }
+.cassette-figure__key { fill: var(--cassette-slot); }
 .cassette-figure__film { fill: var(--cassette-film); }
 .cassette-figure__perf { fill: var(--bg); }
+/* Light from above: a shine high on the side, shade towards its edges. */
+.cassette-figure__light { fill: url(#cassette-light); }
+.cassette-figure__shade-edge { stop-color: var(--cassette-shade); }
+.cassette-figure__shade-soft { stop-color: var(--cassette-shade); stop-opacity: 0.3; }
+.cassette-figure__shade-none { stop-color: var(--cassette-shade); stop-opacity: 0; }
+.cassette-figure__shade-shine { stop-color: var(--cassette-shine); }
 
 .cassette-figure__digits {
   fill: var(--cassette-ink);
   font-family: var(--font-edge);
   font-size: 3px;
   font-weight: 600;
-  letter-spacing: 0.12px;
+  letter-spacing: 0.1px;
 }
 
 @media (max-width: 700px) {

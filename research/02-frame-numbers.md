@@ -89,7 +89,7 @@ mentions them as "also printed as" without attributing them to a maker.
 | X / XA | 62 | 0 / 1 |
 | 00 / 00A | 63 | 0 / 1 |
 | 0 / 0A | 0 | 0 / 1 |
-| 1 … 60 (and A) | same number | 0 / 1 |
+| 1–60 (and A) | same number | 0 / 1 |
 
 ## Edge numbers are not camera frames
 

@@ -47,9 +47,9 @@ It also works when `site/index.html` is opened straight from disk.
    frame. Use a loupe, a light table or a zoomed-in scan.
 2. **Turn the film the right way around**, so the barcode is *below* the
    sprocket holes and the small printed numbers read normally. The top row then
-   starts with a wide bar on the left. If the wide bar is on the right, you are
+   starts with a wide mark on the left. If the wide mark is on the right, you are
    looking at the back of the film: turn it over or switch on **Mirror**.
-3. **Count the thin bars in the top row** between the wide bars: 11, or 7 for
+3. **Count the thin bars in the top row** between the wide marks: 11, or 7 for
    the original layout, found on older film and on some later film. Choose the
    matching **Layout**.
 4. **Copy the lower row.** Click every cell where your film has a bar; drag to
@@ -68,7 +68,7 @@ cells.
 
 ## How the code works
 
-The code has a fixed clock track (the top row) and a data track (the bottom
+The code has a fixed clock track (the top row) and a data track (the lower
 row) holding the film's DX number, a frame number and a parity check. The
 page's *How it works* section explains it for users; the
 [research notes](research/) document every detail and how it was established,

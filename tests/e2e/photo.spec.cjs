@@ -694,3 +694,66 @@ test('Remove the photo also undoes its turn and flip', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Flip' })).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('#photo-fine')).toHaveValue('0');
 });
+
+test('after the keys on the photo, a tap on the button below it is enough too', async ({ page, hasTouch }) => {
+  test.skip(!hasTouch, 'a tap needs a touch screen');
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  await page.locator('.photo__canvas').focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#photo-keys')).toBeVisible();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  await page.getByRole('button', { name: 'Use this code' }).tap();
+  await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
+});
+
+test('a file dropped on the folded reader opens it, to say what became of the file', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#photo')).toHaveClass(/\bis-folded\b/);
+  await page.locator('#photo').evaluate((section) => {
+    const data = new DataTransfer();
+    data.items.add(new File(['not an image'], 'notes.txt', { type: 'text/plain' }));
+    section.dispatchEvent(new DragEvent('drop', { dataTransfer: data, bubbles: true, cancelable: true }));
+  });
+  await expect(page.locator('#photo')).not.toHaveClass(/\bis-folded\b/);
+  await expect(page.getByText('That file is not an image.')).toBeVisible();
+});
+
+test('Remove the photo while it opens again leaves the sample the reader has moved on to', async ({ page }, testInfo) => {
+  await slowOpening(page, 0);
+  const bar = page.locator('#source');
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
+  await page.waitForFunction(() => window.opened === 1);
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await bar.getByRole('button', { name: 'Open the photo' }).click();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await page.locator('#undo').click();
+  await expect(bar).toContainText('DX 79-15, frame 23');
+  // The first photo opens again, slowly; the reader moves on to another sample before it has.
+  await page.evaluate(() => { window.slow = 2000; });
+  await bar.getByRole('button', { name: 'Open the photo' }).click();
+  await page.getByRole('button', { name: 'Show another sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 32-6');
+  await bar.getByRole('button', { name: 'Remove the photo' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 32-6');
+});
+
+test('while the reader loads the first time, its panel says it is busy', async ({ page }) => {
+  const fresh = await page.context().newPage();
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
+  await fresh.route('**/js/ui-photo.js', async (route) => {
+    await held;
+    await route.continue();
+  });
+  await fresh.goto('/');
+  await fresh.getByRole('tab', { name: 'Read a photo' }).click();
+  await expect(fresh.locator('#photo')).toHaveAttribute('aria-busy', 'true');
+  release();
+  await expect(fresh.getByRole('button', { name: 'Try a sample' })).toBeVisible();
+  await expect(fresh.locator('#photo')).not.toHaveAttribute('aria-busy', /.*/);
+  await fresh.close();
+});

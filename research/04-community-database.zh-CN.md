@@ -10,11 +10,11 @@ The Big Film Database 由署名为“Dxdatabase”的作者于 2018 年 2 月以
 
 ## 文件
 
-`film_database.csv` 是一个以分号分隔的 CSV 文件，使用标准的双引号转义，每个产品或包装版本占一行。各列的说明见 [data/README.md](../data/README.zh-CN.md#big-film-database--社区数据)；其中有两列的值是代码：`reliability`（可信度，“4 = high, 0 = low”）和 `Ava`（供应情况），它们的含义来自该网站自己的 PHP 代码。
+`film_database.csv` 是一个以分号分隔的 CSV 文件，使用标准的双引号转义，每个产品或包装版本占一行。各列的说明见 [data/README.zh-CN.md](../data/README.zh-CN.md#big-film-database--社区数据)；其中有两列的值是代码：`reliability`（可信度，“4 = high, 0 = low”）和 `Ava`（供应情况），它们的含义来自该网站自己的 PHP 代码。
 
 ## 所用快照
 
-该数据库 GitHub 仓库的提交 `9aa3890`（2026 年 10 月 10 日）：共 8,710 行，其中 1,676 行带有 DX 码——1,674 行有“DX extract”（四位数编号），2 行只有暗盒条码，由其中间几位可以得出 DX extract。`npm run stats:community-data` 会输出这些数字以及下一张表中的数字；[data/README.md](../data/README.zh-CN.md#更新数据) 说明了如何更新快照。
+该数据库 GitHub 仓库的提交 `9aa3890`（2026 年 10 月 10 日）：共 8,710 行，其中 1,676 行带有 DX 码——1,674 行有“DX extract”（四位数编号），2 行只有暗盒条码，由其中间几位可以得出 DX extract。`npm run stats:community-data` 会输出这些数字以及下一张表中的数字；[data/README.zh-CN.md](../data/README.zh-CN.md#更新数据) 说明了如何更新快照。
 
 ## 数据质量方面的发现
 
@@ -51,7 +51,7 @@ The Big Film Database 由署名为“Dxdatabase”的作者于 2018 年 2 月以
 - 年度报告和社区数据库始终分开标注（“I3A 年度报告，2008 年”和“The Big Film Database”）。
 - 结果的标题尽可能取自年度报告；只有在年度报告中没有对应条目时才使用社区数据库中的名称，此时页面会注明这一点。
 - 第 1 部分编号对应的感光厂始终取自年度报告。
-- 社区数据库匹配结果的下方注明这些数据由社区维护。
+- 在解码结果中，社区数据库匹配结果的下方注明这些数据由社区维护。
 - 如果社区数据库中有某个 DX 码下的胶片，解码结果和暗盒条码查询都会给出一个链接，指向 Antoine Mérino 修改版数据库中的这个 DX 码，那里有这些胶卷的图片（DX 96-12 对应 `https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12`）。这些图片没有复制到本项目中。
 
 该数据库的网站还会根据 DX extract 所在的范围推测制造厂和胶片类型（这些范围列在其仓库的 `Various documentation/Film type by DX.txt` 中）。网站自己也把这种推测标为“not very accurate”（不太准确），而且有些范围相互重叠：46–127 是“Agfa Gevaert chrome (slide) film”（爱克发反转片），但其中又包含 64–79，即“Kodak Technical film”（柯达技术胶片）。本工具不使用这些范围。

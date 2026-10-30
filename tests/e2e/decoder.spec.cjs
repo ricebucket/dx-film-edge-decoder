@@ -210,7 +210,7 @@ test('the table of printed frame labels agrees with the decoder for every value 
     const seen = [];
     for (const row of rows) {
       const [printed, value, , alias] = [...row.cells].map((td) => td.textContent.trim());
-      const range = /^(\d+) … (\d+)$/.exec(printed);
+      const range = /^(\d+)–(\d+)$/.exec(printed);
       if (range) {
         for (let n = Number(range[1]); n <= Number(range[2]); n++) {
           if (codec.frameLabel(n, false) !== String(n)) found.push(`${n} is printed ${codec.frameLabel(n, false)}`);

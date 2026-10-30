@@ -104,35 +104,50 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
   await expect(last.locator('.readout__note')).toHaveText('The 1994 standard used it for 72 exposures.');
 });
 
-test('the cassette drawing shows the six digits between the barcode and the film slot, under the barcode they stand for', async ({ page }) => {
+test('the cassette drawing shows a real cassette: its contact areas, then its barcode and the six digits, then the film slot', async ({ page }) => {
   const figure = page.locator('#cassette .cassette-figure');
   await expect(figure).toBeVisible();
-  await expect(figure.locator('.cassette-figure__digits')).toHaveText('017563');
+  // The cassette of the Wikimedia Commons photo DX-Codierung_asb_PICT3739.JPG, the number also given as the example.
+  await expect(figure.locator('.cassette-figure__digits')).toHaveText('105514');
+  await expect(page.locator('#cassette-code')).toHaveAttribute('placeholder', '105514');
   const drawn = await page.evaluate(() => {
-    const value = (el, name) => el[name].baseVal.value;
-    const bars = [...document.querySelectorAll('#cassette .cassette-figure__bar')];
-    const text = document.querySelector('#cassette .cassette-figure__digits');
-    const lip = document.querySelector('#cassette .cassette-figure__lip');
-    const left = value(bars[0], 'x');
-    const right = value(bars[bars.length - 1], 'x') + value(bars[bars.length - 1], 'width');
+    const all = (cls) => [...document.querySelectorAll(`#cassette .cassette-figure__${cls}`)];
+    // On screen, as the digits are laid on the cassette's side by a transform.
+    const box = (els) => {
+      const b = els.map((el) => el.getBoundingClientRect());
+      const left = Math.min(...b.map((r) => r.x));
+      const right = Math.max(...b.map((r) => r.x + r.width));
+      return { left, right, top: Math.min(...b.map((r) => r.y)), bottom: Math.max(...b.map((r) => r.y + r.height)), middle: (left + right) / 2 };
+    };
+    // A bar's width along the cassette: its first point and the last, both on its top edge.
+    const width = (bar) => {
+      const pts = bar.getAttribute('d').slice(1, -1).split('L').map((p) => p.split(' ').map(Number));
+      return pts[pts.length - 1][0] - pts[0][0];
+    };
+    const widths = all('bar').map(width);
+    const narrow = Math.min(...widths);
+    const svg = document.querySelector('#cassette .cassette-figure');
     return {
-      widths: bars.map((b) => Math.round(value(b, 'width') / 0.33)),
-      expected: window.DX.codec.cassetteBars('017563').filter((_, i) => i % 2 === 0),
-      span: right - left,
-      middle: (left + right) / 2,
-      digitsX: text.x.baseVal[0].value,
-      digitsBase: text.y.baseVal[0].value,
-      barsBottom: Math.max(...bars.map((b) => value(b, 'y') + value(b, 'height'))),
-      lipTop: value(lip, 'y'),
+      mm: svg.getBoundingClientRect().width / svg.viewBox.baseVal.width,
+      units: widths.map((w) => Math.round(w / narrow)),
+      expected: window.DX.codec.cassetteBars('105514').filter((_, i) => i % 2 === 0),
+      contacts: all('metal').length,
+      areas: box(all('metal')),
+      bars: box(all('bar')),
+      digits: box(all('digits')),
+      slot: box(all('slot')),
     };
   });
-  // The bars of 017563 in Interleaved 2 of 5, 0.33 mm narrow: 20.79 mm in all (GB/T 9185-2003 Table 8).
-  expect(drawn.widths).toEqual(drawn.expected);
-  expect(drawn.span).toBeCloseTo(20.79, 2);
-  // The digits: centered on the barcode, between its bars and the film slot (§9.1).
-  expect(drawn.digitsX).toBeCloseTo(drawn.middle, 3);
-  expect(drawn.digitsBase).toBeGreaterThan(drawn.barsBottom);
-  expect(drawn.digitsBase).toBeLessThan(drawn.lipTop);
+  // The bars are those of 105514 in Interleaved 2 of 5 (GB/T 9185-2003 §9).
+  expect(drawn.units).toEqual(drawn.expected);
+  // Bare metal where the photo shows it: areas 1, 3, 5, 7 and 10 (ISO 100, 36 exposures, ±1/2 stop).
+  expect(drawn.contacts).toBe(5);
+  // From the top: the contact areas, the bars, the digits, the slot (Figures 3 and 5, §9.1).
+  expect(drawn.areas.bottom).toBeLessThan(drawn.bars.top);
+  expect(drawn.bars.bottom).toBeLessThan(drawn.digits.top);
+  expect(drawn.digits.bottom).toBeLessThan(drawn.slot.top);
+  // The digits centered under the bars, within a millimeter and a half on the drawing's scale.
+  expect(Math.abs(drawn.digits.middle - drawn.bars.middle)).toBeLessThan(1.5 * drawn.mm);
 });
 
 test('community matches link once to their DX number on The Big Film Database', async ({ page }) => {

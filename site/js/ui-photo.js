@@ -14,6 +14,8 @@
   const t = i18n.t;
 
   const MAX_WORKING_SIDE = 2400;
+  /** A moment for the page between long steps. */
+  const pause = () => new Promise((resolve) => setTimeout(resolve));
   // How far a press may move and still count as a click, in CSS pixels: a
   // finger drifts further than a mouse.
   const CLICK = { mouse: 5, pen: 10, touch: 12 };
@@ -149,6 +151,7 @@
     async function load(p, kept) {
       if (p.sample) {
         ++loads; // a photo still opening gives way
+        opening = null;
         const syn = reader.synthesize(Object.assign({ width: 640, height: 150 }, p.sample.synth));
         const rgba = reader.compose(syn, { look: p.sample.look, noise: 12, blur: 1, seed: p.seed });
         const c = document.createElement('canvas');
@@ -165,6 +168,8 @@
       // or one the system doesn't know, such as ".HEIC") is tried anyway.
       const unknown = p.blob && (p.blob.type === '' || p.blob.type === 'application/octet-stream');
       const other = !p.blob || (!unknown && !/^image\//.test(p.blob.type));
+      // A file dropped or pasted on the folded reader opens it: what follows shows in its steps.
+      unfold();
       if (other) {
         // A photo still opening carries on; the one shown is not read further,
         // so that its reading doesn't replace this message.
@@ -172,6 +177,7 @@
         result = null;
         showMessage(t('That file is not an image.'), true);
         setStep();
+        draw();
         return;
       }
       const ticket = ++loads;
@@ -179,6 +185,7 @@
       result = null;
       showMessage(t('Opening the photo…'));
       setStep();
+      draw();
       opening = p;
       try {
         const { image, w, hgt, width, height } = await decode(p.blob);
@@ -191,16 +198,17 @@
           opening = null;
           showMessage(t('This image could not be opened. Try a JPEG, PNG or WebP file.'), true);
           setStep();
+          draw();
         }
       }
     }
 
     /**
      * A photo file, decoded and shrunk to the working size: the image, its
-     * size (w × hgt) and the size as taken. Where the browser can, both
-     * happen away from the page's main thread (createImageBitmap), so a large
-     * photo doesn't freeze the page; elsewhere, and for files that way can't
-     * open, an <img> does it.
+     * size (w × hgt) and the size as taken. createImageBitmap does both;
+     * Chromium does them away from the page's main thread, other browsers may
+     * not, so the page gets a moment between the long steps. For files that
+     * way can't open, an <img> does it.
      */
     async function decode(blob) {
       let full = null;
@@ -214,6 +222,7 @@
         if (!width || !height) throw new Error('empty image');
         const scale = Math.min(1, MAX_WORKING_SIDE / Math.max(width, height));
         if (scale === 1) return { image: full, w: width, hgt: height, width, height };
+        await pause();
         let small = null;
         try {
           small = await createImageBitmap(full, { resizeWidth: Math.round(width * scale), resizeHeight: Math.round(height * scale), resizeQuality: 'high' });
@@ -221,6 +230,7 @@
           return { image: full, w: width, hgt: height, width, height }; // shrunk on the page instead
         }
         full.close();
+        await pause();
         return { image: small, w: small.width, hgt: small.height, width, height };
       }
       const url = URL.createObjectURL(blob);
@@ -625,16 +635,17 @@
     canvas.addEventListener('focus', () => {
       keysHint.hidden = !canvas.matches(':focus-visible');
     });
-    // Left by a press elsewhere, as on "Use this code" below, the hint goes
-    // only once the press is over: hidden at once, it would move what is
-    // below it out from under the pointer, and the click would miss.
+    // Left for a press elsewhere, as on "Use this code" below, the hint goes
+    // only once that click is over: hidden at once, it would move what is
+    // below it out from under the pointer, and the click would miss. A tap's
+    // press is already over when focus moves; its click comes just after.
     let pressing = false;
     document.addEventListener('pointerdown', () => { pressing = true; }, true);
     for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, () => { pressing = false; }, true);
     canvas.addEventListener('blur', () => {
       const hide = () => { if (document.activeElement !== canvas) keysHint.hidden = true; };
-      if (!pressing) hide();
-      else window.addEventListener('pointerup', () => setTimeout(hide), { once: true });
+      if (pressing) window.addEventListener('pointerup', () => setTimeout(hide), { once: true });
+      else setTimeout(hide);
     });
 
     function toView(e) {
@@ -819,6 +830,7 @@
         if (kept && kept.result !== result) {
           if (kept.picture === picture) {
             loads++; // a photo still opening gives way
+            opening = null;
             restore(kept);
           } else {
             load(kept.picture, kept);

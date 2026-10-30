@@ -176,6 +176,17 @@ test('the language file may also come before the language layer', async ({ page 
   await expect(page.locator('#hint')).toHaveText(/^从第 7 位开始/);
 });
 
+test('a language file that never comes leaves a page that works, in English, after 3 s', async ({ page }) => {
+  const other = await page.context().newPage();
+  await other.route('**/js/i18n/zh-CN.js', () => {}); // never answered
+  await other.goto('/?lang=zh-CN', { waitUntil: 'domcontentloaded' });
+  await expect(other.getByLabel('Language').locator('option')).toHaveCount(2, { timeout: 6000 });
+  await expect(other.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(other.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  await expect(other.locator('#strip .track--data button.cell').first()).toBeVisible();
+  await other.close();
+});
+
 test('a page whose language layer cannot load shows after 3 s, in English and marked so', async ({ page }) => {
   // A page of its own: the scripts' errors are expected here.
   const other = await page.context().newPage();
@@ -184,6 +195,12 @@ test('a page whose language layer cannot load shows after 3 s, in English and ma
   await expect(other.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/, { timeout: 6000 });
   await expect(other.locator('html')).toHaveAttribute('lang', 'en');
   await other.close();
+});
+
+test('in Chinese, the cassette numbers of a film are listed the Chinese way', async ({ page }) => {
+  await page.goto('/?dx=12-3/1&lang=zh-CN');
+  const numbers = page.locator('#result .match__cassette', { hasText: '001950' });
+  await expect(numbers).toHaveText('暗盒条码 001950、701950');
 });
 
 test('a language in the URL that the page does not have is ignored', async ({ page }) => {

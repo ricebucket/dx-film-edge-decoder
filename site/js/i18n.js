@@ -73,15 +73,14 @@
   function register(lang) {
     if (languages.some((l) => l.code === lang.code)) throw new Error(`Language ${lang.code} registered twice`);
     languages.push(lang);
-    if (rank(lang.code) > rank(current.code)) {
-      current = lang;
-      // A page hidden until it has this text (js/prepaint.js) gets it as
-      // soon as it is parsed, without waiting for its other scripts.
-      if (typeof document !== 'undefined' && document.documentElement.hasAttribute('data-i18n-pending')) {
-        if (document.readyState !== 'loading') applyLanguage(document);
-        else document.addEventListener('readystatechange', () => applyLanguage(document), { once: true });
-      }
-    }
+    // A page that has its text keeps its language: a file that comes later
+    // (js/prepaint.js gives up waiting after 3 s) is only listed.
+    const page = typeof document !== 'undefined' ? document : null;
+    if ((page && applied.has(page)) || rank(lang.code) <= rank(current.code)) return;
+    current = lang;
+    // The page gets this text as soon as it is parsed, without waiting for its other scripts.
+    if (page && page.readyState !== 'loading') applyLanguage(page);
+    else if (page) page.addEventListener('readystatechange', () => applyLanguage(page), { once: true });
   }
 
   /**

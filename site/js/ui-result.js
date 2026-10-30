@@ -98,7 +98,7 @@
       e.availability ? h('span', { class: `pill pill--${e.availability === 'on the market' ? 'live' : 'gone'}` }, availabilityLabel(e.availability)) : null,
       facts.length ? h('span', { class: 'match__facts' }, facts.join(p.comma) + p.period) : null,
       notes,
-      e.cassettes.length ? h('span', { class: 'match__cassette' }, i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.comma) })) : null);
+      e.cassettes.length ? h('span', { class: 'match__cassette' }, i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.list) })) : null);
   }
 
   function productItem(p) {

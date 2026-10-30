@@ -85,6 +85,17 @@ The codes for 48, 60 and 72 come only from Wikipedia.
 
 **Exposure tolerance (T1–T2).** `00` ±½ stop, `10` ±1, `01` +2/−1, `11` +3/−1.
 
+**A real cassette.** In the Wikimedia Commons photo *DX-Codierung asb
+PICT3739.JPG*, the barcode and the printed digits both read 105514: DX 34-7,
+FUJICHROME SENSIA II 100 in the 2008 list, 36 exposures. The contacts agree:
+bare metal at areas 1, 3, 5, 7 and 10, which is ISO 100 (`01010`), 36 exposures
+(`001`) and ±½ stop (`00`). With the film slot at the bottom, the contacts take
+the upper part of the cassette and the barcode the part below them, with the
+printed digits between the barcode and the slot. The standard puts the two rows
+of contacts at 191.7° and 225.6° around the cassette (Table 10), and the bars
+at least from 257° to 294° (Table 8). The drawing beside the decoder page's
+cassette helper shows this cassette.
+
 This tool does not use the contacts: they are on the cassette, not the film.
 
 ## Cassette barcode

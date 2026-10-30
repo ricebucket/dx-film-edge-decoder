@@ -383,9 +383,13 @@
     $('way-copy').hidden = way !== 'copy';
     $('photo').hidden = way !== 'photo';
     if (way === 'photo') {
+      // Busy (a spinner) until the reader has loaded the first time.
+      if (!photo) $('photo').setAttribute('aria-busy', 'true');
       photoReader().then((reader) => {
+        $('photo').removeAttribute('aria-busy');
         if (way === 'photo') reader.open(options);
       }, () => {
+        $('photo').removeAttribute('aria-busy');
         if (way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error' }, t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
       });
     } else if (photo) {
@@ -550,9 +554,14 @@
     ui.createFinder($('finder-ui'), { lookup, onShow: show });
     ui.createCassette($('cassette-ui'), { lookup, onShow: show });
     // The code list holds most of the page's elements: built just after the
-    // page is drawn, so that it doesn't hold up the decoder.
-    const later = (fn) => (typeof requestIdleCallback === 'function' ? requestIdleCallback(fn, { timeout: 1000 }) : setTimeout(fn, 1));
-    later(() => ui.createReference($('reference-ui'), { lookup, onShow: show }));
+    // page is drawn, so that it doesn't hold up the decoder. A page that
+    // opens at a place (#codes) or goes back to one (a reload, Back) needs its
+    // full length at once to get there.
+    const buildList = () => ui.createReference($('reference-ui'), { lookup, onShow: show });
+    const [visit] = performance.getEntriesByType ? performance.getEntriesByType('navigation') : [];
+    if (location.hash || (visit && visit.type !== 'navigate')) buildList();
+    else if (typeof requestIdleCallback === 'function') requestIdleCallback(buildList, { timeout: 1000 });
+    else setTimeout(buildList, 1);
 
     // Read-only diagram for "How it works".
     ui.createStrip($('layout-figure'), { interactive: false }).render({

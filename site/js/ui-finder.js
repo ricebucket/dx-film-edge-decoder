@@ -170,62 +170,134 @@
     return { search(q) { input.value = q; run(); } };
   }
 
-  /**
-   * A 35 mm cassette, seen from its film slot's side and drawn to scale in
-   * millimeters, with values inside the limits of GB/T 9185-2003 Tables 7
-   * and 8: the six digits printed between the barcode and the film slot,
-   * centered on the barcode (§9.1), under 2.381 mm tall (B.6). The barcode is
-   * the real one for these digits.
-   */
-  function cassetteFigure(digits) {
-    const cy = 12.85; // the spool's axis
-    const knob = 4.35; // the spool's long end beyond the cap, Z1 − Z2
-    const right = knob + 43.1; // Z2 42.39–43.80; datum C, the short end's face
-    const rim = 2; // the end caps, Z3 ≤ 3.30
-    const cap = 25.1; // Z24 24.89–25.30
-    const wall = 23.4; // Z32 ≥ 23.40
-    const top = cy - wall / 2;
-    const bottom = cy + wall / 2;
-    const narrow = 0.33; // Table 8, target width; wide is three times that
-    const codeRight = right - 11.3; // W3 9.40–13.21
-    const codeLeft = codeRight - 63 * narrow;
-    const quiet = 3.3; // W8 ≥ 3.3
-    const lip = 1.6;
-    const digitsBase = bottom - lip - 0.8;
-    const digitsTop = digitsBase - 2.2;
-    const film = { left: (knob + right) / 2 - 17.5, width: 35, length: 8 };
-    // Perforations 2.80 mm across and 1.98 mm along the film, 4.75 mm apart, 2.0 mm in from its edges (Table 2).
-    const perf = (x, y) => svg('rect', { class: 'cassette-figure__perf', x, y, width: 2.8, height: 1.98, rx: 0.49 });
+  // The cassette in the drawing: the one in the Wikimedia Commons photo
+  // DX-Codierung_asb_PICT3739.JPG (research/06). Its barcode and its printed
+  // digits read 105514: DX 34-7, FUJICHROME SENSIA II 100 in the 2008
+  // registry, 36 exposures. Its contact areas agree (Tables 11–13): ISO 100
+  // (areas 3 and 5), 36 exposures (10) and ±1/2 stop (neither 11 nor 12).
+  const DRAWN = { digits: '105514', bare: [1, 3, 5, 7, 10] };
 
+  /**
+   * A 35 mm cassette in three-quarter view, to scale in millimeters within
+   * GB/T 9185-2003 Tables 7, 8 and 10. Round its side, from the top: the
+   * contact areas cameras read (two rows of six, area 1 and 7 at the knob's
+   * end), the barcode, the six digits printed between it and the film slot,
+   * centered on the barcode (§9.1), and the slot the film comes out of.
+   */
+  function cassetteFigure() {
+    const DEG = Math.PI / 180;
+    // The cassette lies along x, from its plain end (datum C, x = 0) to the
+    // end its spool's knob comes out of. Angles go round it as in Figures 3
+    // and 5: the contact rows at 191.7° and 225.6°, the bars from 257° to
+    // 294°, then the digits and the slot.
+    const L = 43.1; // Z2 42.39–43.80
+    const R = 11.9; // the body, Z32 ≥ 23.40
+    const RC = 12.55; // the end caps, Z24 24.89–25.30
+    const RIM = 1.6;
+    const KNOB = { r: 5.5, length: 4.35 }; // Z12 ≤ 11.40; Z1 − Z2
+    const AREA = { pitch: 5.51, first: 7.95, rows: [174.75, 208.65, 242.55] }; // X6, X5 = 35.50 for areas 1 and 7, X10, X11
+    const narrow = 0.33; // Table 8, target; wide is three times that
+    const codeLeft = 11.3; // W3 9.40–13.21 from datum C
+    const SLOT = [312, 346];
+    // Seen from 258°, turned 20° towards the knob's end.
+    const FRONT = 258;
+    const yaw = 20 * DEG;
+    const at = (x, deg, r = R) => {
+      const th = (deg - FRONT) * DEG;
+      return [x * Math.cos(yaw) - r * Math.cos(th) * Math.sin(yaw), r * Math.sin(th)];
+    };
+    const path = (pts) => `M${pts.map(([px, py]) => `${px.toFixed(2)} ${py.toFixed(2)}`).join('L')}Z`;
+    /** The visible part of the side between x1 and x2 and between two angles. */
+    const band = (x1, x2, from, to, r = R) => {
+      const lo = Math.max(from, FRONT - 90);
+      const hi = Math.min(to, FRONT + 90);
+      const n = Math.max(2, Math.ceil((hi - lo) / 4));
+      const arc = (x, a, b) => Array.from({ length: n + 1 }, (_, i) => at(x, a + ((b - a) * i) / n, r));
+      return path([...arc(x1, lo, hi), ...arc(x2, hi, lo)]);
+    };
+    const shape = (cls, d) => svg('path', { class: `cassette-figure__${cls}`, d });
+    const end = (x, r) => {
+      const [cx] = at(x, FRONT + 90, r);
+      return { cx: cx.toFixed(2), cy: 0, rx: (r * Math.sin(yaw)).toFixed(2), ry: r };
+    };
+    const top = FRONT - 90;
+    const bottom = FRONT + 90;
+
+    // The contact areas: bare metal where a camera's probe makes contact, painted elsewhere.
+    const areas = [];
+    for (let col = 0; col < 6; col++) {
+      for (const row of [0, 1]) {
+        const n = (row === 0 ? 7 : 1) + (5 - col); // 1 and 7 nearest the knob
+        if (!DRAWN.bare.includes(n)) continue;
+        const x = AREA.first - AREA.pitch / 2 + AREA.pitch * col;
+        areas.push(shape('metal', band(x + 0.15, x + AREA.pitch - 0.15, AREA.rows[row] + 0.6, AREA.rows[row + 1] - 0.6)));
+      }
+    }
     const bars = [];
     let x = codeLeft;
-    codec.cassetteBars(digits).forEach((units, i) => {
-      if (i % 2 === 0) bars.push(svg('rect', { class: 'cassette-figure__bar', x: x.toFixed(3), y: top, width: (units * narrow).toFixed(3), height: (digitsTop - 0.8 - top).toFixed(3) }));
+    codec.cassetteBars(DRAWN.digits).forEach((units, i) => {
+      if (i % 2 === 0) bars.push(shape('bar', band(x, x + units * narrow, 257, 294)));
       x += units * narrow;
     });
-    const middle = (codeLeft + codeRight) / 2;
-    return svg('svg', { class: 'cassette-figure', viewBox: '-0.3 0 48.05 32.85', 'aria-hidden': 'true', focusable: 'false' },
-      svg('defs', null, svg('linearGradient', { id: 'cassette-shade', x1: 0, y1: 0, x2: 0, y2: 1 },
-        svg('stop', { offset: 0, class: 'cassette-figure__light' }),
-        svg('stop', { offset: 0.45, class: 'cassette-figure__mid' }),
-        svg('stop', { offset: 1, class: 'cassette-figure__dark' }))),
-      svg('rect', { class: 'cassette-figure__film', x: film.left, y: bottom - 0.4, width: film.width, height: film.length + 0.4 }),
-      [0, 1].map((n) => [perf(film.left + 2, bottom + 1.2 + 4.75 * n), perf(film.left + film.width - 4.8, bottom + 1.2 + 4.75 * n)]),
-      svg('rect', { class: 'cassette-figure__knob', x: 0, y: cy - 5.7, width: knob + 0.5, height: 11.4, rx: 0.8 }),
-      svg('rect', { class: 'cassette-figure__body', x: knob + rim, y: top, width: right - knob - 2 * rim, height: wall }),
-      svg('rect', { class: 'cassette-figure__label', x: codeLeft - quiet - 0.6, y: top, width: codeRight - codeLeft + 2 * quiet + 1.2, height: wall - lip }),
-      bars,
-      svg('rect', { class: 'cassette-figure__mark', x: middle - 6.4, y: digitsTop - 0.45, width: 12.8, height: 3.1, rx: 0.5 }),
-      svg('text', { class: 'cassette-figure__digits', x: middle, y: digitsBase, 'text-anchor': 'middle' }, digits),
-      svg('rect', { class: 'cassette-figure__lip', x: knob + rim, y: bottom - lip, width: right - knob - 2 * rim, height: lip }),
-      svg('rect', { class: 'cassette-figure__cap', x: knob, y: cy - cap / 2, width: rim, height: cap, rx: 0.9 }),
-      svg('rect', { class: 'cassette-figure__cap', x: right - rim, y: cy - cap / 2, width: rim, height: cap, rx: 0.9 }));
+    // The digits, centered on the barcode and laid on the side as printed.
+    const middle = codeLeft + (63 * narrow) / 2;
+    const textAt = 308; // the baseline, between the bars (to 294°) and the slot (from 312°)
+    const [tx, ty] = at(middle, textAt);
+    const th = (textAt - FRONT) * DEG;
+    const onSide = `matrix(${Math.cos(yaw).toFixed(3)} 0 ${(Math.sin(th) * Math.sin(yaw)).toFixed(3)} ${Math.cos(th).toFixed(3)} ${tx.toFixed(2)} ${ty.toFixed(2)})`;
+    const mark = band(middle - 6.6, middle + 6.6, 296, 310);
+
+    // The film's leader comes out of the slot: 35 mm wide, with its perforations (Table 2).
+    const [, lipY] = at(0, 334);
+    const film = { left: L / 2 - 17.5, length: 7 };
+    const along = Math.cos(yaw);
+    const fx = (fxMm) => at(fxMm, 334)[0];
+    const perfs = [];
+    for (let k = 0; k < 2; k++) {
+      for (const edge of [film.left + 2, film.left + 35 - 4.8]) {
+        perfs.push(svg('rect', { class: 'cassette-figure__perf', x: fx(edge).toFixed(2), y: (lipY + 1.4 + 4.75 * k).toFixed(2), width: (2.8 * along).toFixed(2), height: 1.98, rx: 0.45 }));
+      }
+    }
+    const filmPath = path([[fx(film.left), lipY], [fx(film.left + 35), lipY], [fx(film.left + 35), lipY + film.length], [fx(film.left), lipY + film.length]]);
+
+    const knobEnd = end(L + KNOB.length, KNOB.r);
+    const [left] = at(0, FRONT, RC);
+    const right = Number(knobEnd.cx) + KNOB.r * Math.sin(yaw);
+    const box = [left - 0.6, -RC - 0.6, right - left + 1.2, RC + lipY + film.length - 0.4 + 1.6];
+    return svg('svg', { class: 'cassette-figure', viewBox: box.map((v) => v.toFixed(2)).join(' '), 'aria-hidden': 'true', focusable: 'false' },
+      svg('defs', null,
+        svg('linearGradient', { id: 'cassette-light', gradientUnits: 'userSpaceOnUse', x1: 0, y1: -RC, x2: 0, y2: RC },
+          svg('stop', { offset: 0, class: 'cassette-figure__shade-edge' }),
+          svg('stop', { offset: 0.18, class: 'cassette-figure__shade-none' }),
+          svg('stop', { offset: 0.3, class: 'cassette-figure__shade-shine' }),
+          svg('stop', { offset: 0.42, class: 'cassette-figure__shade-none' }),
+          svg('stop', { offset: 0.75, class: 'cassette-figure__shade-soft' }),
+          svg('stop', { offset: 1, class: 'cassette-figure__shade-edge' })),
+        svg('clipPath', { id: 'cassette-side' }, svg('path', { d: band(0, L, top, bottom, RC) }))),
+      svg('g', { class: 'cassette-figure__drop' },
+        svg('path', { class: 'cassette-figure__film', d: filmPath }),
+        perfs,
+        shape('paint', band(0, L, top, SLOT[0], R)),
+        shape('label', band(RIM, L - RIM, 246, SLOT[0])),
+        areas,
+        bars,
+        svg('path', { class: 'cassette-figure__mark', d: mark }),
+        svg('text', { class: 'cassette-figure__digits', transform: onSide, 'text-anchor': 'middle' }, DRAWN.digits),
+        shape('slot', band(RIM, L - RIM, SLOT[0], bottom)),
+        shape('cap', band(0, RIM, top, bottom, RC)),
+        shape('cap', band(L - RIM, L, top, bottom, RC)),
+        svg('rect', { class: 'cassette-figure__light', x: box[0], y: -RC, width: box[2], height: 2 * RC, 'clip-path': 'url(#cassette-side)' }),
+        svg('ellipse', Object.assign({ class: 'cassette-figure__end' }, end(L, RC))),
+        svg('ellipse', Object.assign({ class: 'cassette-figure__end-ring' }, end(L, RC - 1.1))),
+        shape('knob', band(L, L + KNOB.length, top, bottom, KNOB.r)),
+        svg('ellipse', Object.assign({ class: 'cassette-figure__knob-end' }, knobEnd)),
+        svg('rect', { class: 'cassette-figure__key', x: (Number(knobEnd.cx) - 0.45).toFixed(2), y: -3.6, width: 0.9, height: 7.2, rx: 0.4 })));
   }
 
   function createCassette(host, { lookup, onShow }) {
     const input = h('input', {
       type: 'text', id: 'cassette-code', class: 'input input--code', inputmode: 'numeric', autocomplete: 'off',
-      placeholder: '017563', maxlength: '20', 'aria-describedby': 'cassette-help',
+      placeholder: DRAWN.digits, maxlength: '20', 'aria-describedby': 'cassette-help',
     });
     const HELP = t('Printed between the barcode and the film slot.');
     const msg = h('p', { class: 'form-message', id: 'cassette-help', 'aria-live': 'polite' }, HELP);
@@ -328,7 +400,7 @@
       e.preventDefault();
       const hit = lookup.byCassette(input.value);
       if (!hit) {
-        msg.textContent = t('Enter exactly six digits, for example 017563.');
+        msg.textContent = t('Enter exactly six digits, for example 105514.');
         msg.classList.add('is-error');
         out.replaceChildren();
         input.focus();
@@ -340,7 +412,7 @@
     });
 
     // Where the digits are, on the example number of the placeholder.
-    host.replaceChildren(h('div', { class: 'cassette__top' }, form, h('div', { class: 'cassette__figure' }, cassetteFigure('017563'))), out);
+    host.replaceChildren(h('div', { class: 'cassette__top' }, form, h('div', { class: 'cassette__figure' }, cassetteFigure())), out);
     return { lookup(code) { input.value = code; form.requestSubmit(); } };
   }
 

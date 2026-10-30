@@ -141,8 +141,8 @@
       "在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。",
     "Show the edge barcode":
       "显示潜影条码",
-    "Enter exactly six digits, for example 017563.":
-      "请输入正好六位数字，例如 017563。",
+    "Enter exactly six digits, for example 105514.":
+      "请输入正好六位数字，例如 105514。",
     "{n} films found.":
       "找到 {n} 种胶片。",
     "{n} other films use the same DX number":
