@@ -98,7 +98,8 @@ export async function buildData() {
       p.part2 === '' ? -1 : Number(p.part2), // -1: Part 2 "not identified" in the list
       p.product,
       indexByFullName(p.sensitizer),
-      p.status === 'in-use' ? 1 : 0,
+      // The status its section states: 1 in use, 0 no longer made, -1 neither.
+      p.status === 'in-use' ? 1 : p.status === 'discontinued' ? 0 : -1,
     ]);
   }
 

@@ -101,16 +101,16 @@ part1,part2,product,sensitizer,status,page
 44,11,Agfacolor APS star 400,Agfa-Gevaert AG,discontinued,13
 45,6,Perutz Primera 200 APS,Agfa-Gevaert AG,discontinued,13
 45,8,Perutz Primera 200 APS-N,Agfa-Gevaert AG,discontinued,13
-60,4,LUCKY COLOR CHROME 100CH,China Lucky Film,in-use,14
-90,8,LUCKY B/W SHD100 NEW,China Lucky Film,in-use,14
-90,10,LUCKY B/W SHD400 NEW,China Lucky Film,in-use,14
-90,12,LUCKY B/W SHD400 CN,China Lucky Film,in-use,14
-100,2,LUCKY COLOR SUPER 100,China Lucky Film,in-use,14
-100,6,LUCKY COLOR SUPER 200,China Lucky Film,in-use,14
-100,8,LUCKY COLOR SUPER 400,China Lucky Film,in-use,14
-100,9,LUCKY COLOR SUPER GBR100,China Lucky Film,in-use,14
-100,11,LUCKY COLOR SUPER GBR 200,China Lucky Film,in-use,14
-100,13,LUCKY COLOR SUPER GBR400,China Lucky Film,in-use,14
+60,4,LUCKY COLOR CHROME 100CH,China Lucky Film,,14
+90,8,LUCKY B/W SHD100 NEW,China Lucky Film,,14
+90,10,LUCKY B/W SHD400 NEW,China Lucky Film,,14
+90,12,LUCKY B/W SHD400 CN,China Lucky Film,,14
+100,2,LUCKY COLOR SUPER 100,China Lucky Film,,14
+100,6,LUCKY COLOR SUPER 200,China Lucky Film,,14
+100,8,LUCKY COLOR SUPER 400,China Lucky Film,,14
+100,9,LUCKY COLOR SUPER GBR100,China Lucky Film,,14
+100,11,LUCKY COLOR SUPER GBR 200,China Lucky Film,,14
+100,13,LUCKY COLOR SUPER GBR400,China Lucky Film,,14
 6,1,KODAK High Speed Infrared Film,Eastman Kodak Company,in-use,15
 11,3,KODAK Professional Traffic Surveillance Film,Eastman Kodak Company,in-use,15
 20,1,KODAK PROFESSIONAL EKTACHROME Duplicating Film EDUPE,Eastman Kodak Company,in-use,15
@@ -202,30 +202,30 @@ part1,part2,product,sensitizer,status,page
 116,3,KODACHROME 200 Professional Film,Eastman Kodak Company,discontinued,19
 116,4,KODAK Splicer Test Film Kodachrome 200,Eastman Kodak Company,discontinued,19
 116,5,KODAK Splicer Test Film Process K-14,Eastman Kodak Company,discontinued,19
-68,8,ERA Color ER 100,ERA Photo Material Industry Corporation,in-use,20
-18,7,SCOTCH COLOR 100 AT,Ferrania Imaging Technologies,in-use,21
-18,9,SCOTCH COLOR 200 AT,Ferrania Imaging Technologies,in-use,21
-18,10,SCOTCH COLOR 400 AT,Ferrania Imaging Technologies,in-use,21
-24,1,IMATION CHROME 100,Ferrania Imaging Technologies,in-use,21
-24,4,IMATION CHROME 400,Ferrania Imaging Technologies,in-use,21
-24,6,IMATION CHROME 640T,Ferrania Imaging Technologies,in-use,21
-66,5,SCOTCH 200 ATG1/SCOTCH COLOR EXL,Ferrania Imaging Technologies,in-use,21
-66,6,SCOTCH 100 ATG1/SCOTCH COLOR EXL,Ferrania Imaging Technologies,in-use,21
-66,10,SCOTCH 400 ATG1/SCOTCH COLOR EXL,Ferrania Imaging Technologies,in-use,21
-66,11,SCOTCH 200 ATG2/SCOTCH COLOR EXH,Ferrania Imaging Technologies,in-use,21
-85,1,IMATION COLOR HP100,Ferrania Imaging Technologies,in-use,21
-85,2,IMATION COLOR HP200,Ferrania Imaging Technologies,in-use,21
-85,4,IMATION COLOR HP400,Ferrania Imaging Technologies,in-use,21
-87,1,Ferrania Imaging Color FG100,Ferrania Imaging Technologies,in-use,21
-87,2,Ferrania Imaging Color FG200,Ferrania Imaging Technologies,in-use,21
-87,3,Ferrania Imaging Color FG Plus 100,Ferrania Imaging Technologies,in-use,21
-87,4,Ferrania Imaging Color FG400,Ferrania Imaging Technologies,in-use,21
-87,5,Ferrania Imaging Color FG400i,Ferrania Imaging Technologies,in-use,21
-87,6,Ferrania Imaging Color FG Plus 200,Ferrania Imaging Technologies,in-use,21
-87,7,Ferrania Imaging Color FG Plus 400,Ferrania Imaging Technologies,in-use,21
-87,8,Ferrania Imaging Color FG800,Ferrania Imaging Technologies,in-use,21
-87,9,Ferrania Imaging Color FG800i,Ferrania Imaging Technologies,in-use,21
-87,10,Ferrania Imaging Color FG Plus 800,Ferrania Imaging Technologies,in-use,21
+68,8,ERA Color ER 100,ERA Photo Material Industry Corporation,,20
+18,7,SCOTCH COLOR 100 AT,Ferrania Imaging Technologies,,21
+18,9,SCOTCH COLOR 200 AT,Ferrania Imaging Technologies,,21
+18,10,SCOTCH COLOR 400 AT,Ferrania Imaging Technologies,,21
+24,1,IMATION CHROME 100,Ferrania Imaging Technologies,,21
+24,4,IMATION CHROME 400,Ferrania Imaging Technologies,,21
+24,6,IMATION CHROME 640T,Ferrania Imaging Technologies,,21
+66,5,SCOTCH 200 ATG1/SCOTCH COLOR EXL,Ferrania Imaging Technologies,,21
+66,6,SCOTCH 100 ATG1/SCOTCH COLOR EXL,Ferrania Imaging Technologies,,21
+66,10,SCOTCH 400 ATG1/SCOTCH COLOR EXL,Ferrania Imaging Technologies,,21
+66,11,SCOTCH 200 ATG2/SCOTCH COLOR EXH,Ferrania Imaging Technologies,,21
+85,1,IMATION COLOR HP100,Ferrania Imaging Technologies,,21
+85,2,IMATION COLOR HP200,Ferrania Imaging Technologies,,21
+85,4,IMATION COLOR HP400,Ferrania Imaging Technologies,,21
+87,1,Ferrania Imaging Color FG100,Ferrania Imaging Technologies,,21
+87,2,Ferrania Imaging Color FG200,Ferrania Imaging Technologies,,21
+87,3,Ferrania Imaging Color FG Plus 100,Ferrania Imaging Technologies,,21
+87,4,Ferrania Imaging Color FG400,Ferrania Imaging Technologies,,21
+87,5,Ferrania Imaging Color FG400i,Ferrania Imaging Technologies,,21
+87,6,Ferrania Imaging Color FG Plus 200,Ferrania Imaging Technologies,,21
+87,7,Ferrania Imaging Color FG Plus 400,Ferrania Imaging Technologies,,21
+87,8,Ferrania Imaging Color FG800,Ferrania Imaging Technologies,,21
+87,9,Ferrania Imaging Color FG800i,Ferrania Imaging Technologies,,21
+87,10,Ferrania Imaging Color FG Plus 800,Ferrania Imaging Technologies,,21
 8,0,FUJICOLOR SUPERIA 100,FUJIFILM Corporation,in-use,22
 8,1,FUJICOLOR 200,FUJIFILM Corporation,in-use,22
 8,2,FUJICOLOR 200,FUJIFILM Corporation,in-use,22
@@ -300,35 +300,35 @@ part1,part2,product,sensitizer,status,page
 39,11,FUJICOLOR SUPERIA 800,FUJIFILM Corporation,in-use,24
 39,12,FUJICOLOR SUPERIA 1000,FUJIFILM Corporation,in-use,24
 42,8,FUJICHROME RSP,FUJIFILM Corporation,in-use,24
-108,1,H 125,Harman Technologies,in-use,25
-108,2,H 400,Harman Technologies,in-use,25
-108,3,A 125,Harman Technologies,in-use,25
-108,4,A 400,Harman Technologies,in-use,25
-108,5,SP816T POLY,Harman Technologies,in-use,25
-108,6,OPTHALMIC,Harman Technologies,in-use,25
-108,7,SFX 200,Harman Technologies,in-use,25
-108,8,UNIVERSAL 400,Harman Technologies,in-use,25
-108,9,UNIVERSAL 100,Harman Technologies,in-use,25
-108,10,DELTA 3200 PRO,Harman Technologies,in-use,25
-109,1,PAN F (P1),Harman Technologies,in-use,25
-109,2,PAN 100,Harman Technologies,in-use,25
-109,3,PAN 400,Harman Technologies,in-use,25
-109,4,SP815T,Harman Technologies,in-use,25
-109,5,PAN F,Harman Technologies,in-use,25
-109,6,FP4/O PAN,Harman Technologies,in-use,25
-109,7,HP5,Harman Technologies,in-use,25
-109,8,Delta 400 Pro / 400 Delta Pro,Harman Technologies,in-use,25
-109,9,HP5 PLUS,Harman Technologies,in-use,25
-109,10,BLACK 400,Harman Technologies,in-use,25
-109,11,400 DELTA,Harman Technologies,in-use,25
-109,12,FP4 PLUS,Harman Technologies,in-use,25
-109,13,PAN F PLUS,Harman Technologies,in-use,25
-109,14,100 DELTA,Harman Technologies,in-use,25
-109,15,100 DELTA PRO,Harman Technologies,in-use,25
-110,1,XP1 400 (P1),Harman Technologies,in-use,25
-110,2,XP1 400,Harman Technologies,in-use,25
-110,3,XP2,Harman Technologies,in-use,25
-110,4,XP2 SUPER,Harman Technologies,in-use,25
+108,1,H 125,Harman Technologies,,25
+108,2,H 400,Harman Technologies,,25
+108,3,A 125,Harman Technologies,,25
+108,4,A 400,Harman Technologies,,25
+108,5,SP816T POLY,Harman Technologies,,25
+108,6,OPTHALMIC,Harman Technologies,,25
+108,7,SFX 200,Harman Technologies,,25
+108,8,UNIVERSAL 400,Harman Technologies,,25
+108,9,UNIVERSAL 100,Harman Technologies,,25
+108,10,DELTA 3200 PRO,Harman Technologies,,25
+109,1,PAN F (P1),Harman Technologies,,25
+109,2,PAN 100,Harman Technologies,,25
+109,3,PAN 400,Harman Technologies,,25
+109,4,SP815T,Harman Technologies,,25
+109,5,PAN F,Harman Technologies,,25
+109,6,FP4/O PAN,Harman Technologies,,25
+109,7,HP5,Harman Technologies,,25
+109,8,Delta 400 Pro / 400 Delta Pro,Harman Technologies,,25
+109,9,HP5 PLUS,Harman Technologies,,25
+109,10,BLACK 400,Harman Technologies,,25
+109,11,400 DELTA,Harman Technologies,,25
+109,12,FP4 PLUS,Harman Technologies,,25
+109,13,PAN F PLUS,Harman Technologies,,25
+109,14,100 DELTA,Harman Technologies,,25
+109,15,100 DELTA PRO,Harman Technologies,,25
+110,1,XP1 400 (P1),Harman Technologies,,25
+110,2,XP1 400,Harman Technologies,,25
+110,3,XP2,Harman Technologies,,25
+110,4,XP2 SUPER,Harman Technologies,,25
 16,0,KONICA MINOLTA Chrome MC100,"KONICA MINOLTA PHOTO IMAGING, INC.",in-use,26
 16,3,KONICA MINOLTA Chrome R100,"KONICA MINOLTA PHOTO IMAGING, INC.",in-use,26
 16,4,KONICA MINOLTA Chrome SHINRA100,"KONICA MINOLTA PHOTO IMAGING, INC.",in-use,26
@@ -368,23 +368,23 @@ part1,part2,product,sensitizer,status,page
 50,4,"KONICA MINOLTA VX200, LV200","KONICA MINOLTA PHOTO IMAGING, INC.",discontinued,28
 50,5,KONICA MINOLTA VX400,"KONICA MINOLTA PHOTO IMAGING, INC.",discontinued,28
 50,6,KONICA MINOLTA JX100,"KONICA MINOLTA PHOTO IMAGING, INC.",discontinued,28
-120,1,ORWO COLOR CNS 100,ORWO Media GmbH,in-use,29
-121,1,ORWO COLOR CNS 200,ORWO Media GmbH,in-use,29
-121,6,ORWO COLOR CNS 400,ORWO Media GmbH,in-use,29
-122,1,ORWO COLOR CNN 100,ORWO Media GmbH,in-use,29
-122,2,ORWO COLOR CNN 200,ORWO Media GmbH,in-use,29
-122,3,ORWO COLOR OCN 100,ORWO Media GmbH,in-use,29
-122,4,ORWO COLOR CNN 400,ORWO Media GmbH,in-use,29
-122,5,ORWO COLOR OCN 200,ORWO Media GmbH,in-use,29
-122,7,ORWO COLOR OCN 400,ORWO Media GmbH,in-use,29
-123,1,ORWOPAN 100,ORWO Media GmbH,in-use,29
-123,2,ORWOPAN 125,ORWO Media GmbH,in-use,29
-123,3,ORWOPAN 400,ORWO Media GmbH,in-use,29
-88,,SHENGUANG,Shanghai General Photosensitive Film Factory,in-use,30
-88,,SHANGHAI,Shanghai General Photosensitive Film Factory,in-use,30
-88,,SEAGULL,Shanghai General Photosensitive Film Factory,in-use,30
-88,,RAINBOW,Shanghai General Photosensitive Film Factory,in-use,30
-9,1,SVEMA DS-100,SVEMA Production Association,in-use,31
-98,1,135 PAN,Xiamen FUDA Photographic Materials Co.,in-use,32
-98,2,FUDA GA-100,Xiamen FUDA Photographic Materials Co.,in-use,32
-98,3,FUDA 135 COLOR,Xiamen FUDA Photographic Materials Co.,in-use,32
+120,1,ORWO COLOR CNS 100,ORWO Media GmbH,,29
+121,1,ORWO COLOR CNS 200,ORWO Media GmbH,,29
+121,6,ORWO COLOR CNS 400,ORWO Media GmbH,,29
+122,1,ORWO COLOR CNN 100,ORWO Media GmbH,,29
+122,2,ORWO COLOR CNN 200,ORWO Media GmbH,,29
+122,3,ORWO COLOR OCN 100,ORWO Media GmbH,,29
+122,4,ORWO COLOR CNN 400,ORWO Media GmbH,,29
+122,5,ORWO COLOR OCN 200,ORWO Media GmbH,,29
+122,7,ORWO COLOR OCN 400,ORWO Media GmbH,,29
+123,1,ORWOPAN 100,ORWO Media GmbH,,29
+123,2,ORWOPAN 125,ORWO Media GmbH,,29
+123,3,ORWOPAN 400,ORWO Media GmbH,,29
+88,,SHENGUANG,Shanghai General Photosensitive Film Factory,,30
+88,,SHANGHAI,Shanghai General Photosensitive Film Factory,,30
+88,,SEAGULL,Shanghai General Photosensitive Film Factory,,30
+88,,RAINBOW,Shanghai General Photosensitive Film Factory,,30
+9,1,SVEMA DS-100,SVEMA Production Association,,31
+98,1,135 PAN,Xiamen FUDA Photographic Materials Co.,,32
+98,2,FUDA GA-100,Xiamen FUDA Photographic Materials Co.,,32
+98,3,FUDA 135 COLOR,Xiamen FUDA Photographic Materials Co.,,32

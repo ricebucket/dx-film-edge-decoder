@@ -68,7 +68,7 @@
       const isI3a = entry.source === 'i3a';
       const maker = ui.sensitizerName(entry.sensitizer);
       const detail = isI3a
-        ? (entry.inUse ? t('{maker}. In production in 2008.', { maker }) : t('{maker}. Discontinued by 2008.', { maker }))
+        ? ({ 'in-use': t('{maker}. In production in 2008.', { maker }), discontinued: t('{maker}. Discontinued by 2008.', { maker }) }[entry.status] || maker)
         : [entry.manufacturer && t('Made by {maker}', { maker: entry.manufacturer }), entry.original].filter(Boolean).join(i18n.punctuation().sentence);
       // Rows without a usable DX number can't be drawn: registry rows whose
       // Part 2 was never identified, and community numbers above 2047 or below
@@ -77,7 +77,7 @@
       const why = entry.wildcard
         ? t('The registry does not give the Part 2 number for this film')
         : entry.extract > 2047
-          ? t('This cassette number is outside the range a film edge code can hold')
+          ? (entry.full ? t('This cassette number is outside the range a film edge code can hold') : t('The DX number recorded for this film is outside the range a film edge code can hold'))
           : t('Part 1 would be 0, which no maker held in 2008');
       const button = h('button', {
         type: 'button', class: 'tool', disabled: showable ? null : true,
@@ -110,16 +110,35 @@
       more.textContent = t('Show {n} more', { n: Math.min(PAGE, results.length - shown) });
     }
 
+    /** "DX 79": a Part 1 on its own, without its Part 2; null for anything else. */
+    function lonePart1(q) {
+      const m = /^dx[\s\-\u2010-\u2015\u2212]*(\d{1,3})$/i.exec(q.normalize('NFKC'));
+      return m && Number(m[1]) <= 127 ? Number(m[1]) : null;
+    }
+
     let timer = null;
     function run() {
       const q = input.value.trim();
       list.replaceChildren();
       shown = 0;
       const tooShort = q.length < 2 && !/\d/.test(q);
-      results = q && !tooShort ? distinct(lookup.search(q)) : [];
-      const dx = results.length ? null : codec.parseDxNumber(q);
+      // "DX" and a Part 1 alone: its films, so that the Part 2 can be picked from them.
+      const part1 = lonePart1(q);
+      if (part1 !== null) {
+        const rank = (e) => (e.part2 === null ? -1 : e.part2) * 2 + (e.source === 'i3a' ? 0 : 1);
+        results = distinct([...lookup.products, ...lookup.community].filter((e) => e.part1 === part1))
+          .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name, 'en'));
+      } else {
+        results = q && !tooShort ? distinct(lookup.search(q)) : [];
+      }
+      const dx = results.length || part1 !== null ? null : codec.parseDxNumber(q);
       if (!q || tooShort) status.textContent = t('Type at least two letters, or a DX number such as 79-15.');
-      else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
+      else if (part1 !== null) {
+        const example = results.filter((e) => !e.wildcard).map(dxOf).find(Boolean);
+        status.textContent = example
+          ? i18n.plural(results.length, '{n} film has Part 1 = {part1}. Add its Part 2 to narrow the list, e.g. {dx}.', '{n} films have Part 1 = {part1}. Add their Part 2 to narrow the list, e.g. {dx}.', { part1, dx: example })
+          : t('No film in the lists has Part 1 = {part1}. A DX number has two parts, such as 79-15.', { part1 });
+      } else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
       else if (dx) status.textContent = t('No film in the lists has DX {dx}.', { dx: codec.formatDxNumber(dx.part1, dx.part2) });
       else status.textContent = t('Nothing matches “{q}”. Try fewer words, or part of the name.', { q });
       showPage();
@@ -128,7 +147,16 @@
       clearTimeout(timer);
       timer = setTimeout(run, 120);
     });
-    more.addEventListener('click', showPage);
+    more.addEventListener('click', () => {
+      const first = shown;
+      showPage();
+      // Gone with the last page: carry on at the first entry it brought.
+      if (more.hidden) {
+        const item = list.children[first];
+        item.tabIndex = -1;
+        item.focus();
+      }
+    });
 
     // Direct entry: DX number + frame.
     const dxInput = h('input', { type: 'text', id: 'direct-dx', class: 'input input--short', placeholder: '79-15', autocomplete: 'off', 'aria-describedby': 'direct-help' });
@@ -324,7 +352,7 @@
         svg('pattern', { id: 'cassette-velvet', patternUnits: 'userSpaceOnUse', width: 2.1, height: 1.3 },
           svg('rect', { class: 'cassette-figure__velvet-base', width: 2.1, height: 1.3 }),
           [[0.2, 0.3], [0.9, 0.15], [1.5, 0.55], [0.55, 0.9], [1.25, 1.05], [1.9, 0.95], [0.1, 1.15], [1.7, 0.2]].map(([cx, cy], i) =>
-            svg('circle', { class: 'cassette-figure__velvet-fibre', cx, cy, r: 0.07 + (i % 3) * 0.02 }))),
+            svg('circle', { class: 'cassette-figure__velvet-fiber', cx, cy, r: 0.07 + (i % 3) * 0.02 }))),
         svg('clipPath', { id: 'cassette-side' }, svg('path', { d: band(0, L, top, bottom, RC) }))),
       svg('g', { class: 'cassette-figure__drop' },
         shape('paint', band(0, L, top, lipFrom, R)),
@@ -368,13 +396,13 @@
       return e.from === e.to ? t('{n} exposures', { n: e.from }) : t('{from}–{to} exposures', { from: e.from, to: e.to });
     }
 
-    /** What the 1994 standard used the last digit for, where that differs; null where it doesn't. */
+    /** The older meaning of the last digit that Wikipedia lists, where it differs; null where it doesn't. */
     function exposuresNote(p) {
-      const before = p.exposures.before2000;
-      if (before === undefined) return null;
-      if (before === null) return t('The 1994 standard did not use it.');
-      if (before === 'other') return t('The 1994 standard used it for other lengths, such as 24 + 3.');
-      return t('The 1994 standard used it for {n} exposures.', { n: before });
+      const older = p.exposures.older;
+      if (older === undefined) return null;
+      if (older === null) return t('Wikipedia’s older list does not use it.');
+      if (older === 'other') return t('Wikipedia lists an older meaning: other lengths, such as 24 + 3.');
+      return t('Wikipedia lists an older meaning: {n} exposures.', { n: older });
     }
 
     function render(hit) {
@@ -415,15 +443,26 @@
       }
       if (hit.dx) {
         const s = hit.dx.part1Info.sensitizer;
-        blocks.push(h('p', { class: 'result__lead' }, s
-          ? t('Part 1 = {part1} is assigned to {maker}.', { part1: p.part1, maker: ui.sensitizerName(s) })
-          : t('Part 1 = {part1} was not assigned in the 2008 registry.', { part1: p.part1 })));
+        const part1 = { part1: p.part1, maker: ui.sensitizerName(s) };
+        blocks.push(h('p', { class: 'result__lead' }, !s
+          ? t('Part 1 = {part1} was not assigned in the 2008 registry.', part1)
+          : hit.dx.part1Info.aps
+            ? t('Part 1 = {part1} is assigned to {maker}, for APS film.', part1)
+            : t('Part 1 = {part1} is assigned to {maker}.', part1)));
       }
       const exact = ui.groupCommunity(hit.sameCode);
+      // The entries for this very cassette may record another DX number for
+      // the film's edge (Harman Phoenix II: cassette 017765, edge 105-3). That
+      // one, which the source gives, is shown and looked up instead.
+      const recorded = [...new Set(hit.sameCode.filter((e) => e.part1 !== null).map((e) => codec.formatDxNumber(e.part1, e.part2)))];
+      const edgeDiffers = p.part1 !== null && hit.sameCode.length > 0 && !hit.sameCode.some((e) => e.extract === p.extract);
       if (exact.length) {
         blocks.push(h('div', { class: 'source-block' },
           h('h3', { class: 'source-block__title' }, 'The Big Film Database'),
           h('ul', { class: 'matches' }, exact.map(ui.communityItem))));
+      }
+      if (edgeDiffers && recorded.length) {
+        blocks.push(h('p', { class: 'result__lead' }, t('The Big Film Database gives this film’s edge code as DX {dx}.', { dx: recorded.join(i18n.punctuation().list) })));
       }
       const similar = ui.groupCommunity(hit.sameExtract);
       if (similar.length) {
@@ -436,8 +475,13 @@
       }
       // Part 1 = 0 is valid, but no maker held it in 2008: as in the search
       // above, such a number has no edge code to show or look up.
-      const edgeCode = p.part1 !== null && p.part1 > 0;
-      const link = (exact.length || similar.length) && edgeCode ? ui.bfdLink(p.part1, p.part2) : null;
+      let edge = p.part1 !== null && p.part1 > 0 ? { part1: p.part1, part2: p.part2 } : null;
+      if (edgeDiffers) {
+        const own = hit.sameCode.find((e) => e.part1 !== null && e.part1 > 0);
+        edge = recorded.length === 1 && own ? { part1: own.part1, part2: own.part2 } : null;
+      }
+      const edgeCode = edge !== null;
+      const link = (exact.length || similar.length) && edgeCode ? ui.bfdLink(edge.part1, edge.part2) : null;
       if (link) blocks.push(link, h('p', { class: 'fineprint' }, t('The site has pictures of the films') + i18n.punctuation().period));
       if (!registry.length && !exact.length && !similar.length) {
         blocks.push(h('p', { class: 'fineprint' }, t('Not found in either the 2008 I3A registry or The Big Film Database.')));
@@ -445,7 +489,7 @@
       const actions = [];
       if (edgeCode) {
         const show = h('button', { type: 'button', class: 'tool tool--primary' }, t('Show the edge barcode'));
-        show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits }));
+        show.addEventListener('click', () => onShow({ part1: edge.part1, part2: edge.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits }));
         actions.push(h('div', { class: 'result__actions' }, show));
       }
       out.replaceChildren(facts, ...blocks, ...actions);

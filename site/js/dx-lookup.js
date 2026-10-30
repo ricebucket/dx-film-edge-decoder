@@ -51,7 +51,7 @@
 
     const sensitizer = (i) => (i >= 0 ? sensitizers[i] : null);
 
-    const products = data.products.map(([part1, part2, name, s, inUse], index) => ({
+    const products = data.products.map(([part1, part2, name, s, status], index) => ({
       source: 'i3a',
       index,
       part1,
@@ -59,7 +59,8 @@
       wildcard: part2 === -1,
       name,
       sensitizer: sensitizer(s),
-      inUse: inUse === 1,
+      // 'in-use' or 'discontinued' as the registry says, or null where its maker's list says neither.
+      status: status === 1 ? 'in-use' : status === 0 ? 'discontinued' : null,
     }));
 
     const community = (communityData ? communityData.rows : []).map((row, index) => {
@@ -196,6 +197,11 @@
         const only = dx.kind === 'parts' || /^dx/.test(q) || (dx.kind === 'cassette' && /^\d{6}$/.test(q));
         hit.products.forEach((p) => add(p, only ? 0 : 7));
         hit.community.forEach((c) => add(c, only ? 1 : 8));
+        // The films recorded with this very cassette number, which can give
+        // another DX number for their edge (as byCassette finds them).
+        if (dx.kind === 'cassette') {
+          for (const c of community) if (c.full.slice(0, 5) === dx.cassette.digits.slice(0, 5)) add(c, 1);
+        }
         if (dx.kind === 'parts') {
           // Names that carry it as typed ("AGFACOLOR OPTIMA 100-2", "VR100-4")
           // come next; "20-0" is still no "200", nor part of "120-0".
@@ -223,7 +229,7 @@
       return finish();
 
       function finish() {
-        const results = [...ranks.values()].sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name));
+        const results = [...ranks.values()].sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name, 'en'));
         const out = results.map((r) => r.entry);
         return limit ? out.slice(0, limit) : out;
       }

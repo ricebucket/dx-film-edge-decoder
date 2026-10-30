@@ -33,7 +33,7 @@ DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7
 | SVEMA Production | 1 | 1 |
 | Xiamen FUDA | 1 | 3 |
 
-**产品列表**。每家感光厂下有若干行，每行是第 1 部分、第 2 部分和产品名称。Agfa-Gevaert、Eastman Kodak 和 Konica Minolta 把各自的行分为两类：“DX numbers that are currently being used”（目前正在使用的 DX 码），以及“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片；本工具把这一区分显示为“2008 年仍在生产”或“截至 2008 年已停产”。列表共印有 389 行。
+**产品列表**。每家感光厂下有若干行，每行是第 1 部分、第 2 部分和产品名称。Agfa-Gevaert、Eastman Kodak 和 Konica Minolta 把各自的行分为两类：“DX numbers that are currently being used”（目前正在使用的 DX 码），以及“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片；FUJIFILM 的各行以前一类为标题。本工具把这一区分显示为“2008 年仍在生产”或“截至 2008 年已停产”。其他感光厂的章节两者都没有说明，所以本工具不给它们的胶片标出状态。列表共印有 389 行。
 
 ### 文件中发现的不寻常之处
 
@@ -66,9 +66,9 @@ DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7
 | HHHH | 16 × 第 1 部分 + 第 2 部分，例如 79-15 → `1279` |
 | E | 可拍摄画幅数，见下表 |
 
-与 GB/T 9185-1996（即 1993 年草案）相比，ISO 1007:2000 修改了 E 位的含义，以容纳更多的胶片长度（GB/T 9185-2003 前言，第 e 项）：
+与 GB/T 9185-1996（即 1993 年草案）相比，ISO 1007:2000 修改了 E 位的含义，以容纳更多的胶片长度（GB/T 9185-2003 前言，第 e 项）。维基百科的“DX number”条目列出了较早的含义，但没有给出来源：
 
-| E | 维基百科引用的 ANSI/NAPM IT1.14:1994 | GB/T 9185-2003（ISO 1007:2000），表 9 |
+| E | 维基百科列出的较早含义 | GB/T 9185-2003（ISO 1007:2000），表 9 |
 |---|---|---|
 | 0 | 72 | 1–8 |
 | 1 | 12 | 12 |

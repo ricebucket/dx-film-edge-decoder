@@ -214,14 +214,17 @@ Kodak's and Wikipedia's usage refers to the frame-number extension.
 ## Software that reads or writes the code
 
 - **zxing-cpp** (reader) reports a code as text such as `115-10/11A`:
-  Part 1, Part 2 and, for the 31-cell layout, the frame label after a slash.
-  This project's shareable links use the same form (`?dx=79-15/23`). It
+  Part 1, Part 2 and, for the 31-cell layout, the frame number after a slash,
+  with `A` for a half frame. It writes the frames printed `XX`, `X` and `00` as
+  61, 62 and 63. This project's shareable links use the same form
+  (`?dx=79-15/23`) and also take the printed labels. It
   rejects codes whose unused cells hold a bar, whose parity fails or whose
   Part 1 is 0, and accepts runs of up to 20 equal cells, the longest possible
   in a valid data track whose Part 1 is not 0 (for example `96-0/0`).
 - **Zint** (generator) accepts the same text form, a four-digit "DX extract"
   (16 × Part 1 + Part 2, 16 to 2047) or a six-digit "DX full" cassette number,
-  and the frame labels `X`/`S` (62), `00`/`K` (63) and `F` (0).
+  and the frame labels `X`/`S` (62), `00`/`K` (63) and `F` (0), but not `XX`
+  (61). It rejects Part 1 = 0.
 - The modified Big Film Database website scans DX edge codes and cassette
   barcodes with a phone camera using zxing-cpp
   ([report 04](04-community-database.md)).

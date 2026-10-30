@@ -345,3 +345,77 @@ test('a link to the code list lands at its heading, and a reload comes back to t
   await expect(page.locator('#reference-ui .assign-table')).toHaveCount(1);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before - 40);
 });
+
+test('printed, the strip keeps its film and bars, fits the page, and the colors are the light ones', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto('/?dx=79-15/23');
+  await page.emulateMedia({ media: 'print', colorScheme: 'dark' });
+  const printed = await page.evaluate(() => {
+    const film = document.querySelector('#strip .film');
+    const style = getComputedStyle(film);
+    return {
+      exact: (style.printColorAdjust || style.webkitPrintColorAdjust) === 'exact',
+      width: film.getBoundingClientRect().width,
+      bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+      looks: getComputedStyle(document.querySelector('.looks')).display,
+    };
+  });
+  expect(printed.exact).toBe(true);
+  expect(printed.width).toBeLessThanOrEqual(700); // A4 or Letter, less the margins
+  expect(printed.bg).toBe('#edf2f5');
+  expect(printed.looks).toBe('none');
+});
+
+test('arrow keys in the language menu only move through it; Enter changes the language', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'a keyboard on the menu itself');
+  await page.goto('/');
+  const menu = page.getByLabel('Language');
+  await menu.focus();
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(300);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await Promise.all([page.waitForEvent('load'), page.keyboard.press('Enter')]);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+});
+
+test('choosing a language comes back to the same place on the page', async ({ page }) => {
+  await page.goto('/');
+  // 300 px into "How it works".
+  await page.evaluate(() => window.scrollTo(0, document.getElementById('how').getBoundingClientRect().top + window.scrollY + 300));
+  const before = await page.locator('#how').evaluate((el) => el.getBoundingClientRect().top);
+  expect(before).toBeLessThan(-250);
+  await Promise.all([page.waitForEvent('load'), page.getByLabel('Language').selectOption({ label: '简体中文' })]);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect.poll(() => page.locator('#how').evaluate((el) => el.getBoundingClientRect().top)).toBeCloseTo(before, -1);
+});
+
+test('a page brought back by Back takes the theme and language chosen since on another page', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  // As the sources page saves them; then the page comes back from the browser's cache.
+  await page.evaluate(() => {
+    localStorage.setItem('dx-theme', 'dark');
+    localStorage.setItem('dx-lang', 'zh-CN');
+  });
+  await Promise.all([
+    page.waitForEvent('load'),
+    page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))),
+  ]);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
+
+test('on phones the page does not shift as it is built', async ({ page, browserName, isMobile }) => {
+  test.skip(!isMobile || browserName !== 'chromium', 'layout shifts are measured in Chromium');
+  await page.goto('/');
+  await page.waitForTimeout(800);
+  const shift = await page.evaluate(() => new Promise((resolve) => {
+    let total = 0;
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) if (!entry.hadRecentInput) total += entry.value;
+    }).observe({ type: 'layout-shift', buffered: true });
+    setTimeout(() => resolve(total), 100);
+  }));
+  expect(shift).toBeLessThan(0.05);
+});

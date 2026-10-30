@@ -74,8 +74,9 @@
         </div>
 
         <div class="ways" role="tablist" aria-label="How to enter the code" data-i18n-attr="aria-label">
-          <button type="button" class="ways__tab" role="tab" id="tab-copy" aria-selected="true" aria-controls="way-copy"><span data-i18n>Copy the bars</span></button>
-          <button type="button" class="ways__tab" role="tab" id="tab-photo" aria-selected="false" aria-controls="photo" tabindex="-1"><span data-i18n>Read a photo</span></button>
+          <!-- The icons are js/ui-dom.js's "pencil" and "photo", here so that the tabs don't grow once drawn. -->
+          <button type="button" class="ways__tab" role="tab" id="tab-copy" aria-selected="true" aria-controls="way-copy"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20h4L19 9l-4-4L4 16v4ZM13 7l4 4"/></svg><span data-i18n>Copy the bars</span></button>
+          <button type="button" class="ways__tab" role="tab" id="tab-photo" aria-selected="false" aria-controls="photo" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8h3l2-3h6l2 3h3v11H4V8ZM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg><span data-i18n>Read a photo</span></button>
         </div>
 
         <div id="way-copy" role="tabpanel" aria-labelledby="tab-copy" tabindex="0">

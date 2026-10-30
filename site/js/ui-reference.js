@@ -34,7 +34,9 @@
       h('option', { value: 'live' }, t('In production in 2008')),
       h('option', { value: 'gone' }, t('Discontinued by 2008')));
     const part1Filter = { value: null };
-    const count = h('p', { class: 'fineprint', 'aria-live': 'polite' });
+    const count = h('p', { class: 'fineprint', 'aria-live': 'polite', tabindex: '-1' });
+    /** Keyboard focus to the count of the list as filtered, from a control that scrolls there or goes. */
+    const focusCount = () => count.focus({ preventScroll: true });
     const clearPart1 = h('button', { type: 'button', class: 'text-button', hidden: true }, t('Show all Part 1 numbers'));
     const tbody = h('tbody');
 
@@ -50,6 +52,7 @@
           render();
           const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
           document.getElementById('ref-table').scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+          focusCount();
         },
       }, String(info.part1));
 
@@ -58,7 +61,7 @@
       h('thead', null, h('tr', null, h('th', { scope: 'col' }, t('Manufacturer')), h('th', { scope: 'col' }, t('Part 1 numbers')))),
       h('tbody', null,
         [...bySensitizer.entries()]
-          .sort((a, b) => a[0].label.localeCompare(b[0].label))
+          .sort((a, b) => a[0].label.localeCompare(b[0].label, 'en'))
           .map(([s, infos]) => h('tr', null,
             h('th', { scope: 'row' }, s.name, s.aka ? h('span', { class: 'fineprint' }, ` (${s.aka})`) : null),
             h('td', null, h('div', { class: 'num-chips' }, infos.map(numberChip))))),
@@ -82,7 +85,7 @@
         h('td', { class: 'num' }, dx),
         h('td', null, p.name),
         h('td', null, p.sensitizer.label),
-        h('td', null, h('span', { class: `pill pill--${p.inUse ? 'live' : 'gone'}` }, p.inUse ? t('in production') : t('discontinued'))),
+        h('td', null, p.status ? h('span', { class: `pill pill--${p.status === 'in-use' ? 'live' : 'gone'}` }, p.status === 'in-use' ? t('in production') : t('discontinued')) : null),
         h('td', null, show));
     }
 
@@ -100,10 +103,10 @@
       const rows = lookup.products
         .filter((p) => part1Filter.value === null || p.part1 === part1Filter.value)
         .filter((p) => !m || p.sensitizer === m)
-        .filter((p) => !st || (st === 'live') === p.inUse)
+        .filter((p) => !st || p.status === (st === 'live' ? 'in-use' : 'discontinued'))
         .filter((p) => !q || p.name.toLowerCase().includes(q) || label(p).startsWith(typed)
           || (dx !== null && p.part1 === dx.part1 && (p.wildcard || p.part2 === dx.part2)))
-        .sort((a, b) => a.part1 - b.part1 || (a.part2 === null ? -1 : a.part2) - (b.part2 === null ? -1 : b.part2) || a.name.localeCompare(b.name));
+        .sort((a, b) => a.part1 - b.part1 || (a.part2 === null ? -1 : a.part2) - (b.part2 === null ? -1 : b.part2) || a.name.localeCompare(b.name, 'en'));
       tbody.replaceChildren(...rows.map(rowFor));
       clearPart1.hidden = part1Filter.value === null;
       const n = { n: rows.length, total: lookup.products.length, part1: part1Filter.value };
@@ -122,6 +125,7 @@
     clearPart1.addEventListener('click', () => {
       part1Filter.value = null;
       render();
+      focusCount(); // the button is gone
     });
 
     host.replaceChildren(

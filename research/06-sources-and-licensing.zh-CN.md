@@ -11,7 +11,7 @@
 - **`data/big-film-database/`** 存放 The Big Film Database 的一个改编子集，采用 CC BY-SA 4.0 许可证；其署名和修改清单见 [data/README.zh-CN.md](../data/README.zh-CN.md)。
 - **`site/js/dx-data.js`** 和 **`site/js/dx-data-community.js`** 由 `scripts/build-data.mjs` 根据 `data/` 生成，每个数据集一个文件。前者存放 I3A 数据表，采用 GNU General Public License v3.0 许可证；后者存放 The Big Film Database 的子集，文件头带有它的署名，采用 CC BY-SA 4.0 许可证。
 - **`tests/unit/zint-vectors.mjs`** 存放 11 个位串，取自 Zint 条码库针对该格式的测试文件（`backend/tests/test_dxfilmedge.c`，版权 2024–2025 Antoine Mérino），并附有该版权声明，采用 BSD-3-Clause 许可证。使用这些位串的测试在 `tests/unit/codec.test.mjs` 中。
-- 网页使用访问者设备上已安装的字体，不使用第三方代码，也不发出任何网络请求。
+- 网页使用访问者设备上已安装的字体，不使用第三方代码。在网页中打开的照片不会上传到任何服务器。
 - 浏览器测试所用的 Playwright 是单独安装的，不属于本仓库。
 
 ## 来源

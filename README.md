@@ -14,9 +14,8 @@ there on negatives and slides long after the cassette has been thrown away.
 This tool is for film photographers, collectors and archivists who want to
 know what a strip of film is.
 
-Everything runs in your browser. The page loads nothing from other servers and
-makes no requests of its own, so photos you open in it never leave your device.
-It also works when `site/index.html` is opened straight from disk.
+Everything runs in your browser. Photos you open in it are not uploaded to any
+server. It also works when `site/index.html` is opened straight from disk.
 
 ## What it does
 
@@ -236,8 +235,9 @@ language. When you change one version, make the same change in the other.
 ## License and sources
 
 The code, tests, scripts and documentation are free software under the
-[GNU General Public License v3.0](LICENSE). The film data has its own sources
-and terms, described in [data/README.md](data/README.md). Every source used for
+[GNU General Public License v3.0](LICENSE), except the screenshots that show
+entries of The Big Film Database, which are under CC BY-SA 4.0. The film data
+has its own sources and terms, described in [data/README.md](data/README.md). Every source used for
 the project is listed in [research/06](research/06-sources-and-licensing.md).
 
 The license of every file is also recorded in [`REUSE.toml`](REUSE.toml), in

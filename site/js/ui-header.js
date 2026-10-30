@@ -42,6 +42,34 @@
     });
     media.addEventListener('change', paint);
     paint();
+    return paint;
+  }
+
+  /**
+   * Call `go` once a language is picked in the menu: at once from the
+   * system's list or with a pointer, but not while arrow or letter keys step
+   * through the closed menu, which some systems change at once (WCAG 3.2.2).
+   * There, Enter goes, and leaving the menu puts back the language shown.
+   */
+  function onPick(select, shown, go) {
+    let stepped = -Infinity;
+    select.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (select.value !== shown) {
+          e.preventDefault();
+          go();
+        }
+      } else if (!e.altKey && !e.ctrlKey && !e.metaKey && (/^(Arrow|Page)|^(Home|End)$/.test(e.key) || e.key.length === 1)) {
+        stepped = performance.now();
+      }
+    });
+    // A change straight after such a key comes from the key, not from a list.
+    select.addEventListener('change', () => {
+      if (performance.now() - stepped > 100) go();
+    });
+    select.addEventListener('blur', () => {
+      if (select.value !== shown) select.value = shown;
+    });
   }
 
   /** On index.html, every language listed in js/prepaint.js; choosing one reloads the page in it. */
@@ -50,7 +78,7 @@
     for (const lang of i18n.available()) {
       select.append(h('option', { value: lang.code, lang: lang.code, selected: lang.code === i18n.current }, lang.name));
     }
-    select.addEventListener('change', () => {
+    onPick(select, i18n.current, () => {
       if (beforeChange) beforeChange();
       i18n.select(select.value);
     });
@@ -65,7 +93,7 @@
    * index.html, and opens the page's version in it at the same place.
    */
   function bindVersions(select, page) {
-    select.addEventListener('change', () => {
+    onPick(select, select.value, () => {
       try { localStorage.setItem('dx-lang', select.value); } catch (e) { /* storage blocked: each version links to index.html in its language */ }
       location.replace(fileIn(page, select.value) + location.hash);
     });
@@ -82,7 +110,29 @@
     else bindLanguage(select, options.beforeLanguageChange);
     select.before(icon('globe', 'lang-picker__globe'));
     select.after(icon('chevron', 'lang-picker__chevron'));
-    bindTheme(document.getElementById('theme-toggle'));
+    const paintTheme = bindTheme(document.getElementById('theme-toggle'));
+    // Back or Forward can bring a page back as it was left, while a theme or
+    // a language was chosen since, on another page.
+    addEventListener('pageshow', (e) => {
+      if (!e.persisted) return;
+      let theme = null;
+      let lang = null;
+      try {
+        theme = localStorage.getItem('dx-theme');
+        lang = localStorage.getItem('dx-lang');
+      } catch (err) {
+        return;
+      }
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      else delete document.documentElement.dataset.theme;
+      paintTheme();
+      // index.html follows; a page written once per language stays as it is.
+      const i18n = root.DX.i18n;
+      if (!options.page && lang && lang !== i18n.current && i18n.available().some((l) => l.code === lang)) {
+        if (options.beforeLanguageChange) options.beforeLanguageChange();
+        i18n.select(lang);
+      }
+    });
   }
 
   root.DX.ui = root.DX.ui || {};

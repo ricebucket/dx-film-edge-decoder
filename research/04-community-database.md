@@ -18,8 +18,9 @@ publishes as "Dxdatabase", as a website. In 2024 the data was released on
 GitHub under CC BY-SA 4.0. The repository's README adds that the copyright of
 the film box images belongs to their respective owners and that the images are
 only available under "fair use". Antoine Mérino maintains a modified edition
-with search by DX number and edge-barcode scanning. According to its help page, it was first compiled
-from the I3A 2008 list and extended with DX codes for 2011–2014 obtained from
+with search by DX number and edge-barcode scanning. According to the database's
+help page, it was first compiled from the I3A 2008 list and extended with DX
+codes for 2011–2014 obtained from
 IS&T, Kodak's film chronology, Tom Philo's Kodak film-number cross-reference,
 a Flickr thread on DX numbers, Wikipedia's film lists, collectors and
 manufacturers' staff.

@@ -8,7 +8,7 @@
 
 1983 年以来生产的 135 规格胶片大多沿一侧片边带有 DX 潜影条码。它在工厂里曝光，在胶片加工后显现出来，所以在暗盒被丢弃很久之后，它仍然留在负片和反转片上。本工具面向胶片摄影师、收藏者和档案工作者，帮助他们认出一段胶片是哪种胶片。
 
-一切都在你的浏览器中运行。页面不从其他服务器加载任何内容，自身也不发出任何网络请求，所以你在页面中打开的照片不会离开你的设备。直接从磁盘打开 `site/index.html` 时也能使用。
+一切都在你的浏览器中运行。你在页面中打开的照片不会上传到任何服务器。直接从磁盘打开 `site/index.html` 时也能使用。
 
 ## 功能
 
@@ -118,6 +118,6 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 
 ## 许可证与来源
 
-代码、测试、脚本和文档是自由软件，采用 [GNU General Public License v3.0](LICENSE) 许可证。胶片数据有自己的来源和条款，见 [data/README.zh-CN.md](data/README.zh-CN.md)。本项目使用的每一个来源都列在 [research/06](research/06-sources-and-licensing.zh-CN.md) 中。
+代码、测试、脚本和文档是自由软件，采用 [GNU General Public License v3.0](LICENSE) 许可证；显示了 The Big Film Database 条目的截图除外，它们采用 CC BY-SA 4.0 许可证。胶片数据有自己的来源和条款，见 [data/README.zh-CN.md](data/README.zh-CN.md)。本项目使用的每一个来源都列在 [research/06](research/06-sources-and-licensing.zh-CN.md) 中。
 
 每个文件的许可证还以 [REUSE](https://reuse.software/) 格式记录在 [`REUSE.toml`](REUSE.toml) 中，GitHub 上的测试会检查它。要自己检查，请安装 REUSE 工具（例如用 `pipx install reuse`），然后运行 `reuse lint`。每个文件只有一种许可证，所以从别处加入的材料需要在其中添加一项；如果它的许可证不同，还要放在单独的文件中。

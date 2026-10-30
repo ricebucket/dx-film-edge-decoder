@@ -317,13 +317,13 @@ describe('DX numbers and cassette codes', () => {
     assert.equal(dx.parseCassette('018500').dxNumber, '115-10');
   });
 
-  test('the last digit gives the exposures of GB/T 9185-2003 Table 9, with the 1994 meaning where it differs', () => {
+  test('the last digit gives the exposures of GB/T 9185-2003 Table 9, with the older meaning Wikipedia lists where it differs', () => {
     const exposures = (digit) => dx.parseCassette(`01279${digit}`).exposures;
-    assert.deepEqual(exposures(0), { from: 1, to: 8, before2000: 72 });
-    assert.deepEqual(exposures(2), { from: 18, to: 23, before2000: 20 });
+    assert.deepEqual(exposures(0), { from: 1, to: 8, older: 72 });
+    assert.deepEqual(exposures(2), { from: 18, to: 23, older: 20 });
     assert.deepEqual(exposures(4), { from: 36, to: 36 });
-    assert.deepEqual(exposures(7), { from: 25, to: 29, before2000: 'other' });
-    assert.deepEqual(exposures(9), { from: 37, to: null, before2000: null });
+    assert.deepEqual(exposures(7), { from: 25, to: 29, older: 'other' });
+    assert.deepEqual(exposures(9), { from: 37, to: null, older: null });
     for (let digit = 0; digit <= 9; digit++) assert.deepEqual(dx.parseCassette(`01279${digit}`).issues, [], String(digit));
   });
 

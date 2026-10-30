@@ -50,7 +50,11 @@
         groups.set(key, Object.assign({}, e, { cassettes: e.full ? [e.full] : [] }));
       }
     }
-    return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
+    // The most certain first, so that it names a code known only from this
+    // database. Most entries give no certainty: they count as the middle of
+    // its scale (0–4), so an entry it doubts comes after them.
+    const certainty = (e) => (e.reliability === null ? 2 : e.reliability);
+    return [...groups.values()].sort((a, b) => certainty(b) - certainty(a) || a.name.localeCompare(b.name, 'en'));
   }
 
   function sensitizerName(s) {
@@ -104,7 +108,7 @@
   function productItem(p) {
     return h('li', { class: 'match match--i3a' },
       h('span', { class: 'match__name' }, p.name),
-      h('span', { class: `pill pill--${p.inUse ? 'live' : 'gone'}` }, p.inUse ? t('in production in 2008') : t('discontinued by 2008')),
+      p.status ? h('span', { class: `pill pill--${p.status === 'in-use' ? 'live' : 'gone'}` }, p.status === 'in-use' ? t('in production in 2008') : t('discontinued by 2008')) : null,
       p.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null);
   }
 
@@ -186,8 +190,9 @@
       h('tbody', null, rows));
   }
 
+  /** As zxing-cpp writes the code and Zint reads it: the frame as a number, so 62A for the frame printed XA. */
   function textForm(d) {
-    return d.frame === null ? d.dxNumber : `${d.dxNumber}/${d.frameLabel}`;
+    return d.frame === null ? d.dxNumber : `${d.dxNumber}/${d.frame}${d.half ? 'A' : ''}`;
   }
 
   async function copyText(text, button, done) {
@@ -359,7 +364,7 @@
         h('span', { class: 'placeholder', 'aria-hidden': 'true' }, '?'),
         String(d.dxExtract).padStart(4, '0'),
         h('span', { class: 'placeholder', 'aria-hidden': 'true' }, '?')),
-      h('dd', { class: 'readout__note' }, t('The middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.'))));
+      h('dd', { class: 'readout__note' }, t('Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.'))));
     return h('dl', { class: 'readouts' }, items);
   }
 
@@ -409,7 +414,8 @@
       h('div', { class: 'table-scroll' }, fieldsTable(d)),
       h('p', { class: 'raw__line' }, t('Data track') + p.colon, h('code', { class: 'bits' }, d.bits)),
       h('p', { class: 'raw__line' }, t('Clock track') + p.colon, h('code', { class: 'bits' }, codec.getFormat(d.format).clock)),
-      h('p', { class: 'raw__line' }, t('Text form (as used by zxing-cpp and Zint)') + p.colon, h('code', null, textForm(d))));
+      // Both reject Part 1 = 0.
+      h('p', { class: 'raw__line' }, (d.part1 === 0 ? t('Text form') : t('Text form (as used by zxing-cpp and Zint)')) + p.colon, h('code', null, textForm(d))));
 
     const examples = examplesToggle(container, ctx);
     replace(container,

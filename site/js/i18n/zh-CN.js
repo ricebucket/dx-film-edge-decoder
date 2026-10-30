@@ -59,6 +59,8 @@
       "年度报告没有给出这种胶片的第 2 部分编号",
     "This cassette number is outside the range a film edge code can hold":
       "这个暗盒条码超出了潜影条码能表示的范围",
+    "The DX number recorded for this film is outside the range a film edge code can hold":
+      "这种胶片记录的 DX 码超出了潜影条码能表示的范围",
     "Part 1 would be 0, which no maker held in 2008":
       "第 1 部分会是 0，而 2008 年时它没有分配给任何感光厂",
     "Show barcode of {name}":
@@ -68,7 +70,7 @@
     "No full code":
       "无完整编码",
     "cassette {number}":
-      "暗盒 {number}",
+      "暗盒条码 {number}",
     "I3A 2008":
       "I3A 2008",
     "Community":
@@ -77,6 +79,10 @@
       "再显示 {n} 条",
     "Nothing matches “{q}”. Try fewer words, or part of the name.":
       "没有与“{q}”匹配的结果。试试少输入几个词，或只输入名称的一部分。",
+    "{n} films have Part 1 = {part1}. Add their Part 2 to narrow the list, e.g. {dx}.":
+      "有 {n} 种胶片的第 1 部分是 {part1}。加上第 2 部分可以缩小范围，例如 {dx}。",
+    "No film in the lists has Part 1 = {part1}. A DX number has two parts, such as 79-15.":
+      "列表中没有第 1 部分是 {part1} 的胶片。DX 码由两部分组成，例如 79-15。",
     "No film in the lists has DX {dx}.":
       "列表中没有 DX 码为 {dx} 的胶片。",
     "DX number as 79-15, or the 4-digit form 1279. Frame as printed: 23, 23A, X, 00 …":
@@ -115,12 +121,12 @@
       "末位数字 {digit}",
     "{n} exposures":
       "{n} 张",
-    "The 1994 standard used it for {n} exposures.":
-      "1994 年的标准用它表示 {n} 张。",
-    "The 1994 standard used it for other lengths, such as 24 + 3.":
-      "1994 年的标准用它表示其他长度，例如 24 + 3 张。",
-    "The 1994 standard did not use it.":
-      "1994 年的标准没有使用它。",
+    "Wikipedia lists an older meaning: {n} exposures.":
+      "维基百科列出了一个较早的含义：{n} 张。",
+    "Wikipedia lists an older meaning: other lengths, such as 24 + 3.":
+      "维基百科列出了一个较早的含义：其他长度，例如 24 + 3 张。",
+    "Wikipedia’s older list does not use it.":
+      "维基百科列出的较早含义中没有它。",
     "{n} or more exposures":
       "{n} 张或更多",
     "{from}–{to} exposures":
@@ -139,6 +145,8 @@
       "第 1 部分 = {part1} 分配给了 {maker}。",
     "Part 1 = {part1} was not assigned in the 2008 registry.":
       "在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。",
+    "The Big Film Database gives this film’s edge code as DX {dx}.":
+      "The Big Film Database 给出这种胶片的潜影条码为 DX {dx}。",
     "Show the edge barcode":
       "显示潜影条码",
     "Enter exactly six digits, for example 105514.":
@@ -253,6 +261,8 @@
       "正在查找条码……",
     "This part of the image could not be read. Select the barcode again, or clear the selection.":
       "无法读取图片的这一部分。请重新框选条码，或清除选区。",
+    "This image could not be read. Try another photo.":
+      "无法读取这张图片。请换一张照片。",
     "No barcode found.":
       "没有找到条码。",
     "DX {dx}, frame {frame}":
@@ -491,8 +501,8 @@
       "无",
     "The 23-cell layout has no frame number.":
       "23 位条码没有画幅号。",
-    "The middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.":
-      "这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄画幅数。",
+    "Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.":
+      "通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄画幅数。",
     "Valid DX code (23-cell layout)":
       "有效的 DX 编码（23 位条码）",
     "Valid DX code":
@@ -511,6 +521,8 @@
       "时钟道",
     "Text form (as used by zxing-cpp and Zint)":
       "文本形式（zxing-cpp 和 Zint 使用的格式）",
+    "Text form":
+      "文本形式",
     "Cassette numbers {numbers}":
       "暗盒条码 {numbers}",
     "{n} other corrections give valid but unlisted codes":

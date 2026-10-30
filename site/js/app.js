@@ -65,7 +65,9 @@
       const parsed = codec.parseDxNumber(num);
       if (!parsed || parsed.kind !== 'parts') return null;
       if (frameText === undefined) return { format: 'short', cells: codec.encode(parsed, 'short'), loaded: true };
-      const frame = codec.parseFrameLabel(frameText);
+      // Also as zxing-cpp writes the code: frames 61 to 63 as numbers ("79-7/62A").
+      const leader = /^(6[1-3])(A?)$/i.exec(frameText);
+      const frame = leader ? { frame: Number(leader[1]), half: leader[2] !== '' } : codec.parseFrameLabel(frameText);
       if (!frame) return null;
       return { format: 'long', cells: codec.encode(Object.assign({}, parsed, frame), 'long'), loaded: true };
     }
@@ -400,8 +402,6 @@
 
   function bindWays() {
     const tabs = [$('tab-copy'), $('tab-photo')];
-    $('tab-copy').prepend(DX.dom.icon('pencil'));
-    $('tab-photo').prepend(DX.dom.icon('photo'));
     for (const tab of tabs) tab.addEventListener('click', () => setWay(tab.id.slice(4)));
     // The reader starts loading as the pointer or focus comes to its tab.
     for (const type of ['pointerenter', 'focus']) $('tab-photo').addEventListener(type, () => photoReader().catch(() => {}), { once: true });
@@ -517,7 +517,7 @@
   function start() {
     i18n.applyLanguage(document);
     // Choosing a language reloads the page from its URL, so write any pending change first.
-    ui.bindHeader({ beforeLanguageChange: flushUrl });
+    ui.bindHeader({ beforeLanguageChange: () => { flushUrl(); savePlace(); } });
     loadPrefs();
     const fromUrl = codeFromUrl();
     if (fromUrl) Object.assign(state, fromUrl);
@@ -559,7 +559,8 @@
     // full length at once to get there.
     const buildList = () => ui.createReference($('reference-ui'), { lookup, onShow: show });
     const [visit] = performance.getEntriesByType ? performance.getEntriesByType('navigation') : [];
-    if (location.hash || (visit && visit.type !== 'navigate')) buildList();
+    const place = takePlace();
+    if (location.hash || place || (visit && visit.type !== 'navigate')) buildList();
     else if (typeof requestIdleCallback === 'function') requestIdleCallback(buildList, { timeout: 1000 });
     else setTimeout(buildList, 1);
 
@@ -572,6 +573,35 @@
 
     update({ develop: Boolean(fromUrl && fromUrl.loaded) });
     ready = true;
+    if (place) goToPlace(place);
+  }
+
+  // Choosing a language reloads the page in it. Where the reader was, the
+  // section and how far into it, is kept for that moment and gone back to
+  // once the page is built again.
+  const PLACE_KEY = 'dx-place';
+
+  function savePlace() {
+    const at = [...document.querySelectorAll('main > section[id]')].filter((s) => s.getBoundingClientRect().top <= 0).pop();
+    if (!at) return;
+    try {
+      sessionStorage.setItem(PLACE_KEY, JSON.stringify({ id: at.id, offset: -at.getBoundingClientRect().top }));
+    } catch (e) { /* storage blocked: the page opens at the top */ }
+  }
+
+  function takePlace() {
+    try {
+      const place = JSON.parse(sessionStorage.getItem(PLACE_KEY));
+      sessionStorage.removeItem(PLACE_KEY);
+      return place && typeof place.id === 'string' && Number.isFinite(place.offset) ? place : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function goToPlace(place) {
+    const section = document.getElementById(place.id);
+    if (section) scrollTo({ top: section.getBoundingClientRect().top + scrollY + place.offset, behavior: 'instant' });
   }
 
   /** What the photo reader calls back: a code to use, and its "Open the photo". */

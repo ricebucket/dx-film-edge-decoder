@@ -72,48 +72,52 @@
   --radius-small: 5px;
 }
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #121920;
-  --surface: #17212a;
-  --glow: #1f2b36;
-  --ink: #e3e9ee;
-  --ink-2: #a9b5c0;
-  --ink-3: #8d9aa6;
-  --rule: #2a3642;
-  --rule-strong: #3d4b58;
-  --accent: #5bbccf;
-  --accent-strong: #86cfdd;
-  --accent-soft: #163942;
-  --accent-ink: #08191e;
-  --danger: #ff8796;
-  --danger-soft: #3a1c22;
-  --ok: #63cf95;
-  --ok-soft: #173326;
-  --focus: #86cfdd;
-  --film-edge: rgba(215, 225, 231, 0.32);
-  --f-part1: #79a5f2;
-  --f-part2: #b893e6;
-  --f-frame: #5cc796;
-  --f-half: #e0a64a;
-  --f-parity: #ef7ba0;
-  --f-fixed: #7d8a96;
-  --cassette-paint: #343c45;
-  --cassette-metal: #b4bec7;
-  --cassette-cap: #424b55;
-  --cassette-end: #56606a;
-  --cassette-end-ring: #6a7581;
-  --cassette-knob: #3a424b;
-  --cassette-knob-end: #6e7984;
-  --cassette-slot: #0b0d0f;
-  --cassette-label: #e7ecf0;
-  --cassette-shine: rgba(255, 255, 255, 0.32);
-  --cassette-shade: rgba(0, 0, 0, 0.5);
-  --cassette-drop: rgba(0, 0, 0, 0.55);
-  --cassette-film: #8a6538;
+/* The dark colors are for the screen only: printed on paper, the page keeps
+   the light ones. */
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121920;
+    --surface: #17212a;
+    --glow: #1f2b36;
+    --ink: #e3e9ee;
+    --ink-2: #a9b5c0;
+    --ink-3: #8d9aa6;
+    --rule: #2a3642;
+    --rule-strong: #3d4b58;
+    --accent: #5bbccf;
+    --accent-strong: #86cfdd;
+    --accent-soft: #163942;
+    --accent-ink: #08191e;
+    --danger: #ff8796;
+    --danger-soft: #3a1c22;
+    --ok: #63cf95;
+    --ok-soft: #173326;
+    --focus: #86cfdd;
+    --film-edge: rgba(215, 225, 231, 0.32);
+    --f-part1: #79a5f2;
+    --f-part2: #b893e6;
+    --f-frame: #5cc796;
+    --f-half: #e0a64a;
+    --f-parity: #ef7ba0;
+    --f-fixed: #7d8a96;
+    --cassette-paint: #343c45;
+    --cassette-metal: #b4bec7;
+    --cassette-cap: #424b55;
+    --cassette-end: #56606a;
+    --cassette-end-ring: #6a7581;
+    --cassette-knob: #3a424b;
+    --cassette-knob-end: #6e7984;
+    --cassette-slot: #0b0d0f;
+    --cassette-label: #e7ecf0;
+    --cassette-shine: rgba(255, 255, 255, 0.32);
+    --cassette-shade: rgba(0, 0, 0, 0.5);
+    --cassette-drop: rgba(0, 0, 0, 0.55);
+    --cassette-film: #8a6538;
+  }
 }
 
-@media (prefers-color-scheme: dark) {
+@media screen and (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --bg: #121920;
@@ -1237,8 +1241,14 @@ h1 {
 
 .strip.is-mirrored .film__perfs {
   left: auto;
-  right: calc(var(--label-w) - var(--cell) * 13.96);
+  right: var(--perfs-left);
   flex-direction: row-reverse;
+}
+
+/* The holes go with them: each tile ends with the gap after its hole. */
+.strip.is-mirrored .film {
+  -webkit-mask-position: 0 0, right calc(var(--perfs-left) - var(--cell) * 6.79) bottom var(--perfs-bottom);
+  mask-position: 0 0, right calc(var(--perfs-left) - var(--cell) * 6.79) bottom var(--perfs-bottom);
 }
 
 .strip.is-mirrored .annot {
@@ -2311,7 +2321,7 @@ thead th {
 .cassette-figure__lip-end { fill: var(--cassette-end); }
 .cassette-figure__velvet { fill: url(#cassette-velvet); }
 .cassette-figure__velvet-base { fill: var(--cassette-slot); }
-.cassette-figure__velvet-fibre { fill: var(--cassette-shine); fill-opacity: 0.3; }
+.cassette-figure__velvet-fiber { fill: var(--cassette-shine); fill-opacity: 0.3; }
 /* The film fades out as it comes toward the viewer, in the lip's shadow
    where it comes out. Its perforations are holes. */
 .cassette-figure__film { fill: url(#cassette-film); }
@@ -2656,10 +2666,29 @@ thead th {
   .toolbar,
   .photo,
   .result__actions,
+  .looks,
+  .strip__swipe,
   #finder,
   #cassette,
   #codes {
     display: none !important;
+  }
+
+  /* The film and its bars are backgrounds, which browsers leave out of print
+     unless asked; small enough cells fit the whole strip across the page. */
+  .film,
+  .film * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .strip,
+  .layout-figure .strip {
+    --cell: 16px;
+  }
+
+  .strip__scroller {
+    overflow: visible;
   }
 }
 

@@ -47,6 +47,43 @@ test('search results without a usable DX number say why', async ({ page }) => {
   const cine = page.locator('.finder__item').first();
   await expect(cine.getByRole('button', { name: 'No full code' })).toHaveAttribute('title', /outside the range a film edge code can hold/);
   await expect(cine.locator('.finder__dx')).toHaveText('cassette 753914');
+  // A number recorded without a cassette number is not called one.
+  await page.locator('#finder-q').fill('klick extra definition');
+  const klick = page.locator('.finder__item').first();
+  await expect(klick.getByRole('button', { name: 'No full code' })).toHaveAttribute('title', 'The DX number recorded for this film is outside the range a film edge code can hold');
+  await expect(klick.locator('.finder__dx')).toHaveCount(0);
+});
+
+test('"DX" and a Part 1 alone lists that Part 1\'s films, and says how to narrow them down', async ({ page }) => {
+  const status = page.locator('#finder-help');
+  await page.locator('#finder-q').fill('DX 79');
+  await expect(status).toHaveText(/^\d+ films have Part 1 = 79\. Add their Part 2 to narrow the list, e\.g\. 79-\d+\.$/);
+  await expect(page.locator('.finder__item').first().locator('.finder__dx')).toHaveText(/^DX 79-/);
+  // Even where words of the entries' notes would match it as text.
+  await page.locator('#finder-q').fill('DX 120');
+  await expect(status).toHaveText(/films? ha(s|ve) Part 1 = 120\./);
+  await page.locator('#finder-q').fill('DX 101');
+  await expect(status).toHaveText('No film in the lists has Part 1 = 101. A DX number has two parts, such as 79-15.');
+});
+
+test('a cassette number finds the film recorded with it, under the DX number its edge carries', async ({ page }) => {
+  // Harman Phoenix II: cassette 017765 (1776 = 16 × 111), edge code 105-3.
+  await page.locator('#finder-q').fill('017765');
+  await expect(page.locator('#finder-help')).toHaveText('1 film found.');
+  await expect(page.locator('.finder__item .finder__dx')).toHaveText('DX 105-3');
+  await page.locator('#cassette-code').fill('017765');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  const out = page.locator('.cassette__result');
+  await expect(out).toContainText('The Big Film Database gives this film’s edge code as DX 105-3.');
+  await expect(out.getByRole('link', { name: /on The Big Film Database/ })).toHaveAttribute('href', /dx_number=105-3$/);
+  await out.getByRole('button', { name: 'Show the edge barcode' }).click();
+  await expect(page.locator('#result')).toContainText('105-3');
+});
+
+test('the cassette helper says when a Part 1 is for APS film, as the result does', async ({ page }) => {
+  await page.locator('#cassette-code').fill('007153');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result')).toContainText('Part 1 = 44 is assigned to Agfa-Gevaert AG, for APS film.');
 });
 
 test('search by DX number lists that code first', async ({ page }) => {
@@ -88,7 +125,7 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
   const out = page.locator('.cassette__result');
   await expect(out).toContainText('109-12');
   await expect(out).toContainText('24 exposures');
-  // The last digit names its column; it needs no note when the 1994 standard read it the same way.
+  // The last digit names its column; it needs no note where Wikipedia's older list reads it the same way.
   const last = out.locator('.readout').nth(2);
   await expect(last.locator('dt')).toHaveText('Last digit 3');
   await expect(last.locator('.readout__note')).toHaveCount(0);
@@ -97,11 +134,11 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
   await expect(out.locator('.match__name').first()).toHaveText('FP4 PLUS');
   await out.getByRole('button', { name: 'Show the edge barcode' }).click();
   await expect(page.locator('#result-title')).toHaveText('FP4 PLUS');
-  // A digit the 1994 standard read differently says so.
+  // A digit that Wikipedia's older list reads differently says so.
   await page.locator('#cassette-code').fill('017560');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(last.locator('dt')).toHaveText('Last digit 0');
-  await expect(last.locator('.readout__note')).toHaveText('The 1994 standard used it for 72 exposures.');
+  await expect(last.locator('.readout__note')).toHaveText('Wikipedia lists an older meaning: 72 exposures.');
 });
 
 test('the cassette drawing shows a real cassette: its contact areas, then its barcode and the six digits, then the lip the film comes out of', async ({ page }) => {
@@ -329,19 +366,52 @@ test('cassette input is validated', async ({ page }) => {
   await page.locator('#cassette-code').fill('012790');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText('1–8 exposures');
-  await expect(page.locator('.cassette__result')).toContainText('The 1994 standard used it for 72 exposures.');
+  await expect(page.locator('.cassette__result')).toContainText('Wikipedia lists an older meaning: 72 exposures.');
 });
 
-test('the code list filters by Part 1 number', async ({ page }) => {
+test('the code list filters by Part 1 number, and keyboard focus goes to what it shows', async ({ page }) => {
   const rows = page.locator('.products-table tbody tr');
+  const count = page.locator('#codes p[aria-live]');
   await expect(rows).toHaveCount(386);
   await page.getByRole('button', { name: 'Part 1 number 109: show its products' }).click();
   await expect(rows).toHaveCount(15);
-  await expect(page.locator('#codes')).toContainText('15 of 386 registered products with Part 1 = 109.');
+  await expect(count).toHaveText('15 of 386 registered products with Part 1 = 109.');
+  await expect(count).toBeFocused();
   await page.getByRole('button', { name: 'Show all Part 1 numbers' }).click();
+  await expect(count).toBeFocused(); // the button is gone
+  // The status the registry states: Harman's section states none.
   await page.locator('#ref-status').selectOption('live');
-  await expect(rows.first()).toBeVisible();
-  expect(await rows.count()).toBeLessThan(386);
+  await expect(rows).toHaveCount(248);
+  await page.locator('#ref-status').selectOption('gone');
+  await expect(rows).toHaveCount(55);
+  await page.locator('#ref-status').selectOption('');
+  await page.locator('#ref-q').fill('109-7');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first().locator('.pill')).toHaveCount(0);
+});
+
+test('a registry film is said to be in production in 2008, or discontinued, only where the registry says so', async ({ page }) => {
+  await page.goto('/?dx=109-7/1');
+  const hp5 = page.locator('#result .match--i3a').first();
+  await expect(hp5.locator('.match__name')).toHaveText('HP5');
+  await expect(hp5.locator('.pill')).toHaveCount(0);
+  await page.goto('/?dx=96-12/1');
+  await expect(page.locator('#result .match--i3a .pill').first()).toHaveText('in production in 2008');
+  // A maker's name that ends in a period gets no second one.
+  await page.goto('/?dx=2-0/1');
+  await expect(page.locator('#result')).toContainText('Part 1 = 2 is assigned to KONICA MINOLTA PHOTO IMAGING, INC.');
+  await expect(page.locator('#result')).not.toContainText('INC..');
+  // Known only from the community list: named after its most certain entry,
+  // where entries without a certainty count as the middle of the scale.
+  await expect(page.locator('#result-title')).toHaveText('Sakuracolor SR-100');
+});
+
+test('the last "Show more" of the search hands focus to the first film it brought', async ({ page }) => {
+  await page.locator('#finder-q').fill('portra');
+  const more = page.getByRole('button', { name: /^Show \d+ more$/ });
+  await expect(more).toBeVisible();
+  while (await more.isVisible()) await more.click();
+  await expect(page.locator('.finder__item:focus')).toHaveCount(1);
 });
 
 test('a shown code says where it came from, with a way back there', async ({ page }) => {

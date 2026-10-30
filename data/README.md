@@ -25,7 +25,7 @@ transcribed and checked, and what the list contains, is described in
 | File | Columns |
 |---|---|
 | `part1-assignments.csv` | `part1` (0–127), `assignee` (empty = not assigned), `aps` (`yes` = assigned for APS film), `previously` (earlier assignments, from the list's note) |
-| `products.csv` | `part1`, `part2` (empty = "not identified" in the list), `product`, `sensitizer` (section title), `status` (`in-use` or `discontinued`: films "no longer manufactured … but which may still be in the marketplace"), `page` (page of the PDF) |
+| `products.csv` | `part1`, `part2` (empty = "not identified" in the list), `product`, `sensitizer` (section title), `status` (`in-use` or `discontinued`: films "no longer manufactured … but which may still be in the marketplace"; empty where the sensitizer's section says neither), `page` (page of the PDF) |
 | `augmented-cassette-codes.csv` | `cassette_code`, `product`, `sensitizer`: Kodak's "augmented magazine bar code numbers" (ISO 1007, Annex A.4) |
 
 The CSV files keep the list as printed, including three rows that appear

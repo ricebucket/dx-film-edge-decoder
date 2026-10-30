@@ -38,7 +38,7 @@ texts. Each file has a single license.
   licensed under BSD-3-Clause. The tests that use them are in
   `tests/unit/codec.test.mjs`.
 - The web pages use the fonts installed on the visitor's device and no
-  third-party code, and they make no network requests.
+  third-party code. Photos opened in them are not uploaded to any server.
 - Playwright, used for the browser tests, is installed separately and is not
   part of the repository.
 

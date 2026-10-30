@@ -345,6 +345,43 @@ test('a photo removed while it is being opened again stays removed', async ({ pa
   await expect(page.locator('#photo .photo__step').first()).toHaveAttribute('aria-current', 'step');
 });
 
+test('an image far longer than it is wide does not stop the photos after it from opening', async ({ page }, testInfo) => {
+  // 30000 × 4 pixels: shrunk to the working size, it would be 0 pixels high.
+  const thin = encodePng(new Uint8ClampedArray(30000 * 4 * 4).fill(200), 30000, 4);
+  await page.locator('#photo-file').setInputFiles({ name: 'thin.png', mimeType: 'image/png', buffer: thin });
+  await expect(page.locator('.photo__source')).toContainText('30000 × 4');
+  await expect(page.locator('.photo__result .is-error')).toBeVisible();
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+});
+
+test('Enter on the photo reads it, with or without a box', async ({ page }, testInfo) => {
+  await upload(page, testInfo, THREE_CODES, { noise: 12, seed: 1 });
+  const found = page.locator('.photo__found');
+  await expect(found).toContainText('DX 96-12, frame 14A');
+  const photo = page.getByRole('application', { name: 'Photo of the film edge' });
+  await photo.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.photo__result')).toContainText('Looking for the barcode…');
+  await expect(found).toContainText('DX 96-12, frame 14A');
+});
+
+test('while another photo opens, the one shown can\'t be turned or read again', async ({ page }, testInfo) => {
+  await slowOpening(page, 0);
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+  await page.evaluate(() => { window.slow = 1500; });
+  await upload(page, testInfo, { part1: 96, part2: 12, frame: 14, half: true, module: 6 }, {});
+  await expect(page.locator('.photo__result')).toContainText('Opening the photo…');
+  for (const name of ['Rotate left 90 degrees', 'Rotate right 90 degrees', 'Flip', 'Read again']) {
+    await expect(page.getByRole('button', { name })).toBeDisabled();
+  }
+  await expect(page.getByRole('slider', { name: 'Straighten' })).toBeDisabled();
+  await page.waitForFunction(() => window.opened === 2);
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  await expect(page.getByRole('button', { name: 'Flip' })).toBeEnabled();
+});
+
 test('reading a photo again and again draws no browser warning', async ({ page }) => {
   const warnings = [];
   page.on('console', (m) => { if (m.type() === 'warning') warnings.push(m.text()); });

@@ -236,6 +236,24 @@ describe('worn, faded and unevenly lit codes', () => {
     assert.equal(outcomes[outcomes.length - 1], 'eleven');
   });
 
+  test('an 11-bar code boxed without its entry mark is not read as another film\'s 7-bar code without a warning', () => {
+    // Three slides from a sweep of boxes that cut 3–5 cells off the code's
+    // start: each read as a 7-bar code of another film, with no warning.
+    const cases = [
+      { code: [120, 0, 42], synth: { module: 8, angle: 0.5469, mirrored: true, upsideDown: false, width: 880, height: 144 }, compose: { seed: 1350, noise: 7.289, blur: 1 }, box: [304, 55, 236, 51] },
+      { code: [29, 15, 2], synth: { module: 6, angle: 1.6204, mirrored: true, upsideDown: false, width: 660, height: 108 }, compose: { seed: 1394, noise: 14.416, blur: 1 }, box: [226, 39, 167, 43] },
+      { code: [57, 10, 57], synth: { module: 8, angle: -1.8640, mirrored: false, upsideDown: true, width: 880, height: 144 }, compose: { seed: 1551, noise: 9.024, blur: 0 }, box: [313, 34, 211, 115] },
+    ];
+    for (const { code: [part1, part2, frame], synth, compose, box: [x0, y0, w, h] } of cases) {
+      const { syn, gray } = photo(Object.assign({ part1, part2, frame, half: false }, synth), Object.assign({ look: 'slide' }, compose));
+      const data = new Float32Array(w * h);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) data[y * w + x] = gray.data[(y0 + y) * gray.width + x0 + x];
+      const r = image.readBarcode({ width: w, height: h, data });
+      const right = r.found && r.format === 'long' && r.bits === syn.truth.bits;
+      assert.ok(!r.found || right || r.elevenBars || !r.decoded.valid, `${part1}-${part2}: read as ${r.found ? `${r.format} ${r.decoded.dxNumber}` : r.reason}, no warning`);
+    }
+  });
+
   test('on the second look, only readings that pass their checks are offered', () => {
     // Faint codes tilted beyond the search range: the second look can fit the
     // clock across both tracks and read the clock's own pattern as data.

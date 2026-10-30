@@ -27,6 +27,9 @@ describe('language layer', () => {
     assert.equal(i18n.current, 'en');
     assert.equal(i18n.t('Hello {name}', { name: 'Ann' }), 'Hello Ann');
     assert.equal(i18n.t('Missing {x} stays {y}', { x: 1 }), 'Missing 1 stays {y}');
+    // A value that ends in a period takes the place of the one after it.
+    assert.equal(i18n.t('Assigned to {maker}.', { maker: 'KONICA MINOLTA PHOTO IMAGING, INC.' }), 'Assigned to KONICA MINOLTA PHOTO IMAGING, INC.');
+    assert.equal(i18n.t('{maker}. In production.', { maker: 'Acme Co.' }), 'Acme Co. In production.');
     assert.equal(i18n.plural(1, '{n} film found.', '{n} films found.'), '1 film found.');
     assert.equal(i18n.plural(3, '{n} film found.', '{n} films found.'), '3 films found.');
   });

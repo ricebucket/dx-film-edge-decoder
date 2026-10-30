@@ -78,20 +78,21 @@
 
   // Last digit of the 6-digit cassette barcode: the number of exposures, from
   // `from` to `to` (null: no upper limit), as in GB/T 9185-2003 (ISO 1007:2000)
-  // Table 9. `before2000` is the meaning in ANSI/NAPM IT1.14:1994, as quoted on
-  // Wikipedia "DX number", where it differs: a number of exposures, 'other'
+  // Table 9. `older` is the meaning Wikipedia "DX number" lists, without a
+  // source, where it differs (GB/T 9185-2003 says only that ISO 1007:2000
+  // changed the digit; foreword, item e): a number of exposures, 'other'
   // (other lengths such as 24 + 3) or null (not used).
   const EXPOSURE_CODES = {
-    0: { from: 1, to: 8, before2000: 72 },
+    0: { from: 1, to: 8, older: 72 },
     1: { from: 12, to: 12 },
-    2: { from: 18, to: 23, before2000: 20 },
+    2: { from: 18, to: 23, older: 20 },
     3: { from: 24, to: 24 },
     4: { from: 36, to: 36 },
-    5: { from: 9, to: 11, before2000: 48 },
-    6: { from: 13, to: 17, before2000: 60 },
-    7: { from: 25, to: 29, before2000: 'other' },
-    8: { from: 30, to: 35, before2000: null },
-    9: { from: 37, to: null, before2000: null },
+    5: { from: 9, to: 11, older: 48 },
+    6: { from: 13, to: 17, older: 60 },
+    7: { from: 25, to: 29, older: 'other' },
+    8: { from: 30, to: 35, older: null },
+    9: { from: 37, to: null, older: null },
   };
 
   function getFormat(formatId) {

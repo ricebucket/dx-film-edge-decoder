@@ -97,14 +97,19 @@ def parse_summary(doc):
 
 
 def parse_products(doc):
-    """Pages titled "DX Numbers - <company>": Part 1 | Part 2 | Product Name."""
+    """Pages titled "DX Numbers - <company>": Part 1 | Part 2 | Product Name.
+
+    A section's status is what it says: "A. DX numbers that are currently
+    being used" (in-use) or "B. … no longer manufactured" (discontinued).
+    Sections that say neither get no status.
+    """
     rows, company, status, last = [], None, None, None
     for pno, page in enumerate(doc, start=1):
         for _y, words in visual_lines(page).items():
             text = ' '.join(w for _, w in words)
             m = re.match(r'DX Numbers\s*[-–]\s*(.+)$', text)
             if m:
-                company, status, last = m.group(1).strip(), 'in-use', None
+                company, status, last = m.group(1).strip(), '', None
                 continue
             if company is None:
                 continue
@@ -125,8 +130,13 @@ def parse_products(doc):
             elif c3 and not c1 and not c2 and last is not None and last['page'] == pno \
                     and not c3.startswith(('Product Name', 'Number')):
                 last['product'] = f"{last['product']} {c3}"  # wrapped product name
+    # Agfa-Gevaert's first list has no "A." heading, but its "B." list of films
+    # no longer manufactured follows it: the first holds the numbers in use.
+    with_b = {r['sensitizer'] for r in rows if r['status'] == 'discontinued'}
     for r in rows:
         r['product'] = re.sub(r'\s+', ' ', r['product']).strip()
+        if r['status'] == '' and r['sensitizer'] in with_b:
+            r['status'] = 'in-use'
     return rows
 
 

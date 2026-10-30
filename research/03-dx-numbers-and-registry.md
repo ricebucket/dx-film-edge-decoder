@@ -76,8 +76,10 @@ and 96 to Eastman Kodak (1983, released 1988, reassigned 2003).
 **Product listing.** For each sensitizer, rows of Part 1, Part 2 and product
 name. Agfa-Gevaert, Eastman Kodak and Konica Minolta split their rows into
 "DX numbers that are currently being used" and films "no longer manufactured …
-but which may still be in the marketplace"; the tool shows this as "in
-production in 2008" or "discontinued by 2008". In total 389 rows are printed.
+but which may still be in the marketplace", and FUJIFILM heads its rows with the
+first. The tool shows this as "in production in 2008" or "discontinued by
+2008". The other sensitizers' sections say neither, so the tool gives their
+films no status. In total 389 rows are printed.
 
 ### Quirks found in the document
 
@@ -130,9 +132,10 @@ centered on the barcode (§9.1):
 | E | number of exposures, see below |
 
 Compared with GB/T 9185-1996 (the 1993 draft), ISO 1007:2000 changed the
-meaning of E to allow more roll lengths (foreword of GB/T 9185-2003, item e):
+meaning of E to allow more roll lengths (foreword of GB/T 9185-2003, item e).
+Wikipedia's "DX number" lists older meanings, without giving a source:
 
-| E | ANSI/NAPM IT1.14:1994, as quoted by Wikipedia | GB/T 9185-2003 (ISO 1007:2000), Table 9 |
+| E | Older meaning, as listed by Wikipedia | GB/T 9185-2003 (ISO 1007:2000), Table 9 |
 |---|---|---|
 | 0 | 72 | 1–8 |
 | 1 | 12 | 12 |

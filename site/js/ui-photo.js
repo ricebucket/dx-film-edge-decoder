@@ -14,6 +14,8 @@
   const t = i18n.t;
 
   const MAX_WORKING_SIDE = 2400;
+  /** A size in whole pixels, never 0: a canvas or bitmap of size 0 can't be drawn from. */
+  const atLeastOne = (v) => Math.max(1, Math.round(v));
   /** A moment for the page between long steps. */
   const pause = () => new Promise((resolve) => setTimeout(resolve));
   // How far a press may move and still count as a click, in CSS pixels: a
@@ -120,7 +122,8 @@
       // Only the next step's button stands out.
       chooseBtn.classList.toggle('tool--primary', current === 1);
       readBtn.classList.toggle('tool--primary', current === 2);
-      for (const control of [rotateLeft, rotateRight, flipBtn, fineInput, readBtn]) control.disabled = !view;
+      // While another photo opens, they would act on the one it replaces.
+      for (const control of [rotateLeft, rotateRight, flipBtn, fineInput, readBtn]) control.disabled = !view || Boolean(opening);
     }
 
     /** Step 3 stays empty until a photo has been read. */
@@ -184,13 +187,17 @@
       const ticket = ++loads;
       stopSearch(); // the photo shown now: its reading would come after this one's message
       result = null;
+      opening = p;
       showMessage(t('Opening the photo…'));
       setStep();
       draw();
-      opening = p;
       try {
-        const { image, w, hgt, width, height } = await decode(p.blob);
-        if (ticket !== loads) return; // another photo, or Remove, came first
+        // Another photo, or Remove, may come first.
+        const { image, w, hgt, width, height } = await decode(p.blob, () => ticket !== loads);
+        if (ticket !== loads) {
+          if (image.close) image.close();
+          return;
+        }
         opening = null;
         setSource(p, image, w, hgt, [t('Your photo, {width} × {height} pixels.', { width, height })], kept);
         if (image.close) image.close();
@@ -206,12 +213,14 @@
 
     /**
      * A photo file, decoded and shrunk to the working size: the image, its
-     * size (w × hgt) and the size as taken. createImageBitmap does both;
-     * Chromium does them away from the page's main thread, other browsers may
-     * not, so the page gets a moment between the long steps. For files that
-     * way can't open, an <img> does it.
+     * size (w × hgt) and the size as taken. createImageBitmap does both.
+     * Chromium decodes away from the page's main thread, but shrinks on it
+     * (about 0.1 s for 48 megapixels), and other browsers may do both on it,
+     * so the page gets a moment between the long steps. A photo replaced
+     * meanwhile (`stale`) goes no further. For files that way can't open, an
+     * <img> does it.
      */
-    async function decode(blob) {
+    async function decode(blob, stale) {
       let full = null;
       try {
         full = await createImageBitmap(blob, { imageOrientation: 'from-image' });
@@ -224,9 +233,10 @@
         const scale = Math.min(1, MAX_WORKING_SIDE / Math.max(width, height));
         if (scale === 1) return { image: full, w: width, hgt: height, width, height };
         await pause();
+        if (stale()) return { image: full, w: width, hgt: height, width, height };
         let small = null;
         try {
-          small = await createImageBitmap(full, { resizeWidth: Math.round(width * scale), resizeHeight: Math.round(height * scale), resizeQuality: 'high' });
+          small = await createImageBitmap(full, { resizeWidth: atLeastOne(width * scale), resizeHeight: atLeastOne(height * scale), resizeQuality: 'high' });
         } catch (e) {
           return { image: full, w: width, hgt: height, width, height }; // shrunk on the page instead
         }
@@ -258,8 +268,8 @@
       picture = p;
       const scale = Math.min(1, MAX_WORKING_SIDE / Math.max(w, hgt));
       source = document.createElement('canvas');
-      source.width = Math.round(w * scale);
-      source.height = Math.round(hgt * scale);
+      source.width = atLeastOne(w * scale);
+      source.height = atLeastOne(hgt * scale);
       source.getContext('2d').drawImage(drawable, 0, 0, source.width, source.height);
       result = null;
       stage.hidden = false;
@@ -332,8 +342,8 @@
       const cos = Math.abs(Math.cos(angle));
       const sin = Math.abs(Math.sin(angle));
       view = document.createElement('canvas');
-      view.width = Math.round(w * cos + hh * sin);
-      view.height = Math.round(w * sin + hh * cos);
+      view.width = atLeastOne(w * cos + hh * sin);
+      view.height = atLeastOne(w * sin + hh * cos);
       // Read back again and again (getImageData): kept in memory rather than on the GPU.
       const ctx = view.getContext('2d', { willReadFrequently: true });
       ctx.fillStyle = '#808080';
@@ -369,8 +379,8 @@
       const dpr = window.devicePixelRatio || 1;
       canvas.style.width = `${Math.round(view.width * scale)}px`;
       canvas.style.height = 'auto'; // keeps the bitmap's aspect ratio if CSS narrows it
-      canvas.width = Math.round(view.width * scale * dpr);
-      canvas.height = Math.round(view.height * scale * dpr);
+      canvas.width = atLeastOne(view.width * scale * dpr);
+      canvas.height = atLeastOne(view.height * scale * dpr);
       const ctx = canvas.getContext('2d');
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(view, 0, 0, canvas.width, canvas.height);
@@ -621,6 +631,7 @@
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         if (selection) setBox(selection);
+        else find(); // the whole photo, as "Read again" does
       } else if (e.key === 'Escape') {
         if (corner) {
           corner = null;
@@ -675,7 +686,7 @@
     }
 
     function find() {
-      if (!view) return;
+      if (!view || opening) return;
       stopSearch();
       const search = new AbortController();
       searching = search;
@@ -702,7 +713,9 @@
           showResult();
         } else {
           result = null;
-          showMessage(t('This part of the image could not be read. Select the barcode again, or clear the selection.'), true);
+          showMessage(usable
+            ? t('This part of the image could not be read. Select the barcode again, or clear the selection.')
+            : t('This image could not be read. Try another photo.'), true);
         }
         readBtn.removeAttribute('aria-disabled');
         setStep();

@@ -526,6 +526,13 @@
       // an 11-bar code's: that takes dust in one gap, and its frame bits
       // passing the checks by chance (about 1 in 32).
       if (tail === null && asShort.found && !asShort.decoded.valid) asShort.elevenBars = true;
+      // A box that cuts off an 11-bar code's entry mark can leave a clock
+      // that fits the 7-bar one poorly (0.88–0.92), a few cells into the box.
+      // A 7-bar code whose clock fits that poorly, through blur, noise or
+      // tiny cells, shows more of the film before it in a whole photo (19
+      // cells or more in the tests).
+      const head = best.reversed ? (img.width - best.x0) / best.unit - 23 : best.x0 / best.unit;
+      if (asShort.found && best.score < 0.95 && head < 10) asShort.elevenBars = true;
       return asShort;
     }
     return readData(img, scale, best, weak);

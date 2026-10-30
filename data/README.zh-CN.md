@@ -18,7 +18,7 @@
 | 文件 | 列 |
 |---|---|
 | `part1-assignments.csv` | `part1`（0–127）、`assignee`（空 = 未分配）、`aps`（`yes` = 为 APS（先进摄影系统）胶片分配）、`previously`（以前的分配，取自列表中的注释） |
-| `products.csv` | `part1`、`part2`（空 = 列表中的“not identified”（未指明））、`product`、`sensitizer`（章节标题）、`status`（`in-use` 或 `discontinued`：后者指“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片）、`page`（在 PDF 中的页码） |
+| `products.csv` | `part1`、`part2`（空 = 列表中的“not identified”（未指明））、`product`、`sensitizer`（章节标题）、`status`（`in-use` 或 `discontinued`：后者指“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片；感光厂的章节两者都没有说明时为空）、`page`（在 PDF 中的页码） |
 | `augmented-cassette-codes.csv` | `cassette_code`、`product`、`sensitizer`：柯达的“augmented magazine bar code numbers”（增补暗盒条码编号；ISO 1007，附录 A.4） |
 
 CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建步骤会去掉这些重复行。

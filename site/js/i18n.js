@@ -100,9 +100,14 @@
 
   const normalize = (text) => String(text).replace(/\s+/g, ' ').trim();
 
+  /** The text with its {names} filled in. A value that ends in a period, such as "…, INC.", takes the place of the period after it. */
   function fill(text, params) {
     if (!params) return text;
-    return text.replace(/\{(\w+)\}/g, (m, key) => (key in params ? String(params[key]) : m));
+    return text.replace(/\{(\w+)\}(\.?)/g, (m, key, period) => {
+      if (!(key in params)) return m;
+      const value = String(params[key]);
+      return value.endsWith('.') ? value : value + period;
+    });
   }
 
   /**

@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { watchConsole, dataCell, setCells } = require('./helpers.cjs');
+const { watchConsole, dataCell, setCells, decodePng } = require('./helpers.cjs');
 
 // Data track of DX 79-15, frame 23 (Wikipedia's sample; Kodak BW400CN).
 const BW400CN_23 = '1010101001111011110101110010101';
@@ -363,6 +363,56 @@ test('leader frames show their printed labels', async ({ page }) => {
   await expect(page.locator('#strip .film__label--before')).toHaveText('XA');
   await expect(page.locator('#strip .film__label--before')).toHaveClass(/is-half/);
   await expect(page.locator('#result')).toContainText('also printed as SA');
+});
+
+test('frames 61 to 63 open from their numbers, and the text form writes them so, as zxing-cpp does', async ({ page }) => {
+  await page.goto('/?dx=79-7/62A');
+  await expect(page.locator('.readout__value--edge')).toHaveText('XA');
+  await expect(page).toHaveURL(/\?dx=79-7\/XA$/);
+  await page.locator('details.raw summary').click();
+  await expect(page.locator('details.raw')).toContainText('Text form (as used by zxing-cpp and Zint): 79-7/62A');
+  // Both reject Part 1 = 0, so its text form is not said to be theirs.
+  await page.goto('/?dx=0-0/1');
+  await page.locator('details.raw summary').click();
+  await expect(page.locator('details.raw')).toContainText('Text form: 0-0/1');
+});
+
+test('the perforations are holes in the film where they are drawn, also when the strip is mirrored', async ({ page }) => {
+  // Wide enough to show the whole strip, in every engine.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/?dx=79-15/23');
+  for (const mirrored of [false, true]) {
+    if (mirrored) await page.locator('#mirror-toggle').click();
+    // The part of the film on screen: on phones it scrolls sideways.
+    await page.locator('#strip .film').scrollIntoViewIfNeeded();
+    const film = await page.locator('#strip .film').boundingBox();
+    const x0 = Math.max(film.x, 0);
+    const x1 = Math.min(film.x + film.width, page.viewportSize().width);
+    const clip = { x: x0, y: film.y - 8, width: x1 - x0, height: 24 };
+    const shot = decodePng(await page.screenshot({ clip }));
+    const k = shot.width / clip.width;
+    const color = (x, y) => {
+      const i = (Math.round((y - clip.y) * k) * shot.width + Math.round((x - clip.x) * k)) * 4;
+      return [...shot.data.subarray(i, i + 3)];
+    };
+    const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) <= 12);
+    const holes = await page.locator('#strip .perf').evaluateAll((els) => els.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left, right: r.right };
+    }));
+    // Just inside the film's top edge, near both sides of each hole drawn
+    // (away from the faded ends), the page behind the film shows.
+    const inside = holes.filter((hole) => hole.left > x0 + 40 && hole.right < x1 - 40);
+    expect(inside.length).toBeGreaterThan(0);
+    for (const hole of inside) {
+      for (const x of [hole.left + 4, hole.right - 4]) {
+        const label = `${mirrored ? 'mirrored' : 'normal'} strip, x = ${Math.round(x)}`;
+        expect(near(color(x, film.y + 3), color(x, film.y - 4)), label).toBe(true);
+      }
+      // Next to a hole, film.
+      expect(near(color(hole.right + 10, film.y + 3), color(hole.right + 10, film.y - 4))).toBe(false);
+    }
+  }
 });
 
 test.describe('film from before the 1990 frame-number extension', () => {
