@@ -553,8 +553,8 @@
       "数据道（下方）：点按一个单元可添加或去掉条。方向键移动，按 1 和 0 键输入条和空。",
     "Unused: always empty":
       "未指定位：始终为空",
-    "Swipe sideways or turn your phone to landscape.":
-      "左右滑动，或者把手机横过来。",
+    "Swipe sideways or turn your device to landscape.":
+      "左右滑动，或者把设备横过来。",
     "Swipe sideways to see the whole code.":
       "左右滑动可以看到整个编码。",
 

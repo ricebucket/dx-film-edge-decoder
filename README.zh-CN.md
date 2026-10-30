@@ -10,6 +10,8 @@
 
 一切都在你的浏览器中运行。你在页面中打开的照片不会上传到任何服务器。直接从磁盘打开 `site/index.html` 时也能使用。
 
+[![演示视频，约 35 秒：把一种黑白片的条码抄到片条上，漏抄一根条后加以改正，再读取一张彩色负片的照片](.github/demo.zh-CN.png)](.github/demo.zh-CN.webm)
+
 ## 功能
 
 - **可交互的片边副本**，画得和真实胶片一样，点击时即时解码：胶片及其制造厂、DX 码、片边上印的画幅号（`23`、`23A`、`X`、`00`……）以及对应的暗盒条码。
@@ -60,7 +62,7 @@ data/                 CSV 格式的胶片数据表，见 data/README.md
 research/             关于格式和数据的研究报告
   img/                报告中的图示和截图
 scripts/              数据提取与构建、图示、截图、
-                      语言检查、本地服务器、测试运行器
+                      演示视频、语言检查、本地服务器、测试运行器
 tests/unit/           单元测试（node:test）
 tests/e2e/            浏览器和无障碍测试（Playwright、axe-core）
 .github/workflows/    测试、许可证检查和 GitHub Pages 部署
@@ -103,7 +105,7 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 2. 在 `site/js/prepaint.js` 末尾的列表中加入该语言的代码和名称，并用该语言写出语言文件迟迟未到时页面显示的提示（`waiting`）和此时改用英文显示的按钮（`english`）。之后解码器页面会为选择该语言的访问者加载这个文件，语言菜单也会列出它。另外在 `site/index.html` 的 `<noscript>` 部分加上该语言版本的、给未启用 JavaScript 的访问者看的提示，并用 `lang` 标明语言：语言文件需要 JavaScript，所以无法提供这段文字。
 3. 把 `site/sources.html` 复制为以语言代码命名的文件，例如 `site/sources.de.html`，并用新语言写出其中的文字。在 `<html>` 上设置 `lang`，在指向 `index.html` 的链接上加上该语言（`index.html?lang=de#decoder`），并在菜单中把该语言标为 `selected`。然后在来源页面每个版本的菜单中加上该语言。
 4. 运行 `npm run check:languages`。它会列出该语言缺少的英文文字、对应英文已不再使用的文字，以及占位符或标签与英文不一致的文字；缺少给未启用 JavaScript 的访问者看的提示时，它也会指出。它还会检查 `site/js/prepaint.js` 是否列出了每一个语言文件及其两段文字，并把来源页面的每个版本与英文版比较：两者需要有相同的元素、链接和菜单，页头的文字也要与解码器页面相同。`npm test` 也会运行同样的检查。
-5. 在 `scripts/make-figures.mjs` 的 `LABELS` 中加入该语言的标签，然后运行 `npm run figures` 和 `npm run screenshots`，这样图示和截图也会有这种语言的版本。
+5. 在 `scripts/make-figures.mjs` 的 `LABELS` 中加入该语言的标签，然后运行 `npm run figures`、`npm run screenshots` 和 `npm run demo`，这样图示、截图和演示视频也会有这种语言的版本。
 
 `npm run check:languages -- --template` 会打印页面上的全部英文文字，可以作为起点。修改或添加 `site/` 中的英文文字时，请在同一次修改中更新每一个语言文件：在此之前测试不会通过。修改来源页面时，请在它的每个版本中做同样的修改，和文档一样。检查能发现增删的来源和改动的链接，但发现不了措辞的改动。
 
@@ -115,6 +117,7 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 
 - `research/img/*.svg` 中的图示由 `npm run figures` 根据解码器自身的代码绘制，每种语言各一份。如果图示过时，`npm test` 会失败。
 - 截图（`.github/screenshot*.png` 和 `research/img/*.png`）由 `npm run screenshots` 生成，需要 Playwright（见 *测试*）。截图使用你机器上安装的字体，所以中文截图需要中文字体（在 Ubuntu 上是 `fonts-noto-cjk` 软件包）。每次页面有可见的改动后都要运行它，并在提交前检查生成的图片。
+- 演示视频（`.github/demo*.webm`，1120 × 840）、它的封面（`.github/demo*.png`）和竖版视频（`.github/demo-vertical*.mp4`，1120 × 1680）由 `npm run demo` 录制，同样需要 Playwright：每种语言各一段，每段约半分钟。它像访问者那样使用页面：抄写一种黑白片的编码时漏抄一根条，采用给出的修正，再读取彩色负片的示例照片。所以这些部分有可见的改动后都要运行它，并在提交前看一遍生成的视频。每段视频会使仓库增大约 6–8 MB。
 
 ## 许可证与来源
 

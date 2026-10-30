@@ -14,14 +14,15 @@ SPDX-FileCopyrightText = "2026 DX Film Edge Decoder contributors"
 SPDX-License-Identifier = "GPL-3.0-only"
 
 # An adapted subset of The Big Film Database (see data/README.md), the page's copy
-# of it, and the screenshots that show its entries (`communityData` in
-# scripts/screenshots.mjs).
+# of it, and the screenshots and demo video that show its entries
+# (`communityData` in scripts/screenshots.mjs, `DEMO` in scripts/demo-video.mjs).
 [[annotations]]
 path = [
   "data/big-film-database/**",
   "site/js/dx-data-community.js",
   ".github/screenshot*.png",
   "research/img/community-result*.png",
+  ".github/demo*",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = [

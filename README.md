@@ -17,6 +17,8 @@ know what a strip of film is.
 Everything runs in your browser. Photos you open in it are not uploaded to any
 server. It also works when `site/index.html` is opened straight from disk.
 
+[![Demo video, about 35 seconds: copying the barcode of a black-and-white film onto the strip, with one bar missed and then corrected, and reading a photo of a color negative](.github/demo.png)](.github/demo.webm)
+
 ## What it does
 
 - **An interactive copy of the film edge**, drawn like real film, that decodes
@@ -112,7 +114,7 @@ data/                 film tables as CSV, see data/README.md
 research/             research reports on the format and the data
   img/                their diagrams and screenshots
 scripts/              data extraction and build, diagrams, screenshots,
-                      language check, local server, test runner
+                      demo videos, language check, local server, test runner
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
 .github/workflows/    tests, license check and GitHub Pages deployment
@@ -201,8 +203,8 @@ To add a language:
    menu, and the same header text as the decoder page. `npm test` runs the
    same check.
 5. Add the language's labels to `LABELS` in `scripts/make-figures.mjs`, then
-   run `npm run figures` and `npm run screenshots` so the diagrams and
-   screenshots exist in the new language.
+   run `npm run figures`, `npm run screenshots` and `npm run demo` so the
+   diagrams, screenshots and demo videos exist in the new language.
 
 `npm run check:languages -- --template` prints every English text of the
 page, as a starting point. When you change or add English text in `site/`,
@@ -231,6 +233,14 @@ language. When you change one version, make the same change in the other.
   use the fonts installed on your machine, so the Chinese ones need a Chinese
   font (on Ubuntu, the `fonts-noto-cjk` package). Run it after every visible
   change to the page, and look at the results before committing them.
+- The demo video (`.github/demo*.webm`, 1120 × 840), its poster
+  (`.github/demo*.png`) and a vertical version (`.github/demo-vertical*.mp4`,
+  1120 × 1680) are recorded by `npm run demo`, which also needs Playwright:
+  about half a minute each, in each language. It uses the page as a visitor
+  would, copying a black-and-white film's code with one bar missed, taking the
+  correction, and reading the sample photo of a color negative, so run it
+  after visible changes to those parts, and watch the results before
+  committing them. Each video adds about 6–8 MB to the repository.
 
 ## License and sources
 

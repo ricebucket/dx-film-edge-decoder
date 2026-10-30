@@ -8,6 +8,7 @@ import { communityStats } from '../../scripts/community-stats.mjs';
 import { resolveCommit, sourceRecord } from '../../scripts/update-community-data.mjs';
 import { parseCsv } from '../../scripts/lib/csv.mjs';
 import { SHOTS } from '../../scripts/screenshots.mjs';
+import { DEMO } from '../../scripts/demo-video.mjs';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, symlinkSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -163,6 +164,17 @@ describe('documentation screenshots', () => {
       const dx = /dx=(\d+)-(\d+)/.exec(shot.query);
       if (dx) assert.equal(lookup.byDx(Number(dx[1]), Number(dx[2])).community.length > 0, Boolean(shot.communityData), shot.file);
     }
+  });
+
+  test('the demo video and its poster are under CC BY-SA if their codes show community entries', async () => {
+    const reuse = await readFile(join(ROOT, 'REUSE.toml'), 'utf8');
+    const ccBySa = reuse.split('[[annotations]]').find((a) => a.includes('"CC-BY-SA-4.0"'));
+    const lookup = createLookup(data, community);
+    const shows = DEMO.codes.some((code) => {
+      const [part1, part2] = code.split('-').map(Number);
+      return lookup.byDx(part1, part2).community.length > 0;
+    });
+    assert.equal(ccBySa.includes(`"${DEMO.file}*"`), shows);
   });
 });
 

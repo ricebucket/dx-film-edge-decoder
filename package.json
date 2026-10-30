@@ -23,6 +23,7 @@
     "stats:community-data": "node scripts/community-stats.mjs",
     "check:languages": "node scripts/check-languages.mjs",
     "figures": "node scripts/make-figures.mjs",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "demo": "node scripts/demo-video.mjs"
   }
 }
