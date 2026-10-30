@@ -104,7 +104,7 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
   await expect(last.locator('.readout__note')).toHaveText('The 1994 standard used it for 72 exposures.');
 });
 
-test('the cassette drawing shows a real cassette: its contact areas, then its barcode and the six digits, then the film slot', async ({ page }) => {
+test('the cassette drawing shows a real cassette: its contact areas, then its barcode and the six digits, then the lip the film comes out of', async ({ page }) => {
   const figure = page.locator('#cassette .cassette-figure');
   await expect(figure).toBeVisible();
   // The cassette of the Wikimedia Commons photo DX-Codierung_asb_PICT3739.JPG, the number also given as the example.
@@ -127,6 +127,7 @@ test('the cassette drawing shows a real cassette: its contact areas, then its ba
     const widths = all('bar').map(width);
     const narrow = Math.min(...widths);
     const svg = document.querySelector('#cassette .cassette-figure');
+    const film = all('film')[0];
     return {
       mm: svg.getBoundingClientRect().width / svg.viewBox.baseVal.width,
       units: widths.map((w) => Math.round(w / narrow)),
@@ -135,19 +136,40 @@ test('the cassette drawing shows a real cassette: its contact areas, then its ba
       areas: box(all('metal')),
       bars: box(all('bar')),
       digits: box(all('digits')),
-      slot: box(all('slot')),
+      velvet: box(all('velvet')),
+      film: { rule: film.getAttribute('fill-rule'), rings: film.getAttribute('d').split('M').length - 1 },
     };
   });
   // The bars are those of 105514 in Interleaved 2 of 5 (GB/T 9185-2003 §9).
   expect(drawn.units).toEqual(drawn.expected);
   // Bare metal where the photo shows it: areas 1, 3, 5, 7 and 10 (ISO 100, 36 exposures, ±1/2 stop).
   expect(drawn.contacts).toBe(5);
-  // From the top: the contact areas, the bars, the digits, the slot (Figures 3 and 5, §9.1).
+  // From the top: the contact areas, the bars, the digits, the lip (Figures 3 and 5, §9.1).
   expect(drawn.areas.bottom).toBeLessThan(drawn.bars.top);
   expect(drawn.bars.bottom).toBeLessThan(drawn.digits.top);
-  expect(drawn.digits.bottom).toBeLessThan(drawn.slot.top);
+  expect(drawn.digits.bottom).toBeLessThan(drawn.velvet.top);
   // The digits centered under the bars, within a millimeter and a half on the drawing's scale.
   expect(Math.abs(drawn.digits.middle - drawn.bars.middle)).toBeLessThan(1.5 * drawn.mm);
+  // The film's perforations are holes, cut out of it: two on each side at least.
+  expect(drawn.film.rule).toBe('evenodd');
+  expect(drawn.film.rings).toBeGreaterThanOrEqual(5);
+});
+
+test('the cassette drawing sits to the right of the heading, the lead and the form, or between the lead and the form on phones; the results come below', async ({ page, isMobile }) => {
+  await page.locator('#cassette-code').fill('105514');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result dt').first()).toBeVisible();
+  const [title, lead, form, figure, result] = await Promise.all(
+    ['#cassette-title', '#cassette .section-lead', '.cassette__form', '.cassette__figure', '.cassette__result'].map((sel) => page.locator(sel).boundingBox()));
+  if (isMobile) {
+    // On its own row, so that it keeps its size.
+    expect(figure.y).toBeGreaterThanOrEqual(lead.y + lead.height);
+    expect(form.y).toBeGreaterThanOrEqual(figure.y + figure.height);
+  } else {
+    expect(figure.x).toBeGreaterThanOrEqual(Math.max(title.x + title.width, lead.x + lead.width, form.x + form.width));
+    expect(Math.abs(figure.y - title.y)).toBeLessThan(2);
+  }
+  expect(result.y).toBeGreaterThanOrEqual(Math.max(figure.y + figure.height, form.y + form.height));
 });
 
 test('community matches link once to their DX number on The Big Film Database', async ({ page }) => {

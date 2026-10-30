@@ -166,8 +166,10 @@ from the menu at the top. The decoder page (`site/index.html`) and the code
 hold the English text, and every other language is one file in
 `site/js/i18n/` that gives, for every English text, the text in that
 language; the decoder page loads only the file of the language it is shown
-in. The sources page is written once per language instead:
-`site/sources.html` in English, `site/sources.zh-CN.html` in Chinese.
+in, and waits for it. If the file hasn't come after 3 seconds, the page says
+so in that language, with a button to show itself in English. The sources page
+is written once per language instead: `site/sources.html` in English,
+`site/sources.zh-CN.html` in Chinese.
 
 To add a language:
 
@@ -177,11 +179,13 @@ To add a language:
    new language's. Keep the `{placeholders}`, any HTML tags, and film and
    product names as they are. Where the language has several plural forms, a
    text can be an object such as `{ one: …, few: …, many: …, other: … }`.
-2. Add the language's code and name to the list at the end of
-   `site/js/prepaint.js`. From then on the decoder page loads the file for
-   visitors who choose the language, and its language menu lists it. Also add
-   the language's version of the message for visitors without JavaScript to
-   the `<noscript>` block of `site/index.html`, marked with `lang`: the
+2. Add the language to the list at the end of `site/js/prepaint.js`, with
+   its code and name. Give it, in the language, the note the page shows when
+   the file is slow to come (`waiting`) and the button that then shows the
+   page in English (`english`). From then on the decoder page loads the file
+   for visitors who choose the language, and its language menu lists it. Also
+   add the language's version of the message for visitors without JavaScript
+   to the `<noscript>` block of `site/index.html`, marked with `lang`: the
    language files cannot supply it, since they need JavaScript.
 3. Copy `site/sources.html` to a file named after the language code, for
    example `site/sources.de.html`, and write its text in the new language.
@@ -193,9 +197,10 @@ To add a language:
    texts whose English is no longer used, and texts whose placeholders or tags
    differ from the English, and says if the message for visitors without
    JavaScript is missing. It also checks that `site/js/prepaint.js` lists
-   every language file, and compares each version of the sources page with
-   the English one: they need the same elements, links and menu, and the same
-   header text as the decoder page. `npm test` runs the same check.
+   every language file, with both texts, and compares each version of the
+   sources page with the English one: they need the same elements, links and
+   menu, and the same header text as the decoder page. `npm test` runs the
+   same check.
 5. Add the language's labels to `LABELS` in `scripts/make-figures.mjs`, then
    run `npm run figures` and `npm run screenshots` so the diagrams and
    screenshots exist in the new language.
@@ -206,6 +211,11 @@ update every language file in the same change: the tests fail until you do.
 When you change the sources page, make the same change in each of its
 versions, as for the documentation. The check notices a source added or
 removed and a changed link, but not changed wording.
+
+Code looks up each text with `t('…')` when it draws it, never as its script
+loads: the language file can come after the scripts, and a text looked up
+before it would stay in English. A browser test holds the file back and fails
+on any text looked up too early.
 
 The documentation comes in two parallel versions, English and Simplified
 Chinese: `README.zh-CN.md` sits next to `README.md`, and so on. Both versions

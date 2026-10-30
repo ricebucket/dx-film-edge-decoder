@@ -29,7 +29,6 @@
   /* the film */
   --film-base: #d0672d;
   --film-mark: #2b1a14;
-  --film-hole: #f8fbfc;
   /* A faint line along the film's cut edges and around its perforations,
      drawn in the dark theme only. */
   --film-edge: transparent;
@@ -37,7 +36,8 @@
   --film-hover: rgba(43, 26, 20, 0.42);
 
   /* the cassette drawing: painted metal with bare contact areas, end caps, the
-     spool's knob, the felt-lined slot, the printed label; light and shade */
+     spool's knob, the velvet the film comes out of (and the knob's slot), the
+     printed label; light and shade */
   --cassette-paint: #262b31;
   --cassette-metal: #d9dfe4;
   --cassette-cap: #30363d;
@@ -52,8 +52,9 @@
   --cassette-shine: rgba(255, 255, 255, 0.5);
   --cassette-shade: rgba(0, 0, 0, 0.45);
   --cassette-drop: rgba(20, 28, 36, 0.28);
-  /* unprocessed film: no film look applies yet */
-  --cassette-film: #7f878e;
+  /* unprocessed film: opaque brown, as in the Kodak Max 400 photo
+     (research/06); no film look applies yet */
+  --cassette-film: #7a5631;
 
   /* data-track fields, used for brackets, swatches and table keys */
   --f-part1: #2c66cf;
@@ -90,7 +91,6 @@
   --ok: #63cf95;
   --ok-soft: #173326;
   --focus: #86cfdd;
-  --film-hole: var(--glow);
   --film-edge: rgba(215, 225, 231, 0.32);
   --f-part1: #79a5f2;
   --f-part2: #b893e6;
@@ -110,7 +110,7 @@
   --cassette-shine: rgba(255, 255, 255, 0.32);
   --cassette-shade: rgba(0, 0, 0, 0.5);
   --cassette-drop: rgba(0, 0, 0, 0.55);
-  --cassette-film: #69727a;
+  --cassette-film: #8a6538;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -133,8 +133,7 @@
     --ok: #63cf95;
     --ok-soft: #173326;
     --focus: #86cfdd;
-    --film-hole: var(--glow);
-  --film-edge: rgba(215, 225, 231, 0.32);
+    --film-edge: rgba(215, 225, 231, 0.32);
     --f-part1: #79a5f2;
     --f-part2: #b893e6;
     --f-frame: #5cc796;
@@ -153,7 +152,7 @@
     --cassette-shine: rgba(255, 255, 255, 0.32);
     --cassette-shade: rgba(0, 0, 0, 0.5);
     --cassette-drop: rgba(0, 0, 0, 0.55);
-    --cassette-film: #69727a;
+    --cassette-film: #8a6538;
   }
 }
 
@@ -372,9 +371,31 @@ select {
 
 /* ---- language menu ------------------------------------------------------------- */
 
-/* Set by js/prepaint.js on index.html until js/i18n.js has put in the chosen language's text. */
-html[data-i18n-pending] body {
+/* Set by js/prepaint.js on index.html until js/i18n.js has put in the chosen
+   language's text. The body itself stays visible: Safari draws nothing at all,
+   not even the note below, while it is hidden. */
+html[data-i18n-pending] body > :not(.language-wait) {
   visibility: hidden;
+}
+
+/* What js/prepaint.js shows after 3 s without that text: a note in that language, and a button that shows the page in English instead. */
+.language-wait {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  font-family: var(--font-ui);
+  color: var(--ink);
+  text-align: center;
+}
+
+.language-wait p {
+  margin: 0;
+  color: var(--ink-2);
 }
 
 .lang-picker {
@@ -976,8 +997,26 @@ h1 {
   overflow: hidden;
   /* Inset, because the fade mask hides anything drawn outside the film. */
   box-shadow: inset 0 0 0 1px var(--film-edge);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--cell) * 0.8), #000 calc(100% - var(--cell) * 0.8), transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--cell) * 0.8), #000 calc(100% - var(--cell) * 0.8), transparent 100%);
+  /* Where the row of perforations starts, for .film__perfs and the mask. */
+  --perfs-left: calc(var(--label-w) - var(--cell) * 13.96);
+  --perfs-bottom: calc(var(--cell) * 4.95);
+  /* The mask fades the film's ends and cuts out the perforations, so what is
+     behind the film shows through them. One hole per tile, a hole and the gap
+     after it (11.64 cells), shaped as .perf below. */
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0, #000 calc(var(--cell) * 0.8), #000 calc(100% - var(--cell) * 0.8), transparent 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11.64 6.85' preserveAspectRatio='none'%3E%3Crect width='4.85' height='6.85' rx='1.2'/%3E%3C/svg%3E");
+  mask-image:
+    linear-gradient(90deg, transparent 0, #000 calc(var(--cell) * 0.8), #000 calc(100% - var(--cell) * 0.8), transparent 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11.64 6.85' preserveAspectRatio='none'%3E%3Crect width='4.85' height='6.85' rx='1.2'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%, calc(var(--cell) * 11.64) calc(var(--cell) * 6.85);
+  mask-size: 100% 100%, calc(var(--cell) * 11.64) calc(var(--cell) * 6.85);
+  -webkit-mask-repeat: no-repeat, repeat-x;
+  mask-repeat: no-repeat, repeat-x;
+  -webkit-mask-position: 0 0, left var(--perfs-left) bottom var(--perfs-bottom);
+  mask-position: 0 0, left var(--perfs-left) bottom var(--perfs-bottom);
+  -webkit-mask-composite: source-out;
+  mask-composite: subtract;
 }
 
 /* The perforations: 1.98 mm along the film, 2.80 mm across, 4.75 mm apart,
@@ -987,20 +1026,20 @@ h1 {
 .film__perfs {
   position: absolute;
   z-index: 1;
-  bottom: calc(var(--cell) * 4.95);
-  left: calc(var(--label-w) - var(--cell) * 13.96);
+  bottom: var(--perfs-bottom);
+  left: var(--perfs-left);
   display: flex;
   gap: calc(var(--cell) * 6.79);
   pointer-events: none;
 }
 
+/* The hole is cut out of the film (.film); this draws the line around it. */
 .perf {
   flex: none;
   width: calc(var(--cell) * 4.85);
   height: calc(var(--cell) * 6.85);
   border-radius: calc(var(--cell) * 1.2);
-  background: var(--film-hole);
-  box-shadow: inset 0 0 0 1px var(--film-edge);
+  box-shadow: 0 0 0 1px var(--film-edge);
 }
 
 .film__row {
@@ -2226,14 +2265,27 @@ thead th {
   max-width: 52rem;
 }
 
-/* The form, and beside it (above it on phones) the cassette drawing. */
-.cassette__top {
+/* The heading, its lead and the form, with the cassette drawing on their
+   right (on its own row before the form on phones); the results below them
+   all. */
+.cassette {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
-  gap: 18px 40px;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    "title figure"
+    "lead figure"
+    "form figure"
+    "result result";
+  column-gap: 40px;
   align-items: start;
-  max-width: 52rem;
 }
+
+.cassette > h2 { grid-area: title; }
+.cassette > .section-lead { grid-area: lead; }
+.cassette__form { grid-area: form; }
+.cassette__figure { grid-area: figure; }
+.cassette__result { grid-area: result; }
 
 .cassette-figure {
   display: block;
@@ -2248,16 +2300,24 @@ thead th {
 .cassette-figure__label { fill: var(--cassette-label); }
 .cassette-figure__bar { fill: var(--cassette-ink); }
 .cassette-figure__mark { fill: var(--cassette-mark); }
-.cassette-figure__slot { fill: var(--cassette-slot); }
 .cassette-figure__cap { fill: var(--cassette-cap); }
 .cassette-figure__end { fill: var(--cassette-end); }
 .cassette-figure__end-ring { fill: none; stroke: var(--cassette-end-ring); stroke-width: 0.5px; }
 .cassette-figure__knob { fill: var(--cassette-knob); }
 .cassette-figure__knob-end { fill: var(--cassette-knob-end); }
 .cassette-figure__key { fill: var(--cassette-slot); }
-.cassette-figure__film { fill: var(--cassette-film); }
-.cassette-figure__perf { fill: var(--bg); }
-/* Light from above: a shine high on the side, shade towards its edges. */
+.cassette-figure__lip { fill: color-mix(in srgb, var(--cassette-metal), #000 18%); }
+.cassette-figure__lip-top { fill: color-mix(in srgb, var(--cassette-paint), #fff 12%); }
+.cassette-figure__lip-end { fill: var(--cassette-end); }
+.cassette-figure__velvet { fill: url(#cassette-velvet); }
+.cassette-figure__velvet-base { fill: var(--cassette-slot); }
+.cassette-figure__velvet-fibre { fill: var(--cassette-shine); fill-opacity: 0.3; }
+/* The film fades out as it comes toward the viewer, in the lip's shadow
+   where it comes out. Its perforations are holes. */
+.cassette-figure__film { fill: url(#cassette-film); }
+.cassette-figure__film-stop { stop-color: var(--cassette-film); }
+.cassette-figure__film-shade { fill: url(#cassette-film-shade); }
+/* Light from above: a shine high on the side, shade toward its edges. */
 .cassette-figure__light { fill: url(#cassette-light); }
 .cassette-figure__shade-edge { stop-color: var(--cassette-shade); }
 .cassette-figure__shade-soft { stop-color: var(--cassette-shade); stop-opacity: 0.3; }
@@ -2273,13 +2333,20 @@ thead th {
 }
 
 @media (max-width: 700px) {
-  .cassette__top {
+  .cassette {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      "title"
+      "lead"
+      "figure"
+      "form"
+      "result";
   }
 
   .cassette__figure {
-    order: -1;
     max-width: 260px;
+    margin-bottom: 18px;
   }
 }
 

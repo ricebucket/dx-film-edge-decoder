@@ -12,14 +12,18 @@ const LANGUAGES = ['en', ...fs.readdirSync(path.join(__dirname, '..', '..', 'sit
   .filter((f) => f.endsWith('.js'))
   .map((f) => f.slice(0, -3))];
 
-/** axe's findings, one line each (rule, element, advice); empty when the page passes. */
-async function problems(page, include) {
+/**
+ * axe's findings, one line each (rule, element, advice); empty when the page
+ * passes. `loading`: the page has not finished loading, and Safari's
+ * document.fonts.ready waits for that.
+ */
+async function problems(page, include, { loading = false } = {}) {
   // From the top: on wide screens the sticky header would cover whatever is
   // scrolled under it, and axe would count those buttons as too small.
-  await page.evaluate(() => {
+  await page.evaluate((loading) => {
     window.scrollTo(0, 0);
-    return document.fonts.ready;
-  });
+    return loading || document.fonts.ready;
+  }, loading);
   const builder = new AxeBuilder({ page }).withTags(WCAG);
   if (include) builder.include(include);
   const { violations } = await builder.analyze();
@@ -77,6 +81,23 @@ for (const lang of LANGUAGES) {
       await expect(page.locator('#strip .track--data button.is-bar')).toHaveCount(0);
       expect(await problems(page, '#decoder')).toEqual([]);
     });
+
+    if (lang !== 'en') {
+      test(`axe finds no WCAG A or AA problems in the note shown while the language file is slow (${lang}, ${colorScheme})`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme });
+        let release;
+        const held = new Promise((resolve) => { release = resolve; });
+        await page.route(`**/js/i18n/${lang}.js`, async (route) => {
+          await held;
+          await route.continue();
+        });
+        await page.goto(`/?lang=${lang}`, { waitUntil: 'domcontentloaded' });
+        await expect(page.locator('.language-wait')).toBeVisible({ timeout: 6000 });
+        expect(await problems(page, null, { loading: true })).toEqual([]);
+        release();
+        await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
+      });
+    }
 
     test(`axe finds no WCAG A or AA problems on the sources page (${lang}, ${colorScheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme });

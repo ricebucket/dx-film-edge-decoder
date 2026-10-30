@@ -74,6 +74,7 @@ texts. Each file has a single license.
 - Patton, Travis & McPherson (Eastman Kodak), US patent 5,761,558, *Expanded film cartridge bar code*, 1998 — <https://patents.google.com/patent/US5761558A/en>
 - Eastman Kodak Company, *KODAK PROFESSIONAL BW400CN Film*, technical data F-4036, January 2004 — copy at <https://125px.com/docs/film/kodak/f4036-BW400CN.pdf>
 - Wikimedia Commons, *DX-Codierung asb PICT3739.JPG* by Agon S. Buchholz, 2004 — <https://commons.wikimedia.org/wiki/File:DX-Codierung_asb_PICT3739.JPG>
+- Wikimedia Commons, *Kodak-Max-400-35mm-Film.jpg* by Evan-Amos, 2016 — <https://commons.wikimedia.org/wiki/File:Kodak-Max-400-35mm-Film.jpg>
 
 ### Licenses
 

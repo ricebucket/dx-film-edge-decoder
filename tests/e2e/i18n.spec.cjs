@@ -152,18 +152,58 @@ test('a page in Chinese shows as soon as its text has loaded, before the rest of
   await expect(page.locator('#hint')).toHaveText(/^从第 7 位开始/);
 });
 
-test('a page in Chinese is Chinese throughout, however late its language file comes', async ({ page }) => {
-  // After every other script...
+test('every text is looked up as it is drawn, never as a script loads, so a page is in its language throughout, however late the file comes', async ({ page }) => {
+  // Notes every text looked up before the language file has come, or by a
+  // script as it loads (also the photo reader's, which loads later on).
+  await page.addInitScript(() => {
+    const early = (window.earlyTexts = []);
+    let registered = false;
+    let i18n;
+    Object.defineProperty((window.DX = window.DX || {}), 'i18n', {
+      configurable: true,
+      get: () => i18n,
+      set(value) {
+        i18n = value;
+        const note = (what) => {
+          const loading = document.currentScript;
+          if (loading) early.push(`${what} as ${loading.src.replace(/^.*\/js\//, 'js/')} loads`);
+          else if (!registered) early.push(`${what} before the language file`);
+        };
+        for (const name of ['t', 'plural', 'or', 'punctuation']) {
+          const f = value[name];
+          value[name] = function (...args) {
+            note(`${name}(${JSON.stringify(args[0]) || ''})`);
+            return f.apply(this, args);
+          };
+        }
+        const { get } = Object.getOwnPropertyDescriptor(value, 'current');
+        Object.defineProperty(value, 'current', { get: () => (note('current'), get.call(value)) });
+        const { register } = value;
+        value.register = function (...args) {
+          registered = true;
+          return register.apply(this, args);
+        };
+      },
+    });
+  });
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
   await page.route('**/js/i18n/zh-CN.js', async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await held;
     await route.continue();
   });
-  await page.goto('/?lang=zh-CN');
+  await page.goto('/?lang=zh-CN', { waitUntil: 'domcontentloaded' });
+  // After every other script.
+  await page.waitForTimeout(500);
+  release();
   await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
-  // ...even the texts the scripts set up as they load: the strip, the examples, the bar above the strip.
   await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，对应数字 64');
   await page.getByRole('button', { name: 'Kodak BW400CN，画幅 23' }).click();
   await expect(page.locator('#source')).toContainText('示例');
+  await page.getByRole('tab', { name: '读取照片' }).click();
+  await page.getByRole('button', { name: '试用示例' }).click();
+  await expect(page.locator('.photo__source')).toContainText('示例：电脑绘制的彩色负片。');
+  expect(await page.evaluate(() => window.earlyTexts)).toEqual([]);
 });
 
 test('the language file may also come before the language layer', async ({ page }) => {
@@ -176,23 +216,56 @@ test('the language file may also come before the language layer', async ({ page 
   await expect(page.locator('#hint')).toHaveText(/^从第 7 位开始/);
 });
 
-test('a language file that never comes leaves a page that works, in English, after 3 s', async ({ page }) => {
+test('a language file that has not come after 3 s: the page says so in that language and keeps waiting, or shows in English if asked, and works', async ({ page }) => {
   const other = await page.context().newPage();
   await other.route('**/js/i18n/zh-CN.js', () => {}); // never answered
+  const start = Date.now();
   await other.goto('/?lang=zh-CN', { waitUntil: 'domcontentloaded' });
-  await expect(other.getByLabel('Language').locator('option')).toHaveCount(2, { timeout: 6000 });
+  const note = other.locator('.language-wait');
+  await expect(note).toHaveText(/^正在加载中文界面/, { timeout: 6000 });
+  expect(Date.now() - start).toBeGreaterThanOrEqual(3000);
+  await other.waitForTimeout(1000);
+  await expect(other.locator('html')).toHaveAttribute('data-i18n-pending', '');
+  await expect(other.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await other.getByRole('button', { name: '改用英文显示' }).click();
+  await expect(note).toHaveCount(0);
   await expect(other.locator('html')).toHaveAttribute('lang', 'en');
   await expect(other.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  await expect(other.getByLabel('Language')).toHaveValue('en');
   await expect(other.locator('#strip .track--data button.cell').first()).toBeVisible();
   await other.close();
 });
 
-test('a page whose language layer cannot load shows after 3 s, in English and marked so', async ({ page }) => {
+test('the note goes as the page shows: in Chinese if the file comes, in English for good if that was asked for first', async ({ page }) => {
+  for (const askEnglish of [false, true]) {
+    let release;
+    const held = new Promise((resolve) => { release = resolve; });
+    await page.route('**/js/i18n/zh-CN.js', async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto('/?lang=zh-CN', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.language-wait')).toBeVisible({ timeout: 6000 });
+    if (askEnglish) await page.getByRole('button', { name: '改用英文显示' }).click();
+    const loaded = page.waitForResponse('**/js/i18n/zh-CN.js');
+    release();
+    await loaded;
+    await expect.poll(() => page.evaluate(() => window.DX.i18n && window.DX.i18n.languages.map((l) => l.code))).toContain('zh-CN');
+    await expect(page.locator('.language-wait')).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute('lang', askEnglish ? 'en' : 'zh-CN');
+    await expect(page.locator('#decoder-title')).toHaveText(askEnglish ? 'Identify a film from the barcode on its edge' : '从片边的潜影条码识别胶片');
+    await expect(page.locator('#hint')).toHaveText(askEnglish ? /^Start at cell 7/ : /^从第 7 位开始/);
+    await page.unrouteAll();
+  }
+});
+
+test('a page whose language layer cannot load offers itself in English after 3 s, marked so', async ({ page }) => {
   // A page of its own: the scripts' errors are expected here.
   const other = await page.context().newPage();
   await other.route('**/js/i18n.js', (route) => route.abort());
   await other.goto('/?lang=zh-CN');
-  await expect(other.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/, { timeout: 6000 });
+  await other.getByRole('button', { name: '改用英文显示' }).click({ timeout: 6000 });
+  await expect(other.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
   await expect(other.locator('html')).toHaveAttribute('lang', 'en');
   await other.close();
 });

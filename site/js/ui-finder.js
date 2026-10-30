@@ -179,17 +179,17 @@
 
   /**
    * A 35 mm cassette in three-quarter view, to scale in millimeters within
-   * GB/T 9185-2003 Tables 7, 8 and 10. Round its side, from the top: the
-   * contact areas cameras read (two rows of six, area 1 and 7 at the knob's
-   * end), the barcode, the six digits printed between it and the film slot,
-   * centered on the barcode (§9.1), and the slot the film comes out of.
+   * GB/T 9185-2003 Figure 4 and Tables 2, 7, 8 and 10. Round its side, from
+   * the top: the contact areas cameras read (two rows of six, area 1 and 7 at
+   * the knob's end), the barcode, the six digits printed between it and the
+   * lip, centered on the barcode (§9.1), and the lip the film comes out of.
    */
   function cassetteFigure() {
     const DEG = Math.PI / 180;
     // The cassette lies along x, from its plain end (datum C, x = 0) to the
     // end its spool's knob comes out of. Angles go round it as in Figures 3
     // and 5: the contact rows at 191.7° and 225.6°, the bars from 257° to
-    // 294°, then the digits and the slot.
+    // 294°, then the digits and the lip.
     const L = 43.1; // Z2 42.39–43.80
     const R = 11.9; // the body, Z32 ≥ 23.40
     const RC = 12.55; // the end caps, Z24 24.89–25.30
@@ -198,13 +198,25 @@
     const AREA = { pitch: 5.51, first: 7.95, rows: [174.75, 208.65, 242.55] }; // X6, X5 = 35.50 for areas 1 and 7, X10, X11
     const narrow = 0.33; // Table 8, target; wide is three times that
     const codeLeft = 11.3; // W3 9.40–13.21 from datum C
-    const SLOT = [312, 346];
-    // Seen from 258°, turned 20° towards the knob's end.
+    // The lip, as in the photo: a thin metal rim, then velvet along the whole
+    // length, a little past the end caps. Across the cassette (d toward the
+    // viewer, v down) it leaves the body 56° below the front, comes forward to
+    // 9.4 mm from the axis, and goes down to the caps' rims.
+    const LIP = { from: 56, d: 9.4, top: 10, bottom: RC, rim: 0.3, over: 0.5 };
+    // The film: 34.95 mm wide, perforations 2.80 by 1.98 mm, 4.75 mm apart,
+    // 2.00 mm from its edges, corners 0.50 mm (Table 2). It comes straight out
+    // of the velvet, pointing 20° down so that it shows from the front, and
+    // fades out: a leader sticks out 43.91 to 71.76 mm and ends in a narrower
+    // tongue (Table 1, Y7, Y4 and Y5), more than fits here.
+    const FILM = { width: 34.95, length: 18, dip: 20 * DEG, firstHole: 1.4 };
+    // Seen from 258°, turned 20° toward the knob's end.
     const FRONT = 258;
     const yaw = 20 * DEG;
+    /** A point x along the cassette, d toward the viewer and v down. */
+    const pt = (x, d, v) => [x * Math.cos(yaw) - d * Math.sin(yaw), v];
     const at = (x, deg, r = R) => {
       const th = (deg - FRONT) * DEG;
-      return [x * Math.cos(yaw) - r * Math.cos(th) * Math.sin(yaw), r * Math.sin(th)];
+      return pt(x, r * Math.cos(th), r * Math.sin(th));
     };
     const path = (pts) => `M${pts.map(([px, py]) => `${px.toFixed(2)} ${py.toFixed(2)}`).join('L')}Z`;
     /** The visible part of the side between x1 and x2 and between two angles. */
@@ -215,6 +227,14 @@
       const arc = (x, a, b) => Array.from({ length: n + 1 }, (_, i) => at(x, a + ((b - a) * i) / n, r));
       return path([...arc(x1, lo, hi), ...arc(x2, hi, lo)]);
     };
+    /** A rectangle with corners of radius r, as points: u from u0 to u1, w from w0 to w1. */
+    const rounded = (u0, u1, w0, w1, r) => {
+      const corner = (cu, cw, from) => Array.from({ length: 7 }, (_, i) => {
+        const a = (from + 15 * i) * DEG;
+        return [cu + r * Math.cos(a), cw + r * Math.sin(a)];
+      });
+      return [...corner(u1 - r, w0 + r, 270), ...corner(u1 - r, w1 - r, 0), ...corner(u0 + r, w1 - r, 90), ...corner(u0 + r, w0 + r, 180)];
+    };
     const shape = (cls, d) => svg('path', { class: `cassette-figure__${cls}`, d });
     const end = (x, r) => {
       const [cx] = at(x, FRONT + 90, r);
@@ -222,6 +242,7 @@
     };
     const top = FRONT - 90;
     const bottom = FRONT + 90;
+    const lipFrom = FRONT + LIP.from;
 
     // The contact areas: bare metal where a camera's probe makes contact, painted elsewhere.
     const areas = [];
@@ -241,29 +262,47 @@
     });
     // The digits, centered on the barcode and laid on the side as printed.
     const middle = codeLeft + (63 * narrow) / 2;
-    const textAt = 308; // the baseline, between the bars (to 294°) and the slot (from 312°)
+    const textAt = 308; // the baseline, between the bars (to 294°) and the lip (from 314°)
     const [tx, ty] = at(middle, textAt);
     const th = (textAt - FRONT) * DEG;
     const onSide = `matrix(${Math.cos(yaw).toFixed(3)} 0 ${(Math.sin(th) * Math.sin(yaw)).toFixed(3)} ${Math.cos(th).toFixed(3)} ${tx.toFixed(2)} ${ty.toFixed(2)})`;
     const mark = band(middle - 6.6, middle + 6.6, 296, 310);
 
-    // The film's leader comes out of the slot: 35 mm wide, with its perforations (Table 2).
-    const [, lipY] = at(0, 334);
-    const film = { left: L / 2 - 17.5, length: 7 };
-    const along = Math.cos(yaw);
-    const fx = (fxMm) => at(fxMm, 334)[0];
-    const perfs = [];
-    for (let k = 0; k < 2; k++) {
-      for (const edge of [film.left + 2, film.left + 35 - 4.8]) {
-        perfs.push(svg('rect', { class: 'cassette-figure__perf', x: fx(edge).toFixed(2), y: (lipY + 1.4 + 4.75 * k).toFixed(2), width: (2.8 * along).toFixed(2), height: 1.98, rx: 0.45 }));
-      }
+    // The lip: its end at the knob's end, its top, and its front, where the
+    // velvet is.
+    const corner = [[R * Math.cos(LIP.from * DEG), R * Math.sin(LIP.from * DEG)], [LIP.d, LIP.top], [LIP.d, LIP.bottom], [0, LIP.bottom]];
+    const under = Array.from({ length: 9 }, (_, i) => {
+      const a = (90 - ((90 - LIP.from) * i) / 8) * DEG;
+      return [R * Math.cos(a), R * Math.sin(a)];
+    });
+    const lipEnd = path([...corner, ...under].map(([d, v]) => pt(L + LIP.over, d, v)));
+    const lipTop = path([pt(-LIP.over, ...corner[0]), pt(L + LIP.over, ...corner[0]), pt(L + LIP.over, ...corner[1]), pt(-LIP.over, ...corner[1])]);
+    const onFront = (x0, x1, v0, v1, r) => path(rounded(x0, x1, v0, v1, r).map(([fx, v]) => pt(fx, LIP.d, v)));
+    const velvetTop = LIP.top + LIP.rim;
+    const velvetBottom = LIP.bottom - 0.12;
+
+    // The film, out of the middle of the velvet: x across it, s along it.
+    const fl = L / 2 - FILM.width / 2;
+    const fr = L / 2 + FILM.width / 2;
+    const mouth = (velvetTop + velvetBottom) / 2;
+    const on = ([fx, s]) => pt(fx, LIP.d + s * Math.cos(FILM.dip), mouth + s * Math.sin(FILM.dip));
+    const holes = [];
+    for (let s = FILM.firstHole; s + 1.98 <= FILM.length; s += 4.75) {
+      for (const left of [fl + 2, fr - 2 - 2.8]) holes.push(rounded(left, left + 2.8, s, s + 1.98, 0.5));
     }
-    const filmPath = path([[fx(film.left), lipY], [fx(film.left + 35), lipY], [fx(film.left + 35), lipY + film.length], [fx(film.left), lipY + film.length]]);
+    const filmPath = [[[fl, 0], [fr, 0], [fr, FILM.length], [fl, FILM.length]], ...holes].map((ring) => path(ring.map(on))).join('');
+    // Its shading runs along it: lines across the film stay level on the page.
+    const along = (s0, s1) => {
+      const [x1, y1] = on([L / 2, s0]);
+      const [, y2] = on([L / 2, s1]);
+      return { gradientUnits: 'userSpaceOnUse', x1: x1.toFixed(2), y1: y1.toFixed(2), x2: x1.toFixed(2), y2: y2.toFixed(2) };
+    };
 
     const knobEnd = end(L + KNOB.length, KNOB.r);
     const [left] = at(0, FRONT, RC);
     const right = Number(knobEnd.cx) + KNOB.r * Math.sin(yaw);
-    const box = [left - 0.6, -RC - 0.6, right - left + 1.2, RC + lipY + film.length - 0.4 + 1.6];
+    const lowest = on([L / 2, FILM.length])[1];
+    const box = [left - 0.6, -RC - 0.6, right - left + 1.2, RC + 0.6 + lowest + 0.6];
     return svg('svg', { class: 'cassette-figure', viewBox: box.map((v) => v.toFixed(2)).join(' '), 'aria-hidden': 'true', focusable: 'false' },
       svg('defs', null,
         svg('linearGradient', { id: 'cassette-light', gradientUnits: 'userSpaceOnUse', x1: 0, y1: -RC, x2: 0, y2: RC },
@@ -273,25 +312,41 @@
           svg('stop', { offset: 0.42, class: 'cassette-figure__shade-none' }),
           svg('stop', { offset: 0.75, class: 'cassette-figure__shade-soft' }),
           svg('stop', { offset: 1, class: 'cassette-figure__shade-edge' })),
+        // The film is opaque until 45% of the way out, then fades.
+        svg('linearGradient', Object.assign({ id: 'cassette-film' }, along(0, FILM.length)),
+          svg('stop', { offset: 0, class: 'cassette-figure__film-stop' }),
+          svg('stop', { offset: 0.45, class: 'cassette-figure__film-stop' }),
+          svg('stop', { offset: 1, class: 'cassette-figure__film-stop', 'stop-opacity': 0 })),
+        // In the lip's shadow for its first 3 mm.
+        svg('linearGradient', Object.assign({ id: 'cassette-film-shade' }, along(0, 3)),
+          svg('stop', { offset: 0, class: 'cassette-figure__shade-edge' }),
+          svg('stop', { offset: 1, class: 'cassette-figure__shade-none' })),
+        svg('pattern', { id: 'cassette-velvet', patternUnits: 'userSpaceOnUse', width: 2.1, height: 1.3 },
+          svg('rect', { class: 'cassette-figure__velvet-base', width: 2.1, height: 1.3 }),
+          [[0.2, 0.3], [0.9, 0.15], [1.5, 0.55], [0.55, 0.9], [1.25, 1.05], [1.9, 0.95], [0.1, 1.15], [1.7, 0.2]].map(([cx, cy], i) =>
+            svg('circle', { class: 'cassette-figure__velvet-fibre', cx, cy, r: 0.07 + (i % 3) * 0.02 }))),
         svg('clipPath', { id: 'cassette-side' }, svg('path', { d: band(0, L, top, bottom, RC) }))),
       svg('g', { class: 'cassette-figure__drop' },
-        svg('path', { class: 'cassette-figure__film', d: filmPath }),
-        perfs,
-        shape('paint', band(0, L, top, SLOT[0], R)),
-        shape('label', band(RIM, L - RIM, 246, SLOT[0])),
+        shape('paint', band(0, L, top, lipFrom, R)),
+        shape('label', band(RIM, L - RIM, 246, lipFrom)),
         areas,
         bars,
         svg('path', { class: 'cassette-figure__mark', d: mark }),
         svg('text', { class: 'cassette-figure__digits', transform: onSide, 'text-anchor': 'middle' }, DRAWN.digits),
-        shape('slot', band(RIM, L - RIM, SLOT[0], bottom)),
         shape('cap', band(0, RIM, top, bottom, RC)),
         shape('cap', band(L - RIM, L, top, bottom, RC)),
         svg('rect', { class: 'cassette-figure__light', x: box[0], y: -RC, width: box[2], height: 2 * RC, 'clip-path': 'url(#cassette-side)' }),
+        shape('lip-top', lipTop),
+        shape('lip', onFront(-LIP.over, L + LIP.over, LIP.top, LIP.bottom, 0.5)),
+        shape('velvet', onFront(0.35 - LIP.over, L + LIP.over - 0.35, velvetTop, velvetBottom, 0.4)),
         svg('ellipse', Object.assign({ class: 'cassette-figure__end' }, end(L, RC))),
+        shape('lip-end', lipEnd),
         svg('ellipse', Object.assign({ class: 'cassette-figure__end-ring' }, end(L, RC - 1.1))),
         shape('knob', band(L, L + KNOB.length, top, bottom, KNOB.r)),
         svg('ellipse', Object.assign({ class: 'cassette-figure__knob-end' }, knobEnd)),
-        svg('rect', { class: 'cassette-figure__key', x: (Number(knobEnd.cx) - 0.45).toFixed(2), y: -3.6, width: 0.9, height: 7.2, rx: 0.4 })));
+        svg('rect', { class: 'cassette-figure__key', x: (Number(knobEnd.cx) - 0.45).toFixed(2), y: -3.6, width: 0.9, height: 7.2, rx: 0.4 }),
+        svg('path', { class: 'cassette-figure__film', d: filmPath, 'fill-rule': 'evenodd' }),
+        svg('path', { class: 'cassette-figure__film-shade', d: filmPath, 'fill-rule': 'evenodd' })));
   }
 
   function createCassette(host, { lookup, onShow }) {
@@ -411,8 +466,10 @@
       render(hit);
     });
 
-    // Where the digits are, on the example number of the placeholder.
-    host.replaceChildren(h('div', { class: 'cassette__top' }, form, h('div', { class: 'cassette__figure' }, cassetteFigure())), out);
+    // Beside the heading, the lead and the form (index.html), or between the
+    // lead and the form on phones: where the digits are, on the example number
+    // of the placeholder. The results go below.
+    host.append(form, h('div', { class: 'cassette__figure' }, cassetteFigure()), out);
     return { lookup(code) { input.value = code; form.requestSubmit(); } };
   }
 

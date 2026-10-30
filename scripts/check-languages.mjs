@@ -122,13 +122,21 @@ export async function collectKeys() {
 /**
  * Whether js/prepaint.js lists every language file by its code and name, and
  * nothing else: index.html loads a file only for a language in that list, and
- * its language menu shows the list.
+ * its language menu shows the list. Each also needs the two texts the page
+ * shows when that file is slow to come.
  */
 export function checkList(listed, languages) {
   const entry = (l) => `${l.code} ${l.name}`;
   const files = languages.map(entry).sort().join(', ');
   const list = listed.map(entry).sort().join(', ');
-  return list === files ? [] : [`site/js/prepaint.js lists ${list || 'no language'}, but site/js/i18n/ has ${files || 'no language'}`];
+  const problems = list === files ? [] : [`site/js/prepaint.js lists ${list || 'no language'}, but site/js/i18n/ has ${files || 'no language'}`];
+  const texts = { waiting: 'the note shown when its file is slow to come', english: 'the button that shows the page in English instead' };
+  for (const l of listed) {
+    for (const [key, what] of Object.entries(texts)) {
+      if (typeof l[key] !== 'string' || !l[key].trim()) problems.push(`site/js/prepaint.js: ${l.code} needs \`${key}\`, ${what}`);
+    }
+  }
+  return problems;
 }
 
 export async function loadLanguages() {

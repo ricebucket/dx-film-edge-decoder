@@ -22,19 +22,20 @@
   // The smallest box, on screen (CSS pixels) and in the photo (its pixels).
   const MIN_BOX = { screen: [24, 16], photo: [12, 8] };
 
-  const SAMPLES = [
+  // Looked up when shown, as all text is (js/i18n.js).
+  const samples = () => [
     { synth: { part1: 96, part2: 12, frame: 14, half: true, module: 9, angle: -1.2 }, look: 'negative', note: t('Sample: a computer-drawn color negative.') },
     { synth: { part1: 32, part2: 6, frame: 5, half: false, module: 9, angle: 0.8 }, look: 'slide', note: t('Sample: a computer-drawn slide.') },
     { synth: { part1: 109, part2: 9, frame: 12, half: false, module: 9, mirrored: true }, look: 'bw', note: t('Sample: a computer-drawn black-and-white negative, seen from the back.') },
   ];
 
-  const REASONS = {
+  const reasons = () => ({
     flat: t('This image has almost no contrast. Try a sharper, closer photo of the film edge.'),
     'no-clock': t('The barcode’s top row was not found. Turn the image so the film edge runs left to right and draw a box around one barcode, or try a sharper photo in even light.'),
     'no-data': t('The lower row could not be read. Make sure the box includes both rows, or try a sharper photo.'),
     unclear: t('A barcode was found but could not be read reliably. Straighten the image, or draw a box around one barcode.'),
     eleven: t('This barcode looks cut off or damaged at its end. Leave a little room at both ends of the box, or try a sharper photo.'),
-  };
+  });
 
   /** A copy of a box of a canvas, fitted into maxW × maxH CSS pixels. */
   function thumbnail(src, box, maxW, maxH) {
@@ -248,7 +249,8 @@
     }
 
     function nextSample() {
-      const sample = SAMPLES[sampleIndex++ % SAMPLES.length];
+      const all = samples();
+      const sample = all[sampleIndex++ % all.length];
       return { sample, seed: sampleIndex };
     }
 
@@ -715,7 +717,7 @@
     function showResult() {
       const r = result;
       if (!r.found) {
-        out.replaceChildren(h('p', { class: 'form-message is-error' }, REASONS[r.reason] || t('No barcode found.')));
+        out.replaceChildren(h('p', { class: 'form-message is-error' }, reasons()[r.reason] || t('No barcode found.')));
         return;
       }
       const d = r.decoded;

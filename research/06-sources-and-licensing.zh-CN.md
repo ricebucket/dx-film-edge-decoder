@@ -46,6 +46,7 @@
 - Patton, Travis & McPherson（Eastman Kodak），美国专利 5,761,558，*Expanded film cartridge bar code*，1998 — <https://patents.google.com/patent/US5761558A/en>
 - Eastman Kodak Company，*KODAK PROFESSIONAL BW400CN Film*，技术资料 F-4036，2004 年 1 月 — 副本：<https://125px.com/docs/film/kodak/f4036-BW400CN.pdf>
 - Wikimedia Commons，*DX-Codierung asb PICT3739.JPG*，作者 Agon S. Buchholz，2004 年 — <https://commons.wikimedia.org/wiki/File:DX-Codierung_asb_PICT3739.JPG>
+- Wikimedia Commons，*Kodak-Max-400-35mm-Film.jpg*，作者 Evan-Amos，2016 年 — <https://commons.wikimedia.org/wiki/File:Kodak-Max-400-35mm-Film.jpg>
 
 ### 许可证
 

@@ -107,7 +107,9 @@ describe('interface languages', () => {
     const { languages: listed } = require('../../site/js/prepaint.js');
     assert.deepEqual(checkList(listed, languages), []);
     assert.equal(checkList([], languages).length, 1, 'a file the list leaves out');
-    assert.equal(checkList([...listed, { code: 'de', name: 'Deutsch' }], languages).length, 1, 'a language without a file');
+    assert.equal(checkList([...listed, { code: 'de', name: 'Deutsch', waiting: 'Wird geladen …', english: 'Auf Englisch zeigen' }], languages).length, 1, 'a language without a file');
+    const bare = listed.map(({ code, name }) => ({ code, name }));
+    assert.equal(checkList(bare, languages).length, 2 * listed.length, 'a language without the note and button shown while its file is slow to come');
   });
 
   test('a language cannot add a tag or attribute the English lacks, however it is written', () => {

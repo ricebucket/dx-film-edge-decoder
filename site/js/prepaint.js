@@ -6,7 +6,9 @@
  *
  * Below is the list of languages besides English, each a file in js/i18n/.
  * index.html loads only the file of the language it is shown in, and its
- * language menu lists them all.
+ * language menu lists them all. Each also gives, in that language, what the
+ * page says when that file is slow to come (`waiting`), and the button that
+ * shows the page in English instead (`english`).
  */
 (function (root, languages) {
   'use strict';
@@ -37,6 +39,7 @@
   // Its file loads alongside the page's other scripts: js/i18n.js takes it in
   // whichever comes first, and app.js starts the page once it is there (or
   // has failed to load, and the page is in English).
+  const html = document.documentElement;
   const script = document.createElement('script');
   script.src = `js/i18n/${lang.code}.js`;
   script.fetchPriority = 'high'; // the page waits for it, so ahead of the other scripts
@@ -47,16 +50,39 @@
     script.onerror = resolve;
   });
   document.head.append(script);
-  // Hidden until js/i18n.js has put in that language's text, or after 3 s
-  // regardless: then in English and marked so, and app.js starts it so.
-  document.documentElement.lang = lang.code;
-  document.documentElement.setAttribute('data-i18n-pending', '');
+  // Hidden until js/i18n.js has put in that language's text. After 3 s
+  // without it, a note in that language says so, with a button that shows
+  // the page in English instead: app.js then starts it so, and the file is
+  // not used if it comes after.
+  html.lang = lang.code;
+  html.setAttribute('data-i18n-pending', '');
+  const waiting = () => html.hasAttribute('data-i18n-pending');
   setTimeout(() => {
-    settle();
-    if (!document.documentElement.hasAttribute('data-i18n-pending')) return;
-    document.documentElement.lang = 'en';
-    document.documentElement.removeAttribute('data-i18n-pending');
+    if (!waiting()) return;
+    const note = document.createElement('div');
+    note.className = 'language-wait';
+    note.setAttribute('role', 'status');
+    const text = document.createElement('p');
+    text.textContent = lang.waiting;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'tool';
+    button.textContent = lang.english;
+    button.addEventListener('click', () => {
+      html.lang = 'en';
+      html.removeAttribute('data-i18n-pending');
+      settle();
+    });
+    note.append(text, button);
+    (document.body || html).append(note);
+    // Gone as the page shows, in either language.
+    const shown = new MutationObserver(() => {
+      if (waiting()) return;
+      note.remove();
+      shown.disconnect();
+    });
+    shown.observe(html, { attributeFilter: ['data-i18n-pending'] });
   }, 3000);
 })(typeof globalThis !== 'undefined' ? globalThis : this, [
-  { code: 'zh-CN', name: '简体中文' },
+  { code: 'zh-CN', name: '简体中文', waiting: '正在加载中文界面……', english: '改用英文显示' },
 ]);

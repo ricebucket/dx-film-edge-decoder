@@ -7,10 +7,15 @@
  * from there. The sources page is written once per language instead
  * (sources.html, sources.zh-CN.html …) and loads none of this.
  *
- * Text in the code goes through t('English text {name}', { name }). Elements
- * of the page marked data-i18n get their content in the current language,
- * and data-i18n-attr="aria-label title …" names attributes that do too; in
- * both cases the key is the English text with runs of white space collapsed.
+ * Text in the code goes through t('English text {name}', { name }), looked up
+ * when it is drawn, never as a script loads: the language file can come in
+ * after the scripts (js/prepaint.js), and text looked up before it would stay
+ * English. tests/e2e/i18n.spec.cjs holds the file back to catch that.
+ *
+ * Elements of the page marked data-i18n get their content in the current
+ * language, and data-i18n-attr="aria-label title …" names attributes that do
+ * too; in both cases the key is the English text with runs of white space
+ * collapsed.
  *
  * Choosing a language saves it in localStorage and reloads the page with the
  * language in the URL (?lang=zh-CN), so links and bookmarks open in it too. A
@@ -73,10 +78,10 @@
   function register(lang) {
     if (languages.some((l) => l.code === lang.code)) throw new Error(`Language ${lang.code} registered twice`);
     languages.push(lang);
-    // A page that has its text keeps its language: a file that comes later
-    // (js/prepaint.js gives up waiting after 3 s) is only listed.
+    // A page already shown keeps its language: a file that comes after the
+    // visitor chose English while waiting (js/prepaint.js) is only listed.
     const page = typeof document !== 'undefined' ? document : null;
-    if ((page && applied.has(page)) || rank(lang.code) <= rank(current.code)) return;
+    if ((page && !page.documentElement.hasAttribute('data-i18n-pending')) || rank(lang.code) <= rank(current.code)) return;
     current = lang;
     // The page gets this text as soon as it is parsed, without waiting for its other scripts.
     if (page && page.readyState !== 'loading') applyLanguage(page);
