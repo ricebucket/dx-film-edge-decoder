@@ -7,37 +7,36 @@
 (function (root, lang) {
   'use strict';
   if (typeof module === 'object' && module.exports) module.exports = lang;
-  else root.DX.i18n.register(lang);
+  // It may load before js/i18n.js, which takes it from this queue.
+  else ((root.DX = root.DX || {}).languageFiles = root.DX.languageFiles || []).push(lang);
 })(typeof globalThis !== 'undefined' ? globalThis : this, {
   code: 'zh-CN',
   name: '简体中文',
-  punctuation: { comma: '，', colon: '：', semicolon: '；', period: '。', sentence: '。', space: '' },
+  punctuation: { comma: '，', list: '、', colon: '：', semicolon: '；', period: '。', sentence: '。', space: '' },
   strings: {
     // site/js/app.js
     "{film}, frame {frame}":
       "{film}，画幅 {frame}",
     "{film}, older 7-bar code":
       "{film}，旧式 7 根细条编码",
-    "Start right after the fixed start pattern: cells 7 to 13 hold Part 1. Drag across cells to fill several at once; keys 1 and 0 type bars and gaps.":
-      "从固定的输入模式后面开始：第 7–13 位是第 1 部分。拖过多个单元可一次填满；按 1 和 0 键输入条和空。",
-    "Cell {cell} is never used: if you see a bar there, the copy is shifted by one cell.":
-      "第 {cell} 位从不使用：如果你在那里看到条，说明抄写错开了一位。",
+    "Start at cell 7, right after the fixed start pattern. Drag to fill several cells; keys 1 and 0 type bars and gaps.":
+      "从第 7 位开始，就在固定的输入模式后面。拖动可一次填满多个单元；按 1 和 0 键输入条和空。",
+    "Cell {cell} should always be empty.":
+      "第 {cell} 位应始终为空。",
     "The parity check fails: one bar is probably misread. See the suggestions below.":
       "奇偶检验未通过：可能有一根条读错了。请看下面的建议。",
-    "The code does not pass its checks yet: see below.":
-      "编码还没有通过检查：见下文。",
-    "Part 1 is 0, which no maker held in 2008: if your film has bars in cells 7 to 13, add them.":
-      "第 1 部分为 0，2008 年时没有分配给任何感光厂：如果你的胶片在第 7–13 位有条，请补上。",
-    "Valid code. The 23-cell layout carries no frame number.":
-      "有效编码。23 位条码不含画幅号。",
-    "Valid code, unless the top row of your film has only 7 thin bars: see below.":
+    "Not a valid code yet: see below.":
+      "还不是有效编码：见下文。",
+    "Part 1 is 0. This is unlikely.":
+      "第 1 部分为 0。这不太可能。",
+    "Valid code. No frame number present.":
+      "有效编码。不含画幅号。",
+    "Valid code, unless your top row has only 7 thin bars: see below.":
       "有效编码，除非你的胶片时钟道只有 7 根细条：见下文。",
-    "Valid code. On your film, the number printed just before this barcode should read {frame}.":
-      "有效编码。在你的胶片上，紧挨在这个条码前面印的数字应为 {frame}。",
-    "Switch to light theme":
-      "切换到浅色主题",
-    "Switch to dark theme":
-      "切换到深色主题",
+    "Valid code. Frame {frame}.":
+      "有效编码。画幅号 {frame}。",
+    "The photo reader could not be loaded. Choose “Read a photo” to try again.":
+      "无法加载照片读取功能。再次选择“读取照片”即可重试。",
 
     // site/js/ui-finder.js
     "e.g. Portra 400, HP5, Fujicolor 200, 79-15":
@@ -60,8 +59,8 @@
       "年度报告没有给出这种胶片的第 2 部分编号",
     "This cassette number is outside the range a film edge code can hold":
       "这个暗盒条码超出了潜影条码能表示的范围",
-    "Part 1 would be 0, which no maker held in 2008.":
-      "第 1 部分会是 0，而 2008 年时它没有分配给任何感光厂。",
+    "Part 1 would be 0, which no maker held in 2008":
+      "第 1 部分会是 0，而 2008 年时它没有分配给任何感光厂",
     "Show barcode of {name}":
       "显示条码：{name}",
     "Show barcode":
@@ -81,15 +80,15 @@
     "No film in the lists has DX {dx}.":
       "列表中没有 DX 码为 {dx} 的胶片。",
     "DX number as 79-15, or the 4-digit form 1279. Frame as printed: 23, 23A, X, 00 …":
-      "DX 码写作 79-15，或四位数形式 1279。画幅号按片边印的写：23、23A、X、00 …",
+      "DX 码写作 79-15，或四位数形式 1279。画幅号按片边印的写：23、23A、X、00……",
     "DX number":
       "DX 码",
     "Frame":
       "画幅号",
     "That is not a DX number. Part 1 runs from 0 to 127 and Part 2 from 0 to 15, e.g. 79-15.":
       "这不是 DX 码。第 1 部分的范围是 0–127，第 2 部分是 0–15，例如 79-15。",
-    "Write the frame as printed on film: a number up to 60, optionally followed by A, or XX, X, 00.":
-      "请按胶片上印的写画幅号：不超过 60 的数字，后面可加 A；或写 XX、X、00。",
+    "Write the frame as printed, e.g. 23, 23A, X, 00.":
+      "请按胶片上印的写画幅号，例如 23、23A、X、00。",
     "Showing DX {dx}, frame {frame}.":
       "正在显示 DX {dx}，画幅 {frame}。",
     "Film name, maker or DX number":
@@ -100,8 +99,8 @@
       "按片边印的写，例如 12 或 12A",
     "Know the number already?":
       "已经知道 DX 码了？",
-    "Six digits, printed between the barcode and the film slot.":
-      "六位数字，印在条码与暗盒嘴之间。",
+    "Printed between the barcode and the film slot.":
+      "印在条码与暗盒嘴之间。",
     "Cassette number":
       "暗盒条码",
     "Look up":
@@ -112,18 +111,16 @@
       "供制造厂自行安排；不用时为 0。",
     "{extract} is above 8191, so it is not a DX number.":
       "{extract} 大于 8191，所以不是 DX 码。",
-    "Roll length":
-      "可拍摄画幅数",
+    "Last digit {digit}":
+      "末位数字 {digit}",
     "{n} exposures":
       "{n} 张",
-    "Last digit {digit}.":
-      "末位数字 {digit}。",
-    "Last digit {digit}. The 1994 standard used it for {n} exposures.":
-      "末位数字 {digit}。1994 年的标准用它表示 {n} 张。",
-    "Last digit {digit}. The 1994 standard used it for other lengths, such as 24 + 3.":
-      "末位数字 {digit}。1994 年的标准用它表示其他长度，例如 24 + 3 张。",
-    "Last digit {digit}. The 1994 standard did not use it.":
-      "末位数字 {digit}。1994 年的标准没有使用它。",
+    "The 1994 standard used it for {n} exposures.":
+      "1994 年的标准用它表示 {n} 张。",
+    "The 1994 standard used it for other lengths, such as 24 + 3.":
+      "1994 年的标准用它表示其他长度，例如 24 + 3 张。",
+    "The 1994 standard did not use it.":
+      "1994 年的标准没有使用它。",
     "{n} or more exposures":
       "{n} 张或更多",
     "{from}–{to} exposures":
@@ -131,9 +128,9 @@
     "{extract} = 16 × {cassette} + {part2}: an augmented number, which only cassettes carry.":
       "{extract} = 16 × {cassette} + {part2}：这是只用在暗盒上的增补编号。",
     "Part 1 {cassette} is {part1} + {added}. Part 1 = {part1} is assigned to {maker} in the 2008 registry; under the standard, a maker adds 128, 256 or 384 only to its own Part 1 number. The standard does not say which DX number the film carries.":
-      "第 1 部分 {cassette} 是 {part1} + {added}。在 2008 年年度报告中，第 1 部分 = {part1} 分配给了 {maker}；按照该标准，感光厂只在自己的第 1 部分编号上加 128、256 或 384。该标准没有规定这种暗盒里的胶片带哪个 DX 码。",
+      "第 1 部分 {cassette} 是 {part1} + {added}。在 2008 年年度报告中，第 1 部分 = {part1} 分配给了 {maker}；按照标准，感光厂只在自己的第 1 部分编号上加 128、256 或 384。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
     "Part 1 {cassette} is {part1} + {added}; Part 1 = {part1} was not assigned in the 2008 registry. The standard does not say which DX number the film carries.":
-      "第 1 部分 {cassette} 是 {part1} + {added}；在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。该标准没有规定这种暗盒里的胶片带哪个 DX 码。",
+      "第 1 部分 {cassette} 是 {part1} + {added}；在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
     "I3A registry, 2008":
       "I3A 年度报告，2008 年",
     "Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
@@ -142,14 +139,10 @@
       "第 1 部分 = {part1} 分配给了 {maker}。",
     "Part 1 = {part1} was not assigned in the 2008 registry.":
       "在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。",
-    "This number is not in the 2008 registry or the community database.":
-      "这个编号既不在 2008 年年度报告中，也不在社区数据库中。",
     "Show the edge barcode":
       "显示潜影条码",
     "Enter exactly six digits, for example 017563.":
       "请输入正好六位数字，例如 017563。",
-    "Cassette {digits}.":
-      "暗盒 {digits}。",
     "{n} films found.":
       "找到 {n} 种胶片。",
     "{n} other films use the same DX number":
@@ -158,22 +151,22 @@
       "另有 {n} 种胶片的中间四位数字相同",
 
     // site/js/ui-photo.js
-    "Sample: a computer-drawn film edge, a color negative.":
-      "示例：电脑绘制的片边，彩色负片。",
-    "Sample: a computer-drawn film edge, a slide.":
-      "示例：电脑绘制的片边，反转片。",
-    "Sample: a computer-drawn film edge, a black-and-white negative seen from the back.":
-      "示例：电脑绘制的片边，从背面看的黑白负片。",
+    "Sample: a computer-drawn color negative.":
+      "示例：电脑绘制的彩色负片。",
+    "Sample: a computer-drawn slide.":
+      "示例：电脑绘制的反转片。",
+    "Sample: a computer-drawn black-and-white negative, seen from the back.":
+      "示例：电脑绘制的黑白负片，从背面看。",
     "This image has almost no contrast. Try a sharper, closer photo of the film edge.":
       "这张图片几乎没有反差。请换一张更清晰、离片边更近的照片。",
-    "No clock track found: the row with a wide mark, a run of thin bars and a shorter mark. If the film edge is not horizontal, turn the image, then draw a box around one barcode, including both rows. If it is, the bars may be too faint or damaged: try a sharper photo in even light.":
-      "没有找到时钟道，也就是有一个宽标记、一串细条和一个较短标记的那一道。如果片边不水平，请旋转图片，再画一个框选中一个条码，把两道都框进去。如果片边已经水平，可能是条太淡或有损伤：请在均匀的光线下拍一张更清晰的照片。",
-    "The clock track was found, but not a readable data row next to it. Make sure your box includes both rows, or try a sharper photo.":
-      "找到了时钟道，但旁边没有可读的数据道。请确认两道都在框内，或换一张更清晰的照片。",
-    "Something like a barcode was found, but it could not be read reliably. Straighten the image so the film edge runs left to right, or draw a box around one barcode.":
-      "找到了类似条码的东西，但无法可靠读取。请拉直图片，让片边从左到右水平，或画一个框选中一个条码。",
-    "This looks like a barcode with 11 thin bars in its top row, cut off at the end or damaged there. Draw the box with a little room at both ends of the barcode, or try a sharper photo.":
-      "这看起来是一个时钟道有 11 根细条的条码，但末端被截断或有损伤。请在条码两端各留一点空间后重新画框，或换一张更清晰的照片。",
+    "The barcode’s top row was not found. Turn the image so the film edge runs left to right and draw a box around one barcode, or try a sharper photo in even light.":
+      "没有找到条码的时钟道。请旋转图片，使片边从左到右水平，再画一个框选中一个条码；或者在均匀的光线下拍一张更清晰的照片。",
+    "The lower row could not be read. Make sure the box includes both rows, or try a sharper photo.":
+      "无法读取数据道。请确认两道都在框内，或换一张更清晰的照片。",
+    "A barcode was found but could not be read reliably. Straighten the image, or draw a box around one barcode.":
+      "找到了条码，但无法可靠读取。请拉直图片，或画一个框选中一个条码。",
+    "This barcode looks cut off or damaged at its end. Leave a little room at both ends of the box, or try a sharper photo.":
+      "这个条码的末端看起来被截断或有损伤。请在框的两端各留一点空间，或换一张更清晰的照片。",
     "Photo of the film edge":
       "片边照片",
     "Choose a photo":
@@ -186,8 +179,6 @@
       "重新读取",
     "Use the code":
       "使用编码",
-    "The code appears here once a photo has been read.":
-      "读取照片后，编码会显示在这里。",
     "The code from your photo is on the strip below.":
       "照片中的编码已显示在下方的片条上。",
     "Open the photo":
@@ -226,8 +217,8 @@
       "移除照片",
     "Drop an image here, paste one, or":
       "把图片拖到这里、粘贴图片，或者",
-    "A close-up of the film edge works best: phone macro photo, loupe photo or scan. The image stays on your device.":
-      "片边特写效果最好：手机微距照片、透过放大镜拍的照片或扫描图。图片只留在你的设备上。",
+    "A close-up of the film edge works best. The image stays on your device and is never transmitted to the server.":
+      "片边特写效果最好。图片只留在你的设备上，永远不会传送到服务器。",
     "Rotate left 90 degrees":
       "向左旋转 90 度",
     "Rotate right 90 degrees":
@@ -244,22 +235,22 @@
       "拉直",
     "{n} degrees":
       "{n} 度",
-    "Turn the image so the film edge runs left to right (within a few degrees), then drag a box around one barcode, including both rows, or click two opposite corners. Without a box the whole image is searched.":
-      "旋转图片，使片边从左到右水平（误差在几度以内），再拖一个框选中一个条码，把两道都框进去，或者依次点击框的两个对角。不框选时会搜索整张图片。",
-    "Arrow keys move the box, and with Shift change its size. Enter reads it; Escape clears it.":
-      "方向键移动框，按住 Shift 键时改变框的大小。按 Enter 键读取，按 Esc 键清除。",
+    "Turn the image so the film edge runs left to right, then drag a box around one barcode (both rows), or click two opposite corners. Without a box, the whole image is searched.":
+      "旋转图片，使片边从左到右水平，再拖一个框选中一个条码（两道都要框进去），或者依次点击框的两个对角。不框选时会搜索整张图片。",
+    "Arrow keys move the box; Shift and arrows resize it. Enter reads, Escape clears.":
+      "方向键移动框；按住 Shift 键再按方向键可改变框的大小。按 Enter 键读取，按 Esc 键清除。",
     "That file is not an image.":
       "这个文件不是图片。",
     "Opening the photo…":
-      "正在打开照片…",
+      "正在打开照片……",
     "Your photo, {width} × {height} pixels.":
       "你的照片，{width} × {height} 像素。",
-    "This image could not be opened. JPEG, PNG and WebP photos work in every browser.":
-      "无法打开这张图片。JPEG、PNG 和 WebP 照片在所有浏览器中都能打开。",
+    "This image could not be opened. Try a JPEG, PNG or WebP file.":
+      "无法打开这张图片。请试试 JPEG、PNG 或 WebP 文件。",
     "Show another sample":
       "换一个示例",
     "Looking for the barcode…":
-      "正在查找条码…",
+      "正在查找条码……",
     "This part of the image could not be read. Select the barcode again, or clear the selection.":
       "无法读取图片的这一部分。请重新框选条码，或清除选区。",
     "No barcode found.":
@@ -270,8 +261,8 @@
       "照片中的胶片是镜像或倒置的；编码仍按正确的方向读取了。",
     "Clear bars on a dark edge: read as slide film.":
       "深色片边上的透明条：按反转片读取。",
-    "This is the original 23-cell layout without a frame number.":
-      "这是最初的 23 位条码，不含画幅号。",
+    "An older 7-bar code, without a frame number.":
+      "旧式 7 根细条编码，不含画幅号。",
     "Some cells were hard to tell apart; compare the result with your film.":
       "有些单元难以分辨；请把结果和你的胶片对照。",
     "The bars are faint or damaged in this photo; compare the result with your film.":
@@ -284,7 +275,7 @@
       "使用此编码",
     "not in the lists":
       "不在列表中",
-    "Outlined in the photo: the cells that were read, clock track in blue, data track in yellow (bold outline = bar).":
+    "Outlined in the photo: the cells that were read, top row in blue, lower row in yellow (bold outline = bar).":
       "照片中框出了读取的单元：时钟道为蓝色，数据道为黄色（粗框 = 条）。",
 
     // site/js/ui-reference.js
@@ -376,18 +367,16 @@
       "I3A 在这个第 1 部分下列出了它，但没有第 2 部分编号。",
     "Show all {n}":
       "显示全部 {n} 条",
-    "Community-maintained and mostly based on cassette numbers, so it includes rebranded films. Entries are as reliable as their sources.":
-      "由社区维护，主要依据暗盒条码，所以包含贴牌胶片。条目的可靠程度取决于其来源。",
+    "Community-maintained.":
+      "由社区维护。",
     "Cell {cell} should never have a bar":
       "第 {cell} 位不应该有条",
-    "If your film shows a bar there, the copy is probably shifted by one cell. Line the wide mark of the top row up with the start of the strip and compare again.":
-      "如果你的胶片在那里有条，抄写可能错开了一位。请把时钟道的宽标记对准片条的起点，再对照一次。",
+    "The copy is probably shifted by one cell: line up the top row’s wide mark with the start of the strip and compare again.":
+      "抄写可能错开了一位：请把时钟道的宽标记对准片条的起点，再对照一次。",
     "The parity check fails":
       "奇偶检验未通过",
-    "The bars in Part 1, Part 2, the frame number, the A cell and the parity cell should add up to an even number, but there are {n}. One bar is probably misread: look again at faint or scratched bars, or compare with the next code along the film.":
-      "第 1 部分、第 2 部分、画幅号、A 位和奇偶检验位中的条加起来应为偶数，但现在有 {n} 根。可能有一根条读错了：请再看看模糊或有划痕的条，或与胶片上的下一个条码对照。",
-    "The bars in Part 1, Part 2 and the parity cell should add up to an even number, but there are {n}. One bar is probably misread: look again at faint or scratched bars, or compare with the next code along the film.":
-      "第 1 部分、第 2 部分和奇偶检验位中的条加起来应为偶数，但现在有 {n} 根。可能有一根条读错了：请再看看模糊或有划痕的条，或与胶片上的下一个条码对照。",
+    "One bar is probably misread: check faint or scratched bars, or the next code along the film.":
+      "可能有一根条读错了：请检查模糊或有划痕的条，或胶片上的下一个条码。",
     "The start pattern is not the standard one":
       "输入模式与标准不符",
     "These cells are identical on every DX code.":
@@ -444,12 +433,12 @@
       "抄写条码的数据道",
     "Read a photo of your barcode":
       "读取你的条码照片",
-    "The decoding appears here as you go. Not sure what a barcode looks like? Load an example and compare it with your film.":
-      "解码结果会随着你的输入显示在这里。不知道条码长什么样？载入一个示例，和你的胶片对照。",
-    "Does the top row of your film have 7 thin bars?":
-      "你的胶片时钟道是否有 7 根细条？",
-    "Then this is an older 23-cell code without a frame number. The film is the same, DX {dx}, but the frame shown below would be meaningless. With 11 thin bars, the reading below is right as it is.":
-      "那么这是不含画幅号的旧式 23 位条码。胶片不变，仍是 DX {dx}，但下面显示的画幅号没有意义。如果有 11 根细条，下面的读数就是对的。",
+    "Not sure what a barcode looks like? Try an example:":
+      "不知道条码长什么样？试试示例：",
+    "Only 7 thin bars in your top row?":
+      "你的胶片时钟道只有 7 根细条？",
+    "Then it is an older code without a frame number: the film is still DX {dx}, but ignore the frame below. With 11 thin bars, the reading is right.":
+      "那么这是不含画幅号的旧式条码：胶片仍是 DX {dx}，但请忽略下面的画幅号。如果有 11 根细条，读数就是对的。",
     "Switch to 7 thin bars":
       "切换到 7 根细条",
     "{dx}, frame {frame}":
@@ -480,10 +469,10 @@
       "在 2008 年年度报告中，第 1 部分 = {part1} 没有分配给任何感光厂。",
     "History: {history}":
       "历史：{history}",
-    "DX {dx} is not in the 2008 registry; the name above comes from the community database.":
-      "DX {dx} 不在 2008 年年度报告中；上面的名称来自社区数据库。",
-    "DX {dx} is in neither the 2008 registry nor the community database. Films introduced after 2008 are often missing.":
-      "DX {dx} 既不在 2008 年年度报告中，也不在社区数据库中。2008 年以后推出的胶片常常缺失。",
+    "Not in the 2008 registry; the name comes from the community database.":
+      "不在 2008 年年度报告中；名称来自社区数据库。",
+    "Not found in either the 2008 I3A registry or The Big Film Database.":
+      "在 2008 年 I3A 年度报告和 The Big Film Database 中都没有找到。",
     "Part 1 = {part1}, Part 2 = {part2}":
       "第 1 部分 = {part1}，第 2 部分 = {part2}",
     "Half-frame (A) position":
@@ -544,7 +533,7 @@
       "输出模式",
     "Same on every film":
       "所有胶片都相同",
-    "Cell {cell} of {total}: {field}, value {weight}":
+    "Cell {cell} of {total}: {field}, weight {weight}":
       "第 {cell} 位（共 {total} 位）：{field}，对应数字 {weight}",
     "Cell {cell} of {total}: {field}":
       "第 {cell} 位（共 {total} 位）：{field}",
@@ -552,14 +541,14 @@
       "数据道（下方）：点按一个单元可添加或去掉条。方向键移动，按 1 和 0 键输入条和空。",
     "Unused: always empty":
       "未指定位：始终为空",
-    "Swipe the strip sideways to reach every cell, or turn your phone to landscape.":
-      "左右滑动片条可以看到每一位，或者把手机横过来。",
+    "Swipe sideways or turn your phone to landscape.":
+      "左右滑动，或者把手机横过来。",
     "Swipe sideways to see the whole code.":
       "左右滑动可以看到整个编码。",
 
     // site/index.html
-    "Identify 35 mm film from the DX barcode along the edge of your negatives and slides. Copy the bars you see to get the film, its maker and the frame number. Runs entirely in your browser.":
-      "根据负片和反转片片边上的 DX 潜影条码识别 35mm 胶片。照着抄下你看到的条，就能查到胶片、制造厂和画幅号。完全在你的浏览器中运行。",
+    "Identify 35 mm film from the DX barcode on the edge of your negatives and slides: the film, its maker and the frame number.":
+      "根据负片和反转片片边上的 DX 潜影条码识别 35mm 胶片，查出胶片、制造厂和画幅号。",
     "DX Film Edge Decoder":
       "DX 潜影条码解码器",
     "Skip to the decoder":
@@ -580,6 +569,10 @@
       "DX 码列表",
     "Language":
       "语言",
+    "Switch to light theme":
+      "切换到浅色主题",
+    "Switch to dark theme":
+      "切换到深色主题",
     "Identify a film from the barcode on its edge":
       "从片边的潜影条码识别胶片",
     "Not sure which film your negatives or slides are? They can tell you themselves. Most 35&nbsp;mm film made since 1983 has a DX barcode along one edge. Copy its bars, or read them from a photo, to find the film, its maker and the frame number.":
@@ -596,16 +589,16 @@
       "展开简介",
     "How to copy the bars":
       "如何抄写条码",
-    "Look at the strip between the sprocket holes and the edge of the film: two touching rows of small bars, about 13&nbsp;mm long, repeated twice per frame. A loupe or a zoomed-in scan helps.":
-      "看片孔和片边之间的窄带：两道紧挨着的细小条纹，长约 13&nbsp;mm，每个画幅重复两次。用放大镜或放大的扫描图会更容易看清。",
+    "Two touching rows of small bars between the sprocket holes and the film edge, twice per frame. A loupe helps.":
+      "片孔和片边之间两道紧挨着的细小条纹，每个画幅出现两次。用放大镜看更清楚。",
     "Turn the film the right way around":
       "把胶片转到正确的方向",
-    "Hold it so the barcode runs <em>below</em> the sprocket holes and the small printed numbers read normally. The top row should then start with a wide bar on the left. If the wide bar is on the right, turn on <button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">Mirror</button>.":
-      "拿着胶片，让条码位于片孔<em>下方</em>，片边的小数字正常可读。这样，时钟道应该从左边的一根宽条开始。如果宽条在右边，请打开<button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">镜像</button>。",
+    "Hold it so that it looks like the film strip shown below. Turn on <button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">Mirror</button> to flip the strip left to right.":
+      "拿着胶片，让它看起来和下面画出的片条一样。打开<button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">镜像</button>可以左右翻转片条。",
     "Copy the lower row":
       "抄写数据道",
-    "Click every cell of the lower row where your film has a bar. Drag to fill several. The top row and both ends are identical on every film, so they are already drawn. Older film may have a shorter code with only 7 thin bars in the top row: choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button> under Layout.":
-      "在数据道中，你的胶片上哪个单元有条，就点击哪个单元。拖动可一次填满多个单元。时钟道和两端在所有胶片上都相同，所以已经画好了。较旧的胶片可能用较短的条码，时钟道只有 7 根细条：请在“条码类型”中选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>。",
+    "Click each cell of the lower row where your film has a bar, or drag across several. The rest is the same on every film and already drawn. If your top row has only 7 thin bars, choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button>.":
+      "在数据道中，你的胶片上哪个单元有条，就点击哪个单元，也可以拖过多个单元。其余部分在所有胶片上都相同，已经画好了。如果你的胶片时钟道只有 7 根细条，请选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>。",
     "Layout":
       "条码类型",
     "11 thin bars":
@@ -630,24 +623,24 @@
       "重做",
     "Clear":
       "清除",
-    "Count the thin bars in the <strong>top</strong> row between the wide mark at the start and the shorter wide mark at the end. <strong>11 thin bars</strong>: the 31-cell layout with a frame number, introduced around 1990. <strong>7 thin bars</strong>: the original 23-cell layout from 1983, still used on some film in the 1990s; it identifies the film but carries no frame number.":
-      "数一数<strong>时钟道</strong>开头的宽标记和结尾较短的宽标记之间有几根细条。<strong>11 根细条</strong>：带画幅号的 31 位条码，约 1990 年推出。<strong>7 根细条</strong>：1983 年最初的 23 位条码，1990 年代仍有部分胶片使用；它能识别胶片，但不含画幅号。",
+    "Count the thin bars between the two wide marks of the <strong>top</strong> row. <strong>11 thin bars</strong>: the 31-cell layout with a frame number, from about 1990. <strong>7 thin bars</strong>: the original 23-cell layout from 1983, without a frame number.":
+      "数一数<strong>时钟道</strong>两个宽标记之间有几根细条。<strong>11 根细条</strong>：带画幅号的 31 位条码，约 1990 年起使用。<strong>7 根细条</strong>：1983 年最初的 23 位条码，不含画幅号。",
     "Find a film’s code":
       "查找胶片的编码",
-    "Search by film name, maker or DX number, then put its barcode on the strip to compare it with your film. Results come from the 2008 I3A registry and the community-run Big Film Database.":
-      "按胶片名称、制造厂或 DX 码搜索，再把它的条码放到片条上，和你的胶片对照。结果来自 2008 年的 I3A 年度报告和由社区维护的 The Big Film Database。",
+    "Search by film name, maker or DX number, then show its barcode on the strip to compare with your film.":
+      "按胶片名称、制造厂或 DX 码搜索，再把它的条码显示在片条上，和你的胶片对照。",
     "Have the cassette?":
       "有暗盒吗？",
-    "The six digits printed between the barcode and the film slot of a 35&nbsp;mm cassette usually carry the same DX number as the film edge, plus the roll length. Enter them to identify the film.":
-      "135 规格暗盒上印在条码与暗盒嘴之间的六位数字通常包含与片边相同的 DX 码，另加可拍摄画幅数。输入这些数字即可识别胶片。",
+    "The six digits on a 35&nbsp;mm cassette usually carry the film’s DX number and the roll length. Enter them to identify the film.":
+      "135 规格暗盒上的六位数字通常包含胶片的 DX 码和可拍摄画幅数。输入这些数字即可识别胶片。",
     "How the DX edge code works":
       "DX 潜影条码的原理",
-    "Kodak introduced DX encoding in 1983. Besides the checkerboard contacts and barcode on the cassette, film for color negative processing carries a <em>latent image</em> barcode, exposed along one edge of the film during manufacture; on other film it is optional. It stays invisible until development, and photofinishing machines read it to recognize the film and, later, to number the frames.":
-      "柯达在 1983 年推出了 DX 编码。除了暗盒上棋盘格式的照相机自动传感区和条码，供彩色负片加工使用的胶片在生产时还会沿一侧片边曝光一个<em>潜影</em>条码；在其他胶片上，它是可选的。它在加工前看不见，冲洗设备读取它来识别胶片，后来也用它给各画幅编号。",
+    "Kodak introduced DX encoding in 1983. Film for color negative processing carries a <em>latent image</em> barcode along one edge, exposed at the factory and visible after development; on other film it is optional. Lab machines read it to recognize the film and, later, to number the frames.":
+      "柯达在 1983 年推出了 DX 编码。供彩色负片加工使用的胶片沿一侧片边带有一个<em>潜影</em>条码，在工厂里曝光，加工后显现；在其他胶片上，它是可选的。冲洗设备读取它来识别胶片，后来也用它给各画幅编号。",
     "Two tracks":
       "时钟道和数据道",
-    "The code has two rows that touch. The <strong>clock track</strong> on top, nearest the sprocket holes, is the same on every film: a wide mark, a run of thin bars and a shorter wide mark. Machines use it to find each cell. The <strong>data track</strong> below, along the film edge, holds the information: every cell is either a bar (1) or a gap (0).":
-      "条码有两道，彼此紧挨。上面靠近片孔的是<strong>时钟道</strong>，所有胶片都一样：一个宽标记、一串细条和一个较短的宽标记。机器用它找到每一个单元。下面沿着片边的是<strong>数据道</strong>，承载信息：每个单元要么是条（1），要么是空（0）。",
+    "The <strong>clock track</strong> on top, nearest the sprocket holes, is the same on every film: a wide mark, a run of thin bars and a shorter wide mark, which machines use to find each cell. The <strong>data track</strong> below holds the information: each cell is a bar (1) or a gap (0).":
+      "上面靠近片孔的<strong>时钟道</strong>在所有胶片上都一样：一个宽标记、一串细条和一个较短的宽标记，机器用它找到每一个单元。下面的<strong>数据道</strong>承载信息：每个单元是条（1）或空（0）。",
     "Data track, 31-cell layout (the 23-cell layout has cells 1–18 the same, the parity cell at 19 and the stop pattern at 20–23)":
       "数据道，31 位条码（23 位条码的第 1–18 位相同，第 19 位为奇偶检验位，第 20–23 位为输出模式）",
     "What it holds":
@@ -706,20 +699,20 @@
       "空 / 条",
     "the same number":
       "相同的数字",
-    "Edge numbers are exposed at the factory, independently of your camera, so they rarely line up exactly with each picture. Use them to tell frames apart rather than to match your camera’s counter. With a half-frame camera, count positions instead: 0, 0A, 1, 1A … are half frames 0, 1, 2, 3 …":
-      "片边上的画幅号在工厂里曝光，与你的相机无关，所以很少正好对准每张照片。用它们来区分各画幅，而不是去对应相机的计数器。如果用半格相机，请改为数位置：0、0A、1、1A … 就是半画幅 0、1、2、3 …",
+    "Edge numbers are exposed at the factory, so they rarely line up exactly with your pictures or your camera’s counter.":
+      "片边上的画幅号在工厂里曝光，所以很少正好对准你的照片或相机的计数器。",
     "Older film":
       "较旧的胶片",
-    "The original code, from before the frame-number extension and still used on some film after it, is shorter: 23 cells, with only 7 thin bars in the top row instead of 11. They carry the film’s DX number but no frame number, so choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button> under Layout before copying one. If an old code is copied into the 31-cell strip anyway, it still reads as the right film, but with a meaningless frame number (10 or 42); the decoder points this out and offers to switch.":
-      "最初的条码出现在加入画幅号之前，之后仍有部分胶片使用，它更短：23 位，时钟道只有 7 根细条，而不是 11 根。它带有胶片的 DX 码，但没有画幅号，所以抄写前请在“条码类型”中选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>。如果把旧条码抄进了 31 位的片条，仍能读出正确的胶片，但画幅号没有意义（10 或 42）；解码器会指出这一点，并提供切换。",
+    "The original code is shorter: 23 cells, with 7 thin bars in the top row instead of 11, and no frame number. Choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button> before copying one; if you forget, the decoder points this out and offers to switch.":
+      "最初的条码更短：23 位，时钟道只有 7 根细条而不是 11 根，也没有画幅号。抄写这种条码前请选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>；如果忘了，解码器会指出这一点，并提供切换。",
     "The parity check":
       "奇偶检验",
     "The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When your copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.":
       "奇偶检验位是防止读错的简单保护：第 1 部分、第 2 部分、画幅号和 A 标志中的条数为奇数时，它有一根条，为偶数时为空，所以总数始终为偶数。如果你的抄写没有通过奇偶检验，可能有一根条错了。解码器会列出只改一位就能得到有效编码的修正，已知胶片排在前面。",
     "Reading direction and film type":
       "阅读方向与胶片类型",
-    "Read the code with the wide clock mark first. When the film is the right way around, usually with its shiny base side toward you, the printed numbers beside the barcode read normally and the wide mark is on the left. Seen from the other side, everything is mirrored. On slide film the edge is black and the bars show as clear marks. Faded or scratched codes are common; since the code repeats every half frame, check the next one along if a bar is unclear.":
-      "从时钟道的宽标记开始读。胶片方向正确时（通常是光亮的片基面朝向你），条码旁的数字正常可读，宽标记在左边。从另一面看，一切都是镜像的。在反转片上，片边是黑的，条显示为透明的标记。条码褪色或有划痕很常见；由于条码每半个画幅重复一次，如果某根条看不清，可以看下一个条码。",
+    "Read the code from the wide clock mark. With the film the right way around, usually shiny base side toward you, the printed numbers read normally and the wide mark is on the left; from the other side, everything is mirrored. On slide film the bars show clear on a black edge. The code repeats every half frame, so if a bar is unclear, check the next one.":
+      "从时钟道的宽标记开始读。胶片方向正确时（通常是光亮的片基面朝向你），印的数字正常可读，宽标记在左边；从另一面看，一切都是镜像的。在反转片上，条在黑色的片边上显示为透明。条码每半个画幅重复一次，所以如果某根条看不清，可以看下一个条码。",
     "What the code cannot tell you":
       "编码不能告诉你什么",
     "The DX number names a product. The product name usually includes the speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.":
@@ -729,40 +722,8 @@
     "The Part 1 numbers and products registered with the International Imaging Industry Association, as published in <cite>DX Codes for 135-Size Film</cite> (February 2008). Select a Part 1 number to filter the list.":
       "在国际影像行业协会（I3A）登记的第 1 部分编号和产品，发表于 <cite>DX Codes for 135-Size Film</cite>（2008 年 2 月）。选择一个第 1 部分编号即可筛选列表。",
 
-    // site/sources.html
-    "Sources and credits – DX Film Edge Decoder":
-      "来源与致谢 – DX 潜影条码解码器",
-    "Sources and credits":
-      "来源与致谢",
-    "Barcode format":
-      "条码格式",
-    "Olliver, Johnson &amp; Patton (Eastman Kodak), <a href=\"https://patents.google.com/patent/US4965628A/en\">US patent 4,965,628</a>, “Photographic film with latent image multi-field bar code and eye-readable symbols”, 1990.":
-      "Olliver, Johnson &amp; Patton（Eastman Kodak），<a href=\"https://patents.google.com/patent/US4965628A/en\">美国专利 4,965,628</a>，“Photographic film with latent image multi-field bar code and eye-readable symbols”，1990 年。",
-    "GB/T 9185-2003, <cite>Photography — 135-size film and magazine — Specifications</cite>, China’s identical adoption of ISO 1007:2000: section 7 for the edge barcode, section 9 for the cassette barcode and Annex A for DX numbers. Wikipedia’s <a href=\"https://en.wikipedia.org/wiki/DX_number\">DX number</a> and <a href=\"https://en.wikipedia.org/wiki/DX_encoding\">DX encoding</a> articles summarize ISO 1007.":
-      "GB/T 9185-2003<cite>《摄影 135规格胶片和暗盒 规范》</cite>，等同采用 ISO 1007:2000：第 7 章是潜影条码，第 9 章是暗盒条码，附录 A 是 DX 码。英文维基百科的 <a href=\"https://en.wikipedia.org/wiki/DX_number\">DX number</a> 和 <a href=\"https://en.wikipedia.org/wiki/DX_encoding\">DX encoding</a> 条目概述了 ISO 1007。",
-    "Fuji Photo Film, <a href=\"https://patents.google.com/patent/US5122645A/en\">US patent 5,122,645</a>, describing the original layout with seven clock bars.":
-      "Fuji Photo Film，<a href=\"https://patents.google.com/patent/US5122645A/en\">美国专利 5,122,645</a>，描述了时钟道有 7 根细条的最初条码。",
-    "The DX Film Edge reader in <a href=\"https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp\">zxing-cpp</a> and the generator in <a href=\"https://github.com/zint/zint/blob/master/backend/dxfilmedge.c\">Zint</a> by Antoine Mérino, used to cross-check every rule of the decoder; Zint’s test vectors are part of this project’s tests.":
-      "Antoine Mérino 为 <a href=\"https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp\">zxing-cpp</a> 编写的 DX Film Edge 条码读出器和为 <a href=\"https://github.com/zint/zint/blob/master/backend/dxfilmedge.c\">Zint</a> 编写的生成器，用来交叉核对解码器的每一条规则；Zint 的测试向量也是本项目测试的一部分。",
-    "Antoine Mérino, <a href=\"https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/\">Identifying the manufacturer of your 35mm (and APS) films</a>, 2024.":
-      "Antoine Mérino，<a href=\"https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/\">Identifying the manufacturer of your 35mm (and APS) films</a>，2024 年。",
-    "Aurélien Lawley, <a href=\"https://aurelien.lawley.com.au/posts/decoding_35mm_dx_film_edge_barcodes/\">Decoding 35mm DX film edge barcodes</a>.":
-      "Aurélien Lawley，<a href=\"https://aurelien.lawley.com.au/posts/decoding_35mm_dx_film_edge_barcodes/\">Decoding 35mm DX film edge barcodes</a>。",
-    "alibosworth, <a href=\"https://github.com/alibosworth/35mm-dx-edge-code/blob/main/readme.md\">DX Latent Edge Code — Format Reference</a>.":
-      "alibosworth，<a href=\"https://github.com/alibosworth/35mm-dx-edge-code/blob/main/readme.md\">DX Latent Edge Code — Format Reference</a>。",
-    "Film data":
-      "胶片数据",
-    "International Imaging Industry Association, <cite>DX Codes for 135-Size Film</cite>, February 2008: Part 1 assignments and the product list, transcribed as factual data. <a href=\"https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association\">View the document</a>.":
-      "国际影像行业协会（I3A），<cite>DX Codes for 135-Size Film</cite>，2008 年 2 月：第 1 部分分配表和产品列表，作为事实数据转录。<a href=\"https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association\">查看文件</a>。",
-    "<a href=\"https://github.com/dxdatabase/Open-source-film-database\">The Big Film Database</a> (dxdatabase) © 2018 by Dxdatabase, licensed under <a href=\"https://creativecommons.org/licenses/by-sa/4.0/\">CC BY-SA 4.0</a>. Adapted: only entries with a DX number are kept, the image-name column is removed, “#” search tags are split from names and HTML markup is removed. Thanks also to Antoine Mérino’s <a href=\"https://thebigfilmdatabase.merinorus.com\">modified edition</a>.":
-      "<a href=\"https://github.com/dxdatabase/Open-source-film-database\">The Big Film Database</a>（dxdatabase）© 2018 by Dxdatabase，采用 <a href=\"https://creativecommons.org/licenses/by-sa/4.0/\">CC BY-SA 4.0</a> 许可。改编之处：只保留带 DX 码的条目，删除图片文件名一列，把“#”搜索标签从名称中分开，并删除 HTML 标记。也感谢 Antoine Mérino 的<a href=\"https://thebigfilmdatabase.merinorus.com\">修改版</a>。",
-    "This tool":
-      "本工具",
-    "Free software under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU GPL v3</a>. Source code, tests and data scripts are on <a href=\"https://github.com/ricebucket/dx-film-edge-decoder\">GitHub</a>. Everything runs in your browser, and photos never leave your device. The code on the strip is kept in the page’s address, which the site receives only when you reload the page or open a link to it.":
-      "采用 <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU GPL v3</a> 许可的自由软件。源代码、测试和数据脚本都在 <a href=\"https://github.com/ricebucket/dx-film-edge-decoder\">GitHub</a> 上。一切都在你的浏览器中运行，照片永远不会离开你的设备。片条上的编码保存在页面地址中，只有在你重新加载页面或打开指向它的链接时，网站才会收到它。",
-
-    // the footer of both pages
-    "DX Film Edge Decoder. Film data: I3A registry (2008) and <a href=\"sources.html#community-credit\">The Big Film Database</a> (CC BY-SA 4.0). Code: <a href=\"https://github.com/ricebucket/dx-film-edge-decoder\">GPL-3.0 on GitHub</a>. <a href=\"sources.html\">Sources and credits</a>":
-      "DX 潜影条码解码器。胶片数据：I3A 年度报告（2008）和 <a href=\"sources.html#community-credit\">The Big Film Database</a>（CC BY-SA 4.0）。代码：<a href=\"https://github.com/ricebucket/dx-film-edge-decoder\">GPL-3.0，托管在 GitHub</a>。<a href=\"sources.html\">来源与致谢</a>",
+    // the footer
+    "Film data: I3A registry (2008) and <a href=\"sources.html#community-credit\">The Big Film Database</a> (CC BY-SA 4.0). Code: <a href=\"https://github.com/ricebucket/dx-film-edge-decoder\">GPL-3.0 on GitHub</a>. <a href=\"sources.html\">Sources and credits</a>":
+      "胶片数据：I3A 年度报告（2008）和 <a href=\"sources.html#community-credit\">The Big Film Database</a>（CC BY-SA 4.0）。代码：<a href=\"https://github.com/ricebucket/dx-film-edge-decoder\">GPL-3.0，托管在 GitHub</a>。<a href=\"sources.html\">来源与致谢</a>",
   },
 });

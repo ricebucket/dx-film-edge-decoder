@@ -33,7 +33,7 @@ test('choosing Chinese shows the page in Chinese, keeps the code, and is remembe
   // The code survived the reload, and the generated text is Chinese too.
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
   await expect(page.locator('#result .status')).toHaveText('有效的 DX 编码');
-  await expect(page.locator('#hint')).toHaveText('有效编码。在你的胶片上，紧挨在这个条码前面印的数字应为 23。');
+  await expect(page.locator('#hint')).toHaveText('有效编码。画幅号 23。');
   await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，对应数字 64');
   await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^切换到/);
 
@@ -73,12 +73,117 @@ test('where the browser blocks storage, the language goes along to the sources p
   });
   await page.goto('/?lang=zh-CN');
   await page.locator('.site-footer').getByRole('link', { name: '来源与致谢' }).click();
-  await expect(page).toHaveURL(/\/sources\.html\?lang=zh-CN$/);
+  await expect(page).toHaveURL(/\/sources\.zh-CN\.html$/);
   await expect(page).toHaveTitle('来源与致谢 – DX 潜影条码解码器');
   await expect(page.locator('h1')).toHaveText('来源与致谢');
   await page.getByRole('navigation', { name: '页面各部分' }).getByRole('link', { name: '原理' }).click();
   await expect(page).toHaveURL(/\/index\.html\?lang=zh-CN#how$/);
   await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+  // English chosen on the sources page: the decoder is in English again.
+  await page.locator('.site-footer').getByRole('link', { name: '来源与致谢' }).click();
+  await chooseLanguage(page, 'English');
+  await expect(page).toHaveURL(/\/sources\.html$/);
+  await page.getByRole('link', { name: 'DX Film Edge Decoder', exact: true }).click();
+  await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+});
+
+test('the sources page is written in each language: the decoder leads to the one shown, and the menu opens the other without loading the language files', async ({ page }) => {
+  await page.goto('/');
+  await chooseLanguage(page, '简体中文');
+  await page.locator('.site-footer').getByRole('link', { name: 'The Big Film Database' }).click();
+  await expect(page).toHaveURL(/\/sources\.zh-CN\.html#community-credit$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page.locator('#community-credit')).toContainText('采用 CC BY-SA 4.0 许可');
+  await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
+  await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^切换到/);
+
+  const requests = [];
+  page.on('request', (req) => requests.push(new URL(req.url()).pathname));
+  await chooseLanguage(page, 'English');
+  await expect(page).toHaveURL(/\/sources\.html#community-credit$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('h1')).toHaveText('Sources and credits');
+  await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^Switch to/);
+  // A Chinese choice saved earlier does not hide or change the English page.
+  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+  await page.goto('/sources.html');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
+  await expect(page.getByLabel('Language')).toHaveValue('en');
+  await chooseLanguage(page, '简体中文');
+  await expect(page).toHaveURL(/\/sources\.zh-CN\.html$/);
+  await expect(page.locator('h1')).toHaveText('来源与致谢');
+  expect(requests.filter((p) => p.includes('/js/i18n'))).toEqual([]);
+
+  // The choice made there is the decoder's too.
+  await chooseLanguage(page, 'English');
+  await page.goto('/');
+  await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+});
+
+test('the page loads only the language it is shown in', async ({ page }) => {
+  const requests = [];
+  page.on('request', (req) => requests.push(new URL(req.url()).pathname));
+  const languageFiles = () => requests.filter((p) => p.startsWith('/js/i18n/'));
+  // A language the page doesn't have: nothing to load, nothing hidden.
+  await page.goto('/?lang=fr');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
+  await expect(page.getByLabel('Language').locator('option')).toHaveText(['English', '简体中文']);
+  expect(languageFiles()).toEqual([]);
+  await chooseLanguage(page, '简体中文');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+  expect(languageFiles()).toEqual(['/js/i18n/zh-CN.js']);
+});
+
+test('a page in Chinese shows as soon as its text has loaded, before the rest of its scripts', async ({ page }) => {
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
+  await page.route('**/js/app.js', async (route) => {
+    await held;
+    await route.continue();
+  });
+  await page.goto('/?lang=zh-CN', { waitUntil: 'commit' });
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+  await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  release();
+  await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
+  await expect(page.locator('#hint')).toHaveText(/^从第 7 位开始/);
+});
+
+test('a page in Chinese is Chinese throughout, however late its language file comes', async ({ page }) => {
+  // After every other script...
+  await page.route('**/js/i18n/zh-CN.js', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await route.continue();
+  });
+  await page.goto('/?lang=zh-CN');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+  // ...even the texts the scripts set up as they load: the strip, the examples, the bar above the strip.
+  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，对应数字 64');
+  await page.getByRole('button', { name: 'Kodak BW400CN，画幅 23' }).click();
+  await expect(page.locator('#source')).toContainText('示例');
+});
+
+test('the language file may also come before the language layer', async ({ page }) => {
+  await page.route('**/js/i18n.js', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await route.continue();
+  });
+  await page.goto('/?lang=zh-CN');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+  await expect(page.locator('#hint')).toHaveText(/^从第 7 位开始/);
+});
+
+test('a page whose language layer cannot load shows after 3 s, in English and marked so', async ({ page }) => {
+  // A page of its own: the scripts' errors are expected here.
+  const other = await page.context().newPage();
+  await other.route('**/js/i18n.js', (route) => route.abort());
+  await other.goto('/?lang=zh-CN');
+  await expect(other.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/, { timeout: 6000 });
+  await expect(other.locator('html')).toHaveAttribute('lang', 'en');
+  await other.close();
 });
 
 test('a language in the URL that the page does not have is ignored', async ({ page }) => {
@@ -131,6 +236,9 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   await page.locator('#cassette-code').fill('017563');
   await page.getByRole('button', { name: '查询' }).click();
   await expect(page.locator('.cassette__result')).toContainText('24 张');
+  // Lists of numbers are separated the Chinese way.
+  await expect(page.locator('#codes .num-list')).toContainText('、');
+  await expect(page.locator('#codes .num-list')).not.toContainText(', ');
 
   await page.getByRole('tab', { name: '读取照片' }).click();
   await page.getByRole('button', { name: '试用示例' }).click();
@@ -140,6 +248,10 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
 
 test('every marked part of the page has its text in every language, exactly as the browser reads it', async ({ page }) => {
   await page.goto('/');
+  // The page loads only the language it is shown in: the others' files are added here.
+  for (const code of await page.evaluate(() => window.DX.i18n.available().map((l) => l.code).filter((c) => c !== 'en'))) {
+    await page.addScriptTag({ url: `js/i18n/${code}.js` });
+  }
   const missing = await page.evaluate(() => {
     const { i18n } = window.DX;
     const out = [];
@@ -163,7 +275,7 @@ test('every marked part of the page has its text in every language, exactly as t
 
 test('every language fits the screen without sideways scrolling, down to 320 px wide', async ({ page }) => {
   await page.goto('/');
-  const names = await page.evaluate(() => window.DX.i18n.languages.filter((l) => l.code !== 'en').map((l) => l.name));
+  const names = await page.evaluate(() => window.DX.i18n.available().filter((l) => l.code !== 'en').map((l) => l.name));
   const { width, height } = page.viewportSize();
   for (const name of names) {
     await page.setViewportSize({ width, height });

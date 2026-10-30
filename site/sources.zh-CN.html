@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>来源与致谢 – DX 潜影条码解码器</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#eef3f6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151c23" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <script src="js/prepaint.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/ui-dom.js" defer></script>
+  <script src="js/ui-header.js" defer></script>
+  <script src="js/sources.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="index.html?lang=zh-CN">
+        <svg class="brand__mark" viewBox="0 0 32 20" aria-hidden="true" focusable="false">
+          <rect x="0" y="0" width="32" height="20" rx="2" class="brand__film"/>
+          <path class="brand__bars" d="M3 4h5v6H3zM10 4h1.5v6H10zM13.5 4H15v6h-1.5zM17 4h1.5v6H17zM20.5 4H22v6h-1.5zM24 4h4.5v6H24zM3 10h1.5v6H3zM6.5 10H8v6H6.5zM13.5 10H15v6h-1.5zM15 10h1.5v6H15zM20.5 10H22v6h-1.5zM25.5 10H27v6h-1.5z"/>
+        </svg>
+        <span class="brand__name">DX 潜影条码解码器</span>
+      </a>
+      <nav class="site-nav" aria-label="页面各部分">
+        <a href="index.html?lang=zh-CN#decoder">解码器</a>
+        <a href="index.html?lang=zh-CN#finder">查找胶片</a>
+        <a href="index.html?lang=zh-CN#cassette">暗盒</a>
+        <a href="index.html?lang=zh-CN#how">原理</a>
+        <a href="index.html?lang=zh-CN#codes">DX 码列表</a>
+      </nav>
+      <div class="lang-picker">
+        <label for="lang-select" class="visually-hidden">语言</label>
+        <select id="lang-select" class="lang-picker__select">
+          <option value="en" lang="en">English</option>
+          <option value="zh-CN" lang="zh-CN" selected>简体中文</option>
+        </select>
+      </div>
+      <button type="button" class="icon-button theme-toggle" id="theme-toggle" aria-label="切换到深色主题" data-to-light="切换到浅色主题" data-to-dark="切换到深色主题"></button>
+    </div>
+  </header>
+
+  <main id="top" class="sources-page">
+    <div class="wrap">
+      <div class="prose">
+        <h1>来源与致谢</h1>
+        <h2>条码格式</h2>
+        <ul class="sources">
+          <li>GB/T 9185-2003<cite>《摄影 135规格胶片和暗盒 规范》</cite>，等同采用 ISO 1007:2000。英文维基百科的 <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> 和 <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> 条目概述了 ISO 1007。</li>
+          <li>Olliver, Johnson &amp; Patton（Eastman Kodak），<a href="https://patents.google.com/patent/US4965628A/en">美国专利 4,965,628</a>，“Photographic film with latent image multi-field bar code and eye-readable symbols”，1990 年。</li>
+          <li>Fuji Photo Film，<a href="https://patents.google.com/patent/US5122645A/en">美国专利 5,122,645</a>，描述了时钟道有 7 根细条的最初条码。</li>
+          <li>Antoine Mérino 和 Axel Waggershauser 为 <a href="https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp">zxing-cpp</a> 编写的 DX Film Edge 条码读出器，以及 Antoine Mérino 为 <a href="https://github.com/zint/zint/blob/master/backend/dxfilmedge.c">Zint</a> 编写的生成器，用来交叉核对解码器。</li>
+          <li>Antoine Mérino，<a href="https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/">Identifying the manufacturer of your 35mm (and APS) films</a>，2024 年。</li>
+          <li>Aurélien Lawley，<a href="https://aurelien.lawley.com.au/posts/decoding_35mm_dx_film_edge_barcodes/">Decoding 35mm DX film edge barcodes</a>。</li>
+          <li>alibosworth，<a href="https://github.com/alibosworth/35mm-dx-edge-code/blob/main/readme.md">DX Latent Edge Code — Format Reference</a>。</li>
+        </ul>
+        <h2>胶片数据</h2>
+        <ul class="sources">
+          <li>国际影像行业协会（I3A），<cite>DX Codes for 135-Size Film</cite>，2008 年 2 月：第 1 部分分配表和产品列表。<a href="https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association">查看文件</a>。</li>
+          <li id="community-credit"><a href="https://github.com/dxdatabase/Open-source-film-database">The Big Film Database</a>（dxdatabase）© 2018 by Dxdatabase，采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> 许可。改编之处：只保留带 DX 码的条目，删除图片文件名一列，把“#”搜索标签从名称中分开，并删除 HTML 标记。也感谢 Antoine Mérino 的<a href="https://thebigfilmdatabase.merinorus.com">修改版</a>。</li>
+        </ul>
+        <h2>本工具</h2>
+        <p>采用 <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3</a> 许可的自由软件。源代码、测试和数据脚本都在 <a href="https://github.com/ricebucket/dx-film-edge-decoder">GitHub</a> 上。一切都在你的浏览器中运行，照片永远不会离开你的设备。</p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

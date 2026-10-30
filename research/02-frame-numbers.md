@@ -52,8 +52,8 @@ label *before* the code it names:
 | Wikimedia, *Kodak Telegraph negativ23a.jpg* (Kodak BW400CN) | `23`, the code for 23 (measured, see [report 05](05-reading-real-film.md)), `23A` with an arrow, … |
 
 So when a user reads a code, the printed number just to its left should match
-the decoded frame. The tool says so under the strip and draws that number
-before the code, at its size on the Kodak negative
+the decoded frame. The result shows that number as the printed frame label,
+and the strip draws it before the code, at its size on the Kodak negative
 ([report 05](05-reading-real-film.md#validation-decoding-a-real-negative)).
 
 The standard adds that a second row of numbers may run along the opposite

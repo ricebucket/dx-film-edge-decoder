@@ -3,15 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n>Sources and credits – DX Film Edge Decoder</title>
+  <title>Sources and credits – DX Film Edge Decoder</title>
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#eef3f6" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151c23" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css">
   <script src="js/prepaint.js"></script>
-  <script src="js/i18n.js" defer></script>
-  <script src="js/i18n/zh-CN.js" defer></script>
+  <link rel="stylesheet" href="css/style.css">
   <script src="js/ui-dom.js" defer></script>
   <script src="js/ui-header.js" defer></script>
   <script src="js/sources.js" defer></script>
@@ -24,53 +22,49 @@
           <rect x="0" y="0" width="32" height="20" rx="2" class="brand__film"/>
           <path class="brand__bars" d="M3 4h5v6H3zM10 4h1.5v6H10zM13.5 4H15v6h-1.5zM17 4h1.5v6H17zM20.5 4H22v6h-1.5zM24 4h4.5v6H24zM3 10h1.5v6H3zM6.5 10H8v6H6.5zM13.5 10H15v6h-1.5zM15 10h1.5v6H15zM20.5 10H22v6h-1.5zM25.5 10H27v6h-1.5z"/>
         </svg>
-        <span class="brand__name" data-i18n>DX Film Edge Decoder</span>
+        <span class="brand__name">DX Film Edge Decoder</span>
       </a>
-      <nav class="site-nav" aria-label="Sections" data-i18n-attr="aria-label">
-        <a href="index.html#decoder" data-i18n>Decoder</a>
-        <a href="index.html#finder" data-i18n>Find a film</a>
-        <a href="index.html#cassette" data-i18n>Cassette</a>
-        <a href="index.html#how" data-i18n>How it works</a>
-        <a href="index.html#codes" data-i18n>Code list</a>
+      <nav class="site-nav" aria-label="Sections">
+        <a href="index.html#decoder">Decoder</a>
+        <a href="index.html#finder">Find a film</a>
+        <a href="index.html#cassette">Cassette</a>
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#codes">Code list</a>
       </nav>
       <div class="lang-picker">
-        <label for="lang-select" class="visually-hidden" data-i18n>Language</label>
-        <select id="lang-select" class="lang-picker__select"></select>
+        <label for="lang-select" class="visually-hidden">Language</label>
+        <select id="lang-select" class="lang-picker__select">
+          <option value="en" lang="en" selected>English</option>
+          <option value="zh-CN" lang="zh-CN">简体中文</option>
+        </select>
       </div>
-      <button type="button" class="icon-button theme-toggle" id="theme-toggle" aria-label="Switch to dark theme"></button>
+      <button type="button" class="icon-button theme-toggle" id="theme-toggle" aria-label="Switch to dark theme" data-to-light="Switch to light theme" data-to-dark="Switch to dark theme"></button>
     </div>
   </header>
 
   <main id="top" class="sources-page">
     <div class="wrap">
       <div class="prose">
-        <h1 data-i18n>Sources and credits</h1>
-        <h2 data-i18n>Barcode format</h2>
+        <h1>Sources and credits</h1>
+        <h2>Barcode format</h2>
         <ul class="sources">
-          <li data-i18n>GB/T 9185-2003, <cite>Photography — 135-size film and magazine — Specifications</cite>, China’s identical adoption of ISO 1007:2000: section 7 for the edge barcode, section 9 for the cassette barcode and Annex A for DX numbers. Wikipedia’s <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> and <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> articles summarize ISO 1007.</li>
-          <li data-i18n>Olliver, Johnson &amp; Patton (Eastman Kodak), <a href="https://patents.google.com/patent/US4965628A/en">US patent 4,965,628</a>, “Photographic film with latent image multi-field bar code and eye-readable symbols”, 1990.</li>
-          <li data-i18n>Fuji Photo Film, <a href="https://patents.google.com/patent/US5122645A/en">US patent 5,122,645</a>, describing the original layout with seven clock bars.</li>
-          <li data-i18n>The DX Film Edge reader in <a href="https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp">zxing-cpp</a> and the generator in <a href="https://github.com/zint/zint/blob/master/backend/dxfilmedge.c">Zint</a> by Antoine Mérino, used to cross-check every rule of the decoder; Zint’s test vectors are part of this project’s tests.</li>
-          <li data-i18n>Antoine Mérino, <a href="https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/">Identifying the manufacturer of your 35mm (and APS) films</a>, 2024.</li>
-          <li data-i18n>Aurélien Lawley, <a href="https://aurelien.lawley.com.au/posts/decoding_35mm_dx_film_edge_barcodes/">Decoding 35mm DX film edge barcodes</a>.</li>
-          <li data-i18n>alibosworth, <a href="https://github.com/alibosworth/35mm-dx-edge-code/blob/main/readme.md">DX Latent Edge Code — Format Reference</a>.</li>
+          <li>GB/T 9185-2003, <cite>Photography — 135-size film and magazine — Specifications</cite>, China’s identical adoption of ISO 1007:2000. Wikipedia’s <a href="https://en.wikipedia.org/wiki/DX_number">DX number</a> and <a href="https://en.wikipedia.org/wiki/DX_encoding">DX encoding</a> articles summarize ISO 1007.</li>
+          <li>Olliver, Johnson &amp; Patton (Eastman Kodak), <a href="https://patents.google.com/patent/US4965628A/en">US patent 4,965,628</a>, “Photographic film with latent image multi-field bar code and eye-readable symbols”, 1990.</li>
+          <li>Fuji Photo Film, <a href="https://patents.google.com/patent/US5122645A/en">US patent 5,122,645</a>, describing the original layout with seven clock bars.</li>
+          <li>The DX Film Edge reader in <a href="https://github.com/zxing-cpp/zxing-cpp/blob/master/core/src/oned/ODDXFilmEdgeReader.cpp">zxing-cpp</a> by Antoine Mérino and Axel Waggershauser, and the generator in <a href="https://github.com/zint/zint/blob/master/backend/dxfilmedge.c">Zint</a> by Antoine Mérino, used to cross-check the decoder.</li>
+          <li>Antoine Mérino, <a href="https://www.merinorus.com/blog/identifying-manufacturer-35-mm-films/">Identifying the manufacturer of your 35mm (and APS) films</a>, 2024.</li>
+          <li>Aurélien Lawley, <a href="https://aurelien.lawley.com.au/posts/decoding_35mm_dx_film_edge_barcodes/">Decoding 35mm DX film edge barcodes</a>.</li>
+          <li>alibosworth, <a href="https://github.com/alibosworth/35mm-dx-edge-code/blob/main/readme.md">DX Latent Edge Code — Format Reference</a>.</li>
         </ul>
-        <h2 data-i18n>Film data</h2>
+        <h2>Film data</h2>
         <ul class="sources">
-          <li data-i18n>International Imaging Industry Association, <cite>DX Codes for 135-Size Film</cite>, February 2008: Part 1 assignments and the product list, transcribed as factual data. <a href="https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association">View the document</a>.</li>
-          <li id="community-credit" data-i18n><a href="https://github.com/dxdatabase/Open-source-film-database">The Big Film Database</a> (dxdatabase) © 2018 by Dxdatabase, licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Adapted: only entries with a DX number are kept, the image-name column is removed, “#” search tags are split from names and HTML markup is removed. Thanks also to Antoine Mérino’s <a href="https://thebigfilmdatabase.merinorus.com">modified edition</a>.</li>
+          <li>International Imaging Industry Association, <cite>DX Codes for 135-Size Film</cite>, February 2008: Part 1 assignments and the product list. <a href="https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association">View the document</a>.</li>
+          <li id="community-credit"><a href="https://github.com/dxdatabase/Open-source-film-database">The Big Film Database</a> (dxdatabase) © 2018 by Dxdatabase, licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Adapted: only entries with a DX number are kept, the image-name column is removed, “#” search tags are split from names and HTML markup is removed. Thanks also to Antoine Mérino’s <a href="https://thebigfilmdatabase.merinorus.com">modified edition</a>.</li>
         </ul>
-        <h2 data-i18n>This tool</h2>
-        <p data-i18n>Free software under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3</a>. Source code, tests and data scripts are on <a href="https://github.com/ricebucket/dx-film-edge-decoder">GitHub</a>. Everything runs in your browser, and photos never leave your device. The code on the strip is kept in the page’s address, which the site receives only when you reload the page or open a link to it.</p>
+        <h2>This tool</h2>
+        <p>Free software under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3</a>. Source code, tests and data scripts are on <a href="https://github.com/ricebucket/dx-film-edge-decoder">GitHub</a>. Everything runs in your browser, and photos never leave your device.</p>
       </div>
     </div>
   </main>
-
-  <footer class="site-footer">
-    <div class="wrap">
-      <p data-i18n>DX Film Edge Decoder. Film data: I3A registry (2008) and <a href="sources.html#community-credit">The Big Film Database</a> (CC BY-SA 4.0). Code: <a href="https://github.com/ricebucket/dx-film-edge-decoder">GPL-3.0 on GitHub</a>. <a href="sources.html">Sources and credits</a></p>
-    </div>
-  </footer>
-
 </body>
 </html>

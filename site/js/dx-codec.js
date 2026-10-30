@@ -175,8 +175,11 @@
     else if (token === 'X' || token === 'S') frame = 62;
     else if (token === 'K' || token === '00') frame = 63;
     else if (token === 'F') frame = 0;
-    else frame = parseInt(token, 10);
-    if (frame > 63) return null;
+    else {
+      // Printed numbers end at 60A; 61 to 63 are printed XX, X and 00 (Table 5).
+      frame = parseInt(token, 10);
+      if (frame > 60) return null;
+    }
     return { frame, half };
   }
 
@@ -442,6 +445,32 @@
     };
   }
 
+  // Interleaved 2 of 5, in which GB/T 9185-2003 §9 prints the cassette's six
+  // digits: each digit is five elements, two of them wide, weighted 1, 2, 4, 7
+  // and parity (4 + 7 stands for 0).
+  const ITF_DIGITS = ['nnwwn', 'wnnnw', 'nwnnw', 'wwnnn', 'nnwnw', 'wnwnn', 'nwwnn', 'nnnww', 'wnnwn', 'nwnwn'];
+
+  /**
+   * The cassette barcode of six digits, as element widths in narrow units,
+   * bars and spaces alternating from the first bar: the start pattern, the
+   * digits in pairs (the first of a pair in the bars, the second in the spaces
+   * between them) and the stop pattern. A wide element is 3 units (Table 8:
+   * 0.99 and 0.33 mm), so every number takes 63 units: 20.79 mm at the target
+   * widths, within W4 (at most 20.80 mm).
+   */
+  function cassetteBars(digits) {
+    if (!/^\d{6}$/.test(digits)) return null;
+    const width = (c) => (c === 'w' ? 3 : 1);
+    const out = [1, 1, 1, 1];
+    for (let i = 0; i < 6; i += 2) {
+      const bars = ITF_DIGITS[digits[i]];
+      const spaces = ITF_DIGITS[digits[i + 1]];
+      for (let k = 0; k < 5; k++) out.push(width(bars[k]), width(spaces[k]));
+    }
+    out.push(3, 1, 1);
+    return out;
+  }
+
   return {
     FORMATS,
     SPECIAL_FRAMES,
@@ -461,6 +490,7 @@
     parseFrameLabel,
     parseDxNumber,
     parseCassette,
+    cassetteBars,
     toBitString,
   };
 });

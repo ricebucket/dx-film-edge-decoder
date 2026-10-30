@@ -11,7 +11,9 @@
   const codec = root.DX.codec;
   const t = root.DX.i18n.t;
 
-  const FIELD_NAMES = {
+  // Looked up when the strip is drawn, not when this script loads: the page's
+  // language file may come in after it (js/prepaint.js).
+  const fieldNames = () => ({
     start: t('start pattern'),
     part1: t('Part 1'),
     blank1: t('unused cell'),
@@ -21,10 +23,10 @@
     blank2: t('unused cell'),
     parity: t('parity'),
     stop: t('stop pattern'),
-  };
+  });
 
   // "A" is printed on film and "P" marks the parity cell; both stay as they are.
-  const FIELD_SHORT = {
+  const fieldShort = () => ({
     start: t('Start'),
     part1: t('Part 1'),
     part2: t('Part 2'),
@@ -32,7 +34,7 @@
     half: 'A',
     parity: 'P',
     stop: t('Stop'),
-  };
+  });
 
   function createStrip(host, options) {
     const opts = Object.assign({ interactive: true, onChange: null }, options);
@@ -45,12 +47,14 @@
     function build(format) {
       const layout = codec.layout(format);
       const n = layout.length;
+      const names = fieldNames();
+      const short = fieldShort();
 
       const clock = h('div', { class: 'track track--clock', 'aria-hidden': 'true' },
         layout.map((c) => h('span', { class: `cell${c.clock ? ' is-bar' : ''}` })));
 
       const dataCells = layout.map((c) => {
-        const name = FIELD_NAMES[c.field];
+        const name = names[c.field];
         if (!c.editable || !opts.interactive) {
           return h('span', {
             class: `cell cell--${c.editable ? 'static' : 'fixed'}`,
@@ -61,7 +65,7 @@
           });
         }
         const label = c.weight
-          ? t('Cell {cell} of {total}: {field}, value {weight}', { cell: c.cell, total: n, field: name, weight: c.weight })
+          ? t('Cell {cell} of {total}: {field}, weight {weight}', { cell: c.cell, total: n, field: name, weight: c.weight })
           : t('Cell {cell} of {total}: {field}', { cell: c.cell, total: n, field: name });
         return h('button', {
           type: 'button',
@@ -102,7 +106,7 @@
           style: { 'grid-column': `${f.from} / ${f.to + 1}` },
           title: f.kind === 'blank' ? t('Unused: always empty') : null,
         },
-        h('span', { class: 'bracket__name' }, FIELD_SHORT[f.id] || ''),
+        h('span', { class: 'bracket__name' }, short[f.id] || ''),
         h('span', { class: 'bracket__value' })));
       const weights = layout.map((c) =>
         h('span', { class: `weight weight--${c.field}`, 'data-cell': c.cell },
@@ -118,7 +122,7 @@
       // The read-only diagram's scroller is no tab stop (Chromium makes scrolling boxes ones).
       const scroller = h('div', { class: 'strip__scroller', tabindex: opts.interactive ? null : '-1' }, h('div', { class: 'strip__canvas' }, photoRow, film, annot));
       const swipe = h('p', { class: 'strip__swipe' }, opts.interactive
-        ? t('Swipe the strip sideways to reach every cell, or turn your phone to landscape.')
+        ? t('Swipe sideways or turn your phone to landscape.')
         : t('Swipe sideways to see the whole code.'));
       const strip = h('div', { class: 'strip', 'data-format': format, style: { '--cells': n } }, h('div', { class: 'strip__viewport' }, scroller), swipe);
       host.replaceChildren(strip);
@@ -239,19 +243,19 @@
         else if (e.key === 'End') target = state.mirrored ? editable[0] : editable[editable.length - 1];
         else if (['1', '0', 'Backspace', 'Delete'].includes(e.key)) {
           e.preventDefault();
-          // Typing follows the visual direction, so a mirrored strip is
-          // entered as seen, left to right.
+          // Typing goes in reading order from cell 7, right after the start
+          // pattern, as the hint says: on a mirrored strip, to the left.
           const previous = state.cells;
           if (e.key === 'Backspace') {
             // Step back, then clear: like correcting typed text.
-            const back = editable[pos - step];
+            const back = editable[pos - 1];
             if (back !== undefined) {
               setCell(back, false);
               moveFocus(back);
             }
           } else {
             setCell(cellNo, e.key === '1');
-            if (e.key !== 'Delete' && editable[pos + step] !== undefined) moveFocus(editable[pos + step]);
+            if (e.key !== 'Delete' && editable[pos + 1] !== undefined) moveFocus(editable[pos + 1]);
           }
           if (previous !== state.cells) emit(true, previous);
           return;

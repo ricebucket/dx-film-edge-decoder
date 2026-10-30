@@ -1,13 +1,19 @@
 /*
  * The header's controls on every page: the theme button and the language
- * menu. A language named in the URL also goes along on the links between the
- * site's pages.
+ * menu. index.html gets its text from js/i18n.js, and choosing a language
+ * reloads it in that language. The sources page is written once per language
+ * instead (sources.html in English, sources.zh-CN.html in Chinese), with its
+ * menu in its HTML, and choosing a language opens its version in that
+ * language. index.html's links to it lead to the version in the language
+ * shown.
  */
 (function (root) {
   'use strict';
   const { h, icon } = root.DX.dom;
-  const i18n = root.DX.i18n;
-  const t = i18n.t;
+
+  // The pages written once per language, and the file of each version.
+  const PER_LANGUAGE = ['sources'];
+  const fileIn = (page, code) => (code === 'en' ? `${page}.html` : `${page}.${code}.html`);
 
   function bindTheme(button) {
     const media = matchMedia('(prefers-color-scheme: dark)');
@@ -25,7 +31,8 @@
         b.meta.setAttribute('content', chosen ? colors[chosen] : colors[b.media.includes('dark') ? 'dark' : 'light']);
       }
       button.replaceChildren(icon(dark ? 'sun' : 'moon'));
-      button.setAttribute('aria-label', dark ? t('Switch to light theme') : t('Switch to dark theme'));
+      // Both names are in the page, in its language: data-to-light and data-to-dark.
+      button.setAttribute('aria-label', dark ? button.dataset.toLight : button.dataset.toDark);
     };
     button.addEventListener('click', () => {
       const next = current() === 'dark' ? 'light' : 'dark';
@@ -37,38 +44,45 @@
     paint();
   }
 
+  /** On index.html, every language listed in js/prepaint.js; choosing one reloads the page in it. */
   function bindLanguage(select, beforeChange) {
-    for (const lang of i18n.languages) {
+    const i18n = root.DX.i18n;
+    for (const lang of i18n.available()) {
       select.append(h('option', { value: lang.code, lang: lang.code, selected: lang.code === i18n.current }, lang.name));
     }
-    select.before(icon('globe', 'lang-picker__globe'));
-    select.after(icon('chevron', 'lang-picker__chevron'));
     select.addEventListener('change', () => {
       if (beforeChange) beforeChange();
       i18n.select(select.value);
     });
-  }
-
-  /**
-   * Where storage is blocked the URL is the only place that keeps the
-   * language, so it goes along on the links to the site's other pages.
-   */
-  function keepLanguageInLinks() {
-    const lang = new URLSearchParams(location.search).get('lang');
-    if (!lang || lang.toLowerCase() !== i18n.current.toLowerCase()) return;
     for (const a of document.querySelectorAll('a[href]')) {
-      const href = a.getAttribute('href');
-      if (!/^[\w-]+\.html(#|$)/.test(href)) continue;
-      const [file, hash] = href.split('#');
-      a.setAttribute('href', `${file}?lang=${encodeURIComponent(i18n.current)}${hash === undefined ? '' : `#${hash}`}`);
+      const [, page, hash = ''] = /^([\w-]+)\.html(#.*)?$/.exec(a.getAttribute('href')) || [];
+      if (PER_LANGUAGE.includes(page)) a.setAttribute('href', fileIn(page, i18n.current) + hash);
     }
   }
 
-  /** Wire the header; `beforeLanguageChange` runs just before choosing a language reloads the page. */
-  function bindHeader(options) {
-    bindLanguage(document.getElementById('lang-select'), options && options.beforeLanguageChange);
+  /**
+   * On a page written once per language, choosing a language saves it, as on
+   * index.html, and opens the page's version in it at the same place.
+   */
+  function bindVersions(select, page) {
+    select.addEventListener('change', () => {
+      try { localStorage.setItem('dx-lang', select.value); } catch (e) { /* storage blocked: each version links to index.html in its language */ }
+      location.replace(fileIn(page, select.value) + location.hash);
+    });
+  }
+
+  /**
+   * Wire the header. index.html passes `beforeLanguageChange`, which runs just
+   * before choosing a language reloads the page; a page written once per
+   * language passes its name as `page`.
+   */
+  function bindHeader(options = {}) {
+    const select = document.getElementById('lang-select');
+    if (options.page) bindVersions(select, options.page);
+    else bindLanguage(select, options.beforeLanguageChange);
+    select.before(icon('globe', 'lang-picker__globe'));
+    select.after(icon('chevron', 'lang-picker__chevron'));
     bindTheme(document.getElementById('theme-toggle'));
-    keepLanguageInLinks();
   }
 
   root.DX.ui = root.DX.ui || {};

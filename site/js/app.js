@@ -11,8 +11,9 @@
   // negative), the Wikimedia photo of Perutz Primera 200, I3A entries, and
   // Zint's test vector for the older 23-cell layout (79-7). Each is drawn in
   // its film's look; BW400CN is black-and-white film developed like color
-  // negative film, and looks like it (Kodak F-4036; research/05).
-  const EXAMPLES = [
+  // negative film, and looks like it (Kodak F-4036; research/05). Their labels
+  // are looked up when shown, as the page's language file may load after this.
+  const examples = () => [
     { label: t('{film}, frame {frame}', { film: 'Kodak BW400CN', frame: '23' }), code: { part1: 79, part2: 15, frame: 23, half: false }, look: 'negative' },
     { label: t('{film}, frame {frame}', { film: 'Perutz Primera 200', frame: '22A' }), code: { part1: 47, part2: 1, frame: 22, half: true }, look: 'negative' },
     { label: t('{film}, frame {frame}', { film: 'Ilford HP5 Plus', frame: '12' }), code: { part1: 109, part2: 9, frame: 12, half: false }, look: 'bw' },
@@ -173,16 +174,16 @@
 
   function hint(d) {
     if (isEmpty()) {
-      return t('Start right after the fixed start pattern: cells 7 to 13 hold Part 1. Drag across cells to fill several at once; keys 1 and 0 type bars and gaps.');
+      return t('Start at cell 7, right after the fixed start pattern. Drag to fill several cells; keys 1 and 0 type bars and gaps.');
     }
     const problem = d.issues[0];
-    if (problem && problem.code === 'blank') return t('Cell {cell} is never used: if you see a bar there, the copy is shifted by one cell.', { cell: problem.cell });
+    if (problem && problem.code === 'blank') return t('Cell {cell} should always be empty.', { cell: problem.cell });
     if (problem && problem.code === 'parity') return t('The parity check fails: one bar is probably misread. See the suggestions below.');
-    if (problem) return t('The code does not pass its checks yet: see below.');
-    if (d.part1 === 0) return t('Part 1 is 0, which no maker held in 2008: if your film has bars in cells 7 to 13, add them.');
-    if (d.frame === null) return t('Valid code. The 23-cell layout carries no frame number.');
-    if (codec.shortCodeInLong(state.cells)) return t('Valid code, unless the top row of your film has only 7 thin bars: see below.');
-    return t('Valid code. On your film, the number printed just before this barcode should read {frame}.', { frame: d.frameLabel });
+    if (problem) return t('Not a valid code yet: see below.');
+    if (d.part1 === 0) return t('Part 1 is 0. This is unlikely.');
+    if (d.frame === null) return t('Valid code. No frame number present.');
+    if (codec.shortCodeInLong(state.cells)) return t('Valid code, unless your top row has only 7 thin bars: see below.');
+    return t('Valid code. Frame {frame}.', { frame: d.frameLabel });
   }
 
   function setPressed(group, value) {
@@ -217,7 +218,7 @@
     renderSource();
     // The folded reader says its photo's code is on the strip: once another
     // code (or none) is there, it shows its steps again.
-    if (!origin || origin.kind !== 'photo') photo.unfold();
+    if (photo && (!origin || origin.kind !== 'photo')) photo.unfold();
     const shown = `${state.format}:${state.cells}:${isEmpty() ? way : ''}`;
     if (shown !== resultShown) {
       resultShown = shown;
@@ -227,7 +228,7 @@
         decoded,
         empty: isEmpty(),
         lookup,
-        examples: EXAMPLES,
+        examples: examples(),
         shareUrl: shareUrl(decoded),
         way,
         onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label } }),
@@ -340,9 +341,36 @@
 
   // ---- two ways in: copy the bars, or read a photo ----------------------------------------
 
-  let photo = null; // the photo reader (ui-photo.js), created in start()
+  // The photo reader (js/dx-image.js and js/ui-photo.js) is loaded the first
+  // time it is opened, or about to be: most visits don't use it.
+  let photo = null;
+  let photoLoading = null;
   let way = 'copy';
   let ready = false; // set once start() has drawn the page
+
+  /** Classic scripts, run in the order given as if they had been in the page (also from file://). */
+  function loadScripts(srcs) {
+    return Promise.all(srcs.map((src) => new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = false;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error(`${src} could not be loaded`));
+      document.head.append(script);
+    })));
+  }
+
+  /** The photo reader, loaded and set up the first time. */
+  function photoReader() {
+    if (!photoLoading) {
+      photoLoading = loadScripts(['js/dx-image.js', 'js/ui-photo.js']).then(() => {
+        photo = ui.createPhoto($('photo'), photoHooks);
+        return photo;
+      });
+      photoLoading.catch(() => { photoLoading = null; }); // choosing the tab again tries again
+    }
+    return photoLoading;
+  }
 
   /** Show the steps for copying by hand, or the photo reader, above the strip. */
   function setWay(next, options) {
@@ -353,8 +381,16 @@
       tab.tabIndex = on ? 0 : -1;
     }
     $('way-copy').hidden = way !== 'copy';
-    if (way === 'photo') photo.open(options);
-    else photo.close();
+    $('photo').hidden = way !== 'photo';
+    if (way === 'photo') {
+      photoReader().then((reader) => {
+        if (way === 'photo') reader.open(options);
+      }, () => {
+        if (way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error' }, t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
+      });
+    } else if (photo) {
+      photo.close();
+    }
     if (ready) update(); // the empty result's heading follows the way in
   }
 
@@ -363,6 +399,8 @@
     $('tab-copy').prepend(DX.dom.icon('pencil'));
     $('tab-photo').prepend(DX.dom.icon('photo'));
     for (const tab of tabs) tab.addEventListener('click', () => setWay(tab.id.slice(4)));
+    // The reader starts loading as the pointer or focus comes to its tab.
+    for (const type of ['pointerenter', 'focus']) $('tab-photo').addEventListener(type, () => photoReader().catch(() => {}), { once: true });
     // Arrow keys, Home and End move between the tabs and choose them.
     $('tab-copy').parentElement.addEventListener('keydown', (e) => {
       const i = tabs.indexOf(document.activeElement);
@@ -500,27 +538,6 @@
     // scroll, so the address they bring back gets the strip's code again.
     addEventListener('popstate', () => writeUrl());
 
-    photo = ui.createPhoto($('photo'), {
-      lookup,
-      onApply(cells, format, look, shot) {
-        record();
-        state.format = format;
-        state.cells = standardEnds(cells, format);
-        state.loaded = true;
-        if (look) {
-          state.look = look;
-          savePrefs();
-        }
-        setOrigin(Object.assign({ kind: 'photo' }, shot));
-        // The reader folds up; the bar above the strip keeps the photo in sight.
-        photo.fold();
-        update({ develop: true });
-        $('lighttable').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
-        // The button that had focus is gone: continue at the result.
-        $('result-title').focus({ preventScroll: true });
-      },
-      onOpen: () => goBack('photo'),
-    });
     bindWays();
     setWay('copy');
 
@@ -532,7 +549,10 @@
     };
     ui.createFinder($('finder-ui'), { lookup, onShow: show });
     ui.createCassette($('cassette-ui'), { lookup, onShow: show });
-    ui.createReference($('reference-ui'), { lookup, onShow: show });
+    // The code list holds most of the page's elements: built just after the
+    // page is drawn, so that it doesn't hold up the decoder.
+    const later = (fn) => (typeof requestIdleCallback === 'function' ? requestIdleCallback(fn, { timeout: 1000 }) : setTimeout(fn, 1));
+    later(() => ui.createReference($('reference-ui'), { lookup, onShow: show }));
 
     // Read-only diagram for "How it works".
     ui.createStrip($('layout-figure'), { interactive: false }).render({
@@ -545,5 +565,32 @@
     ready = true;
   }
 
-  start();
+  /** What the photo reader calls back: a code to use, and its "Open the photo". */
+  const photoHooks = {
+    lookup,
+    onApply(cells, format, polarity, shot) {
+      record();
+      state.format = format;
+      state.cells = standardEnds(cells, format);
+      state.loaded = true;
+      // Clear bars on a dark edge are slide film; dark bars are not, so a
+      // Slide look from before gives way to the negative.
+      const look = polarity === 'light' ? 'slide' : state.look === 'slide' ? 'negative' : null;
+      if (look) {
+        state.look = look;
+        savePrefs();
+      }
+      setOrigin(Object.assign({ kind: 'photo' }, shot));
+      // The reader folds up; the bar above the strip keeps the photo in sight.
+      photo.fold();
+      update({ develop: true });
+      $('lighttable').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+      // The button that had focus is gone: continue at the result.
+      $('result-title').focus({ preventScroll: true });
+    },
+    onOpen: () => goBack('photo'),
+  };
+
+  // The language file js/prepaint.js asked for may still be on its way.
+  i18n.ready.then(start);
 })();

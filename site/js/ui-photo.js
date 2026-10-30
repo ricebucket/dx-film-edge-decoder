@@ -21,17 +21,17 @@
   const MIN_BOX = { screen: [24, 16], photo: [12, 8] };
 
   const SAMPLES = [
-    { synth: { part1: 96, part2: 12, frame: 14, half: true, module: 9, angle: -1.2 }, look: 'negative', note: t('Sample: a computer-drawn film edge, a color negative.') },
-    { synth: { part1: 32, part2: 6, frame: 5, half: false, module: 9, angle: 0.8 }, look: 'slide', note: t('Sample: a computer-drawn film edge, a slide.') },
-    { synth: { part1: 109, part2: 9, frame: 12, half: false, module: 9, mirrored: true }, look: 'bw', note: t('Sample: a computer-drawn film edge, a black-and-white negative seen from the back.') },
+    { synth: { part1: 96, part2: 12, frame: 14, half: true, module: 9, angle: -1.2 }, look: 'negative', note: t('Sample: a computer-drawn color negative.') },
+    { synth: { part1: 32, part2: 6, frame: 5, half: false, module: 9, angle: 0.8 }, look: 'slide', note: t('Sample: a computer-drawn slide.') },
+    { synth: { part1: 109, part2: 9, frame: 12, half: false, module: 9, mirrored: true }, look: 'bw', note: t('Sample: a computer-drawn black-and-white negative, seen from the back.') },
   ];
 
   const REASONS = {
     flat: t('This image has almost no contrast. Try a sharper, closer photo of the film edge.'),
-    'no-clock': t('No clock track found: the row with a wide mark, a run of thin bars and a shorter mark. If the film edge is not horizontal, turn the image, then draw a box around one barcode, including both rows. If it is, the bars may be too faint or damaged: try a sharper photo in even light.'),
-    'no-data': t('The clock track was found, but not a readable data row next to it. Make sure your box includes both rows, or try a sharper photo.'),
-    unclear: t('Something like a barcode was found, but it could not be read reliably. Straighten the image so the film edge runs left to right, or draw a box around one barcode.'),
-    eleven: t('This looks like a barcode with 11 thin bars in its top row, cut off at the end or damaged there. Draw the box with a little room at both ends of the barcode, or try a sharper photo.'),
+    'no-clock': t('The barcode’s top row was not found. Turn the image so the film edge runs left to right and draw a box around one barcode, or try a sharper photo in even light.'),
+    'no-data': t('The lower row could not be read. Make sure the box includes both rows, or try a sharper photo.'),
+    unclear: t('A barcode was found but could not be read reliably. Straighten the image, or draw a box around one barcode.'),
+    eleven: t('This barcode looks cut off or damaged at its end. Leave a little room at both ends of the box, or try a sharper photo.'),
   };
 
   /** A copy of a box of a canvas, fitted into maxW × maxH CSS pixels. */
@@ -72,7 +72,7 @@
     const canvas = h('canvas', { class: 'photo__canvas', role: 'application', tabindex: '0', 'aria-label': t('Photo of the film edge'), 'aria-describedby': 'photo-keys' });
     // Shown while the photo has keyboard focus; screen readers read it as the photo's description.
     const keysHint = h('p', { class: 'fineprint photo__keys', id: 'photo-keys', hidden: true },
-      t('Arrow keys move the box, and with Shift change its size. Enter reads it; Escape clears it.'));
+      t('Arrow keys move the box; Shift and arrows resize it. Enter reads, Escape clears.'));
     const rotateLeft = h('button', { type: 'button', class: 'tool tool--small', 'aria-label': t('Rotate left 90 degrees') }, '⟲ 90°');
     const rotateRight = h('button', { type: 'button', class: 'tool tool--small', 'aria-label': t('Rotate right 90 degrees') }, '⟳ 90°');
     const flipBtn = h('button', { type: 'button', class: 'tool tool--small', 'aria-pressed': 'false' }, t('Flip'));
@@ -89,10 +89,10 @@
     const steps = h('ol', { class: 'photo__steps' },
       step(1, t('Choose a photo'),
         h('p', { class: 'photo__drop' }, t('Drop an image here, paste one, or'), ' ', chooseBtn, ' ', sampleBtn),
-        h('p', { class: 'fineprint' }, t('A close-up of the film edge works best: phone macro photo, loupe photo or scan. The image stays on your device.')),
+        h('p', { class: 'fineprint' }, t('A close-up of the film edge works best. The image stays on your device and is never transmitted to the server.')),
         sourceNote),
       step(2, t('Check the barcode'),
-        h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right (within a few degrees), then drag a box around one barcode, including both rows, or click two opposite corners. Without a box the whole image is searched.')),
+        h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right, then drag a box around one barcode (both rows), or click two opposite corners. Without a box, the whole image is searched.')),
         h('div', { class: 'photo__controls' },
           h('div', { class: 'photo__control' }, h('span', { class: 'toolbar__label' }, t('Turn')), rotateLeft, rotateRight, flipBtn),
           h('div', { class: 'photo__control photo__control--range' }, h('label', { for: 'photo-fine', class: 'toolbar__label' }, t('Straighten')), fineInput, fineOut),
@@ -120,8 +120,9 @@
       for (const control of [rotateLeft, rotateRight, flipBtn, fineInput, readBtn]) control.disabled = !view;
     }
 
+    /** Step 3 stays empty until a photo has been read. */
     function showPlaceholder() {
-      out.replaceChildren(h('p', { class: 'fineprint' }, t('The code appears here once a photo has been read.')));
+      out.replaceChildren();
     }
 
     function fold() {
@@ -146,8 +147,8 @@
      * straightened, flipped, boxed and read.
      */
     async function load(p, kept) {
-      const ticket = ++loads;
       if (p.sample) {
+        ++loads; // a photo still opening gives way
         const syn = reader.synthesize(Object.assign({ width: 640, height: 150 }, p.sample.synth));
         const rgba = reader.compose(syn, { look: p.sample.look, noise: 12, blur: 1, seed: p.seed });
         const c = document.createElement('canvas');
@@ -165,25 +166,72 @@
       const unknown = p.blob && (p.blob.type === '' || p.blob.type === 'application/octet-stream');
       const other = !p.blob || (!unknown && !/^image\//.test(p.blob.type));
       if (other) {
+        // A photo still opening carries on; the one shown is not read further,
+        // so that its reading doesn't replace this message.
+        stopSearch();
+        result = null;
         showMessage(t('That file is not an image.'), true);
+        setStep();
         return;
       }
+      const ticket = ++loads;
       stopSearch(); // the photo shown now: its reading would come after this one's message
+      result = null;
       showMessage(t('Opening the photo…'));
+      setStep();
       opening = p;
-      const url = URL.createObjectURL(p.blob);
+      try {
+        const { image, w, hgt, width, height } = await decode(p.blob);
+        if (ticket !== loads) return; // another photo, or Remove, came first
+        opening = null;
+        setSource(p, image, w, hgt, [t('Your photo, {width} × {height} pixels.', { width, height })], kept);
+        if (image.close) image.close();
+      } catch (e) {
+        if (ticket === loads) {
+          opening = null;
+          showMessage(t('This image could not be opened. Try a JPEG, PNG or WebP file.'), true);
+          setStep();
+        }
+      }
+    }
+
+    /**
+     * A photo file, decoded and shrunk to the working size: the image, its
+     * size (w × hgt) and the size as taken. Where the browser can, both
+     * happen away from the page's main thread (createImageBitmap), so a large
+     * photo doesn't freeze the page; elsewhere, and for files that way can't
+     * open, an <img> does it.
+     */
+    async function decode(blob) {
+      let full = null;
+      try {
+        full = await createImageBitmap(blob, { imageOrientation: 'from-image' });
+      } catch (e) {
+        full = null; // not supported here, or not for this file
+      }
+      if (full) {
+        const { width, height } = full;
+        if (!width || !height) throw new Error('empty image');
+        const scale = Math.min(1, MAX_WORKING_SIDE / Math.max(width, height));
+        if (scale === 1) return { image: full, w: width, hgt: height, width, height };
+        let small = null;
+        try {
+          small = await createImageBitmap(full, { resizeWidth: Math.round(width * scale), resizeHeight: Math.round(height * scale), resizeQuality: 'high' });
+        } catch (e) {
+          return { image: full, w: width, hgt: height, width, height }; // shrunk on the page instead
+        }
+        full.close();
+        return { image: small, w: small.width, hgt: small.height, width, height };
+      }
+      const url = URL.createObjectURL(blob);
       try {
         const img = new Image();
         img.src = url;
         await img.decode();
-        if (ticket !== loads) return; // another photo, or Remove, came first
-        opening = null;
-        setSource(p, img, img.naturalWidth, img.naturalHeight, [t('Your photo, {width} × {height} pixels.', { width: img.naturalWidth, height: img.naturalHeight })], kept);
-      } catch (e) {
-        if (ticket === loads) {
-          opening = null;
-          showMessage(t('This image could not be opened. JPEG, PNG and WebP photos work in every browser.'), true);
-        }
+        const width = img.naturalWidth;
+        const height = img.naturalHeight;
+        if (!width || !height) throw new Error('empty image');
+        return { image: img, w: width, hgt: height, width, height };
       } finally {
         URL.revokeObjectURL(url);
       }
@@ -248,6 +296,13 @@
       selection = null;
       corner = null;
       pointer = null;
+      turns = 0;
+      fine = 0;
+      flip = false;
+      fineInput.value = '0';
+      canvas.style.transform = '';
+      showFine();
+      flipBtn.setAttribute('aria-pressed', 'false');
       stage.hidden = true;
       clearSel.hidden = true;
       sourceNote.replaceChildren();
@@ -349,13 +404,13 @@
       const clock = codec.getFormat(r.format).clock;
       const clockBits = r.reversed ? [...clock].reverse().join('') : clock;
       ctx.save();
-      ctx.lineWidth = Math.max(1, 1.2 * dpr);
       for (let c = 0; c < r.cells; c++) {
         const x = r.x0 + c * r.unit;
         const xm = x + r.unit / 2;
         for (const [y, bit, color] of [[r.clockY, clockBits[c], '#4fb6c9'], [r.dataY, bits[c], '#ffd166']]) {
           const yy = y + (xm - cx) * r.slope;
           ctx.strokeStyle = color;
+          ctx.lineWidth = bit === '1' ? Math.max(2, 2.4 * dpr) : Math.max(1, 1.2 * dpr);
           ctx.globalAlpha = bit === '1' ? 0.95 : 0.45;
           ctx.strokeRect((ox + x) * k, (oy + yy - trackH * 0.38) * k, r.unit * k, trackH * 0.76 * k);
         }
@@ -408,10 +463,22 @@
     // who can click but not drag), or moved with the keyboard.
     let dragStart = null;
     let pressedAt = null; // on screen, to tell a click from a drag
+    let pressId = null; // the pointer pressing; a second one means a pinch, not a box
     let dragging = false;
     let selectionBefore = null;
+    const cancelPress = () => {
+      dragStart = null;
+      pressId = null;
+      selection = selectionBefore;
+      draw();
+    };
     canvas.addEventListener('pointerdown', (e) => {
       if (!view || e.button !== 0) return;
+      if (dragStart) {
+        cancelPress();
+        return;
+      }
+      pressId = e.pointerId;
       try {
         canvas.setPointerCapture(e.pointerId);
       } catch (err) {
@@ -431,6 +498,7 @@
         }
         return;
       }
+      if (e.pointerId !== pressId) return;
       if (!dragging && Math.hypot(e.clientX - pressedAt.x, e.clientY - pressedAt.y) < pressedAt.slack) return;
       dragging = true;
       corner = null;
@@ -443,9 +511,10 @@
       draw();
     });
     const endDrag = (e) => {
-      if (!dragStart) return;
+      if (!dragStart || e.pointerId !== pressId) return;
       const start = dragStart;
       dragStart = null;
+      pressId = null;
       if (!dragging) {
         markCorner(start);
         return;
@@ -461,10 +530,7 @@
     };
     canvas.addEventListener('pointerup', endDrag);
     canvas.addEventListener('pointercancel', () => {
-      if (!dragStart) return;
-      dragStart = null;
-      selection = selectionBefore;
-      draw();
+      if (dragStart) cancelPress();
     });
 
     /** A click marks one corner of a box; the next marks the opposite corner and reads the box. */
@@ -559,8 +625,16 @@
     canvas.addEventListener('focus', () => {
       keysHint.hidden = !canvas.matches(':focus-visible');
     });
+    // Left by a press elsewhere, as on "Use this code" below, the hint goes
+    // only once the press is over: hidden at once, it would move what is
+    // below it out from under the pointer, and the click would miss.
+    let pressing = false;
+    document.addEventListener('pointerdown', () => { pressing = true; }, true);
+    for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, () => { pressing = false; }, true);
     canvas.addEventListener('blur', () => {
-      keysHint.hidden = true;
+      const hide = () => { if (document.activeElement !== canvas) keysHint.hidden = true; };
+      if (!pressing) hide();
+      else window.addEventListener('pointerup', () => setTimeout(hide), { once: true });
     });
 
     function toView(e) {
@@ -640,13 +714,13 @@
       const notes = [];
       if (r.reversed) notes.push(t('The film is mirrored or upside down in this photo; the code was read in the right direction anyway.'));
       if (r.polarity === 'light') notes.push(t('Clear bars on a dark edge: read as slide film.'));
-      if (r.format === 'short') notes.push(t('This is the original 23-cell layout without a frame number.'));
+      if (r.format === 'short') notes.push(t('An older 7-bar code, without a frame number.'));
       if (r.confidence < 0.3) notes.push(t('Some cells were hard to tell apart; compare the result with your film.'));
       if (r.weak) notes.push(t('The bars are faint or damaged in this photo; compare the result with your film.'));
       if (r.elevenBars) notes.push(t('If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with a little room at both ends of the barcode.'));
       if (!d.valid) notes.push(t('The code as read does not pass all checks. Use it, then look at the suggested corrections.'));
       const apply = h('button', { type: 'button', class: 'tool tool--primary' }, t('Use this code'));
-      apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity === 'light' ? 'slide' : null, {
+      apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity, {
         label: what,
         photo: thumbnail(view, { x: 0, y: 0, w: view.width, h: view.height }, 120, 72),
         lined: lineUp(r),
@@ -656,7 +730,7 @@
       replace(out,
         h('p', { class: `photo__found${d.valid ? '' : ' is-error'}` },
           h('strong', null, what), name ? i18n.punctuation().colon + name.name : d.valid ? i18n.punctuation().colon + t('not in the lists') : ''),
-        h('p', { class: 'fineprint' }, t('Outlined in the photo: the cells that were read, clock track in blue, data track in yellow (bold outline = bar).')),
+        h('p', { class: 'fineprint' }, t('Outlined in the photo: the cells that were read, top row in blue, lower row in yellow (bold outline = bar).')),
         notes.length ? h('ul', { class: 'photo__notes' }, notes.map((n) => h('li', null, n))) : null,
         h('div', { class: 'result__actions' }, apply));
     }

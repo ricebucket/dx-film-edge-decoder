@@ -50,6 +50,19 @@ test('cells can be typed with the keyboard', async ({ page }) => {
   await expect(page.locator('#result .status')).toHaveText('One problem to check');
 });
 
+test('with Mirror on, typing also starts at cell 7 and goes on in reading order', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
+  // Cell 7, the strip's tab stop, is now its right-most cell: typing goes to the left.
+  await expect(dataCell(page, 7)).toHaveAttribute('tabindex', '0');
+  await dataCell(page, 7).focus();
+  for (const bit of BW400CN_23.slice(6, 27)) await page.keyboard.press(bit);
+  await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
+  // Backspace steps back in reading order too: to cell 26, right of cell 27 here.
+  await page.keyboard.press('Backspace');
+  await expect(dataCell(page, 26)).toBeFocused();
+});
+
 test('dragging paints several cells in one stroke, undone in one step', async ({ page, isMobile }) => {
   test.skip(isMobile, 'drag painting is a mouse feature; touch scrolls the strip');
   await page.goto('/');
@@ -113,7 +126,8 @@ test('a bar in an unused cell is explained', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
   await dataCell(page, 14).click();
   await expect(page.locator('#result')).toContainText('Cell 14 should never have a bar');
-  await expect(page.locator('#hint')).toContainText('shifted by one cell');
+  await expect(page.locator('#hint')).toHaveText('Cell 14 should always be empty.');
+  await expect(page.locator('#result')).toContainText('shifted by one cell');
   await expect(dataCell(page, 14)).toHaveClass(/is-error/);
 });
 
@@ -374,7 +388,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
     // so the page asks about the top row instead of reporting an error.
     await expect(page.locator('#result-title')).toHaveText('KODACOLOR VR200 Film');
     const hint = page.locator('.problem--suggest');
-    await expect(hint).toContainText('Does the top row of your film have 7 thin bars?');
+    await expect(hint).toContainText('Only 7 thin bars in your top row?');
     await expect(hint).toContainText('DX 79-7');
     await hint.getByRole('button', { name: 'Switch to 7 thin bars' }).click();
     await expect(page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');

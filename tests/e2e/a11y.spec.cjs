@@ -56,6 +56,7 @@ for (const lang of LANGUAGES) {
       await page.locator('#direct-dx').fill('79');
       await page.locator('#direct-dx').press('Enter');
       await expect(page.locator('#direct-help.is-error')).toBeVisible();
+      await expect(page.locator('#reference-ui .assign-table')).toHaveCount(1);
       expect(await problems(page)).toEqual([]);
 
       // The photo's code in use: the reader folded up, its bar above the strip.
@@ -78,9 +79,9 @@ for (const lang of LANGUAGES) {
     });
 
     test(`axe finds no WCAG A or AA problems on the sources page (${lang}, ${colorScheme})`, async ({ page }) => {
-      await page.addInitScript((code) => localStorage.setItem('dx-lang', code), lang);
       await page.emulateMedia({ colorScheme });
-      await page.goto('/sources.html');
+      await page.goto(lang === 'en' ? '/sources.html' : `/sources.${lang}.html`);
+      await expect(page.locator('html')).toHaveAttribute('lang', lang);
       await expect(page.locator('#lang-select option')).toHaveCount(LANGUAGES.length);
       expect(await problems(page)).toEqual([]);
     });

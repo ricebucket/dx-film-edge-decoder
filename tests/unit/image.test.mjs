@@ -261,6 +261,26 @@ describe('when there is nothing reliable to read', () => {
     }
   });
 
+  test('a faded code in a tight box, which no perforation makes look less flat', () => {
+    // Bars 10 gray levels from the film: the whole image reads, and so must a
+    // box around just the code (the tracks start at 42 % of the height and are
+    // 2 × 2.525 cells tall).
+    const M = 8;
+    const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: M });
+    for (let i = 0; i < syn.ink.length; i++) syn.ink[i] *= 0.1;
+    const gray = image.grayFromRGBA(image.compose(syn, { look: 'negative', noise: 2, seed: 2 }), syn.width, syn.height);
+    const top = Math.round(syn.height * 0.42) + 2;
+    const bottom = Math.round(syn.height * 0.42 + 5.05 * M) - 2;
+    const left = Math.round((syn.width - 31 * M) / 2) - 2 * M;
+    const box = { width: 35 * M, height: bottom - top, data: new Float32Array(35 * M * (bottom - top)) };
+    for (let y = 0; y < box.height; y++) {
+      for (let x = 0; x < box.width; x++) box.data[y * box.width + x] = gray.data[(top + y) * gray.width + left + x];
+    }
+    const r = image.readBarcode(box);
+    assert.ok(r.found, r.reason);
+    assert.equal(r.bits, syn.truth.bits);
+  });
+
   test('a blank image', () => {
     const blank = { width: 200, height: 60, data: new Float32Array(200 * 60).fill(128) };
     assert.deepEqual(image.readBarcode(blank), { found: false, reason: 'flat' });

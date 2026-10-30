@@ -1,12 +1,14 @@
 /*
- * Interface languages. English is the source: the code and the pages are
+ * Interface languages. English is the source: the code and index.html are
  * written in English, and every other language is one file in js/i18n/ that
  * registers a dictionary from the English text to its own. Adding a language
- * means adding such a file and a <script> tag for it in each page; the
- * language menu and the tests pick it up from the registry.
+ * means adding such a file and listing it in js/prepaint.js, which loads the
+ * file only for a page shown in that language; the language menu lists it
+ * from there. The sources page is written once per language instead
+ * (sources.html, sources.zh-CN.html …) and loads none of this.
  *
  * Text in the code goes through t('English text {name}', { name }). Elements
- * of the pages marked data-i18n get their content in the current language,
+ * of the page marked data-i18n get their content in the current language,
  * and data-i18n-attr="aria-label title …" names attributes that do too; in
  * both cases the key is the English text with runs of white space collapsed.
  *
@@ -18,8 +20,17 @@
  */
 (function (root, factory) {
   'use strict';
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else (root.DX = root.DX || {}).i18n = factory();
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+    return;
+  }
+  const i18n = factory();
+  (root.DX = root.DX || {}).i18n = i18n;
+  // A language file may load before this script (js/prepaint.js adds it to
+  // the page): it waits in DX.languageFiles, and later ones register at once.
+  const queued = root.DX.languageFiles || [];
+  root.DX.languageFiles = { push: i18n.register };
+  queued.forEach(i18n.register);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
@@ -28,8 +39,8 @@
   const ENGLISH = {
     code: 'en',
     name: 'English',
-    // Separators used when the code joins pieces of text; `sentence` goes between two sentences.
-    punctuation: { comma: ', ', colon: ': ', semicolon: '; ', period: '.', sentence: '. ', space: ' ' },
+    // Separators used when the code joins pieces of text; `sentence` goes between two sentences, `list` between list items.
+    punctuation: { comma: ', ', list: ', ', colon: ': ', semicolon: '; ', period: '.', sentence: '. ', space: ' ' },
     strings: {},
   };
   const languages = [ENGLISH];
@@ -62,7 +73,25 @@
   function register(lang) {
     if (languages.some((l) => l.code === lang.code)) throw new Error(`Language ${lang.code} registered twice`);
     languages.push(lang);
-    if (rank(lang.code) > rank(current.code)) current = lang;
+    if (rank(lang.code) > rank(current.code)) {
+      current = lang;
+      // A page hidden until it has this text (js/prepaint.js) gets it as
+      // soon as it is parsed, without waiting for its other scripts.
+      if (typeof document !== 'undefined' && document.documentElement.hasAttribute('data-i18n-pending')) {
+        if (document.readyState !== 'loading') applyLanguage(document);
+        else document.addEventListener('readystatechange', () => applyLanguage(document), { once: true });
+      }
+    }
+  }
+
+  /**
+   * Every language the page has, for the menu: English and those listed in
+   * js/prepaint.js, whose files load only when chosen (without that list, as
+   * in Node, the ones registered).
+   */
+  function available() {
+    const listed = typeof globalThis !== 'undefined' && globalThis.DX && globalThis.DX.languages;
+    return [ENGLISH, ...(listed || languages.slice(1))].map(({ code, name }) => ({ code, name }));
   }
 
   const normalize = (text) => String(text).replace(/\s+/g, ' ').trim();
@@ -109,8 +138,15 @@
     }
   }
 
-  /** Put the current language's text into the marked parts of a page. */
+  const applied = new WeakSet();
+
+  /** Settles once the language file js/prepaint.js added has loaded, or failed to. */
+  const ready = Promise.resolve(typeof globalThis !== 'undefined' && globalThis.DX ? globalThis.DX.languageLoaded : undefined);
+
+  /** Put the current language's text into the marked parts of a page, once. */
   function applyLanguage(doc) {
+    if (applied.has(doc)) return;
+    applied.add(doc);
     doc.documentElement.lang = current.code;
     if (current !== ENGLISH) {
       for (const el of doc.querySelectorAll('[data-i18n]')) {
@@ -138,7 +174,7 @@
 
   /** Save a choice and reload the page in that language, named in the URL. */
   function select(code) {
-    if (code === current.code || !languages.some((l) => l.code === code)) return;
+    if (code === current.code || !available().some((l) => l.code === code)) return;
     try {
       localStorage.setItem(STORAGE_KEY, code);
     } catch (e) { /* storage blocked: the URL alone keeps the choice */ }
@@ -152,7 +188,9 @@
 
   return {
     languages,
+    available,
     register,
+    ready,
     t,
     plural,
     or,

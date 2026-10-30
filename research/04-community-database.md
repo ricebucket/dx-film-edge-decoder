@@ -45,7 +45,7 @@ update the snapshot.
 
 | Finding | Rows | How the tool handles it |
 |---|---|---|
-| DX extract disagrees with the middle digits of the DX full number | 12 | uses the extract, as the site's own "similar emulsions" search does |
+| DX extract disagrees with the middle digits of the DX full number | 12 | uses the extract, as the site's own "similar emulsions" search does; a lookup of the cassette number still finds the row by its full number |
 | Number above 2047, e.g. CineStill 50D and 800T cassettes at 5391 (motion-picture film, which has no DX edge code) | 42 | can match a cassette number, never an edge code |
 | Number below 16, so Part 1 would be 0: valid under the standard, but held by no maker in 2008 | 14 | same |
 | HTML markup inside a field (`<i>…</i>`) | 3 | markup removed |
@@ -85,8 +85,7 @@ Spot checks of codes beyond the 2008 list:
 - The title of a result comes from the registry when possible; the community
   name is used only when the registry has no entry, and the page then says so.
 - The manufacturer of a Part 1 number always comes from the registry.
-- A note under community matches explains that the data is community-maintained,
-  mostly cassette-based and includes rebrands.
+- A note under community matches says that the data is community-maintained.
 - Where the community database lists films for a DX number, the result and
   the cassette helper show one link to that number on Antoine Mérino's edition
   of the database, which has pictures of the films (for DX 96-12,

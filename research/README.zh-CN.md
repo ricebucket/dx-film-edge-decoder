@@ -8,7 +8,7 @@
 | [02 – 画幅号](02-frame-numbers.zh-CN.md) | 半画幅位置、`23A` 这样的片边印字、片头的值 XX、X 和 00、半格相机 |
 | [03 – DX 码与年度报告](03-dx-numbers-and-registry.zh-CN.md) | 第 1 部分 / 第 2 部分、由谁分配、2008 年 I3A 列表及其转录方法、暗盒条码 |
 | [04 – 社区胶片数据库](04-community-database.zh-CN.md) | The Big Film Database：数据质量方面的发现、现代胶片的覆盖情况、本工具如何展示这些数据 |
-| [05 – 读取真实胶片](05-reading-real-film.zh-CN.md) | 物理布局和尺寸、读取方向、反转片、受损的编码、在真实负片上的验证、照片读取 |
+| [05 – 读取真实胶片](05-reading-real-film.zh-CN.md) | 位置和尺寸、读取方向、反转片、受损的编码、在真实负片上的验证、照片读取 |
 | [06 – 来源与许可](06-sources-and-licensing.zh-CN.md) | 本项目各文件的许可证，以及查阅过的每一个来源 |
 | [07 – 历史与相关标记](07-history-and-related-markings.zh-CN.md) | 1983 年以来的时间线、照相机自动传感区、暗盒条码和暗盒信息板、片边上的其他标记、APS（先进摄影系统）和 120 胶片 |
 

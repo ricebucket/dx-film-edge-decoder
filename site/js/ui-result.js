@@ -129,7 +129,7 @@
     }
     const link = bfdLink(d.part1, d.part2);
     if (link) block.append(link);
-    const about = t('Community-maintained and mostly based on cassette numbers, so it includes rebranded films. Entries are as reliable as their sources.');
+    const about = t('Community-maintained.');
     // What the linked site has goes in the text under the link, not in the link.
     block.append(h('p', { class: 'fineprint' },
       link ? t('The site has pictures of the films') + i18n.punctuation().sentence + about : about));
@@ -142,17 +142,13 @@
       case 'blank':
         return {
           title: t('Cell {cell} should never have a bar', { cell: issue.cell }),
-          text: t('If your film shows a bar there, the copy is probably shifted by one cell. Line the wide mark of the top row up with the start of the strip and compare again.'),
+          text: t('The copy is probably shifted by one cell: line up the top row’s wide mark with the start of the strip and compare again.'),
         };
-      case 'parity': {
-        const n = d.parity.ones + d.parity.bit;
+      case 'parity':
         return {
           title: t('The parity check fails'),
-          text: d.format === 'long'
-            ? t('The bars in Part 1, Part 2, the frame number, the A cell and the parity cell should add up to an even number, but there are {n}. One bar is probably misread: look again at faint or scratched bars, or compare with the next code along the film.', { n })
-            : t('The bars in Part 1, Part 2 and the parity cell should add up to an even number, but there are {n}. One bar is probably misread: look again at faint or scratched bars, or compare with the next code along the film.', { n }),
+          text: t('One bar is probably misread: check faint or scratched bars, or the next code along the film.'),
         };
-      }
       case 'start':
         return { title: t('The start pattern is not the standard one'), text: t('These cells are identical on every DX code.') };
       case 'stop':
@@ -221,7 +217,7 @@
       h('div', { class: 'status status--idle' }, h('span', null, t('Waiting for bars'))),
       h('h2', { id: 'result-title', class: 'result__title', tabindex: '-1' },
         ctx.way === 'photo' ? t('Read a photo of your barcode') : t('Copy the lower row of your barcode')),
-      h('p', { class: 'result__lead' }, t('The decoding appears here as you go. Not sure what a barcode looks like? Load an example and compare it with your film.')),
+      h('p', { class: 'result__lead' }, t('Not sure what a barcode looks like? Try an example:')),
       h('div', { class: 'examples' }, exampleChips(ctx)),
     ];
   }
@@ -258,8 +254,8 @@
     // The copy also reads as a valid 31-cell code of the same film (frame 10
     // or 42), so only the clock row can settle it: ask the user to look.
     return h('div', { class: 'problems' }, h('div', { class: 'problem problem--suggest' },
-      h('p', { class: 'problem__title' }, t('Does the top row of your film have 7 thin bars?')),
-      h('p', null, t('Then this is an older 23-cell code without a frame number. The film is the same, DX {dx}, but the frame shown below would be meaningless. With 11 thin bars, the reading below is right as it is.', { dx: s.dxNumber })),
+      h('p', { class: 'problem__title' }, t('Only 7 thin bars in your top row?')),
+      h('p', null, t('Then it is an older code without a frame number: the film is still DX {dx}, but ignore the frame below. With 11 thin bars, the reading is right.', { dx: s.dxNumber })),
       h('button', { type: 'button', class: 'tool tool--primary', onClick: () => ctx.onUseShort(head) }, t('Switch to 7 thin bars'))));
   }
 
@@ -317,10 +313,10 @@
         info.part1Info.previously ? [i18n.punctuation().space, t('History: {history}', { history: info.part1Info.previously })] : ''));
     }
     if (!products.length && groups.length) {
-      lines.push(h('p', { class: 'fineprint' }, t('DX {dx} is not in the 2008 registry; the name above comes from the community database.', part1)));
+      lines.push(h('p', { class: 'fineprint' }, t('Not in the 2008 registry; the name comes from the community database.')));
     }
     if (!products.length && !groups.length) {
-      lines.push(h('p', { class: 'fineprint' }, t('DX {dx} is in neither the 2008 registry nor the community database. Films introduced after 2008 are often missing.', part1)));
+      lines.push(h('p', { class: 'fineprint' }, t('Not found in either the 2008 I3A registry or The Big Film Database.')));
     }
 
     if (products.length) {

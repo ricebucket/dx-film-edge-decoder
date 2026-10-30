@@ -23,9 +23,12 @@ test('search finds a film and shows its barcode on the strip', async ({ page }) 
 test('the frame field of the search rejects labels it cannot read', async ({ page }) => {
   await page.locator('#finder-q').fill('hp5 plus');
   const show = page.locator('.finder__item').first().getByRole('button', { name: 'Show barcode of HP5 PLUS' });
-  await page.locator('#finder-frame').fill('64');
-  await show.click();
-  await expect(page.locator('#finder-frame-help')).toContainText('Write the frame as printed on film');
+  // Printed numbers end at 60A: 61 to 63 are printed XX, X and 00.
+  for (const frame of ['62', '64']) {
+    await page.locator('#finder-frame').fill(frame);
+    await show.click();
+    await expect(page.locator('#finder-frame-help')).toContainText('Write the frame as printed, e.g. 23, 23A, X, 00.');
+  }
   await expect(page.locator('#finder-frame')).toBeFocused();
   await expect(page.locator('#result-title')).not.toHaveText('HP5 PLUS');
   await page.locator('#finder-frame').fill('');
@@ -38,7 +41,7 @@ test('the frame field of the search rejects labels it cannot read', async ({ pag
 test('search results without a usable DX number say why', async ({ page }) => {
   await page.locator('#finder-q').fill('neopan 400ug');
   const neopan = page.locator('.finder__item').first();
-  await expect(neopan.getByRole('button', { name: 'No full code' })).toHaveAttribute('title', 'Part 1 would be 0, which no maker held in 2008.');
+  await expect(neopan.getByRole('button', { name: 'No full code' })).toHaveAttribute('title', 'Part 1 would be 0, which no maker held in 2008');
   await expect(neopan.locator('.finder__dx')).toHaveCount(0); // no cassette number either
   await page.locator('#finder-q').fill('cinestill 800t');
   const cine = page.locator('.finder__item').first();
@@ -85,9 +88,51 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
   const out = page.locator('.cassette__result');
   await expect(out).toContainText('109-12');
   await expect(out).toContainText('24 exposures');
+  // The last digit names its column; it needs no note when the 1994 standard read it the same way.
+  const last = out.locator('.readout').nth(2);
+  await expect(last.locator('dt')).toHaveText('Last digit 3');
+  await expect(last.locator('.readout__note')).toHaveCount(0);
+  // The line under the box keeps saying where the digits are printed.
+  await expect(page.locator('#cassette-help')).toHaveText('Printed between the barcode and the film slot.');
   await expect(out.locator('.match__name').first()).toHaveText('FP4 PLUS');
   await out.getByRole('button', { name: 'Show the edge barcode' }).click();
   await expect(page.locator('#result-title')).toHaveText('FP4 PLUS');
+  // A digit the 1994 standard read differently says so.
+  await page.locator('#cassette-code').fill('017560');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(last.locator('dt')).toHaveText('Last digit 0');
+  await expect(last.locator('.readout__note')).toHaveText('The 1994 standard used it for 72 exposures.');
+});
+
+test('the cassette drawing shows the six digits between the barcode and the film slot, under the barcode they stand for', async ({ page }) => {
+  const figure = page.locator('#cassette .cassette-figure');
+  await expect(figure).toBeVisible();
+  await expect(figure.locator('.cassette-figure__digits')).toHaveText('017563');
+  const drawn = await page.evaluate(() => {
+    const value = (el, name) => el[name].baseVal.value;
+    const bars = [...document.querySelectorAll('#cassette .cassette-figure__bar')];
+    const text = document.querySelector('#cassette .cassette-figure__digits');
+    const lip = document.querySelector('#cassette .cassette-figure__lip');
+    const left = value(bars[0], 'x');
+    const right = value(bars[bars.length - 1], 'x') + value(bars[bars.length - 1], 'width');
+    return {
+      widths: bars.map((b) => Math.round(value(b, 'width') / 0.33)),
+      expected: window.DX.codec.cassetteBars('017563').filter((_, i) => i % 2 === 0),
+      span: right - left,
+      middle: (left + right) / 2,
+      digitsX: text.x.baseVal[0].value,
+      digitsBase: text.y.baseVal[0].value,
+      barsBottom: Math.max(...bars.map((b) => value(b, 'y') + value(b, 'height'))),
+      lipTop: value(lip, 'y'),
+    };
+  });
+  // The bars of 017563 in Interleaved 2 of 5, 0.33 mm narrow: 20.79 mm in all (GB/T 9185-2003 Table 8).
+  expect(drawn.widths).toEqual(drawn.expected);
+  expect(drawn.span).toBeCloseTo(20.79, 2);
+  // The digits: centered on the barcode, between its bars and the film slot (§9.1).
+  expect(drawn.digitsX).toBeCloseTo(drawn.middle, 3);
+  expect(drawn.digitsBase).toBeGreaterThan(drawn.barsBottom);
+  expect(drawn.digitsBase).toBeLessThan(drawn.lipTop);
 });
 
 test('community matches link once to their DX number on The Big Film Database', async ({ page }) => {
@@ -160,6 +205,15 @@ test('community numbers below 16 name films by cassette only, never by the bars 
   await page.locator('#cassette-code').fill('000054');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText('Orwo ORWOPAN 25');
+  // As in Find a film, there is no edge code to show or look up.
+  await expect(page.locator('.cassette__result').getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
+  await expect(page.locator('.cassette__result').getByRole('link', { name: /^Look up DX/ })).toHaveCount(0);
+});
+
+test('a cassette number can be typed with spaces between its digits', async ({ page }) => {
+  await page.locator('#cassette-code').fill('0 1 2 7 9 4');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result')).toContainText('79-15');
 });
 
 test('Find a film says when no film has a DX number, and lists each film once', async ({ page }) => {

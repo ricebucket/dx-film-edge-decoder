@@ -64,7 +64,7 @@
             h('td', null, h('div', { class: 'num-chips' }, infos.map(numberChip))))),
         h('tr', { class: 'assign-table__other' },
           h('th', { scope: 'row' }, t('Not assigned in 2008')),
-          h('td', null, h('p', { class: 'num-list' }, unassigned.map((u) => u.part1).join(', ')))),
+          h('td', null, h('p', { class: 'num-list' }, unassigned.map((u) => u.part1).join(root.DX.i18n.punctuation().list)))),
         h('tr', { class: 'assign-table__other' },
           h('th', { scope: 'row' }, t('Earlier assignments')),
           h('td', null, h('ul', { class: 'history' }, history.map((u) => h('li', null, `${u.part1}: ${u.previously}`)))))));

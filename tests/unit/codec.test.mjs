@@ -229,12 +229,13 @@ describe('frame numbers', () => {
     const cases = {
       '23': [23, false], '23a': [23, true], ' 7A ': [7, true], XX: [61, false], xxa: [61, true], X: [62, false], xa: [62, true],
       S: [62, false], '00': [63, false], '00A': [63, true], K: [63, false], F: [0, false],
-      FA: [0, true], '0': [0, false], '0A': [0, true], '62': [62, false], '63A': [63, true],
+      FA: [0, true], '0': [0, false], '0A': [0, true], '60A': [60, true],
     };
     for (const [input, [frame, half]] of Object.entries(cases)) {
       assert.deepEqual(dx.parseFrameLabel(input), { frame, half }, input);
     }
-    for (const bad of ['', 'A', '64', '123', '2B', 'XXX', null]) assert.equal(dx.parseFrameLabel(bad), null, String(bad));
+    // Printed numbers end at 60A: 61 to 63 are printed XX, X and 00.
+    for (const bad of ['', 'A', '61', '62', '63A', '64', '123', '2B', 'XXX', null]) assert.equal(dx.parseFrameLabel(bad), null, String(bad));
     // Full-width, as a Chinese input method may type it.
     assert.deepEqual(dx.parseFrameLabel('２３Ａ'), { frame: 23, half: true });
     // As the standard prints the X labels (GB/T 9185-2003, Table 5).
@@ -380,5 +381,36 @@ describe('helpers', () => {
     assert.equal(back.slice(18), '000000' + '0' + '0' + '0' + '0101');
     // A damaged start pattern is restored, since those cells cannot be edited.
     assert.equal(dx.transplant('0' + long.slice(1), 'long', 'short').slice(0, 6), '101010');
+  });
+});
+
+describe('cassette barcode (GB/T 9185-2003 §9)', () => {
+  test('six digits in Interleaved 2 of 5 always take 63 narrow units, 20.79 mm at 0.33 mm', () => {
+    for (const digits of ['017563', '000000', '999999', '315223']) {
+      assert.equal(dx.cassetteBars(digits).reduce((a, b) => a + b, 0), 63, digits);
+    }
+    assert.equal(dx.cassetteBars('12345'), null);
+    assert.equal(dx.cassetteBars('12345a'), null);
+  });
+
+  test('read back by the weights 1, 2, 4, 7 and parity, the bars give the digits again', () => {
+    const WEIGHTS = [1, 2, 4, 7, 0];
+    const digit = (widths) => {
+      assert.equal(widths.filter((w) => w === 3).length, 2, 'two wide elements of five');
+      const sum = widths.reduce((total, w, i) => total + (w === 3 ? WEIGHTS[i] : 0), 0);
+      return sum === 11 ? 0 : sum;
+    };
+    // Between them, these put every digit in the bars and every digit in the spaces.
+    for (const digits of ['091827', '364554', '637281', '901756', '017563']) {
+      const bars = dx.cassetteBars(digits);
+      assert.deepEqual(bars.slice(0, 4), [1, 1, 1, 1], 'start');
+      assert.deepEqual(bars.slice(-3), [3, 1, 1], 'stop');
+      let read = '';
+      for (let p = 0; p < 3; p++) {
+        const pair = bars.slice(4 + 10 * p, 14 + 10 * p);
+        read += digit(pair.filter((_, i) => i % 2 === 0)) + '' + digit(pair.filter((_, i) => i % 2 === 1));
+      }
+      assert.equal(read, digits);
+    }
   });
 });

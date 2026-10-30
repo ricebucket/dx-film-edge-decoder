@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { collectKeys, loadLanguages, checkLanguage, scriptKeys, pageKeys, noscriptLanguages } from '../../scripts/check-languages.mjs';
+import { collectKeys, loadLanguages, checkLanguage, checkList, scriptKeys, pageKeys, noscriptLanguages, loadVersions, checkVersions, checkVersion, checkMenu } from '../../scripts/check-languages.mjs';
 import { buildFigures } from '../../scripts/make-figures.mjs';
 
 const require = createRequire(import.meta.url);
@@ -102,6 +102,14 @@ describe('interface languages', () => {
     for (const lang of languages) assert.deepEqual(checkLanguage(lang, used, noscript), [], lang.file);
   });
 
+  test('js/prepaint.js lists every language file, which index.html loads only when shown in it', async () => {
+    const languages = await loadLanguages();
+    const { languages: listed } = require('../../site/js/prepaint.js');
+    assert.deepEqual(checkList(listed, languages), []);
+    assert.equal(checkList([], languages).length, 1, 'a file the list leaves out');
+    assert.equal(checkList([...listed, { code: 'de', name: 'Deutsch' }], languages).length, 1, 'a language without a file');
+  });
+
   test('a language cannot add a tag or attribute the English lacks, however it is written', () => {
     const used = new Map([['Go <em>here</em>', { where: 'x', html: true }]]);
     const check = (text) => checkLanguage({ code: 'de', name: 'Deutsch', strings: { 'Go <em>here</em>': text } }, used, null);
@@ -126,7 +134,7 @@ describe('interface languages', () => {
   test('Chinese uses its own punctuation when joining pieces', async () => {
     const zh = (await loadLanguages()).find((l) => l.code === 'zh-CN');
     // No space between pieces of Chinese text, as between "（可信度 3/4）" and the notes before it.
-    assert.deepEqual(zh.punctuation, { comma: '，', colon: '：', semicolon: '；', period: '。', sentence: '。', space: '' });
+    assert.deepEqual(zh.punctuation, { comma: '，', list: '、', colon: '：', semicolon: '；', period: '。', sentence: '。', space: '' });
   });
 
   test('the key extractor finds literal texts and flags calls it cannot read', () => {
@@ -145,6 +153,47 @@ describe('interface languages', () => {
   test('the page extractor reads marked elements and attributes', () => {
     const html = '<p data-i18n>Hello <strong>you</strong>\n  there</p><nav aria-label="Main &amp; more" data-i18n-attr="aria-label"><a data-i18n>Go</a></nav><br><script>if (a < b) x();</script>';
     assert.deepEqual(pageKeys('p.html', html).map((k) => k.key), ['Hello <strong>you</strong> there', 'Main & more', 'Go']);
+  });
+});
+
+describe('the sources page, written once per language', () => {
+  test('every language has its version, in step with the English one', async () => {
+    const languages = await loadLanguages();
+    const pages = await loadVersions(languages);
+    assert.deepEqual(pages.map((p) => p.page), ['sources']);
+    for (const { english } of pages) assert.deepEqual(checkMenu(english, languages, 'site/sources.html'), []);
+    for (const lang of languages) assert.deepEqual(checkVersions(lang, pages), [], lang.code);
+  });
+
+  test('a version has the same elements and links, names its language on links to index.html, and takes the header’s text from the language file', () => {
+    const lang = { code: 'de', name: 'Deutsch', strings: { Sections: 'Abschnitte', 'How it works': 'So funktioniert es', 'DX number': 'DX-Nummer' } };
+    const english = '<html lang="en"><header><nav aria-label="Sections"><a href="index.html#how">How it works</a></nav></header>'
+      + '<main><h1>Sources</h1><ul><li>Wikipedia’s <a href="https://example.org/dx">DX number</a> article</li></ul></main></html>';
+    const version = '<html lang="de"><header><nav aria-label="Abschnitte"><a href="index.html?lang=de#how">So funktioniert es</a></nav></header>'
+      + '<main><h1>Quellen</h1><ul><li>Der Wikipedia-Artikel <a href="https://example.org/dx">DX number</a></li></ul></main></html>';
+    // Below the header the text is the version's own: an article's title stays as it is.
+    assert.deepEqual(checkVersion(lang, english, version, 'v'), []);
+    const broken = {
+      'a source left out': version.replace(/<li>.*<\/li>/, ''),
+      'another link': version.replace('/dx"', '/dx-encoding"'),
+      'a link to index.html without the language': version.replace('?lang=de', ''),
+      'header text other than the language file’s': version.replace('>So funktioniert es<', '>Wie es geht<'),
+      'the wrong language': version.replace('<html lang="de">', '<html lang="en">'),
+      'an attribute the English lacks': version.replace('<h1>', '<h1 class="big">'),
+    };
+    for (const [what, html] of Object.entries(broken)) assert.equal(checkVersion(lang, english, html, 'v').length, 1, what);
+  });
+
+  test('a missing version is named, with the file to write', () => {
+    const lines = checkVersions({ code: 'de', name: 'Deutsch', strings: {} }, [{ page: 'sources', english: '<p></p>', versions: { de: null } }]);
+    assert.equal(lines.length, 1);
+    assert.match(lines[0], /write site\/sources\.de\.html/);
+  });
+
+  test('the English page’s menu lists every language in its own name', async () => {
+    const languages = await loadLanguages();
+    const menu = '<select><option value="en" lang="en" selected>English</option></select>';
+    assert.equal(checkMenu(menu, languages, 'p').length, 1);
   });
 });
 

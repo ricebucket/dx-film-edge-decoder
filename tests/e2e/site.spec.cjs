@@ -127,6 +127,8 @@ test('the sources and credits have a page of their own, reached from the footer'
   await expect(page).toHaveTitle('Sources and credits – DX Film Edge Decoder');
   await expect(page.locator('h1')).toHaveText('Sources and credits');
   await expect(page.locator('#community-credit')).toContainText('licensed under CC BY-SA 4.0');
+  // Its own text has every link the footer has, so it needs none.
+  await expect(page.locator('.site-footer')).toHaveCount(0);
   // Back on the decoder, the code is still on the strip.
   await page.goBack();
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
@@ -149,6 +151,9 @@ test('the sources page also works opened straight from disk (file://)', async ({
   await page.locator('.site-footer').getByRole('link', { name: 'Sources and credits' }).click();
   await expect(page.locator('h1')).toHaveText('Sources and credits');
   await expect(page.locator('#lang-select option')).toHaveCount(2);
+  await Promise.all([page.waitForEvent('load'), page.getByLabel('Language').selectOption({ label: '简体中文' })]);
+  await expect(page).toHaveURL(/\/sources\.zh-CN\.html$/);
+  await expect(page.locator('h1')).toHaveText('来源与致谢');
   check();
 });
 
@@ -209,7 +214,7 @@ test('basic accessibility hooks are in place', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.skip-link')).toHaveAttribute('href', '#decoder');
   const cell = page.locator('#strip .track--data button.cell').first();
-  await expect(cell).toHaveAttribute('aria-label', 'Cell 7 of 31: Part 1, value 64');
+  await expect(cell).toHaveAttribute('aria-label', 'Cell 7 of 31: Part 1, weight 64');
   await expect(cell).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('#strip .track--data')).toHaveAttribute('role', 'group');
   // Exactly one cell is in the tab order (roving tabindex).

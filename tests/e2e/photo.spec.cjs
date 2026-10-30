@@ -20,6 +20,28 @@ async function upload(page, testInfo, synthOptions, composeOptions) {
   await page.locator('#photo-file').setInputFiles(file);
 }
 
+/**
+ * Make each photo take window.slow ms more to open, counted in window.opened.
+ * A photo opens with createImageBitmap where the browser can, else in an <img>.
+ */
+async function slowOpening(page, ms) {
+  await expect(page.getByRole('button', { name: 'Choose a photo' })).toBeVisible(); // the reader has loaded
+  await page.evaluate((slow) => {
+    window.opened = 0;
+    window.slow = slow;
+    const later = (value) => new Promise((done) => setTimeout(() => { window.opened++; done(value); }, window.slow));
+    const open = window.createImageBitmap;
+    window.createImageBitmap = function (source, ...rest) {
+      const made = open.call(this, source, ...rest);
+      return source instanceof Blob ? made.then(later) : made;
+    };
+    const decode = HTMLImageElement.prototype.decode;
+    HTMLImageElement.prototype.decode = function () {
+      return decode.call(this).then(() => later());
+    };
+  }, ms);
+}
+
 // The codes of frames 14, 14A and 15 side by side; the whole photo reads as 14A.
 const THREE_CODES = { part1: 96, part2: 12, frame: 14, half: true, module: 6, width: 960, height: 110, angle: -0.6 };
 // Frame 15's code in that photo, with a margin, in the photo's pixels.
@@ -57,7 +79,7 @@ test('an uploaded photo of a mirrored slide is read the right way around', async
 
 test('turning the photo by 90° still finds the code', async ({ page }, testInfo) => {
   await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6, angle: 90, width: 120, height: 400 }, {});
-  await expect(page.locator('.photo__result')).toContainText('No clock track found');
+  await expect(page.locator('.photo__result')).toContainText('The barcode’s top row was not found.');
   await page.getByRole('button', { name: 'Rotate right 90 degrees' }).click();
   await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
 });
@@ -68,7 +90,7 @@ test('a photo without a barcode gets advice instead of a guess', async ({ page }
   const file = testInfo.outputPath('blank.png');
   await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
   await page.locator('#photo-file').setInputFiles(file);
-  await expect(page.locator('.photo__result')).toContainText('No clock track found');
+  await expect(page.locator('.photo__result')).toContainText('The barcode’s top row was not found.');
 });
 
 test('a non-image file is refused politely', async ({ page }, testInfo) => {
@@ -83,7 +105,7 @@ test('a photo of an older 7-bar code switches the strip to that layout', async (
   await upload(page, testInfo, { part1: 79, part2: 7, format: 'short', module: 8, angle: 1 }, { look: 'negative' });
   await expect(page.locator('.photo__found')).toContainText('DX 79-7');
   await expect(page.locator('.photo__found')).toContainText('KODACOLOR VR200 Film');
-  await expect(page.locator('.photo__notes')).toContainText('original 23-cell layout');
+  await expect(page.locator('.photo__notes')).toContainText('An older 7-bar code, without a frame number.');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await expect(page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
@@ -92,7 +114,7 @@ test('a photo of an older 7-bar code switches the strip to that layout', async (
 
 test('the sample is labeled, and further samples can be loaded', async ({ page }) => {
   await page.getByRole('button', { name: 'Try a sample' }).click();
-  await expect(page.locator('.photo__source')).toContainText('Sample: a computer-drawn film edge');
+  await expect(page.locator('.photo__source')).toContainText('Sample: a computer-drawn color negative.');
   await expect(page.locator('.photo__found')).toContainText('DX 96-12');
   await page.getByRole('button', { name: 'Show another sample' }).click();
   await expect(page.locator('.photo__found')).toContainText('DX 32-6');
@@ -302,14 +324,7 @@ test('a faint code is read with a note, and a 7-bar code reads right up to the e
 
 test('a photo removed while it is being opened again stays removed', async ({ page }, testInfo) => {
   // Images open at once, until window.slow says how long to take.
-  await page.evaluate(() => {
-    const decode = HTMLImageElement.prototype.decode;
-    window.opened = 0;
-    window.slow = 0;
-    HTMLImageElement.prototype.decode = function () {
-      return decode.call(this).then(() => new Promise((done) => setTimeout(() => { window.opened++; done(); }, window.slow)));
-    };
-  });
+  await slowOpening(page, 0);
   const bar = page.locator('#source');
   await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
   await page.waitForFunction(() => window.opened === 1);
@@ -519,14 +534,7 @@ test('a removed photo stays away, also where it was used more than once', async 
 
 test('a photo still opening gives way to a newer choice, and to Remove', async ({ page }, testInfo) => {
   // Each image takes another window.slow ms to open, as a large photo on a slow phone might.
-  await page.evaluate(() => {
-    const decode = HTMLImageElement.prototype.decode;
-    window.opened = 0;
-    window.slow = 500;
-    HTMLImageElement.prototype.decode = function () {
-      return decode.call(this).then(() => new Promise((done) => setTimeout(() => { window.opened++; done(); }, window.slow)));
-    };
-  });
+  await slowOpening(page, 500);
   const found = page.locator('.photo__found');
   await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
   await expect(page.locator('.photo__result')).toContainText('Opening the photo…');
@@ -584,4 +592,105 @@ test("the photo's barcode lines up over the strip's cells, also mirrored, while 
   await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await expect(photo).toBeHidden();
   await expect(page.locator('#source')).toContainText('edited since');
+});
+
+test('the reader loads only when wanted: its two scripts come with its tab', async ({ page }) => {
+  // A page of its own, with the mouse nowhere near the tab.
+  const fresh = await page.context().newPage();
+  const requests = [];
+  fresh.on('request', (req) => requests.push(new URL(req.url()).pathname));
+  const reader = () => requests.filter((p) => /\/js\/(dx-image|ui-photo)\.js$/.test(p));
+  await fresh.goto('/');
+  await expect(fresh.locator('#result-title')).toBeVisible();
+  expect(reader()).toEqual([]);
+  await fresh.getByRole('tab', { name: 'Read a photo' }).click();
+  await fresh.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(fresh.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  expect(reader()).toEqual(['/js/dx-image.js', '/js/ui-photo.js']);
+  await fresh.close();
+});
+
+test('a second finger on the photo is a pinch: no box, and the reading stays', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  // Playwright cannot pinch, so the pointer events of one are sent directly.
+  await page.locator('.photo__canvas').evaluate((canvas) => {
+    const box = canvas.getBoundingClientRect();
+    const send = (id, type, fx, fy) => canvas.dispatchEvent(new PointerEvent(type, {
+      pointerId: id, pointerType: 'touch', isPrimary: id === 1, button: 0, buttons: type === 'pointerup' ? 0 : 1, bubbles: true,
+      clientX: box.left + fx * box.width, clientY: box.top + fy * box.height,
+    }));
+    send(1, 'pointerdown', 0.4, 0.5);
+    send(2, 'pointerdown', 0.6, 0.5);
+    send(1, 'pointermove', 0.2, 0.3);
+    send(2, 'pointermove', 0.8, 0.7);
+    send(1, 'pointerup', 0.2, 0.3);
+    send(2, 'pointerup', 0.8, 0.7);
+  });
+  await expect(page.getByRole('button', { name: 'Clear selection' })).toBeHidden();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+});
+
+test('after the keys on the photo, one click on the button below it is enough', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'the keys need a keyboard');
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  await page.locator('.photo__canvas').focus();
+  await page.keyboard.press('ArrowRight'); // a box around the code that was read
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#photo-keys')).toBeVisible();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  // Pressed, and released a moment later, as by hand: nothing moves in between.
+  const use = page.getByRole('button', { name: 'Use this code' });
+  await use.scrollIntoViewIfNeeded();
+  const box = await use.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(80);
+  await page.mouse.up();
+  await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
+  await expect(page.locator('#photo-keys')).toBeHidden();
+});
+
+test('a file that is not an image, chosen while a photo is read, keeps its message', async ({ page }, testInfo) => {
+  const file = testInfo.outputPath('notes.txt');
+  await writeFile(file, 'not an image');
+  await expect(page.getByRole('button', { name: 'Try a sample' })).toBeVisible();
+  // A reading that takes its time.
+  await page.evaluate(() => {
+    const read = window.DX.image.readBarcodeAsync;
+    window.DX.image.readBarcodeAsync = async (...args) => {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      return read(...args);
+    };
+  });
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.getByText('Looking for the barcode…')).toBeVisible();
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.getByText('That file is not an image.')).toBeVisible();
+  await page.waitForTimeout(1200);
+  await expect(page.getByText('That file is not an image.')).toBeVisible();
+  await expect(page.locator('.photo__found')).toHaveCount(0);
+});
+
+test('a reading with dark bars after one of a slide puts the strip back to a negative', async ({ page }, testInfo) => {
+  await upload(page, testInfo, { part1: 34, part2: 13, frame: 7, half: true, module: 7 }, { look: 'slide' });
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'slide');
+  await page.locator('#source').getByRole('button', { name: 'Open the photo' }).click();
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 7 }, { look: 'negative' });
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#strip .strip')).toHaveAttribute('data-look', 'negative');
+});
+
+test('Remove the photo also undoes its turn and flip', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toBeVisible();
+  await page.getByRole('button', { name: 'Flip' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await page.locator('#source').getByRole('button', { name: 'Remove the photo' }).click();
+  await expect(page.getByRole('button', { name: 'Flip' })).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#photo-fine')).toHaveValue('0');
 });

@@ -36,6 +36,19 @@
   --film-guide: rgba(43, 26, 20, 0.2);
   --film-hover: rgba(43, 26, 20, 0.42);
 
+  /* the cassette drawing: metal shading, end caps, felt-lined slot, printed label */
+  --cassette-light: #f1f4f6;
+  --cassette-mid: #c9d1d8;
+  --cassette-dark: #9aa6b0;
+  --cassette-cap: #8b97a1;
+  --cassette-knob: #6c7883;
+  --cassette-lip: #1d2024;
+  --cassette-label: #ffffff;
+  --cassette-ink: #1c2630;
+  --cassette-mark: rgba(255, 200, 50, 0.6);
+  /* unprocessed film: no film look applies yet */
+  --cassette-film: #7f878e;
+
   /* data-track fields, used for brackets, swatches and table keys */
   --f-part1: #2c66cf;
   --f-part2: #8649c4;
@@ -79,6 +92,14 @@
   --f-half: #e0a64a;
   --f-parity: #ef7ba0;
   --f-fixed: #7d8a96;
+  --cassette-light: #8e9aa5;
+  --cassette-mid: #5d6974;
+  --cassette-dark: #3a4550;
+  --cassette-cap: #4b5763;
+  --cassette-knob: #3a4550;
+  --cassette-lip: #0b0d0f;
+  --cassette-label: #e7ecf0;
+  --cassette-film: #69727a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -109,6 +130,14 @@
     --f-half: #e0a64a;
     --f-parity: #ef7ba0;
     --f-fixed: #7d8a96;
+    --cassette-light: #8e9aa5;
+    --cassette-mid: #5d6974;
+    --cassette-dark: #3a4550;
+    --cassette-cap: #4b5763;
+    --cassette-knob: #3a4550;
+    --cassette-lip: #0b0d0f;
+    --cassette-label: #e7ecf0;
+    --cassette-film: #69727a;
   }
 }
 
@@ -327,7 +356,7 @@ select {
 
 /* ---- language menu ------------------------------------------------------------- */
 
-/* Set by the inline script in index.html until js/i18n.js has put in the chosen language's text. */
+/* Set by js/prepaint.js on index.html until js/i18n.js has put in the chosen language's text. */
 html[data-i18n-pending] body {
   visibility: hidden;
 }
@@ -1435,7 +1464,8 @@ h1 {
   display: block;
   max-width: 100%;
   cursor: crosshair;
-  touch-action: none;
+  /* One finger draws a box; two zoom the page, as anywhere else. */
+  touch-action: pinch-zoom;
 }
 
 /* The photo's keys, while it has keyboard focus. */
@@ -2158,6 +2188,54 @@ thead th {
 .cassette__result {
   margin-top: 22px;
   max-width: 52rem;
+}
+
+/* The form, and beside it (above it on phones) the cassette drawing. */
+.cassette__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  gap: 18px 40px;
+  align-items: start;
+  max-width: 52rem;
+}
+
+.cassette-figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  forced-color-adjust: none;
+}
+
+.cassette-figure__light { stop-color: var(--cassette-light); }
+.cassette-figure__mid { stop-color: var(--cassette-mid); }
+.cassette-figure__dark { stop-color: var(--cassette-dark); }
+.cassette-figure__body { fill: url(#cassette-shade); }
+.cassette-figure__cap { fill: var(--cassette-cap); }
+.cassette-figure__knob { fill: var(--cassette-knob); }
+.cassette-figure__lip { fill: var(--cassette-lip); }
+.cassette-figure__label { fill: var(--cassette-label); }
+.cassette-figure__bar { fill: var(--cassette-ink); }
+.cassette-figure__mark { fill: var(--cassette-mark); }
+.cassette-figure__film { fill: var(--cassette-film); }
+.cassette-figure__perf { fill: var(--bg); }
+
+.cassette-figure__digits {
+  fill: var(--cassette-ink);
+  font-family: var(--font-edge);
+  font-size: 3px;
+  font-weight: 600;
+  letter-spacing: 0.12px;
+}
+
+@media (max-width: 700px) {
+  .cassette__top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cassette__figure {
+    order: -1;
+    max-width: 260px;
+  }
 }
 
 /* ---- reference ----------------------------------------------------------------------------- */

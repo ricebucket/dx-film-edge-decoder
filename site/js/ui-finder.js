@@ -5,7 +5,7 @@
  */
 (function (root) {
   'use strict';
-  const { h, icon } = root.DX.dom;
+  const { h, s: svg, icon } = root.DX.dom;
   const codec = root.DX.codec;
   const ui = root.DX.ui;
   const i18n = root.DX.i18n;
@@ -35,7 +35,7 @@
     if (field.value.trim() === '') return { frame: 1, half: false };
     const frame = codec.parseFrameLabel(field.value);
     if (!frame) {
-      message.textContent = t('Write the frame as printed on film: a number up to 60, optionally followed by A, or XX, X, 00.');
+      message.textContent = t('Write the frame as printed, e.g. 23, 23A, X, 00.');
       message.classList.add('is-error');
       field.focus();
     }
@@ -78,7 +78,7 @@
         ? t('The registry does not give the Part 2 number for this film')
         : entry.extract > 2047
           ? t('This cassette number is outside the range a film edge code can hold')
-          : t('Part 1 would be 0, which no maker held in 2008.');
+          : t('Part 1 would be 0, which no maker held in 2008');
       const button = h('button', {
         type: 'button', class: 'tool', disabled: showable ? null : true,
         title: showable ? null : why,
@@ -170,13 +170,65 @@
     return { search(q) { input.value = q; run(); } };
   }
 
+  /**
+   * A 35 mm cassette, seen from its film slot's side and drawn to scale in
+   * millimeters, with values inside the limits of GB/T 9185-2003 Tables 7
+   * and 8: the six digits printed between the barcode and the film slot,
+   * centered on the barcode (§9.1), under 2.381 mm tall (B.6). The barcode is
+   * the real one for these digits.
+   */
+  function cassetteFigure(digits) {
+    const cy = 12.85; // the spool's axis
+    const knob = 4.35; // the spool's long end beyond the cap, Z1 − Z2
+    const right = knob + 43.1; // Z2 42.39–43.80; datum C, the short end's face
+    const rim = 2; // the end caps, Z3 ≤ 3.30
+    const cap = 25.1; // Z24 24.89–25.30
+    const wall = 23.4; // Z32 ≥ 23.40
+    const top = cy - wall / 2;
+    const bottom = cy + wall / 2;
+    const narrow = 0.33; // Table 8, target width; wide is three times that
+    const codeRight = right - 11.3; // W3 9.40–13.21
+    const codeLeft = codeRight - 63 * narrow;
+    const quiet = 3.3; // W8 ≥ 3.3
+    const lip = 1.6;
+    const digitsBase = bottom - lip - 0.8;
+    const digitsTop = digitsBase - 2.2;
+    const film = { left: (knob + right) / 2 - 17.5, width: 35, length: 8 };
+    // Perforations 2.80 mm across and 1.98 mm along the film, 4.75 mm apart, 2.0 mm in from its edges (Table 2).
+    const perf = (x, y) => svg('rect', { class: 'cassette-figure__perf', x, y, width: 2.8, height: 1.98, rx: 0.49 });
+
+    const bars = [];
+    let x = codeLeft;
+    codec.cassetteBars(digits).forEach((units, i) => {
+      if (i % 2 === 0) bars.push(svg('rect', { class: 'cassette-figure__bar', x: x.toFixed(3), y: top, width: (units * narrow).toFixed(3), height: (digitsTop - 0.8 - top).toFixed(3) }));
+      x += units * narrow;
+    });
+    const middle = (codeLeft + codeRight) / 2;
+    return svg('svg', { class: 'cassette-figure', viewBox: '-0.3 0 48.05 32.85', 'aria-hidden': 'true', focusable: 'false' },
+      svg('defs', null, svg('linearGradient', { id: 'cassette-shade', x1: 0, y1: 0, x2: 0, y2: 1 },
+        svg('stop', { offset: 0, class: 'cassette-figure__light' }),
+        svg('stop', { offset: 0.45, class: 'cassette-figure__mid' }),
+        svg('stop', { offset: 1, class: 'cassette-figure__dark' }))),
+      svg('rect', { class: 'cassette-figure__film', x: film.left, y: bottom - 0.4, width: film.width, height: film.length + 0.4 }),
+      [0, 1].map((n) => [perf(film.left + 2, bottom + 1.2 + 4.75 * n), perf(film.left + film.width - 4.8, bottom + 1.2 + 4.75 * n)]),
+      svg('rect', { class: 'cassette-figure__knob', x: 0, y: cy - 5.7, width: knob + 0.5, height: 11.4, rx: 0.8 }),
+      svg('rect', { class: 'cassette-figure__body', x: knob + rim, y: top, width: right - knob - 2 * rim, height: wall }),
+      svg('rect', { class: 'cassette-figure__label', x: codeLeft - quiet - 0.6, y: top, width: codeRight - codeLeft + 2 * quiet + 1.2, height: wall - lip }),
+      bars,
+      svg('rect', { class: 'cassette-figure__mark', x: middle - 6.4, y: digitsTop - 0.45, width: 12.8, height: 3.1, rx: 0.5 }),
+      svg('text', { class: 'cassette-figure__digits', x: middle, y: digitsBase, 'text-anchor': 'middle' }, digits),
+      svg('rect', { class: 'cassette-figure__lip', x: knob + rim, y: bottom - lip, width: right - knob - 2 * rim, height: lip }),
+      svg('rect', { class: 'cassette-figure__cap', x: knob, y: cy - cap / 2, width: rim, height: cap, rx: 0.9 }),
+      svg('rect', { class: 'cassette-figure__cap', x: right - rim, y: cy - cap / 2, width: rim, height: cap, rx: 0.9 }));
+  }
+
   function createCassette(host, { lookup, onShow }) {
     const input = h('input', {
       type: 'text', id: 'cassette-code', class: 'input input--code', inputmode: 'numeric', autocomplete: 'off',
-      placeholder: '017563', maxlength: '8', 'aria-describedby': 'cassette-help',
+      placeholder: '017563', maxlength: '20', 'aria-describedby': 'cassette-help',
     });
-    const msg = h('p', { class: 'form-message', id: 'cassette-help', 'aria-live': 'polite' },
-      t('Six digits, printed between the barcode and the film slot.'));
+    const HELP = t('Printed between the barcode and the film slot.');
+    const msg = h('p', { class: 'form-message', id: 'cassette-help', 'aria-live': 'polite' }, HELP);
     const out = h('div', { class: 'cassette__result' });
     const form = h('form', { class: 'cassette__form', novalidate: true },
       h('div', { class: 'field' }, h('label', { for: 'cassette-code' }, t('Cassette number')), input),
@@ -189,14 +241,13 @@
       return e.from === e.to ? t('{n} exposures', { n: e.from }) : t('{from}–{to} exposures', { from: e.from, to: e.to });
     }
 
-    /** The last digit, and what the 1994 standard used it for where that differs. */
+    /** What the 1994 standard used the last digit for, where that differs; null where it doesn't. */
     function exposuresNote(p) {
-      const digit = p.exposureDigit;
       const before = p.exposures.before2000;
-      if (before === undefined) return t('Last digit {digit}.', { digit });
-      if (before === null) return t('Last digit {digit}. The 1994 standard did not use it.', { digit });
-      if (before === 'other') return t('Last digit {digit}. The 1994 standard used it for other lengths, such as 24 + 3.', { digit });
-      return t('Last digit {digit}. The 1994 standard used it for {n} exposures.', { digit, n: before });
+      if (before === undefined) return null;
+      if (before === null) return t('The 1994 standard did not use it.');
+      if (before === 'other') return t('The 1994 standard used it for other lengths, such as 24 + 3.');
+      return t('The 1994 standard used it for {n} exposures.', { n: before });
     }
 
     function render(hit) {
@@ -212,8 +263,8 @@
           h('dd', { class: 'readout__note' }, t('For the maker’s own use; 0 if unused.'))),
         h('div', { class: 'readout' }, h('dt', null, t('DX number')), h('dd', { class: 'readout__value readout__value--small' }, p.dxNumber || '—'),
           h('dd', { class: 'readout__note' }, dxNote)),
-        h('div', { class: 'readout' }, h('dt', null, t('Roll length')), h('dd', { class: 'readout__value readout__value--small' }, exposuresText(p.exposures)),
-          h('dd', { class: 'readout__note' }, exposuresNote(p))));
+        h('div', { class: 'readout' }, h('dt', null, t('Last digit {digit}', { digit: p.exposureDigit })), h('dd', { class: 'readout__value readout__value--small' }, exposuresText(p.exposures)),
+          exposuresNote(p) && h('dd', { class: 'readout__note' }, exposuresNote(p))));
 
       // An augmented number names a film only where the I3A list records it;
       // Annex A.4 says which maker it belongs to, but not which DX number the
@@ -256,13 +307,16 @@
             : i18n.plural(similar.length, '{n} other film uses the same DX number', '{n} other films use the same DX number')),
           h('ul', { class: 'matches' }, similar.map(ui.communityItem))));
       }
-      const link = (exact.length || similar.length) && p.part1 !== null ? ui.bfdLink(p.part1, p.part2) : null;
+      // Part 1 = 0 is valid, but no maker held it in 2008: as in the search
+      // above, such a number has no edge code to show or look up.
+      const edgeCode = p.part1 !== null && p.part1 > 0;
+      const link = (exact.length || similar.length) && edgeCode ? ui.bfdLink(p.part1, p.part2) : null;
       if (link) blocks.push(link, h('p', { class: 'fineprint' }, t('The site has pictures of the films') + i18n.punctuation().period));
       if (!registry.length && !exact.length && !similar.length) {
-        blocks.push(h('p', { class: 'fineprint' }, t('This number is not in the 2008 registry or the community database.')));
+        blocks.push(h('p', { class: 'fineprint' }, t('Not found in either the 2008 I3A registry or The Big Film Database.')));
       }
       const actions = [];
-      if (p.part1 !== null) {
+      if (edgeCode) {
         const show = h('button', { type: 'button', class: 'tool tool--primary' }, t('Show the edge barcode'));
         show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits }));
         actions.push(h('div', { class: 'result__actions' }, show));
@@ -281,11 +335,12 @@
         return;
       }
       msg.classList.remove('is-error');
-      msg.textContent = t('Cassette {digits}.', { digits: hit.parsed.digits });
+      msg.textContent = HELP;
       render(hit);
     });
 
-    host.replaceChildren(form, out);
+    // Where the digits are, on the example number of the placeholder.
+    host.replaceChildren(h('div', { class: 'cassette__top' }, form, h('div', { class: 'cassette__figure' }, cassetteFigure('017563'))), out);
     return { lookup(code) { input.value = code; form.requestSubmit(); } };
   }
 

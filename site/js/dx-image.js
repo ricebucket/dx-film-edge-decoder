@@ -411,7 +411,9 @@
     yield;
     const [p2, p98] = percentiles(img.data, [0.02, 0.98]);
     const range = p98 - p2;
-    if (range < 20) return { found: false, reason: 'flat' };
+    // Flatter than the faintest bars the second look below accepts (6 levels):
+    // a tight box around a faded code can be this flat and still read.
+    if (range < 6) return { found: false, reason: 'flat' };
     // A code as printed first. Only if no clock track turns up, a second look
     // for a faded or damaged one, so that a code that reads at once reads the
     // same way it always did.
