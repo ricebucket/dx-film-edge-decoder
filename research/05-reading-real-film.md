@@ -199,20 +199,35 @@ external service:
    agree on: a single row on the border between the tracks can misread a bar
    and still pass parity, and blank film agrees with itself. Bits are read in
    clock order, so mirrored or upside-down photos come out right.
+5. If no clock track turns up, a second look allows for a faded or damaged
+   code: less contrast, light that changes along the film, and one clock bar
+   scratched off or one gap filled. It offers only readings that pass their
+   checks, with a note that the bars are faint or damaged.
 
 It is tested on film edges drawn by the project's own renderer: color
 negative, black-and-white and slide; mirrored and upside down; tilted by up to
 2.5°; cells only 4 pixels wide; grain and blur; the 23-cell layout; leader
-frames; a scratched-out bar; and large images that have to be reduced, one of
-them with 3-pixel cells just over the size limit. Each
-case is drawn with four pairs of track heights: as measured on the Kodak
-negative, equal as the page draws them, and the thinnest and thickest data
-track the standard allows (T2 of 0.75 and 1.26 mm). A code that fails its
-checks is only offered when its cells and its clock match are clear-cut and a
-band of rows agrees on its bits; otherwise the photo is reported as unclear
-rather than misread. A code tilted by 7° is read correctly or reported as
-unclear, depending on the track heights; from about 8° it needs the page's
-Straighten control. It needs at least 3–4 pixels per cell; strong perspective or
+frames; and a scratched-out bar. Each of these is drawn with four pairs of
+track heights: as measured on the Kodak negative, equal as the page draws
+them, and the thinnest and thickest data track the standard allows (T2 of
+0.75 and 1.26 mm). With equal tracks only, it is also tested on a faded code,
+read on the second look; light that falls off along the film; a clock with one
+bar scratched off or one gap filled, where most such photos are read and none
+is misread; and large images that have to be reduced, one of them with 3-pixel
+cells just over the size limit. A code that fails its checks is only offered
+when its cells and its clock match are clear-cut and a band of rows agrees on
+its bits; otherwise the photo is reported as unclear rather than misread.
+Tilted beyond the ±3° searched, a code is often still read correctly or not
+read at all, but not always. In tests at 5–12° (October 2026), where the
+perforations looked like bars (light behind a slide's, or a dark background
+behind a negative's), 5–7% of the photos of a 31-cell code were read as
+another film's 23-cell code without a warning, though the reading still called
+it an older 7-bar code without a frame number. Where the perforations did not
+look like bars, none was. Turned straight with the page's Straighten control,
+such a photo reads correctly; with the reader's Layout set to 11 thin bars, it
+looks for that layout only, and says the top row was not found, or that the
+barcode could not be read reliably, rather than misread it. It needs at least
+3–4 pixels per cell; strong perspective or
 curled film is not handled. Photos larger than 1,600 pixels on the long side
 are first reduced to that size, each new pixel the average of the area it
 covers, so a photo just over the limit keeps nearly all its detail. Reading a

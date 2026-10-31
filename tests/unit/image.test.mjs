@@ -160,7 +160,7 @@ describe('worn, faded and unevenly lit codes', () => {
     assert.ok(read31 >= 12, `${read31} of 15 read`);
   });
 
-  test('a faded code, and light that falls off along the film, are read on a second look', () => {
+  test('a faded code is read on a second look, and light that falls off along the film is read too', () => {
     for (const [part1, part2, frame, half] of CODES) {
       const faded = image.synthesize({ part1, part2, frame, half, module: M });
       for (let i = 0; i < faded.ink.length; i++) faded.ink[i] *= 0.1;

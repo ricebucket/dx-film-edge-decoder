@@ -55,7 +55,7 @@ from the middle four digits of `DX full`, and the rows are compacted to arrays.
 | `Name` | product name, with optional `#` search tags |
 | `Original Film or informations` | notes, often the emulsion behind a rebranded film |
 | `Manufacturer`, `Country`, `Distributor` | free text |
-| `reliability` | certainty of the identification, 0 (low) to 4 (high) |
+| `reliability` | how sure the database is about the note in `Original Film or informations`, 0 (low) to 4 (high) |
 | `Beginning year`, `End year` | free text, e.g. `~1990 ?` |
 | `Ava` | availability: 2 on the market, 1 not sure if discontinued, 0 discontinued |
 

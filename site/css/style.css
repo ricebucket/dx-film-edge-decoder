@@ -682,13 +682,18 @@ h1 {
   white-space: nowrap;
 }
 
-.segmented button:hover {
+.segmented button:hover:not(:disabled) {
   color: var(--ink);
 }
 
 .segmented button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--bg);
+}
+
+.segmented button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* Teal, like the page's links and the buttons in its text: a button. */
@@ -1540,6 +1545,24 @@ h1 {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* As in the strip's toolbar: when the choice does not fit, its buttons move
+   below the label and fill the row; on the narrowest phones the last one
+   goes on to a second row, in a box with rounded corners. */
+.photo__control--choice {
+  flex-wrap: wrap;
+}
+
+.photo__control--choice > .segmented {
+  flex-grow: 1;
+  flex-wrap: wrap;
+  border-radius: 22px;
+}
+
+/* A label keeps to one line ("拉直" would break between its characters). */
+.photo__control > .toolbar__label {
+  flex-shrink: 0;
 }
 
 /* On narrow screens the slider gets shorter. */

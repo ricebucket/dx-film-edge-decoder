@@ -43,6 +43,24 @@
     let focusCell = null;
     let stroke = null;
     let resizeObserver = null;
+    // Fingers on the screen, anywhere: a second one makes a pinch or a
+    // two-finger scroll, not a tap, so the first one's press is dropped and
+    // neither changes a cell. The first finger of each new touch starts afresh.
+    const touches = new Set();
+    if (opts.interactive) {
+      document.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'touch') return;
+        if (e.isPrimary) touches.clear();
+        touches.add(e.pointerId);
+        if (touches.size > 1 && stroke && stroke.touch) {
+          stroke.btn.classList.remove('is-pressing');
+          stroke = null;
+        }
+      }, true);
+      const lift = (e) => { touches.delete(e.pointerId); };
+      document.addEventListener('pointerup', lift, true);
+      document.addEventListener('pointercancel', lift, true);
+    }
 
     function build(format) {
       const layout = codec.layout(format);
@@ -165,6 +183,8 @@
       const scrolled = (s, e) => Math.hypot(e.clientX - s.x, e.clientY - s.y) > 10;
 
       track.addEventListener('pointerdown', (e) => {
+        // While more than one finger is down (`touches`), none presses a cell.
+        if (e.pointerType === 'touch' && touches.size > 1) return;
         const btn = cellButton(e.target);
         if (!btn || e.button !== 0) return;
         const cellNo = Number(btn.dataset.cell);

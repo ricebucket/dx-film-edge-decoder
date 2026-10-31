@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Check the interface languages in site/js/i18n/ against the English text
-// of the pages: every t('…') and plural(…) call in site/js, every element of
-// site/*.html marked data-i18n and every attribute named in data-i18n-attr.
+// of the pages: every t('…'), i18n.parts('…') and plural(…) call in
+// site/js, every element of site/*.html marked data-i18n and every attribute
+// named in data-i18n-attr.
 // The sources page is written once per language instead, and each language's
 // version (site/sources.zh-CN.html …) is checked against site/sources.html.
 //
@@ -52,6 +53,12 @@ export function scriptKeys(file, text) {
   for (const m of text.matchAll(call)) {
     if (m[1]) keys.push({ key: unquote(m[1]), where: `${file}:${lineOf(text, m.index)}` });
     else problems.push(`${file}:${lineOf(text, m.index)}: t() needs a literal string`);
+  }
+  // i18n.parts('…', …): t() in pieces, for a text with elements in it.
+  const parts = new RegExp(String.raw`\bi18n\.parts\(\s*(${STRING})?`, 'g');
+  for (const m of text.matchAll(parts)) {
+    if (m[1]) keys.push({ key: unquote(m[1]), where: `${file}:${lineOf(text, m.index)}` });
+    else problems.push(`${file}:${lineOf(text, m.index)}: i18n.parts() needs a literal string`);
   }
   const plural = new RegExp(String.raw`\bplural\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*(${STRING})\s*,\s*(${STRING})`, 'g');
   const pluralCalls = [...text.matchAll(/\bplural\(/g)].length;

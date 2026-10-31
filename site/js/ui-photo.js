@@ -81,6 +81,12 @@
     const rotateLeft = h('button', { type: 'button', class: 'tool tool--small', 'aria-label': t('Rotate left 90 degrees') }, '⟲ 90°');
     const rotateRight = h('button', { type: 'button', class: 'tool tool--small', 'aria-label': t('Rotate right 90 degrees') }, '⟳ 90°');
     const flipBtn = h('button', { type: 'button', class: 'tool tool--small', 'aria-pressed': 'false' }, t('Flip'));
+    // The layout to look for: found out (Auto), unless told one. A tilted
+    // 11-bar code on a slide, or in a dark holder, can pass for another
+    // film's 7-bar code.
+    let layout = 'auto';
+    const layoutBtns = [['auto', t('Auto')], ['long', t('11 thin bars')], ['short', t('7 thin bars')]].map(([value, label]) =>
+      h('button', { type: 'button', 'data-value': value, 'aria-pressed': String(value === layout) }, label));
     const fineInput = h('input', { type: 'range', min: '-15', max: '15', step: '0.5', value: '0', id: 'photo-fine', class: 'range' });
     const fineOut = h('output', { for: 'photo-fine', class: 'range__out', 'aria-hidden': 'true' }, '0°');
     const readBtn = h('button', { type: 'button', class: 'tool' }, t('Read again'));
@@ -101,6 +107,9 @@
         h('div', { class: 'photo__controls' },
           h('div', { class: 'photo__control' }, h('span', { class: 'toolbar__label' }, t('Turn')), rotateLeft, rotateRight, flipBtn),
           h('div', { class: 'photo__control photo__control--range' }, h('label', { for: 'photo-fine', class: 'toolbar__label' }, t('Straighten')), fineInput, fineOut),
+          h('div', { class: 'photo__control photo__control--choice', role: 'group', 'aria-labelledby': 'photo-layout-label' },
+            h('span', { class: 'toolbar__label', id: 'photo-layout-label' }, t('Layout')),
+            h('div', { class: 'segmented' }, ...layoutBtns)),
           h('div', { class: 'photo__control' }, readBtn, clearSel)),
         stage,
         keysHint),
@@ -124,7 +133,7 @@
       readBtn.classList.toggle('tool--primary', current === 2);
       // While another photo opens, they would act on the one it replaces.
       // Disabled, a control would drop keyboard focus: it goes to the photo.
-      const controls = [rotateLeft, rotateRight, flipBtn, fineInput, readBtn];
+      const controls = [rotateLeft, rotateRight, flipBtn, fineInput, ...layoutBtns, readBtn];
       const off = !view || Boolean(opening);
       if (off && view && controls.includes(document.activeElement)) canvas.focus();
       for (const control of controls) control.disabled = off;
@@ -145,8 +154,17 @@
 
     function unfold() {
       section.classList.remove('is-folded');
+      keepFocus(folded); // its "Open the photo" is gone now
       setStep();
       draw();
+    }
+
+    /**
+     * Keyboard focus in `el`, about to be hidden or just hidden, goes on to
+     * the photo, or to "Choose a photo" when there is none, not to the page.
+     */
+    function keepFocus(el) {
+      if (el.contains(document.activeElement)) (view ? canvas : chooseBtn).focus({ preventScroll: true });
     }
 
     // ---- loading ------------------------------------------------------------
@@ -291,6 +309,8 @@
         restore(kept);
         return;
       }
+      // A new photo starts as it comes, read for either layout.
+      showLayout('auto');
       setView(0, 0, false);
       setStep();
       find();
@@ -308,8 +328,15 @@
       rebuildView();
     }
 
+    /** The layout chosen, as the buttons show it. */
+    function showLayout(value) {
+      layout = value;
+      for (const b of layoutBtns) b.setAttribute('aria-pressed', String(b.dataset.value === value));
+    }
+
     /** The photo as it was when its code was used: the same view, so the same reading, without searching again. */
     function restore(kept) {
+      showLayout(kept.result.layout || 'auto');
       setView(kept.turns, kept.fine, kept.flip);
       selection = kept.selection;
       clearSel.hidden = !selection;
@@ -323,6 +350,7 @@
       loads++; // a photo still opening stays away too
       opening = null;
       stopSearch();
+      showLayout('auto');
       picture = null;
       source = null;
       view = null;
@@ -338,6 +366,7 @@
       showFine();
       flipBtn.setAttribute('aria-pressed', 'false');
       stage.hidden = true;
+      keepFocus(clearSel);
       clearSel.hidden = true;
       sourceNote.replaceChildren();
       showPlaceholder();
@@ -371,6 +400,7 @@
       dragStart = null; // a press begun on the old view ends with it
       pressId = null;
       dragging = false;
+      keepFocus(clearSel);
       clearSel.hidden = true;
       draw();
     }
@@ -717,14 +747,14 @@
         try {
           const data = view.getContext('2d').getImageData(region.x, region.y, region.w, region.h);
           const gray = reader.grayFromRGBA(data.data, region.w, region.h);
-          r = await reader.readBarcodeAsync(gray, null, search.signal);
+          r = await reader.readBarcodeAsync(gray, layout === 'auto' ? null : { formats: [layout] }, search.signal);
         } catch (err) {
           r = null;
         }
         if (search.signal.aborted) return;
         searching = null;
         if (r) {
-          result = Object.assign(r, { offset: { x: region.x, y: region.y }, regionWidth: region.w, box: usable ? region : null });
+          result = Object.assign(r, { offset: { x: region.x, y: region.y }, regionWidth: region.w, box: usable ? region : null, layout });
           showResult();
         } else {
           result = null;
@@ -758,7 +788,7 @@
       if (r.format === 'short') notes.push(t('An older 7-bar code, without a frame number.'));
       if (r.confidence < 0.3) notes.push(t('Some cells were hard to tell apart; compare the result with your film.'));
       if (r.weak) notes.push(t('The bars are faint or damaged in this photo; compare the result with your film.'));
-      if (r.elevenBars) notes.push(t('If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with a little room at both ends of the barcode.'));
+      if (r.elevenBars && r.layout !== 'short') notes.push(t('If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with the whole barcode visible.'));
       if (!d.valid) notes.push(t('The code as read does not pass all checks. Use it, then look at the suggested corrections.'));
       const apply = h('button', { type: 'button', class: 'tool tool--primary' }, t('Use this code'));
       apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity, {
@@ -786,6 +816,14 @@
     sampleBtn.addEventListener('click', () => load(nextSample()));
     // The same as "Open the photo" above the strip, which app.js handles.
     unfoldBtn.addEventListener('click', onOpen);
+    for (const b of layoutBtns) {
+      b.addEventListener('click', () => {
+        if (b.dataset.value === layout) return;
+        showLayout(b.dataset.value);
+        result = null;
+        find();
+      });
+    }
     rotateLeft.addEventListener('click', () => { turns = (turns + 3) % 4; result = null; rebuildView(); find(); });
     rotateRight.addEventListener('click', () => { turns = (turns + 1) % 4; result = null; rebuildView(); find(); });
     flipBtn.addEventListener('click', () => {

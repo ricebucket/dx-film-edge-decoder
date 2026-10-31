@@ -41,7 +41,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
 | `Name` | 产品名称，可以带有 `#` 搜索标签 |
 | `Original Film or informations` | 备注，常常是贴牌胶片背后的原厂乳剂 |
 | `Manufacturer`、`Country`、`Distributor` | 自由文本 |
-| `reliability` | 识别的可信度，从 0（低）到 4（高） |
+| `reliability` | 数据库对 `Original Film or informations` 一列中备注的把握，从 0（低）到 4（高） |
 | `Beginning year`、`End year` | 自由文本，例如 `~1990 ?` |
 | `Ava` | 供应情况：2 表示在售，1 表示不确定是否停产，0 表示停产 |
 

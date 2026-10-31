@@ -113,7 +113,7 @@ test('a photo of an older 7-bar code switches the strip to that layout', async (
 });
 
 test('a photo names its film as the result does', async ({ page }, testInfo) => {
-  // Known only from the community list: its most certain entry, not the first one listed.
+  // Known only from the community list: named as the result names it.
   await upload(page, testInfo, { part1: 2, part2: 0, frame: 1, module: 8 }, { look: 'negative' });
   await expect(page.locator('.photo__found')).toContainText('Sakuracolor SR-100');
   // Several registry films: all of them, as the heading lists them.
@@ -194,7 +194,7 @@ test('two clicks at opposite corners make a box, without dragging (WCAG 2.5.7)',
   await expect(found).toContainText('DX 96-12, frame 14A');
 });
 
-test('the keyboard moves a box that starts around the barcode that was read (WCAG 2.1.1)', async ({ page, isMobile }, testInfo) => {
+test('the keyboard moves a box that starts around the barcode that was read (WCAG 2.1.1)', { tag: '@phone' }, async ({ page, isMobile }, testInfo) => {
   await upload(page, testInfo, THREE_CODES, { noise: 12, seed: 1 });
   const found = page.locator('.photo__found');
   const photo = page.getByRole('application', { name: 'Photo of the film edge' });
@@ -240,6 +240,32 @@ test('a finger that drifts a little while tapping marks a corner, not a box', as
   }, a);
   await expect(page.getByRole('button', { name: 'Clear selection' })).toBeHidden();
   await expect(page.locator('.photo__found')).toContainText('frame 14A');
+});
+
+test('the layout chosen limits what the reader looks for: a tilted slide is then not read as another film', async ({ page }, testInfo) => {
+  // DX 74-13, frame 41, on a slide upside down and tilted by 7.3°: with the
+  // layout found out (Auto), it passes for the 7-bar code of DX 85-4.
+  await upload(page, testInfo,
+    { part1: 74, part2: 13, frame: 41, half: false, module: 7, angle: -7.30679047992453, upsideDown: true, width: 560, height: 210, clockHeight: 1.96, dataHeight: 3.09 },
+    { look: 'slide', noise: 13.980660807341337, blur: 1, seed: 6107 });
+  const found = page.locator('.photo__found');
+  await expect(found).toContainText('DX 85-4');
+  const layout = page.locator('#photo').getByRole('group', { name: 'Layout' });
+  await expect(layout.getByRole('button', { name: 'Auto' })).toHaveAttribute('aria-pressed', 'true');
+  await layout.getByRole('button', { name: '11 thin bars' }).click();
+  await expect(page.locator('.photo__result')).toContainText('top row was not found');
+  // Straightened, it reads as it is.
+  await page.locator('#photo-fine').evaluate((input) => {
+    input.value = '7.5';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect(found).toContainText('DX 74-13, frame 41');
+  await expect(layout.getByRole('button', { name: '11 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+  // Another photo starts again with Auto, as it does unturned and unflipped.
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(found).toContainText('DX 96-12, frame 14A');
+  await expect(layout.getByRole('button', { name: 'Auto' })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('straightening shows a preview while the slider moves, and reads once it stops', async ({ page }) => {
@@ -454,6 +480,51 @@ test('a photo pasted while "Use this code" has focus moves focus to the photo, n
   await expect(page.locator('.photo__canvas')).toBeFocused();
   await expect(page.locator('.photo__found')).toContainText('DX 79-15');
   await expect(page.locator('.photo__canvas')).toBeFocused();
+});
+
+test('focus on a reader button that goes away moves to the photo: Clear selection as a pasted photo opens, Open the photo as the reader unfolds', async ({ page }) => {
+  const paste = async () => {
+    const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 6 });
+    const png = encodePng(image.compose(syn, {}), syn.width, syn.height);
+    await page.evaluate((bytes) => {
+      const data = new DataTransfer();
+      data.items.add(new File([new Uint8Array(bytes)], 'edge.png', { type: 'image/png' }));
+      document.activeElement.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+    }, [...png]);
+  };
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  const photo = page.getByRole('application', { name: 'Photo of the film edge' });
+  await photo.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.getByRole('button', { name: 'Clear selection' }).focus();
+  await paste();
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15');
+  await expect(photo).toBeFocused();
+  // Folded once its code is used; Undo takes the code off the strip and unfolds it.
+  const open = page.locator('.photo__folded').getByRole('button', { name: 'Open the photo' });
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await open.focus();
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(open).toBeHidden();
+  await expect(photo).toBeFocused();
+  // A photo pasted on the folded reader unfolds it too.
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await open.focus();
+  await paste();
+  await expect(open).toBeHidden();
+  await expect(photo).toBeFocused();
+});
+
+test('a file dropped beside the photo reader does not replace the page', async ({ page }) => {
+  const prevented = await page.evaluate(() => {
+    const data = new DataTransfer();
+    data.items.add(new File(['x'], 'edge.png', { type: 'image/png' }));
+    const events = ['dragover', 'drop'].map((type) => new DragEvent(type, { dataTransfer: data, bubbles: true, cancelable: true }));
+    for (const e of events) document.getElementById('strip').dispatchEvent(e);
+    return events.map((e) => e.defaultPrevented);
+  });
+  expect(prevented).toEqual([true, true]);
 });
 
 test('a picture pasted while the Straighten slider has focus is opened', async ({ page }) => {
@@ -860,7 +931,7 @@ test('Remove the photo also undoes its turn and flip', async ({ page }) => {
   await expect(page.locator('#photo-fine')).toHaveValue('0');
 });
 
-test('after the keys on the photo, a tap on the button below it is enough too', async ({ page, hasTouch }) => {
+test('after the keys on the photo, a tap on the button below it is enough too', { tag: '@phone' }, async ({ page, hasTouch }) => {
   test.skip(!hasTouch, 'a tap needs a touch screen');
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');

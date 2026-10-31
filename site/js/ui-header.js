@@ -63,9 +63,10 @@
         stepped = performance.now();
       }
     });
-    // A change straight after such a key comes from the key, not from a list.
+    // A change straight after such a key comes from the key, not from a list;
+    // and one back to the language shown, after such keys, changes nothing.
     select.addEventListener('change', () => {
-      if (performance.now() - stepped > 100) go();
+      if (performance.now() - stepped > 100 && select.value !== shown) go();
     });
     select.addEventListener('blur', () => {
       if (select.value !== shown) select.value = shown;
@@ -120,7 +121,16 @@
     // was chosen after the page was left (`dx-lang-at`), so that a page opened
     // by a ?lang= link keeps its own language otherwise.
     let leftAt = Date.now();
-    addEventListener('pagehide', () => { leftAt = Date.now(); });
+    addEventListener('pagehide', () => {
+      leftAt = Date.now();
+      // Also for when Back loads the page again instead (js/prepaint.js): in
+      // this history entry, and by address for an earlier entry of the same
+      // page (with another #anchor), which keeps its own history state.
+      if (!options.page) {
+        try { history.replaceState(Object.assign({}, history.state, { leftAt }), ''); } catch (err) { /* refused */ }
+        try { sessionStorage.setItem(`dx-left:${location.pathname}${location.search}`, String(leftAt)); } catch (err) { /* storage blocked */ }
+      }
+    });
     addEventListener('pageshow', (e) => {
       if (!e.persisted) return;
       let theme = null;

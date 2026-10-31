@@ -172,7 +172,12 @@ the ordinary DX number of the film each one names (78-1 is KODAK GOLD 100 Film,
 78-2 GOLD 200 and 82-3 MAX 400), but the standard says nothing about Part 2 in
 an augmented number. The cassette helper therefore shows the arithmetic and the
 maker that holds the base Part 1 number, adds the I3A entry for these five,
-and derives no DX number.
+and derives no DX number. Find a film lists these five too, by name or
+number. Of the cassette numbers in this range in The Big Film Database, one is
+recorded with a DX number: `333098`, Power Geek 35mm Film For Color Prints, as
+DX 39-1, with a note that the number printed on the box "is not DX code" and
+that the film was identified from its edge barcode. For it, the helper shows
+that record and its edge code instead of the maker the number would point to.
 
 Wikipedia cites the cartridge barcode patent with the right title, inventors
 and dates but the number "US 5661558A", which belongs to an unrelated patent

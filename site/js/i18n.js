@@ -127,6 +127,29 @@
   }
 
   /**
+   * As t(), but in pieces: the text around each placeholder, and the value
+   * given for it as it is, so that a value can be an element (words in
+   * another language, marked so). A value's own closing period stands for
+   * the one after it, as in fill().
+   */
+  function parts(text, params) {
+    const entry = current.strings[text];
+    const template = entry === undefined ? text : choose(entry, params);
+    const out = [];
+    let last = 0;
+    template.replace(/\{(\w+)\}(\.?)/g, (m, key, period, at) => {
+      if (!(key in params)) return m;
+      const value = params[key];
+      const words = typeof value === 'object' && value !== null ? value.textContent : String(value);
+      out.push(template.slice(last, at), typeof value === 'object' && value !== null ? value : words, words.endsWith('.') ? '' : period);
+      last = at + m.length;
+      return m;
+    });
+    out.push(template.slice(last));
+    return out.filter((piece) => piece !== '');
+  }
+
+  /**
    * English has two forms; other languages give their text for the plural
    * one, as a string or as an object of plural forms.
    */
@@ -205,6 +228,7 @@
     register,
     ready,
     t,
+    parts,
     plural,
     or,
     punctuation,

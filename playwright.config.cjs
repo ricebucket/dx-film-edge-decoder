@@ -29,6 +29,7 @@ module.exports = defineConfig({
     trace: 'retain-on-failure',
   },
   // Phones in both mobile engines: Chromium (Android) and WebKit (Safari, iPhone).
+  // On GitHub the phones run only the tests tagged @phone (.github/workflows/tests.yml).
   projects: [
     { name: 'desktop', use: { ...device('Desktop Chrome') } },
     { name: 'android', use: { ...device('Pixel 10 Pro') } },

@@ -61,10 +61,10 @@
       "这个暗盒条码超出了潜影条码能表示的范围",
     "The DX number recorded for this film is outside the range a film edge code can hold":
       "这种胶片记录的 DX 码超出了潜影条码能表示的范围",
-    "Most likely a filler number: no maker was given Part 1 = 0, so DX {dx} is most likely wrong":
-      "很可能只是填充数字：没有感光厂被分配第 1 部分 = 0，所以 DX {dx} 很可能不对",
-    "No maker was given Part 1 = 0, so DX {dx} is most likely wrong":
-      "没有感光厂被分配第 1 部分 = 0，所以 DX {dx} 很可能不对",
+    "Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code":
+      "很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂，所以 DX {dx} 不是任何感光厂的编码",
+    "No maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code":
+      "2008 年时第 1 部分 = 0 没有分配给任何感光厂，所以 DX {dx} 不是任何感光厂的编码",
     "Show barcode of {name}":
       "显示条码：{name}",
     "Show barcode":
@@ -109,6 +109,8 @@
       "已经知道 DX 码了？",
     "Printed between the barcode and the film slot.":
       "印在条码与暗盒嘴之间。",
+    "The result is below.":
+      "结果在下方。",
     "Cassette number":
       "暗盒条码",
     "Look up":
@@ -266,7 +268,7 @@
     "Looking for the barcode…":
       "正在查找条码……",
     "This part of the image could not be read. Select the barcode again, or clear the selection.":
-      "无法读取图片的这一部分。请重新框选条码，或清除选区。",
+      "无法读取图片的这一部分。请重新选中条码，或清除选区。",
     "This image could not be read. Try another photo.":
       "无法读取这张图片。请换一张照片。",
     "No barcode found.":
@@ -283,8 +285,8 @@
       "有些单元难以分辨；请把结果和你的胶片对照。",
     "The bars are faint or damaged in this photo; compare the result with your film.":
       "这张照片里的条较淡或有损伤；请把结果和你的胶片对照。",
-    "If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with a little room at both ends of the barcode.":
-      "如果你胶片的时钟道有 11 根细条而不是 7 根，这个读数就不完整：请在条码两端各留一点空间后重新读取。",
+    "If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with the whole barcode visible.":
+      "如果你胶片的时钟道有 11 根细条而不是 7 根，这个读数就不完整：请让整个条码都清楚可见后重新读取。",
     "The code as read does not pass all checks. Use it, then look at the suggested corrections.":
       "读出的编码没有通过全部检查。请使用它，然后查看建议的修正。",
     "Use this code":
@@ -373,8 +375,6 @@
       "数据库对此有多确定（0 = 低，4 = 高）",
     "(certainty {n}/4)":
       "（可信度 {n}/4）",
-    "Certainty {n}/4":
-      "可信度 {n}/4",
     "in production in 2008":
       "2008 年仍在生产",
     "discontinued by 2008":
@@ -606,7 +606,7 @@
     "How to copy the bars":
       "如何抄写条码",
     "Two touching rows of small bars between the sprocket holes and the film edge, twice per frame. A loupe helps.":
-      "片孔和片边之间两道紧挨着的细小条纹，每个画幅出现两次。用放大镜看更清楚。",
+      "片孔和片边之间两道紧挨着的小条，每个画幅出现两次。用放大镜看更清楚。",
     "Turn the film the right way around":
       "把胶片转到正确的方向",
     "Hold it so that it looks like the film strip shown below. Turn on <button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">Mirror</button> to flip the strip left to right.":
@@ -621,6 +621,8 @@
       "11 根细条",
     "7 thin bars":
       "7 根细条",
+    "Auto":
+      "自动识别",
     "Which layout do I have?":
       "我的胶片是哪种条码？",
     "Film look":

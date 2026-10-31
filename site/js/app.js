@@ -118,7 +118,7 @@
     if (url === location.pathname + location.search + location.hash) return;
     rewrites.push(performance.now());
     try {
-      history.replaceState(null, '', url);
+      history.replaceState(history.state, '', url); // keeps the time the page was left (js/ui-header.js)
     } catch (e) { /* some browsers refuse this on file:// pages */ }
   }
 
@@ -361,6 +361,16 @@
       script.onerror = () => reject(new Error(`${src} could not be loaded`));
       document.head.append(script);
     })));
+  }
+
+  // A file dropped anywhere but on the photo reader (which takes it) would
+  // make the browser open it in place of the page, and the strip with it.
+  for (const type of ['dragover', 'drop']) {
+    document.addEventListener(type, (e) => {
+      if (e.defaultPrevented || !e.dataTransfer || !Array.from(e.dataTransfer.types).includes('Files')) return;
+      e.preventDefault();
+      if (type === 'dragover') e.dataTransfer.dropEffect = 'none';
+    });
   }
 
   /** The photo reader, loaded and set up the first time. */

@@ -68,6 +68,17 @@
       // Part 1 = 0 is valid (GB/T 9185-2003, Annex A.3.1), but no maker held it
       // in 2008, so community numbers below 16 are not taken as edge codes.
       const inRange = extract >= 16 && extract <= 2047;
+      // The database keeps the cassette number and the DX number apart, and
+      // they can differ (Harman Phoenix II: cassette 017765, DX 105-3; Black's
+      // Astral 200: cassette 701310, DX 1310). Worked out once, here:
+      // - agrees: the cassette's own digits give the DX number recorded
+      //   (GB/T 9185-2003 §9.3);
+      // - edge: the DX number recorded, where the entry says it was read
+      //   from the film's edge (or its barcode); otherwise nothing says which
+      //   code the edge carries.
+      const agrees = /^\d{6}$/.test(full) && parseInt(full.slice(1, 5), 10) === extract;
+      const edge = inRange && /film (edge|barcode)/i.test(`${name} ${original}`) ? { part1: extract >> 4, part2: extract & 15 } : null;
+      const rated = reliability === -1 ? null : reliability;
       return {
         source: 'community',
         index,
@@ -75,20 +86,33 @@
         part1: inRange ? extract >> 4 : null,
         part2: inRange ? extract & 15 : null,
         full,
+        agrees,
+        edge,
         name,
         tags,
         original,
         manufacturer,
-        reliability: reliability === -1 ? null : reliability,
+        reliability: rated,
         country,
         from,
         to,
         distributor,
         availability: AVAILABILITY[ava] || null,
+        // How readily the entry names its DX number, for every list of them:
+        // a cassette that carries the number shows a 35 mm DX film (not 16 mm,
+        // 120 or sheet film); an entry without a note is mostly the maker's own
+        // film, not a rebrand; then the database's certainty, which rates the
+        // note (one without counts as the middle of its 0–4 scale).
+        score: (agrees ? 4 : 0) + (original ? 0 : 2) + (rated === null ? 2 : rated) / 4,
       };
     });
 
-    const augmented = data.augmented.map(([code, name, s]) => ({ code, name, sensitizer: sensitizer(s) }));
+    // The registry's "augmented" cassette numbers (Annex A.4), which give no
+    // DX number: found by search like its other films, by name or by number.
+    const augmented = data.augmented.map(([code, name, s], index) => ({
+      source: 'i3a', index: `augmented-${index}`, code, full: code, extract: parseInt(code.slice(1, 5), 10),
+      part1: null, part2: null, name, sensitizer: sensitizer(s), status: null,
+    }));
 
     const productsByDx = new Map();
     const wildcardByPart1 = new Map();
@@ -167,7 +191,7 @@
       };
     };
     const haystacks = [
-      ...products.map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.aka])),
+      ...[...products, ...augmented].map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.aka])),
       ...community.map((c) => haystack(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor])),
     ];
 
@@ -197,6 +221,12 @@
         if (cassette) {
           const only = /^\d{6}$/.test(bare);
           let found = false;
+          for (const a of augmented) {
+            if (a.code === cassette.digits) {
+              add(a, only ? 0 : 7);
+              found = true;
+            }
+          }
           for (const c of community) {
             if (c.full.slice(0, 5) === cassette.digits.slice(0, 5)) {
               add(c, only ? 1 : 8);
@@ -217,7 +247,7 @@
         // The films recorded with this very cassette number, which can give
         // another DX number for their edge (as byCassette finds them).
         if (dx.kind === 'cassette') {
-          for (const c of community) if (c.full.slice(0, 5) === dx.cassette.digits.slice(0, 5)) add(c, 1);
+          for (const c of community) if (c.full.slice(0, 5) === dx.cassette.digits.slice(0, 5)) add(c, only ? 1 : 8);
         }
         if (dx.kind === 'parts') {
           // Names that carry it as typed ("AGFACOLOR OPTIMA 100-2", "VR100-4")
@@ -246,7 +276,8 @@
       return finish();
 
       function finish() {
-        const results = [...ranks.values()].sort((a, b) => a.rank - b.rank || a.entry.name.localeCompare(b.entry.name, 'en'));
+        // As well matched: the entry that names its DX number most readily (score) first.
+        const results = [...ranks.values()].sort((a, b) => a.rank - b.rank || (b.entry.score || 0) - (a.entry.score || 0) || a.entry.name.localeCompare(b.entry.name, 'en'));
         const out = results.map((r) => r.entry);
         return limit ? out.slice(0, limit) : out;
       }

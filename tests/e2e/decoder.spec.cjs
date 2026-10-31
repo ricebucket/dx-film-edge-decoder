@@ -83,7 +83,7 @@ test('dragging paints several cells in one stroke, undone in one step', async ({
   await expect(dataCell(page, 12)).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('tapping toggles cells on touch screens', async ({ page, hasTouch }) => {
+test('tapping toggles cells on touch screens', { tag: '@phone' }, async ({ page, hasTouch }) => {
   test.skip(!hasTouch, 'touch only');
   await page.goto('/');
   await dataCell(page, 8).tap();
@@ -91,6 +91,43 @@ test('tapping toggles cells on touch screens', async ({ page, hasTouch }) => {
   await dataCell(page, 8).tap();
   await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'false');
   await page.getByRole('button', { name: 'Undo' }).tap();
+  await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('a second finger on the strip, as in a pinch, leaves no cell pressed and changes none', async ({ page }) => {
+  await page.goto('/');
+  // Synthetic touches, so that every browser can play them: two fingers down
+  // on cells 8 and 10, then lifted, or taken over by the browser.
+  for (const end of ['pointerup', 'pointercancel']) {
+    await page.locator('#strip .track--data').evaluate((track, type) => {
+      const touch = (kind, cell, id) => track.querySelector(`[data-cell="${cell}"]`).dispatchEvent(
+        new PointerEvent(kind, { bubbles: true, pointerId: id, pointerType: 'touch', isPrimary: id === 1, button: 0 }));
+      touch('pointerdown', 8, 1);
+      touch('pointerdown', 10, 2);
+      touch(type, 8, 1);
+      touch(type, 10, 2);
+    }, end);
+    await expect(page.locator('#strip .is-pressing')).toHaveCount(0);
+    await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'false');
+    await expect(dataCell(page, 10)).toHaveAttribute('aria-pressed', 'false');
+  }
+  // The second finger beside the strip, lifted first or last.
+  for (const order of [[2, 1], [1, 2]]) {
+    await page.locator('#strip .track--data').evaluate((track, lifts) => {
+      const cell = track.querySelector('[data-cell="8"]');
+      const touch = (kind, target, id) => target.dispatchEvent(
+        new PointerEvent(kind, { bubbles: true, pointerId: id, pointerType: 'touch', isPrimary: id === 1, button: 0 }));
+      touch('pointerdown', cell, 1);
+      touch('pointerdown', document.body, 2);
+      for (const id of lifts) touch('pointerup', id === 1 ? cell : document.body, id);
+    }, order);
+    await expect(page.locator('#strip .is-pressing')).toHaveCount(0);
+    await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'false');
+  }
+  // One finger again: a tap.
+  await dataCell(page, 8).evaluate((cell) => {
+    for (const kind of ['pointerdown', 'pointerup']) cell.dispatchEvent(new PointerEvent(kind, { bubbles: true, pointerId: 3, pointerType: 'touch', isPrimary: true, button: 0 }));
+  });
   await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'true');
 });
 
@@ -131,7 +168,7 @@ test('a bar in an unused cell is explained', async ({ page }) => {
   await expect(dataCell(page, 14)).toHaveClass(/is-error/);
 });
 
-test('on phones the strip opens on cell 1, from the right end when mirrored', async ({ page, isMobile }) => {
+test('on phones the strip opens on cell 1, from the right end when mirrored', { tag: '@phone' }, async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phones only: wider screens show the whole strip');
   await page.goto('/?dx=79-15/23');
   // Cell 1 sits just clear of the 32 px fade that marks more strip to the side
@@ -176,7 +213,7 @@ test('mirror reverses the strip on screen but not the reading', async ({ page })
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
 });
 
-test('"7 thin bars" in the text chooses that layout and shows when it is chosen', async ({ page, isMobile }) => {
+test('"7 thin bars" in the text chooses that layout and shows when it is chosen', { tag: '@phone' }, async ({ page, isMobile }) => {
   await page.goto('/');
   if (isMobile) await page.getByRole('button', { name: 'How to copy the bars' }).click();
   const layout = page.locator('[data-control="format"]');
@@ -230,7 +267,7 @@ test('the table of printed frame labels agrees with the decoder for every value 
   expect(problems).toEqual([]);
 });
 
-test('"Mirror" in the steps works the Mirror button and shows when it is on', async ({ page, isMobile }) => {
+test('"Mirror" in the steps works the Mirror button and shows when it is on', { tag: '@phone' }, async ({ page, isMobile }) => {
   await page.goto('/');
   if (isMobile) await page.getByRole('button', { name: 'How to copy the bars' }).click();
   const inText = page.locator('#copy-steps').getByRole('button', { name: 'Mirror' });

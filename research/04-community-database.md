@@ -31,7 +31,10 @@ manufacturers' staff.
 escaping, one row per product or packaging variant. Its columns are described
 in [data/README.md](../data/README.md#big-film-database--community-data); the
 meaning of the two coded ones, `reliability` (certainty, "4 = high, 0 = low")
-and `Ava` (availability), comes from the site's own PHP code.
+and `Ava` (availability), comes from the site's own PHP code. The site shows
+the certainty only after an entry's note, on the line it labels "Information /
+Suspected emulsion", so it rates that note, usually which film a rebrand is
+thought to be, not the entry itself.
 
 ## Snapshot used
 
@@ -46,9 +49,9 @@ update the snapshot.
 
 | Finding | Rows | How the tool handles it |
 |---|---|---|
-| DX extract disagrees with the middle digits of the DX full number | 12 | uses the extract, as the site's own "similar emulsions" search does; a lookup of the cassette number still finds the row by its full number |
+| DX extract disagrees with the middle digits of the DX full number | 12 | keeps both as recorded: the row is listed under its extract, as the site's own "similar emulsions" search does, and found by its full number; for that cassette number, an edge code is drawn only where the entry says which one the film's edge carries (Harman Phoenix II, 017765: 105-3; Power Geek, 333098: 39-1), and otherwise both numbers are named and neither is drawn |
 | Number above 2047, e.g. CineStill 50D and 800T cassettes at 5391 (motion-picture film, which has no DX edge code) | 42 | can match a cassette number, never an edge code |
-| Number below 16, so Part 1 would be 0: valid under the standard, but held by no maker in 2008 | 14 | same |
+| Number below 16, so Part 1 would be 0: valid under the standard, but held by no maker in 2008 | 14 | same; their cassette numbers (Fujifilm Neopan and Acros 000000, 000004 and 100004, Konica PAN400 000084, ORWO 000054) have 0000, 0008 or 0005 where the DX number goes, and the 2008 list gives these films no DX number or another one (ORWOPAN 400: 123-3), so the tool calls such a number most likely a filler |
 | HTML markup inside a field (`<i>…</i>`) | 3 | markup removed |
 | `#` search tags appended to the name | 441 | split off; still searchable |
 | Certainty recorded | 502 (0: 5, 1: 44, 2: 79, 3: 289, 4: 85) | shown as "certainty n/4" |
@@ -64,9 +67,13 @@ Two structural limits matter more than any single row:
   that maker rather than from PIMA (Annex A.3.7).
 - **One number, many names.** A popular emulsion appears under every brand
   that sold it, so one code can list dozens of entries. The tool groups rows
-  that differ only by cassette number and lists the most certain first (rows
-  with no certainty count as 2 of 4), then by name; the first one names a code
-  known only from this database.
+  that differ only by cassette number and orders them by a score of its own,
+  worked out from each row: highest for a cassette number that gives the
+  row's DX number, which shows a 35 mm DX film rather than 16 mm, 120 or sheet
+  film; then for having no note, since a note mostly says which film a rebrand
+  is thought to be; then the certainty (rows with none count as 2 of 4); ties
+  go by name. The first one names a code known only from this database. The
+  cassette helper puts the rows with the number typed first.
 
 ## Coverage of modern films
 

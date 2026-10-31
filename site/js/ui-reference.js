@@ -26,10 +26,12 @@
     }
 
     const text = h('input', { type: 'search', id: 'ref-q', class: 'input', placeholder: t('Filter products'), autocomplete: 'off' });
-    const maker = h('select', { id: 'ref-maker', class: 'input' },
+    // autocomplete off, as for the text: a browser that puts back the old
+    // choices when Back loads the page again would not draw the list for them.
+    const maker = h('select', { id: 'ref-maker', class: 'input', autocomplete: 'off' },
       h('option', { value: '' }, t('All manufacturers')),
       lookup.sensitizers.map((s, i) => h('option', { value: String(i) }, s.label)));
-    const status = h('select', { id: 'ref-status', class: 'input' },
+    const status = h('select', { id: 'ref-status', class: 'input', autocomplete: 'off' },
       h('option', { value: '' }, t('Any status')),
       h('option', { value: 'live' }, t('In production in 2008')),
       h('option', { value: 'gone' }, t('Discontinued by 2008')));
@@ -70,7 +72,7 @@
           h('td', null, h('p', { class: 'num-list' }, unassigned.map((u) => u.part1).join(root.DX.i18n.punctuation().list)))),
         h('tr', { class: 'assign-table__other' },
           h('th', { scope: 'row' }, t('Earlier assignments')),
-          h('td', null, h('ul', { class: 'history' }, history.map((u) => h('li', null, `${u.part1}: ${u.previously}`)))))));
+          h('td', null, h('ul', { class: 'history' }, history.map((u) => h('li', null, `${u.part1}: `, ui.source(u.previously))))))));
 
     /** The DX number as listed: Shanghai's four brands have no Part 2. */
     const label = (p) => (p.wildcard ? `${p.part1}-?` : codec.formatDxNumber(p.part1, p.part2));

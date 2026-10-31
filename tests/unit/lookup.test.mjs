@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const createLookup = require('../../site/js/dx-lookup.js');
+const codec = require('../../site/js/dx-codec.js');
 const realData = require('../../site/js/dx-data.js');
 const realCommunity = require('../../site/js/dx-data-community.js');
 
@@ -216,6 +217,34 @@ describe('lookup with the real tables', () => {
     assert.ok(lookup.search('832973').some((e) => e.full === '832973'));
     // "DX" in front, as for other numbers.
     assert.ok(lookup.search('DX 753914').some((e) => e.full === '753914'));
+    // The registry's own augmented numbers come first, by number and by name.
+    const coutu = lookup.search('832973')[0];
+    assert.equal(coutu.source, 'i3a');
+    assert.equal(coutu.name, 'KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
+    assert.equal(coutu.part1, null);
+    assert.ok(lookup.search('DX 733633').some((e) => e.source === 'i3a' && e.code === '733633'));
+    assert.equal(lookup.search('jean coutu').filter((e) => e.source === 'i3a').length, 5);
+  });
+
+  test('an entry keeps its cassette number and its DX number apart, and has an edge code only where it says so', () => {
+    // Where the two differ, as recorded: a deliberate record or a slip, nothing says which.
+    const differ = lookup.community.filter((e) => /^\d{6}$/.test(e.full) && !e.agrees).map((e) => e.full).sort();
+    assert.deepEqual(differ, ['001742', '002723', '003534', '013980', '014061', '016164', '017765', '018523', '052323', '114064', '333098', '701310']);
+    // The edge codes the entries state, each by its film's edge or barcode.
+    const edges = lookup.community.filter((e) => e.edge).map((e) => `${e.full} ${codec.formatDxNumber(e.edge.part1, e.edge.part2)}`).sort();
+    assert.deepEqual(edges, ['007930 49-9', '015610 97-9', '015620 97-10', '017765 105-3', '114064 103-14', '333098 39-1']);
+  });
+
+  test('the score puts first a 35 mm DX film without a note, rather than 16 mm, 120 or sheet film, or a rebrand', () => {
+    const first = (part1, part2) => [...lookup.byDx(part1, part2).community].sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'en'))[0].name;
+    assert.match(first(84, 3), /KM135/); // not the 16 mm movie film
+    assert.match(first(52, 13), /LPZ/); // not the 120 roll (LPP120)
+    assert.match(first(112, 1), /5026/); // not the sheet film (4106)
+    assert.match(first(12, 7), /^Fujicolor Super HGII100/); // not Tudor's rebrand of it
+    assert.equal(first(2, 0), 'Sakuracolor SR-100 Dx coded');
+    // An entry whose cassette gives another DX number comes after those whose cassette agrees.
+    const astral = lookup.community.find((e) => e.full === '701310');
+    assert.ok(astral.score < 4);
   });
 
   test('cassette 017563 is Ilford FP4 Plus, 24 exposures', () => {

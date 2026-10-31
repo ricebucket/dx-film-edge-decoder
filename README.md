@@ -53,8 +53,9 @@ server. It also works when `site/index.html` is opened straight from disk.
 3. **Count the thin bars in the top row** between the wide marks: 11, or 7 for
    the original layout, found on older film and on some later film. Choose the
    matching **Layout**.
-4. **Copy the lower row.** Select every cell where your film has a bar; with a
-   mouse, drag to fill several, or select the first cell and type `1` and `0`.
+4. **Copy the lower row.** Select every cell where your film has a bar. With a
+   mouse, drag to fill several; with a keyboard, select the first cell and type
+   `1` and `0`.
    On slide film the bars are clear marks on a black edge; pick the black piece
    of film under the strip to draw them that way.
 5. **Read the result.** The number printed just before the barcode on your film
@@ -124,7 +125,7 @@ LICENSES/, REUSE.toml license texts, and which files each one covers
 ### Tests
 
 ```sh
-npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer
+npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags
 npm run test:e2e    # browser tests: desktop, Android phone, iPhone
 ```
 
@@ -133,6 +134,12 @@ in WebKit, Safari's engine, on an iPhone 17 Pro. To run just one of them, add
 `-- --project=desktop` (or `android`, `iphone`). They include accessibility
 checks with [axe-core](https://github.com/dequelabs/axe-core) (its WCAG 2.2 A
 and AA rules) in every language, in light and dark mode.
+
+On GitHub, to save time, the browser tests run in four jobs at once: every
+test on the desktop, split three ways, and on the two phones only the tests
+tagged `@phone`, those that work differently on a phone or run only there. A
+unit test checks those tags. On your own machine, `npm run test:e2e` runs
+every test on all three.
 
 The unit tests need nothing beyond Node. The browser tests use
 [Playwright](https://playwright.dev/) and axe-core, which are deliberately
@@ -239,8 +246,7 @@ language. When you change one version, make the same change in the other.
   It uses the page as a visitor would, copying a black-and-white film's code
   with one bar missed, taking the correction, and reading the sample photo of
   a color negative, so run it after visible changes to those parts, and watch
-  the results before committing them. Each video adds about 6–8 MB to the
-  repository.
+  the results before committing them.
 
 ## License and sources
 

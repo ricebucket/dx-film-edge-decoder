@@ -42,12 +42,19 @@ test('search results without a usable DX number say why, in the row', async ({ p
   await page.locator('#finder-q').fill('neopan 400ug');
   const neopan = page.locator('.finder__item').first();
   await expect(neopan.getByRole('button', { name: 'No full code' })).toBeDisabled();
-  await expect(neopan.locator('.finder__why')).toHaveText('No maker was given Part 1 = 0, so DX 0-0 is most likely wrong.');
+  await expect(neopan.locator('.finder__why')).toHaveText('No maker held Part 1 = 0 in 2008, so DX 0-0 is not a maker’s code.');
   await expect(neopan.locator('.finder__dx')).toHaveCount(0); // no cassette number either
   await page.locator('#finder-q').fill('cinestill 800t');
   const cine = page.locator('.finder__item').first();
   await expect(cine.locator('.finder__why')).toHaveText('This cassette number is outside the range a film edge code can hold.');
   await expect(cine.locator('.finder__dx')).toHaveText('cassette 753914');
+  // The registry's own augmented cassette numbers, as its rows.
+  await page.locator('#finder-q').fill('832973');
+  const coutu = page.locator('.finder__item').first();
+  await expect(coutu.locator('.finder__name')).toHaveText('KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
+  await expect(coutu.locator('.source-tag')).toHaveText('I3A 2008');
+  await expect(coutu.locator('.finder__dx')).toHaveText('cassette 832973');
+  await expect(coutu.locator('.finder__why')).toHaveText('This cassette number is outside the range a film edge code can hold.');
   // A number recorded without a cassette number is not called one.
   await page.locator('#finder-q').fill('klick extra definition');
   const klick = page.locator('.finder__item').first();
@@ -81,16 +88,25 @@ test('a cassette number finds the film recorded with it, under the DX number its
   await expect(page.locator('#result')).toContainText('105-3');
 });
 
-test('the cassette helper goes by the entries for this very number, names other edge codes, and gives one where the number has none', async ({ page }) => {
+test('the cassette helper goes by the entries for this very number, names the other DX numbers they record, and draws only a code nothing contradicts', async ({ page }) => {
   const lookUp = async (code) => {
     await page.locator('#cassette-code').fill(code);
     await page.getByRole('button', { name: 'Look up' }).click();
   };
   const out = page.locator('.cassette__result');
-  // 001742 is REALA 100 Gen 1, recorded with edge code 10-12; 001744, Gen 2, has 10-14.
+  // 001742 is REALA 100 Gen 1, which the database records as DX 10-12, while
+  // the number gives 10-14 (REALA 100 Gen 2's 001744). Nothing says which one
+  // its edge carries: both are named, neither drawn.
   await lookUp('001742');
-  await expect(out).toContainText('The Big Film Database gives this film’s edge code as DX 10-12.');
-  await expect(out.getByRole('link', { name: /on The Big Film Database/ })).toHaveAttribute('href', /dx_number=10-12$/);
+  await expect(out).toContainText('The Big Film Database also gives DX 10-12 for this cassette number.');
+  await expect(out).not.toContainText('edge code as DX');
+  await expect(out.getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
+  await expect(out.getByRole('link', { name: /on The Big Film Database/ })).toHaveCount(0);
+  // The same for Black's Astral 200: 701310 gives 8-3 (FUJICOLOR SUPERIA 200), its entry says 81-14.
+  await lookUp('701310');
+  await expect(out).toContainText('FUJICOLOR SUPERIA 200');
+  await expect(out).toContainText('The Big Film Database also gives DX 81-14 for this cassette number.');
+  await expect(out.getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
   await lookUp('001744');
   await expect(out).not.toContainText('edge code as DX');
   await expect(out.getByRole('link', { name: /on The Big Film Database/ })).toHaveAttribute('href', /dx_number=10-14$/);
@@ -101,12 +117,15 @@ test('the cassette helper goes by the entries for this very number, names other 
   // 333098 (Power Geek) is no DX number, but its entry records edge code 39-1.
   await lookUp('333098');
   await expect(out).toContainText('The Big Film Database gives this film’s edge code as DX 39-1.');
+  // Its record stands: the standard's reading, which would point to Kodak, is left out.
+  await expect(out).toContainText('3309 = 16 × 206 + 13: an augmented number');
+  await expect(out).not.toContainText('a maker adds 128, 256 or 384');
   await out.getByRole('button', { name: 'Show the edge barcode' }).click();
   await expect(page.locator('#result')).toContainText('39-1');
 });
 
 test('a cassette number whose middle digits give Part 1 = 0 is called a filler, in Find a film and the cassette helper', async ({ page }) => {
-  const note = 'Most likely a filler number: no maker was given Part 1 = 0, so DX 0-5 is most likely wrong.';
+  const note = 'Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX 0-5 is not a maker’s code.';
   await page.locator('#finder-q').fill('000054');
   await expect(page.locator('#finder-help')).toHaveText('3 films found.');
   await expect(page.locator('.finder__item').first().locator('.finder__why')).toHaveText(note);
@@ -114,6 +133,10 @@ test('a cassette number whose middle digits give Part 1 = 0 is called a filler, 
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText(note);
   await expect(page.locator('.cassette__result .match__name').first()).toContainText('ORWO');
+  // The other films sharing those digits are not said to share a DX number.
+  await page.locator('#cassette-code').fill('000004');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result summary')).toHaveText('4 other films have the same middle four digits');
 });
 
 test('the cassette helper says when a Part 1 is for APS film, as the result does', async ({ page }) => {
@@ -228,7 +251,7 @@ test('the cassette drawing shows a real cassette: its contact areas, then its ba
   expect(drawn.film.rings).toBeGreaterThanOrEqual(5);
 });
 
-test('the cassette drawing sits to the right of the heading, the lead and the form, or between the lead and the form on phones; the results come below', async ({ page, isMobile }) => {
+test('the cassette drawing sits to the right of the heading, the lead and the form, or between the lead and the form on phones; the results come below', { tag: '@phone' }, async ({ page, isMobile }) => {
   await page.locator('#cassette-code').fill('105514');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result dt').first()).toBeVisible();
@@ -294,18 +317,31 @@ test('the film look and Mirror leave the result as it is, with a list opened in 
   await expect(matches).toHaveCount(n);
 });
 
-test('an entry shows how sure the database is, also when it has no notes', async ({ page }) => {
-  // As two entries rated 0 (a guess) are: Polaroid disposable camera film, DM Paradies 200.
+test('an entry shows how sure the database is about its note, beside the note only', async ({ page }) => {
   const shown = (entry) => page.evaluate((e) => {
     const li = window.DX.ui.communityItem(Object.assign({ manufacturer: '', country: '', from: '', to: '', distributor: '', availability: '', cassettes: [] }, e));
     const certainty = li.querySelector('.certainty');
     return certainty && { text: li.textContent, title: certainty.title };
   }, entry);
-  const bare = await shown({ name: 'A film', original: '', reliability: 0 });
-  expect(bare.text).toContain('Certainty 0/4');
-  expect(bare.title).toMatch(/0 = low, 4 = high/); // the database's own scale
-  expect((await shown({ name: 'A film', original: 'Same as B', reliability: 3 })).text).toContain('Notes: Same as B (certainty 3/4)');
+  const noted = await shown({ name: 'A film', original: 'Same as B', reliability: 3 });
+  expect(noted.text).toContain('Notes: Same as B (certainty 3/4)');
+  expect(noted.title).toMatch(/0 = low, 4 = high/); // the database's own scale
+  // The database rates only its notes, and shows the value nowhere else (two
+  // entries are rated without one: Polaroid disposable camera film, DM Paradies 200).
+  expect(await shown({ name: 'A film', original: '', reliability: 0 })).toBeNull();
   expect(await shown({ name: 'A film', original: '', reliability: null })).toBeNull();
+});
+
+test('on the Chinese page, a source\'s own words are marked as English, and Chinese ones are not', async ({ page }) => {
+  await page.goto('/?lang=zh-CN&dx=110-10/1');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  // Notes, as the database wrote them, inside the page's own Chinese words.
+  const note = page.locator('#result .match__original').first();
+  await expect(note).toContainText('备注：');
+  await expect(note.locator('[lang="en"]')).toHaveText(/^[\x20-\x7e…’]+$/);
+  const marked = await page.evaluate(() => [...document.querySelectorAll('#result .match [lang="en"]')].map((el) => el.textContent));
+  expect(marked.length).toBeGreaterThan(1);
+  expect(marked.some((text) => /[\u3400-\u9fff]/.test(text))).toBe(false);
 });
 
 test('community numbers below 16 name films by cassette only, never by the bars of DX 0-n', async ({ page }) => {
@@ -341,11 +377,25 @@ test('Find a film says when no film has a DX number, and lists each film once', 
 });
 
 test('Find a film lists every cassette number of films without a DX number, and names typed as one word', async ({ page }) => {
-  // Kodak's five "augmented" cassette numbers for Jean Coutu are all shown.
+  // Kodak's five "augmented" cassette numbers for Jean Coutu are all shown,
+  // as the registry lists them and as The Big Film Database does.
   await page.locator('#finder-q').fill('jean coutu');
-  await expect(page.locator('#finder-help')).toHaveText('5 films found.');
+  await expect(page.locator('#finder-help')).toHaveText('10 films found.');
+  await expect(page.locator('.finder__item .source-tag--i3a')).toHaveCount(5);
   await page.locator('#finder-q').fill('tmax400');
   await expect(page.locator('.finder__item').first()).toContainText('KODAK T-MAX 400 Professional Film');
+});
+
+test('after Back loads the page again, the code list\'s filters are the ones its list shows', async ({ page }) => {
+  await page.locator('#ref-maker').selectOption({ label: 'Eastman Kodak' });
+  await page.locator('#ref-status').selectOption('gone');
+  await expect(page.locator('#codes').getByText(/registered products\.$/)).toHaveText(/^\d+ of 386 registered products\.$/);
+  await expect(page.locator('#codes').getByText(/registered products\.$/)).not.toHaveText('386 of 386 registered products.');
+  await page.goto('/sources.html');
+  await page.goBack();
+  await expect(page.locator('#ref-maker')).toHaveValue('');
+  await expect(page.locator('#ref-status')).toHaveValue('');
+  await expect(page.locator('#codes').getByText(/registered products\.$/)).toHaveText('386 of 386 registered products.');
 });
 
 test('the code list takes a bare film speed as part of a name, not as a DX number', async ({ page }) => {
@@ -397,9 +447,20 @@ test('cassette input is validated', async ({ page }) => {
   await page.locator('#cassette-code').fill('12');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('#cassette-help')).toContainText('exactly six digits');
+  await expect(page.locator('.cassette__said')).toBeEmpty();
   await page.locator('#cassette-code').fill('832973');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText('KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
+  // Screen readers are told where the result is; the help under the field stays.
+  await expect(page.locator('.cassette__said')).toHaveText('The result is below.');
+  await expect(page.locator('#cassette-help')).toHaveText('Printed between the barcode and the film slot.');
+  // A wrong number next empties it, so that the next result is said again.
+  await page.locator('#cassette-code').fill('12');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__said')).toBeEmpty();
+  await page.locator('#cassette-code').fill('832973');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__said')).toHaveText('The result is below.');
   // An augmented number (Annex A.4) names its maker, not a DX number.
   await expect(page.locator('.cassette__result')).toContainText('3297 = 16 × 206 + 1: an augmented number');
   await expect(page.locator('.cassette__result .readout__value').nth(1)).toHaveText('—');
@@ -463,9 +524,12 @@ test('a registry film is said to be in production in 2008, or discontinued, only
   await page.goto('/?dx=2-0/1');
   await expect(page.locator('#result')).toContainText('Part 1 = 2 is assigned to KONICA MINOLTA PHOTO IMAGING, INC.');
   await expect(page.locator('#result')).not.toContainText('INC..');
-  // Known only from the community list: named after its most certain entry,
-  // where entries without a certainty count as the middle of the scale.
-  await expect(page.locator('#result-title')).toHaveText('Sakuracolor SR-100');
+  // Known only from the community list: named after the entry with the
+  // highest score, here one whose cassette carries DX 2-0 and with no note.
+  await expect(page.locator('#result-title')).toHaveText('Sakuracolor SR-100 Dx coded');
+  // Not after a rebrand whose note names the film: DX 12-7 is Fuji's own, not Tudor's.
+  await page.goto('/?dx=12-7/1');
+  await expect(page.locator('#result-title')).toHaveText('Fujicolor Super HGII100');
 });
 
 test('the last "Show more" of the search hands focus to the first film it brought', async ({ page }) => {

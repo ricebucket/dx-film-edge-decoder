@@ -11,7 +11,7 @@ texts. Each file has a single license.
 
 - **Code, tests, scripts, styles, the favicon, the interface text in each
   language, the diagrams, screenshots and demo videos, and these research notes
-  in English and Chinese** were written for this project and are licensed under
+  in English and Chinese** were made for this project and are licensed under
   the GNU General Public License v3.0 (see `LICENSE`). The diagrams are drawn by
   `scripts/make-figures.mjs`, the screenshots taken by `scripts/screenshots.mjs`
   and the demo videos recorded by `scripts/demo-video.mjs`. The screenshots and

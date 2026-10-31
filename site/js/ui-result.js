@@ -15,13 +15,24 @@
     return from === to ? String(from) : `${from}–${to}`;
   }
 
+  /**
+   * A source's own words, as it wrote them: on a page in another language
+   * marked as English, which nearly all of them are (WCAG 3.1.2), unless
+   * written in Chinese or Japanese.
+   */
+  function source(text) {
+    if (i18n.current === 'en' || /[\u3040-\u30ff\u3400-\u9fff]/.test(text)) return text;
+    return h('span', { lang: 'en' }, text);
+  }
+
+  /** The years an entry gives, in pieces (i18n.parts), or none. */
   function years(entry) {
-    const from = entry.from || '';
-    const to = entry.to || '';
-    if (!from && !to) return '';
-    if (from && !to) return entry.availability === 'on the market' ? t('{from} to today', { from }) : t('from {from}', { from });
-    if (!from) return t('until {to}', { to });
-    return t('{from} to {to}', { from, to });
+    const from = entry.from ? source(entry.from) : '';
+    const to = entry.to ? source(entry.to) : '';
+    if (!from && !to) return null;
+    if (from && !to) return entry.availability === 'on the market' ? i18n.parts('{from} to today', { from }) : i18n.parts('from {from}', { from });
+    if (!from) return i18n.parts('until {to}', { to });
+    return i18n.parts('{from} to {to}', { from, to });
   }
 
   /** The availability values of dx-lookup.js, as shown. */
@@ -38,23 +49,27 @@
     return JSON.stringify([e.name, e.manufacturer, e.original, e.reliability, e.country, e.from, e.to, e.distributor, e.availability]);
   }
 
-  /** Merge community rows that differ only by cassette number (e.g. 24 and 36 exposures). */
-  function groupCommunity(entries) {
+  /**
+   * Merge community rows that differ only by cassette number (e.g. 24 and 36
+   * exposures), and list them by their score (js/dx-lookup.js), then name:
+   * the first names a code known only from this database. `boost`, if given,
+   * adds to a row's score where the list is shown (the cassette helper puts
+   * the number typed first).
+   */
+  function groupCommunity(entries, boost) {
     const groups = new Map();
     for (const e of entries) {
       const key = communityKey(e);
+      const score = (e.score || 0) + (boost ? boost(e) : 0);
       const g = groups.get(key);
       if (g) {
         if (e.full && !g.cassettes.includes(e.full)) g.cassettes.push(e.full);
+        g.score = Math.max(g.score, score);
       } else {
-        groups.set(key, Object.assign({}, e, { cassettes: e.full ? [e.full] : [] }));
+        groups.set(key, Object.assign({}, e, { cassettes: e.full ? [e.full] : [], score }));
       }
     }
-    // The most certain first, so that it names a code known only from this
-    // database. Most entries give no certainty: they count as the middle of
-    // its scale (0–4), so an entry it doubts comes after them.
-    const certainty = (e) => (e.reliability === null ? 2 : e.reliability);
-    return [...groups.values()].sort((a, b) => certainty(b) - certainty(a) || a.name.localeCompare(b.name, 'en'));
+    return [...groups.values()].sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'en'));
   }
 
   function sensitizerName(s) {
@@ -82,28 +97,33 @@
   /** Text and its closing period, unless it ends in one already ("sold by Walgreens Co."), as in i18n's fill(). */
   const period = (text, mark) => (mark === '.' && text.endsWith('.') ? text : text + mark);
 
+  /** Pieces of text and elements (i18n.parts), joined by `between` and closed by `mark` as period() does. */
+  function joined(items, between, mark) {
+    const pieces = items.flatMap((item, i) => (i ? [between] : []).concat(item));
+    const last = pieces[pieces.length - 1];
+    const words = typeof last === 'string' ? last : last.textContent;
+    return mark === '.' && words.endsWith('.') ? pieces : pieces.concat(mark);
+  }
+
   function communityItem(e) {
     const p = i18n.punctuation();
     const facts = [];
     if (e.manufacturer) facts.push(t('Made by {maker}', { maker: e.manufacturer }));
     const y = years(e);
     if (y) facts.push(y);
-    if (e.country) facts.push(e.country);
+    if (e.country) facts.push(source(e.country));
     if (e.distributor) facts.push(t('sold by {distributor}', { distributor: e.distributor }));
-    // How sure the database is: after the notes, or on its own line where there
-    // are none (two entries, both rated 0, a guess).
+    // How sure the database is about the note, after it: the database rates
+    // only its notes, and shows the value nowhere else.
     const certainty = (...text) => h('span', { class: 'certainty', title: t('How sure the database is about this (0 = low, 4 = high)') }, ...text);
-    let notes = null;
-    if (e.original) {
-      notes = h('span', { class: 'match__original' }, t('Notes: {notes}', { notes: e.original }),
-        e.reliability !== null ? certainty(p.space, t('(certainty {n}/4)', { n: e.reliability })) : null);
-    } else if (e.reliability !== null) {
-      notes = h('span', { class: 'match__original' }, certainty(t('Certainty {n}/4', { n: e.reliability })));
-    }
+    const notes = e.original
+      ? h('span', { class: 'match__original' }, ...i18n.parts('Notes: {notes}', { notes: source(e.original) }),
+        e.reliability !== null ? certainty(p.space, t('(certainty {n}/4)', { n: e.reliability })) : null)
+      : null;
     return h('li', { class: 'match match--community' },
       h('span', { class: 'match__name' }, e.name),
       e.availability ? h('span', { class: `pill pill--${e.availability === 'on the market' ? 'live' : 'gone'}` }, availabilityLabel(e.availability)) : null,
-      facts.length ? h('span', { class: 'match__facts' }, period(facts.join(p.comma), p.period)) : null,
+      facts.length ? h('span', { class: 'match__facts' }, ...joined(facts, p.comma, p.period)) : null,
       notes,
       e.cassettes.length ? h('span', { class: 'match__cassette' }, i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.list) })) : null);
   }
@@ -298,7 +318,7 @@
 
   /**
    * The film a DX number's entries name: every registry product, or else the
-   * most certain community entry; null for none. The result's heading and the
+   * community entry listed first; null for none. The result's heading and the
    * photo reader both say it so.
    */
   function filmName(info) {
@@ -329,7 +349,7 @@
         : t('Part 1 = {part1} is assigned to {maker}.', part1)));
     } else {
       lines.push(h('p', { class: 'result__lead' }, t('Part 1 = {part1} was not assigned to any manufacturer in the 2008 registry.', part1),
-        info.part1Info.previously ? [i18n.punctuation().space, t('History: {history}', { history: info.part1Info.previously })] : ''));
+        info.part1Info.previously ? [i18n.punctuation().space, i18n.parts('History: {history}', { history: source(info.part1Info.previously) })] : ''));
     }
     if (!products.length && groups.length) {
       lines.push(h('p', { class: 'fineprint' }, t('Not in the 2008 registry; the name comes from the community database.')));
@@ -452,4 +472,5 @@
   root.DX.ui.communityItem = communityItem;
   root.DX.ui.bfdLink = bfdLink;
   root.DX.ui.productItem = productItem;
+  root.DX.ui.source = source;
 })(globalThis);

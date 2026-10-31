@@ -282,7 +282,7 @@ test('only what can be clicked has a ring or a pill-shaped outline', async ({ pa
   expect(await outlinedButNotClickable()).toEqual([]);
 });
 
-test('on phones the introduction can be folded away, and stays folded', async ({ page, isMobile }) => {
+test('on phones the introduction can be folded away, and stays folded', { tag: '@phone' }, async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phones only: wider screens always show it');
   await page.goto('/');
   const lead = page.locator('#intro-lead');
@@ -303,7 +303,7 @@ test('on phones the introduction can be folded away, and stays folded', async ({
   await expect(toggle).toHaveAccessibleName('Hide the introduction');
 });
 
-test('on phones the steps show their titles until opened', async ({ page, isMobile }) => {
+test('on phones the steps show their titles until opened', { tag: '@phone' }, async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phones only: wider screens always show the steps in full');
   await page.goto('/');
   const steps = page.locator('#copy-steps');
@@ -459,6 +459,59 @@ test('a page brought back by Back keeps the language its link chose, when none w
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 });
 
+// Playwright's browsers keep no pages for Back, as Chromium never does for a
+// file: Back loads the page again, which these two check.
+test('a page loaded again by Back takes a language chosen since on another page, and its address says so', async ({ page }) => {
+  await page.goto('/?dx=79-15/23&lang=zh-CN');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await page.goto('/sources.zh-CN.html');
+  await Promise.all([page.waitForURL(/\/sources\.html$/), page.getByLabel('语言').selectOption('en')]);
+  await page.goBack();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=en$/);
+  await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
+  // Its language menu says so too, not the choice the browser kept from before.
+  await expect(page.getByLabel('Language')).toHaveValue('en');
+});
+
+test('a page loaded again by Back takes a language chosen since, also when its address was visited again in between', async ({ page }) => {
+  await page.goto('/?lang=zh-CN');
+  await page.goto('/sources.zh-CN.html');
+  await page.goto('/?lang=zh-CN'); // the same address again, as by the sources page's name link
+  await Promise.all([page.waitForURL(/lang=en$/), page.getByLabel('语言').selectOption('en')]);
+  await page.goBack(); // the sources page
+  await page.goBack(); // the first visit
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page).toHaveURL(/\?lang=en$/);
+});
+
+test('a page loaded again by Back keeps the language its address names, when none was chosen since', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.setItem('dx-lang', 'zh-CN');
+    localStorage.setItem('dx-lang-at', String(Date.now()));
+  });
+  await page.goto('/?dx=79-15/23&lang=en');
+  await page.goto('/sources.html');
+  await page.goBack();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=en$/);
+});
+
+test('picking the language shown again, after stepping through the menu with the keys, keeps no place for later', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'a keyboard on the menu itself');
+  await page.goto('/');
+  await page.evaluate(() => window.scrollTo(0, document.getElementById('how').getBoundingClientRect().top + window.scrollY));
+  const menu = page.getByLabel('Language');
+  await menu.focus();
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(200);
+  await menu.selectOption('en');
+  await page.waitForTimeout(300); // a language change would reload the page by now
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  expect(await page.evaluate(() => sessionStorage.getItem('dx-place'))).toBeNull();
+});
+
 test('the strip fits a 1024 or 1110 px window; in a narrower one, a line under it says it scrolls', async ({ page, isMobile }) => {
   test.skip(isMobile, 'window widths are set on the desktop');
   await page.setViewportSize({ width: 1110, height: 800 });
@@ -533,7 +586,7 @@ test('in a short window, such as a phone turned sideways, the header scrolls awa
   }).toBe(true);
 });
 
-test('on phones the page does not shift as it is built', async ({ page, browserName, isMobile }) => {
+test('on phones the page does not shift as it is built', { tag: '@phone' }, async ({ page, browserName, isMobile }) => {
   test.skip(!isMobile || browserName !== 'chromium', 'layout shifts are measured in Chromium');
   await page.goto('/');
   await page.waitForTimeout(800);
