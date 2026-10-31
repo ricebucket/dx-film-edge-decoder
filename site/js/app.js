@@ -9,7 +9,8 @@
 
   // Examples are documented codes: Wikipedia's sample (and a real BW400CN
   // negative), the Wikimedia photo of Perutz Primera 200, I3A entries, and
-  // Zint's test vector for the older 23-cell layout (79-7). Each is drawn in
+  // DX 12-13 (Fujicolor Super HGV100 Asia in The Big Film Database) in the
+  // older 23-cell layout. Each is drawn in
   // its film's look; BW400CN is black-and-white film developed like color
   // negative film, and looks like it (Kodak F-4036; research/05). Their labels
   // are looked up when shown, as the page's language file may load after this.
@@ -18,7 +19,7 @@
     { label: t('{film}, frame {frame}', { film: 'Perutz Primera 200', frame: '22A' }), code: { part1: 47, part2: 1, frame: 22, half: true }, look: 'negative' },
     { label: t('{film}, frame {frame}', { film: 'Ilford HP5 Plus', frame: '12' }), code: { part1: 109, part2: 9, frame: 12, half: false }, look: 'bw' },
     { label: t('{film}, frame {frame}', { film: 'Fujichrome Velvia 50', frame: '5A' }), code: { part1: 32, part2: 6, frame: 5, half: true }, look: 'slide' },
-    { label: t('{film}, older 7-bar code', { film: 'Kodacolor VR200' }), code: { part1: 79, part2: 7 }, format: 'short', look: 'negative' },
+    { label: t('{film}, older 7-bar code', { film: 'Fujicolor Super HGV100 Asia' }), code: { part1: 12, part2: 13 }, format: 'short', look: 'negative' },
   ];
 
   const emptyCells = (format) =>
@@ -176,7 +177,7 @@
 
   function hint(d) {
     if (isEmpty()) {
-      return t('Start at cell 7, right after the fixed start pattern. Drag to fill several cells; keys 1 and 0 type bars and gaps.');
+      return t('Start at cell 7, right after the fixed start pattern.');
     }
     const problem = d.issues[0];
     if (problem && problem.code === 'blank') return t('Cell {cell} should always be empty.', { cell: problem.cell });

@@ -10,14 +10,14 @@ source consulted for the project.
 texts. Each file has a single license.
 
 - **Code, tests, scripts, styles, the favicon, the interface text in each
-  language, the diagrams and screenshots in the documentation, and these
-  research notes in English and Chinese** were written for this project and are
-  licensed under the GNU General Public License v3.0 (see `LICENSE`). The
-  diagrams are drawn by `scripts/make-figures.mjs` and the screenshots taken by
-  `scripts/screenshots.mjs`. The screenshots that show entries from The Big
-  Film Database (`.github/screenshot*.png` and
-  `research/img/community-result*.png`) are licensed under CC BY-SA 4.0
-  instead.
+  language, the diagrams, screenshots and demo videos, and these research notes
+  in English and Chinese** were written for this project and are licensed under
+  the GNU General Public License v3.0 (see `LICENSE`). The diagrams are drawn by
+  `scripts/make-figures.mjs`, the screenshots taken by `scripts/screenshots.mjs`
+  and the demo videos recorded by `scripts/demo-video.mjs`. The screenshots and
+  demo videos that show entries from The Big Film Database
+  (`.github/screenshot*.png`, `research/img/community-result*.png` and
+  `.github/demo*`) are licensed under CC BY-SA 4.0 instead.
 - **`data/i3a-2008/`** holds a transcription of the factual content of the
   I3A list *DX Codes for 135-Size Film* (February 2008): the Part 1
   assignments, and the DX numbers and product names as published. It was

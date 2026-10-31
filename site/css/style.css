@@ -175,7 +175,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-padding-top: 72px;
+  /* Room for the header, which grows with the visitor's font size. */
+  scroll-padding-top: 4.5rem;
 }
 
 body {
@@ -841,6 +842,32 @@ h1 {
   --tail-w: calc(var(--cell) * 0.8);
   --code-w: calc(var(--cells) * var(--cell));
   --film-plus: color-mix(in srgb, var(--film-mark) 40%, transparent);
+}
+
+/* The cell size: the largest of 25, 24, 23 and 22 px at which the whole code
+   fits the light table, (9.2 + 31 + 0.8) cells plus the scroller's 4 px of
+   padding. Measured on the strip's own host, so a page scrollbar counts too.
+   Narrower than that, on phones, the strip scrolls sideways at 22 px. */
+.strip-host {
+  container-type: inline-size;
+}
+
+@container (max-width: 1028px) {
+  .strip {
+    --cell: 24px;
+  }
+}
+
+@container (max-width: 987px) {
+  .strip {
+    --cell: 23px;
+  }
+}
+
+@container (max-width: 946px) {
+  .strip {
+    --cell: 22px;
+  }
 }
 
 /* A 23-cell code carries no frame number, so the strip leaves out the room
@@ -2077,6 +2104,12 @@ thead th {
   white-space: nowrap;
 }
 
+/* On the narrowest phones its headings wrap, so the table needs no sideways
+   scrolling, which keyboards couldn't do in it (it holds nothing to focus). */
+.frames-table thead th {
+  white-space: normal;
+}
+
 .products-table thead th {
   position: sticky;
   top: 0;
@@ -2236,6 +2269,15 @@ thead th {
   margin-top: 2px;
   font-size: 0.86rem;
   color: var(--ink-2);
+}
+
+/* Why a film has no barcode to show, under its details. */
+.finder__why {
+  margin-top: 2px;
+}
+
+.products-table__why {
+  display: block;
 }
 
 .finder__dx {
@@ -2481,26 +2523,13 @@ thead th {
 
 /* ---- responsive ---------------------------------------------------------------------------- */
 
-@media (max-width: 1100px) {
-  .strip {
-    --cell: 24px;
-  }
-}
-
-@media (max-width: 900px) {
-  .steps {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .result__grid,
-  .finder {
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
-
+/* The section links go on a row of their own under the brand and the menus,
+   wherever they would not fit beside them: in English up to 952 px with no
+   scrollbar, 969 px with a 17 px one. In em, so it grows with the visitor's
+   font size, as the links do. */
+@media (max-width: 61em) {
   html {
-    scroll-padding-top: 112px;
+    scroll-padding-top: 7rem;
   }
 
   .site-header__inner {
@@ -2529,19 +2558,28 @@ thead th {
     scrollbar-width: none;
     white-space: nowrap;
   }
+}
+
+@media (max-width: 900px) {
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .result__grid,
+  .finder {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
 
   .toolbar__group--actions {
     margin-left: 0;
-  }
-
-  .strip {
-    --cell: 22px;
   }
 }
 
 @media (max-width: 600px) {
   html {
-    scroll-padding-top: 8px;
+    scroll-padding-top: 0.5rem;
   }
 
   /* On phones the header scrolls away to leave room for the strip. */
@@ -2553,10 +2591,12 @@ thead th {
     column-gap: 12px;
   }
 
-  /* Only the globe shows; the select still opens the list of languages. */
+  /* Only the globe shows; the select still opens the list of languages. Its
+     text is moved out of the box too, as Windows contrast themes give it a
+     color of their own. */
   .lang-picker__select {
     width: 38px;
-    padding: 0;
+    padding: 0 0 0 38px;
     color: transparent;
   }
 
@@ -2637,6 +2677,18 @@ thead th {
 
   .band {
     padding-block: 44px;
+  }
+}
+
+/* Phones turned sideways, and other short windows: the header scrolls away
+   too, so the strip shown below it fits on the screen. */
+@media (max-height: 500px) {
+  html {
+    scroll-padding-top: 0.5rem;
+  }
+
+  .site-header {
+    position: static;
   }
 }
 

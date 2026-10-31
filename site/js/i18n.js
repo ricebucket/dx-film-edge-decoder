@@ -186,12 +186,16 @@
     if (code === current.code || !available().some((l) => l.code === code)) return;
     try {
       localStorage.setItem(STORAGE_KEY, code);
+      localStorage.setItem('dx-lang-at', String(Date.now())); // when, for pages brought back by Back (ui-header.js)
     } catch (e) { /* storage blocked: the URL alone keeps the choice */ }
     // The query built by hand (URLSearchParams would escape the "/" in
     // ?dx=79-15/23), on the page's own address, so it can't lead elsewhere.
     const others = location.search.slice(1).split('&').filter((p) => p && !/^lang=/i.test(p));
     const url = new URL(location.href);
     url.search = `?${[...others, `lang=${encodeURIComponent(code)}`].join('&')}`;
+    // No anchor: the page keeps its place itself (app.js), and the browser's
+    // jump to an anchor, once the page has loaded, would undo that.
+    url.hash = '';
     location.replace(url.href);
   }
 

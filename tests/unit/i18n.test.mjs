@@ -2,13 +2,14 @@ import { test, describe, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { collectKeys, loadLanguages, checkLanguage, checkList, scriptKeys, pageKeys, noscriptLanguages, loadVersions, checkVersions, checkVersion, checkMenu } from '../../scripts/check-languages.mjs';
 import { buildFigures } from '../../scripts/make-figures.mjs';
 
 const require = createRequire(import.meta.url);
 const i18n = require('../../site/js/i18n.js');
-const ROOT = new URL('../..', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('../..', import.meta.url)); // a path, even with spaces or other letters in it
 
 // A made-up language with Polish plural rules, to test the plural forms.
 i18n.register({

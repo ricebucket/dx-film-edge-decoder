@@ -130,13 +130,11 @@ def parse_products(doc):
             elif c3 and not c1 and not c2 and last is not None and last['page'] == pno \
                     and not c3.startswith(('Product Name', 'Number')):
                 last['product'] = f"{last['product']} {c3}"  # wrapped product name
-    # Agfa-Gevaert's first list has no "A." heading, but its "B." list of films
-    # no longer manufactured follows it: the first holds the numbers in use.
-    with_b = {r['sensitizer'] for r in rows if r['status'] == 'discontinued'}
+    # Agfa-Gevaert's first list has no "A." heading, so it gets no status,
+    # though a "B." list follows it; two of its films are named "(until
+    # 12/2001)".
     for r in rows:
         r['product'] = re.sub(r'\s+', ' ', r['product']).strip()
-        if r['status'] == '' and r['sensitizer'] in with_b:
-            r['status'] = 'in-use'
     return rows
 
 

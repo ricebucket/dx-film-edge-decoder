@@ -153,8 +153,9 @@ code (§7.1, §7.3).
   addition to the frame numbers" (US 5,336,873). The code says nothing about
   the film itself. Table 6 of the standard lists the same positions, 83 codes
   in all, as many as the patent's figures. The codes for 00 to 0A are printed
-  only where those numbers are printed, and E is an optional end-of-roll code
-  one frame after the code of the last whole frame (§7.3.1.2).
+  only where those numbers are printed (Table 6, note 1), and E is an optional
+  end-of-roll code one frame after the code of the last whole frame
+  (§7.3.1.2).
 - **How it is built.** A single row, with no clock track (JP H02-45890 A).
   Each code has 13 elements: "one wide bar followed by one narrow space", then
   "five bars elements interleaved with four space elements, three of these

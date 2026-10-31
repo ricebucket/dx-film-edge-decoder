@@ -1,0 +1,6 @@
+# Line endings stay LF on every system (Git for Windows would otherwise check
+# text out with CRLF), as the tests compare generated files byte for byte.
+* text=auto eol=lf
+*.png binary
+*.webm binary
+*.mp4 binary

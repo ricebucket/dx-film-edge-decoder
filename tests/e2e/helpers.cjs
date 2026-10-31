@@ -8,7 +8,11 @@ function watchConsole(page) {
     if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
   });
   page.on('pageerror', (err) => problems.push(`page error: ${err.message}`));
-  return () => expect(problems, problems.join('\n')).toEqual([]);
+  // `expected`: patterns of messages that a test brings about on purpose.
+  return (expected = []) => {
+    const left = problems.filter((p) => !expected.some((pattern) => pattern.test(p)));
+    expect(left, left.join('\n')).toEqual([]);
+  };
 }
 
 const dataCell = (page, n) => page.locator(`#strip .track--data [data-cell="${n}"]`);

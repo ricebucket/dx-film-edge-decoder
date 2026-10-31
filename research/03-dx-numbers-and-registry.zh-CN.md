@@ -26,14 +26,14 @@ DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7
 | ERA Photo | 1 | 1 |
 | Ferrania Imaging | 7 | 23 |
 | FUJIFILM Corporation | 12 | 74 |
-| Harman Technologies (ILFORD Photo) | 6 | 29 |
+| Harman Technologies | 6 | 29 |
 | KONICA MINOLTA | 11 | 39 |
 | ORWO Media | 4 | 12 |
 | Shanghai General Photo | 1 | 4 |
 | SVEMA Production | 1 | 1 |
 | Xiamen FUDA | 1 | 3 |
 
-**产品列表**。每家感光厂下有若干行，每行是第 1 部分、第 2 部分和产品名称。Agfa-Gevaert、Eastman Kodak 和 Konica Minolta 把各自的行分为两类：“DX numbers that are currently being used”（目前正在使用的 DX 码），以及“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片；FUJIFILM 的各行以前一类为标题。本工具把这一区分显示为“2008 年仍在生产”或“截至 2008 年已停产”。其他感光厂的章节两者都没有说明，所以本工具不给它们的胶片标出状态。列表共印有 389 行。
+**产品列表**。每家感光厂下有若干行，每行是第 1 部分、第 2 部分和产品名称。Eastman Kodak 和 Konica Minolta 把各自的行分为两类：“DX numbers that are currently being used”（目前正在使用的 DX 码），以及“no longer manufactured … but which may still be in the marketplace”（已不再生产……但可能仍在市面上）的胶片；FUJIFILM 的各行以前一类为标题。本工具把这一区分显示为“2008 年仍在生产”或“截至 2008 年已停产”。Agfa-Gevaert 的行也分成两个列表，但只有第二个有标题，即“no longer manufactured”（已不再生产）；第一个列表中有名称带“(until 12/2001)”（至 2001 年 12 月）的胶片。这第一个列表和其他感光厂的章节两者都没有说明，所以本工具不给这些胶片标出状态。列表共印有 389 行。
 
 ### 文件中发现的不寻常之处
 
@@ -81,7 +81,7 @@ DX 码写作“第 1 部分-第 2 部分”，例如 `79-15`。第 1 部分有 7
 | 8 | — | 30–35 |
 | 9 | — | 37 或更多 |
 
-该标准提醒，37 张或更多的长胶卷可能不被一些胶片处理机接受。24 + 3 张（27 张）的胶卷在两种定义下都是 7。本工具给出 2000 年的定义，在与 1994 年的定义不同时，也给出 1994 年的定义。
+该标准提醒，37 张或更多的长胶卷可能不被一些胶片处理机接受。24 + 3 张（27 张）的胶卷在两种定义下都是 7。本工具给出 2000 年的定义；与维基百科列出的较早含义不同时，也给出这个较早含义。
 
 计算示例：`315223` → 95-2，24 张（维基百科）；`017563` → 109-12，24 张（维基百科上一张 ISO 125 暗盒的照片，而 109-12 在 I3A 列表中是 FP4 PLUS）；`412503` → 78-2（Mérino）；柯达的专利算出 83-2 → 1330。
 

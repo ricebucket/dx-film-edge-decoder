@@ -72,7 +72,7 @@ export async function buildData() {
     if (known && known !== p.sensitizer) throw new Error(`${label} maps to both ${known} and ${p.sensitizer}`);
     fullNameByLabel.set(label, p.sensitizer);
   }
-  const labels = [...new Set(part1Rows.map((r) => r.assignee).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const labels = [...new Set(part1Rows.map((r) => r.assignee).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'en')); // the same order on any computer
   const sensitizers = labels.map((label) => {
     const name = fullNameByLabel.get(label);
     if (!name) throw new Error(`No product section for assignee ${label}`);

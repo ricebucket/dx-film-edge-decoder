@@ -33,10 +33,10 @@
 
   const reasons = () => ({
     flat: t('This image has almost no contrast. Try a sharper, closer photo of the film edge.'),
-    'no-clock': t('The barcode’s top row was not found. Turn the image so the film edge runs left to right and draw a box around one barcode, or try a sharper photo in even light.'),
-    'no-data': t('The lower row could not be read. Make sure the box includes both rows, or try a sharper photo.'),
-    unclear: t('A barcode was found but could not be read reliably. Straighten the image, or draw a box around one barcode.'),
-    eleven: t('This barcode looks cut off or damaged at its end. Leave a little room at both ends of the box, or try a sharper photo.'),
+    'no-clock': t('The barcode’s top row was not found. Turn the image so the film edge runs left to right and select one barcode, or try a sharper photo in even light.'),
+    'no-data': t('The lower row could not be read. Make sure both rows are visible, or try a sharper photo.'),
+    unclear: t('A barcode was found but could not be read reliably. Straighten the image, or select one barcode.'),
+    eleven: t('This barcode looks cut off or damaged at its end. Make sure the whole barcode is visible, or try a sharper photo.'),
   });
 
   /** A copy of a box of a canvas, fitted into maxW × maxH CSS pixels. */
@@ -97,7 +97,7 @@
         h('p', { class: 'fineprint' }, t('A close-up of the film edge works best. The image stays on your device and is never transmitted to the server.')),
         sourceNote),
       step(2, t('Check the barcode'),
-        h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right, then drag a box around one barcode (both rows), or click two opposite corners. Without a box, the whole image is searched.')),
+        h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right, then select one barcode (both rows). Without a selection, the whole image is searched.')),
         h('div', { class: 'photo__controls' },
           h('div', { class: 'photo__control' }, h('span', { class: 'toolbar__label' }, t('Turn')), rotateLeft, rotateRight, flipBtn),
           h('div', { class: 'photo__control photo__control--range' }, h('label', { for: 'photo-fine', class: 'toolbar__label' }, t('Straighten')), fineInput, fineOut),
@@ -123,7 +123,11 @@
       chooseBtn.classList.toggle('tool--primary', current === 1);
       readBtn.classList.toggle('tool--primary', current === 2);
       // While another photo opens, they would act on the one it replaces.
-      for (const control of [rotateLeft, rotateRight, flipBtn, fineInput, readBtn]) control.disabled = !view || Boolean(opening);
+      // Disabled, a control would drop keyboard focus: it goes to the photo.
+      const controls = [rotateLeft, rotateRight, flipBtn, fineInput, readBtn];
+      const off = !view || Boolean(opening);
+      if (off && view && controls.includes(document.activeElement)) canvas.focus();
+      for (const control of controls) control.disabled = off;
     }
 
     /** Step 3 stays empty until a photo has been read. */
@@ -174,6 +178,9 @@
       const other = !p.blob || (!unknown && !/^image\//.test(p.blob.type));
       // A file dropped or pasted on the folded reader opens it: what follows shows in its steps.
       unfold();
+      // Focus on "Use this code" or "Show another sample", about to be replaced, goes to the photo.
+      const at = document.activeElement;
+      if (view && at && (out.contains(at) || sourceNote.contains(at))) canvas.focus({ preventScroll: true });
       if (other) {
         // A photo still opening carries on; the one shown is not read further,
         // so that its reading doesn't replace this message.
@@ -204,7 +211,12 @@
       } catch (e) {
         if (ticket === loads) {
           opening = null;
-          showMessage(t('This image could not be opened. Try a JPEG, PNG or WebP file.'), true);
+          // Brought back by "Open the photo", the file may have been moved or
+          // deleted since: the reader starts again rather than show another photo.
+          const hadFocus = section.contains(document.activeElement);
+          if (kept) reset();
+          if (kept && hadFocus) chooseBtn.focus({ preventScroll: true });
+          showMessage(kept ? t('This photo can no longer be opened. Choose it again.') : t('This image could not be opened. Try a JPEG, PNG or WebP file.'), true);
           setStep();
           draw();
         }
@@ -356,6 +368,9 @@
       selection = null;
       corner = null;
       pointer = null;
+      dragStart = null; // a press begun on the old view ends with it
+      pressId = null;
+      dragging = false;
       clearSel.hidden = true;
       draw();
     }
@@ -495,7 +510,7 @@
       draw();
     };
     canvas.addEventListener('pointerdown', (e) => {
-      if (!view || e.button !== 0) return;
+      if (!view || opening || e.button !== 0) return;
       if (dragStart) {
         cancelPress();
         return;
@@ -613,7 +628,7 @@
     }
 
     canvas.addEventListener('keydown', (e) => {
-      if (!view || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (!view || opening || e.altKey || e.ctrlKey || e.metaKey) return;
       keysHint.hidden = false; // also after a click gave the photo focus
       const dir = ARROWS[e.key];
       if (dir) {
@@ -735,7 +750,7 @@
       }
       const d = r.decoded;
       const info = d.part1 ? lookup.byDx(d.part1, d.part2) : null;
-      const name = info && (info.products[0] || info.community[0]);
+      const name = info && root.DX.ui.filmName(info); // as the result's heading names it
       const what = d.frame === null ? `DX ${d.dxNumber}` : t('DX {dx}, frame {frame}', { dx: d.dxNumber, frame: d.frameLabel });
       const notes = [];
       if (r.reversed) notes.push(t('The film is mirrored or upside down in this photo; the code was read in the right direction anyway.'));
@@ -755,7 +770,7 @@
       }));
       replace(out,
         h('p', { class: `photo__found${d.valid ? '' : ' is-error'}` },
-          h('strong', null, what), name ? i18n.punctuation().colon + name.name : d.valid ? i18n.punctuation().colon + t('not in the lists') : ''),
+          h('strong', null, what), name ? i18n.punctuation().colon + name : d.valid ? i18n.punctuation().colon + t('not in the lists') : ''),
         h('p', { class: 'fineprint' }, t('Outlined in the photo: the cells that were read, top row in blue, lower row in yellow (bold outline = bar).')),
         notes.length ? h('ul', { class: 'photo__notes' }, notes.map((n) => h('li', null, n))) : null,
         h('div', { class: 'result__actions' }, apply));
@@ -818,9 +833,12 @@
       const file = e.dataTransfer && e.dataTransfer.files[0];
       if (file) load({ blob: file });
     });
+    // Pasted while typing, text goes where it is typed; elsewhere, even on the
+    // Straighten slider, an image opens.
+    const typing = (el) => el && (el.isContentEditable || el.tagName === 'TEXTAREA'
+      || (el.tagName === 'INPUT' && /^(text|search|url|tel|email|password|number)$/.test(el.type)));
     document.addEventListener('paste', (e) => {
-      const target = e.target;
-      if (section.hidden || (target && (target.isContentEditable || /^(INPUT|TEXTAREA)$/.test(target.tagName)))) return;
+      if (section.hidden || typing(e.target)) return;
       const item = [...(e.clipboardData ? e.clipboardData.items : [])].find((i) => i.type.startsWith('image/'));
       if (item) {
         e.preventDefault();
@@ -854,7 +872,8 @@
         unfold();
         if (options && options.focus) {
           section.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-          (view ? readBtn : chooseBtn).focus({ preventScroll: true });
+          // While its photo opens, Read again is disabled: the photo shown meanwhile takes focus.
+          (opening ? (view ? canvas : chooseBtn) : view ? readBtn : chooseBtn).focus({ preventScroll: true });
         }
       },
       close() {

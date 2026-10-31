@@ -78,12 +78,11 @@
     function rowFor(p) {
       const dx = label(p);
       const show = h('button', { type: 'button', class: 'tool tool--small', disabled: p.wildcard ? true : null,
-        'aria-label': p.wildcard ? null : t('Show the barcode of {name}', { name: p.name }),
-        title: p.wildcard ? t('Part 2 not identified in the registry') : null }, t('Show'));
+        'aria-label': p.wildcard ? null : t('Show the barcode of {name}', { name: p.name }) }, t('Show'));
       if (!p.wildcard) show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'list', name: p.name }));
       return h('tr', null,
         h('td', { class: 'num' }, dx),
-        h('td', null, p.name),
+        h('td', null, p.name, p.wildcard ? h('span', { class: 'fineprint products-table__why' }, t('Part 2 not identified in the registry')) : null),
         h('td', null, p.sensitizer.label),
         h('td', null, p.status ? h('span', { class: `pill pill--${p.status === 'in-use' ? 'live' : 'gone'}` }, p.status === 'in-use' ? t('in production') : t('discontinued')) : null),
         h('td', null, show));
@@ -93,19 +92,23 @@
       // As the finder reads it: full-width characters, "DX" in front, any
       // dash, and a DX number in any form ("79 15", "1279", "012794").
       const q = text.value.normalize('NFKC').trim().toLowerCase();
-      const typed = q.replace(/^dx\s*/, '').replace(/\s*[-\u2010-\u2015\u2212]+\s*/g, '-');
+      const typed = q.replace(/^dx[\s\-\u2010-\u2015\u2212]*/, '').replace(/\s*[-\u2010-\u2015\u2212]+\s*/g, '-');
       // A bare number such as "200" is more likely a film speed than a DX
       // extract: only "DX 200" or four digits ("1279") are read as one.
       const read = q ? codec.parseDxNumber(q) : null;
       const dx = read && (read.kind !== 'extract' || /^dx/.test(q) || /^\d{4}$/.test(q)) ? read : null;
+      // "DX 12" alone means Part 1 = 12, as in Find a film, not every number starting with 12.
+      const lone = /^dx[\s\-\u2010-\u2015\u2212]*(\d{1,3})$/.exec(q);
+      const part1Alone = lone && Number(lone[1]) <= 127 ? Number(lone[1]) : null;
       const m = maker.value === '' ? null : lookup.sensitizers[Number(maker.value)];
       const st = status.value;
       const rows = lookup.products
         .filter((p) => part1Filter.value === null || p.part1 === part1Filter.value)
         .filter((p) => !m || p.sensitizer === m)
         .filter((p) => !st || p.status === (st === 'live' ? 'in-use' : 'discontinued'))
-        .filter((p) => !q || p.name.toLowerCase().includes(q) || label(p).startsWith(typed)
-          || (dx !== null && p.part1 === dx.part1 && (p.wildcard || p.part2 === dx.part2)))
+        .filter((p) => !q || (part1Alone !== null ? p.part1 === part1Alone
+          : p.name.toLowerCase().includes(q) || label(p).startsWith(typed)
+            || (dx !== null && p.part1 === dx.part1 && (p.wildcard || p.part2 === dx.part2))))
         .sort((a, b) => a.part1 - b.part1 || (a.part2 === null ? -1 : a.part2) - (b.part2 === null ? -1 : b.part2) || a.name.localeCompare(b.name, 'en'));
       tbody.replaceChildren(...rows.map(rowFor));
       clearPart1.hidden = part1Filter.value === null;

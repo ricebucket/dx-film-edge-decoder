@@ -19,8 +19,8 @@
       "{film}，画幅 {frame}",
     "{film}, older 7-bar code":
       "{film}，旧式 7 根细条编码",
-    "Start at cell 7, right after the fixed start pattern. Drag to fill several cells; keys 1 and 0 type bars and gaps.":
-      "从第 7 位开始，就在固定的输入模式后面。拖动可一次填满多个单元；按 1 和 0 键输入条和空。",
+    "Start at cell 7, right after the fixed start pattern.":
+      "从第 7 位开始，就在固定的输入模式后面。",
     "Cell {cell} should always be empty.":
       "第 {cell} 位应始终为空。",
     "The parity check fails: one bar is probably misread. See the suggestions below.":
@@ -61,8 +61,10 @@
       "这个暗盒条码超出了潜影条码能表示的范围",
     "The DX number recorded for this film is outside the range a film edge code can hold":
       "这种胶片记录的 DX 码超出了潜影条码能表示的范围",
-    "Part 1 would be 0, which no maker held in 2008":
-      "第 1 部分会是 0，而 2008 年时它没有分配给任何感光厂",
+    "Most likely a filler number: no maker was given Part 1 = 0, so DX {dx} is most likely wrong":
+      "很可能只是填充数字：没有感光厂被分配第 1 部分 = 0，所以 DX {dx} 很可能不对",
+    "No maker was given Part 1 = 0, so DX {dx} is most likely wrong":
+      "没有感光厂被分配第 1 部分 = 0，所以 DX {dx} 很可能不对",
     "Show barcode of {name}":
       "显示条码：{name}",
     "Show barcode":
@@ -147,6 +149,8 @@
       "在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。",
     "The Big Film Database gives this film’s edge code as DX {dx}.":
       "The Big Film Database 给出这种胶片的潜影条码为 DX {dx}。",
+    "The Big Film Database also gives DX {dx} for this cassette number.":
+      "The Big Film Database 还为这个暗盒条码给出了 DX {dx}。",
     "Show the edge barcode":
       "显示潜影条码",
     "Enter exactly six digits, for example 105514.":
@@ -167,14 +171,14 @@
       "示例：电脑绘制的黑白负片，从背面看。",
     "This image has almost no contrast. Try a sharper, closer photo of the film edge.":
       "这张图片几乎没有反差。请换一张更清晰、离片边更近的照片。",
-    "The barcode’s top row was not found. Turn the image so the film edge runs left to right and draw a box around one barcode, or try a sharper photo in even light.":
-      "没有找到条码的时钟道。请旋转图片，使片边从左到右水平，再画一个框选中一个条码；或者在均匀的光线下拍一张更清晰的照片。",
-    "The lower row could not be read. Make sure the box includes both rows, or try a sharper photo.":
-      "无法读取数据道。请确认两道都在框内，或换一张更清晰的照片。",
-    "A barcode was found but could not be read reliably. Straighten the image, or draw a box around one barcode.":
-      "找到了条码，但无法可靠读取。请拉直图片，或画一个框选中一个条码。",
-    "This barcode looks cut off or damaged at its end. Leave a little room at both ends of the box, or try a sharper photo.":
-      "这个条码的末端看起来被截断或有损伤。请在框的两端各留一点空间，或换一张更清晰的照片。",
+    "The barcode’s top row was not found. Turn the image so the film edge runs left to right and select one barcode, or try a sharper photo in even light.":
+      "没有找到条码的时钟道。请旋转图片，使片边从左到右水平，再选中一个条码；或者在均匀的光线下拍一张更清晰的照片。",
+    "The lower row could not be read. Make sure both rows are visible, or try a sharper photo.":
+      "无法读取数据道。请确认两道都清楚可见，或换一张更清晰的照片。",
+    "A barcode was found but could not be read reliably. Straighten the image, or select one barcode.":
+      "找到了条码，但无法可靠读取。请拉直图片，或选中一个条码。",
+    "This barcode looks cut off or damaged at its end. Make sure the whole barcode is visible, or try a sharper photo.":
+      "这个条码的末端看起来被截断或有损伤。请确认整个条码都清楚可见，或换一张更清晰的照片。",
     "Photo of the film edge":
       "片边照片",
     "Choose a photo":
@@ -243,8 +247,8 @@
       "拉直",
     "{n} degrees":
       "{n} 度",
-    "Turn the image so the film edge runs left to right, then drag a box around one barcode (both rows), or click two opposite corners. Without a box, the whole image is searched.":
-      "旋转图片，使片边从左到右水平，再拖一个框选中一个条码（两道都要框进去），或者依次点击框的两个对角。不框选时会搜索整张图片。",
+    "Turn the image so the film edge runs left to right, then select one barcode (both rows). Without a selection, the whole image is searched.":
+      "旋转图片，使片边从左到右水平，再选中一个条码（两道都要选进去）。不选中时会搜索整张图片。",
     "Arrow keys move the box; Shift and arrows resize it. Enter reads, Escape clears.":
       "方向键移动框；按住 Shift 键再按方向键可改变框的大小。按 Enter 键读取，按 Esc 键清除。",
     "That file is not an image.":
@@ -255,6 +259,8 @@
       "你的照片，{width} × {height} 像素。",
     "This image could not be opened. Try a JPEG, PNG or WebP file.":
       "无法打开这张图片。请试试 JPEG、PNG 或 WebP 文件。",
+    "This photo can no longer be opened. Choose it again.":
+      "这张照片已无法打开，请重新选择。",
     "Show another sample":
       "换一个示例",
     "Looking for the barcode…":
@@ -363,8 +369,8 @@
       "经销商 {distributor}",
     "Notes: {notes}":
       "备注：{notes}",
-    "How sure the database is about this (0 = guess, 4 = certain)":
-      "数据库对此有多确定（0 = 猜测，4 = 确定）",
+    "How sure the database is about this (0 = low, 4 = high)":
+      "数据库对此有多确定（0 = 低，4 = 高）",
     "(certainty {n}/4)":
       "（可信度 {n}/4）",
     "Certainty {n}/4":
@@ -549,14 +555,12 @@
       "第 {cell} 位（共 {total} 位）：{field}，对应数字 {weight}",
     "Cell {cell} of {total}: {field}":
       "第 {cell} 位（共 {total} 位）：{field}",
-    "Data track, lower row: press a cell to add or remove a bar. Arrow keys move, 1 and 0 type bars and gaps.":
-      "数据道（下方）：点按一个单元可添加或去掉条。方向键移动，按 1 和 0 键输入条和空。",
+    "Data track, lower row: select a cell to add or remove a bar. Arrow keys move, 1 and 0 type bars and gaps.":
+      "数据道（下方）：选择一个单元可添加或去掉条。方向键移动，按 1 和 0 键输入条和空。",
     "Unused: always empty":
       "未指定位：始终为空",
-    "Swipe sideways or turn your device to landscape.":
-      "左右滑动，或者把设备横过来。",
-    "Swipe sideways to see the whole code.":
-      "左右滑动可以看到整个编码。",
+    "Scroll sideways to see the whole strip.":
+      "左右滚动可以看到整个片条。",
 
     // site/index.html
     "Identify 35 mm film from the DX barcode on the edge of your negatives and slides: the film, its maker and the frame number.":
@@ -609,8 +613,8 @@
       "拿着胶片，让它看起来和下面画出的片条一样。打开<button type=\"button\" class=\"inline-button\" data-for=\"mirror-toggle\">镜像</button>可以左右翻转片条。",
     "Copy the lower row":
       "抄写数据道",
-    "Click each cell of the lower row where your film has a bar, or drag across several. The rest is the same on every film and already drawn. If your top row has only 7 thin bars, choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button>.":
-      "在数据道中，你的胶片上哪个单元有条，就点击哪个单元，也可以拖过多个单元。其余部分在所有胶片上都相同，已经画好了。如果你的胶片时钟道只有 7 根细条，请选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>。",
+    "Select each cell of the lower row where your film has a bar. The rest is the same on every film and already drawn. If your top row has only 7 thin bars, choose <button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 thin bars</button>.":
+      "在数据道中，你的胶片上哪个单元有条，就选择哪个单元。其余部分在所有胶片上都相同，已经画好了。如果你的胶片时钟道只有 7 根细条，请选择<button type=\"button\" class=\"inline-button\" data-for=\"format-short\">7 根细条</button>。",
     "Layout":
       "条码类型",
     "11 thin bars":

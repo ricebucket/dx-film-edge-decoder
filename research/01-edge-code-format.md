@@ -9,8 +9,9 @@ pattern, Part 1 (7 bits), an empty cell, Part 2 (4 bits), a frame number
 (6 bits), a half-frame flag, an empty cell, an even-parity bit and a fixed stop
 pattern: 31 cells in all. Film made before the frame-number extension uses a
 23-cell version without the frame fields. Every rule below is specified in
-GB/T 9185-2003, China's identical adoption of ISO 1007:2000, is supported by at
-least two other independent sources, and was confirmed on a real negative.
+GB/T 9185-2003, China's identical adoption of ISO 1007:2000, and is supported
+by at least two other independent sources; the 31-cell layout was also
+confirmed on a real negative.
 
 ## Two tracks
 
@@ -119,8 +120,14 @@ exactly right. So the data track alone cannot reveal the layout; the clock
 track can, and so can the code's length relative to the perforations. The tool
 therefore asks users to count the thin bars, and when it sees this signature
 in the 31-cell strip it asks whether the top row has 7 thin bars. The photo
-reader is not affected: it matches the whole clock pattern, and neither clock
-pattern fits inside the other.
+reader matches the whole clock pattern, and neither clock pattern fits inside
+the other. The exception is a 31-cell code cut off by the photo's edge after
+cell 23, where something fills clock gap 22: dust, or a perforation that looks
+like a bar, as on slides and in a black scanner holder. Its clock then looks
+like a 23-cell one. So when a 23-cell clock runs to the edge, the reader looks
+at its end mark again on rows nearer the data track, out of the perforations'
+reach. If the middle of the end mark is a gap there, the reader warns that the
+reading may be incomplete.
 
 ## Bit order
 

@@ -332,6 +332,27 @@
     return fitScore(normalize(values, cal), clock.reversed ? [...tail].reverse().join('') : tail);
   }
 
+  /**
+   * Whether a 7-bar clock's end mark (cells 21–23) has a clear gap in its
+   * middle on a row 30% or 40% of the way to the data track (`dataY`), where
+   * the clock's single cells 6–20 still read cleanly: an 11-bar clock, cut
+   * short. (Nearer the data track, its stop pattern would look the same; the
+   * rows that drift there fit the single cells at 0.93 or worse in the tests,
+   * those that show a cut-off clock at 0.99.)
+   */
+  function endMarkGap(img, clock, dataY, band) {
+    const pattern = codec.getFormat('short').clock;
+    const singles = pattern.slice(5, 20);
+    return [0.3, 0.4].some((f) => {
+      const values = sampleCells(img, clock.y + (dataY - clock.y) * f, clock.slope, clock.x0, clock.unit, 23, band);
+      if (clock.reversed) values.reverse();
+      const cal = calibrate(values.slice(5, 20), singles, false);
+      if (!(Math.abs(cal.bar - cal.gap) > 1e-6)) return false;
+      const norm = normalize(values, cal);
+      return fitScore(norm.slice(5, 20), singles) >= 0.97 && norm[20] >= 0.5 && norm[21] < 0.3 && norm[22] >= 0.5;
+    });
+  }
+
   // ---- data track -------------------------------------------------------------------
 
   /** The share of a row's fixed cells (start, stop, unused) that read as they should. */
@@ -522,10 +543,17 @@
         if (!chosen.found) return Object.assign({}, chosen, { reason: 'eleven' });
         return chosen;
       }
-      // At the edge, a reading that passes its checks is very unlikely to be
-      // an 11-bar code's: that takes dust in one gap, and its frame bits
-      // passing the checks by chance (about 1 in 32).
-      if (tail === null && asShort.found && !asShort.decoded.valid) asShort.elevenBars = true;
+      // At the edge, an 11-bar code cut off after cell 23 looks like a 7-bar
+      // one wherever something fills its clock gap 22: dust, or a perforation
+      // that looks like a bar (on slides, and in a black scanner holder). Its
+      // reading can even pass the checks, the data row drifting into the
+      // clock. So the end mark is looked at again nearer the data track,
+      // where perforations don't reach: a gap there warns, as does a reading
+      // that fails its checks.
+      if (tail === null && asShort.found
+        && (!asShort.decoded.valid || endMarkGap(img, best, (asShort.dataY + 0.5) / scale.y - 0.5, band))) {
+        asShort.elevenBars = true;
+      }
       // A box that cuts off an 11-bar code's entry mark can leave a clock
       // that fits the 7-bar one poorly (0.88–0.92), a few cells into the box.
       // A 7-bar code whose clock fits that poorly, through blur, noise or

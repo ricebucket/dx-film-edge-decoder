@@ -64,7 +64,9 @@ Two structural limits matter more than any single row:
   that maker rather than from PIMA (Annex A.3.7).
 - **One number, many names.** A popular emulsion appears under every brand
   that sold it, so one code can list dozens of entries. The tool groups rows
-  that differ only by cassette number and sorts the rest by name.
+  that differ only by cassette number and lists the most certain first (rows
+  with no certainty count as 2 of 4), then by name; the first one names a code
+  known only from this database.
 
 ## Coverage of modern films
 

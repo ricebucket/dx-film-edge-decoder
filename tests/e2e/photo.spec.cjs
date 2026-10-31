@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { writeFile } = require('node:fs/promises');
+const { writeFile, unlink } = require('node:fs/promises');
 const { watchConsole, encodePng } = require('./helpers.cjs');
 const image = require('../../site/js/dx-image.js');
 
@@ -110,6 +110,20 @@ test('a photo of an older 7-bar code switches the strip to that layout', async (
   await expect(page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
   await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
+});
+
+test('a photo names its film as the result does', async ({ page }, testInfo) => {
+  // Known only from the community list: its most certain entry, not the first one listed.
+  await upload(page, testInfo, { part1: 2, part2: 0, frame: 1, module: 8 }, { look: 'negative' });
+  await expect(page.locator('.photo__found')).toContainText('Sakuracolor SR-100');
+  // Several registry films: all of them, as the heading lists them.
+  await upload(page, testInfo, { part1: 3, part2: 9, frame: 1, module: 8 }, { look: 'slide' });
+  await expect(page.locator('.photo__found')).toContainText('DX 3-9');
+  const found = await page.locator('.photo__found').innerText();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  const title = await page.locator('#result-title').innerText();
+  expect(title).toContain(' / ');
+  expect(found).toContain(title);
 });
 
 test('the sample is labeled, and further samples can be loaded', async ({ page }) => {
@@ -380,6 +394,120 @@ test('while another photo opens, the one shown can\'t be turned or read again', 
   await page.waitForFunction(() => window.opened === 2);
   await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
   await expect(page.getByRole('button', { name: 'Flip' })).toBeEnabled();
+});
+
+test('while another photo opens, keyboard focus goes to the photo, and a press begun on the old photo makes no box on the new one', async ({ page }, testInfo) => {
+  await slowOpening(page, 0);
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+  await page.getByRole('button', { name: 'Read again' }).focus();
+  await page.evaluate(() => { window.slow = 1500; });
+  await upload(page, testInfo, THREE_CODES, {});
+  await expect(page.locator('.photo__result')).toContainText('Opening the photo…');
+  await expect(page.locator('.photo__canvas')).toBeFocused();
+  // A press on the photo still shown, and an arrow key, while the new one opens.
+  const box = await page.locator('.photo__canvas').boundingBox();
+  await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.3, { steps: 3 });
+  await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => window.opened === 2);
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  // The press ends on the new photo.
+  const after = await page.locator('.photo__canvas').boundingBox();
+  await page.mouse.move(after.x + after.width * 0.1, after.y + after.height * 0.9, { steps: 3 });
+  await page.mouse.up();
+  await expect(page.getByRole('button', { name: 'Clear selection' })).toBeHidden();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A');
+  await expect(page.locator('.photo__canvas')).toBeFocused();
+});
+
+test('"Open the photo" while the reader shows another photo puts keyboard focus on the photo, not on a button gone or disabled', async ({ page }, testInfo) => {
+  await slowOpening(page, 0);
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  // The reader moves on to a sample, which is not used.
+  await page.locator('#source').getByRole('button', { name: 'Open the photo' }).click();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  // Back to the photo from the bar above the strip, from the keyboard, while it opens slowly.
+  await page.evaluate(() => { window.slow = 800; });
+  await page.locator('#source').getByRole('button', { name: 'Open the photo' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.photo__canvas')).toBeFocused();
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15');
+  await expect(page.locator('.photo__canvas')).toBeFocused();
+});
+
+test('a photo pasted while "Use this code" has focus moves focus to the photo, not to the page', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  await page.getByRole('button', { name: 'Use this code' }).focus();
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 6 });
+  const png = encodePng(image.compose(syn, {}), syn.width, syn.height);
+  await page.evaluate((bytes) => {
+    const data = new DataTransfer();
+    data.items.add(new File([new Uint8Array(bytes)], 'edge.png', { type: 'image/png' }));
+    document.activeElement.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+  }, [...png]);
+  await expect(page.locator('.photo__canvas')).toBeFocused();
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15');
+  await expect(page.locator('.photo__canvas')).toBeFocused();
+});
+
+test('a picture pasted while the Straighten slider has focus is opened', async ({ page }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  await page.getByRole('slider', { name: 'Straighten' }).focus();
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 6 });
+  const png = encodePng(image.compose(syn, {}), syn.width, syn.height);
+  await page.evaluate((bytes) => {
+    const data = new DataTransfer();
+    data.items.add(new File([new Uint8Array(bytes)], 'edge.png', { type: 'image/png' }));
+    document.activeElement.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+  }, [...png]);
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+});
+
+test('a whole photo whose code is cut off says what to look for, as it would for a box', async ({ page }, testInfo) => {
+  // 79-15 with a speck in clock gap 22, cut off 3 cells after cell 23: it reads neither way.
+  const M = 8;
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: M });
+  const left = (syn.width - 31 * M) / 2;
+  const top = syn.height * 0.42;
+  for (let y = Math.ceil(top); y < top + 2.525 * M; y++) {
+    for (let x = Math.ceil(left + 21 * M); x < left + 22 * M; x++) syn.ink[y * syn.width + x] = 1;
+  }
+  const rgba = image.compose(syn, { seed: 6 });
+  const x0 = Math.round(left - 3 * M);
+  const w = Math.round(29 * M);
+  const cut = new Uint8ClampedArray(w * syn.height * 4);
+  for (let y = 0; y < syn.height; y++) cut.set(rgba.subarray((y * syn.width + x0) * 4, (y * syn.width + x0 + w) * 4), y * w * 4);
+  const file = testInfo.outputPath('cut.png');
+  await writeFile(file, encodePng(cut, w, syn.height));
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.locator('.photo__result')).toHaveText('This barcode looks cut off or damaged at its end. Make sure the whole barcode is visible, or try a sharper photo.');
+});
+
+test('a photo whose file has gone since is not brought back in place of another', async ({ page }, testInfo) => {
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 6 });
+  const file = testInfo.outputPath('gone.png');
+  await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await page.locator('#source').getByRole('button', { name: 'Open the photo' }).click();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await page.locator('#undo').click();
+  await unlink(file); // moved or deleted meanwhile
+  const check = checkConsole; // the browser reports the file it can no longer read
+  checkConsole = () => check([/ERR_FILE_NOT_FOUND|^console: Failed to load resource$/]);
+  await page.locator('#source').getByRole('button', { name: 'Open the photo' }).click();
+  await expect(page.locator('.photo__result')).toHaveText('This photo can no longer be opened. Choose it again.');
+  await expect(page.locator('.photo__source')).toBeEmpty();
 });
 
 test('reading a photo again and again draws no browser warning', async ({ page }) => {

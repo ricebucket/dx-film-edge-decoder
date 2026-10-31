@@ -254,6 +254,26 @@ describe('worn, faded and unevenly lit codes', () => {
     }
   });
 
+  test('an 11-bar code cut off by the photo\'s edge, where a perforation fills clock gap 22, is not read as another film\'s 7-bar code without a warning', () => {
+    // From a sweep of photos that end 23–24 cells into the code. Holes look
+    // like bars on slides and in a black scanner holder; each of these read
+    // as a 7-bar code of another film that passed its checks, with no warning.
+    const tracks = { clockHeight: 3.15, dataHeight: 2.5 };
+    const cases = [
+      { code: [117, 13, 55, false], synth: { module: 6, angle: 2.113, upsideDown: true, width: 660, height: 108 }, compose: { look: 'slide', noise: 16.945393411442637, blur: 2, seed: 1015 }, box: [284, 0, 376, 108] },
+      { code: [20, 9, 51, true], synth: { module: 8, angle: 1.787, width: 880, height: 144 }, compose: { look: 'slide', noise: 17.366971623152494, blur: 1, seed: 5038 }, box: [0, 0, 500, 144] },
+      { code: [103, 13, 15, false], synth: { module: 6, angle: -2.468, mirrored: true, width: 660, height: 108 }, compose: { look: 'bw', hole: [12, 12, 14], noise: 4.704839946702123, blur: 1, seed: 5024 }, box: [285, 0, 375, 108] },
+    ];
+    for (const { code: [part1, part2, frame, half], synth, compose, box: [x0, y0, w, h] } of cases) {
+      const { syn, gray } = photo(Object.assign({ part1, part2, frame, half, format: 'long' }, tracks, synth), compose);
+      const data = new Float32Array(w * h);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) data[y * w + x] = gray.data[(y0 + y) * gray.width + x0 + x];
+      const r = image.readBarcode({ width: w, height: h, data });
+      const right = r.found && r.format === 'long' && r.bits === syn.truth.bits;
+      assert.ok(!r.found || right || r.elevenBars || !r.decoded.valid, `${part1}-${part2}: read as ${r.found ? `${r.format} ${r.decoded.dxNumber}` : r.reason}, no warning`);
+    }
+  });
+
   test('on the second look, only readings that pass their checks are offered', () => {
     // Faint codes tilted beyond the search range: the second look can fit the
     // clock across both tracks and read the clock's own pattern as data.

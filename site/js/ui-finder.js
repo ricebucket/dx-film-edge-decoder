@@ -78,10 +78,12 @@
         ? t('The registry does not give the Part 2 number for this film')
         : entry.extract > 2047
           ? (entry.full ? t('This cassette number is outside the range a film edge code can hold') : t('The DX number recorded for this film is outside the range a film edge code can hold'))
-          : t('Part 1 would be 0, which no maker held in 2008');
+          // A cassette number whose middle digits give Part 1 = 0 (Neopan 000004, ORWOPAN 000054).
+          : entry.full
+            ? t('Most likely a filler number: no maker was given Part 1 = 0, so DX {dx} is most likely wrong', { dx: codec.formatDxNumber(0, entry.extract) })
+            : t('No maker was given Part 1 = 0, so DX {dx} is most likely wrong', { dx: codec.formatDxNumber(0, entry.extract) });
       const button = h('button', {
         type: 'button', class: 'tool', disabled: showable ? null : true,
-        title: showable ? null : why,
         // Starts with the visible text, so speech users can say what they see.
         'aria-label': showable ? t('Show barcode of {name}', { name: entry.name }) : null,
       }, showable ? t('Show barcode') : t('No full code'));
@@ -98,7 +100,9 @@
           h('p', { class: 'finder__meta' },
             label ? h('span', { class: 'finder__dx' }, label) : null,
             h('span', { class: `source-tag source-tag--${isI3a ? 'i3a' : 'community'}` }, isI3a ? t('I3A 2008') : t('Community')),
-            detail ? h('span', { class: 'finder__detail' }, detail) : null)),
+            detail ? h('span', { class: 'finder__detail' }, detail) : null),
+          // Said in the row, where touch and keyboard users see it too.
+          showable ? null : h('p', { class: 'fineprint finder__why' }, why + i18n.punctuation().period)),
         button);
     }
 
@@ -207,7 +211,7 @@
 
   /**
    * A 35 mm cassette in three-quarter view, to scale in millimeters within
-   * GB/T 9185-2003 Figure 4 and Tables 2, 7, 8 and 10. Round its side, from
+   * GB/T 9185-2003 Figure 4 and Tables 2, 7, 8 and 10. Around its side, from
    * the top: the contact areas cameras read (two rows of six, area 1 and 7 at
    * the knob's end), the barcode, the six digits printed between it and the
    * lip, centered on the barcode (§9.1), and the lip the film comes out of.
@@ -215,7 +219,7 @@
   function cassetteFigure() {
     const DEG = Math.PI / 180;
     // The cassette lies along x, from its plain end (datum C, x = 0) to the
-    // end its spool's knob comes out of. Angles go round it as in Figures 3
+    // end its spool's knob comes out of. Angles go around it as in Figures 3
     // and 5: the contact rows at 191.7° and 225.6°, the bars from 257° to
     // 294°, then the digits and the lip.
     const L = 43.1; // Z2 42.39–43.80
@@ -444,18 +448,26 @@
       if (hit.dx) {
         const s = hit.dx.part1Info.sensitizer;
         const part1 = { part1: p.part1, maker: ui.sensitizerName(s) };
-        blocks.push(h('p', { class: 'result__lead' }, !s
-          ? t('Part 1 = {part1} was not assigned in the 2008 registry.', part1)
-          : hit.dx.part1Info.aps
-            ? t('Part 1 = {part1} is assigned to {maker}, for APS film.', part1)
-            : t('Part 1 = {part1} is assigned to {maker}.', part1)));
+        // Middle digits that give Part 1 = 0 (Neopan 000004, ORWOPAN 000054) are no maker's.
+        let lead;
+        if (p.part1 === 0) lead = t('Most likely a filler number: no maker was given Part 1 = 0, so DX {dx} is most likely wrong', { dx: p.dxNumber }) + i18n.punctuation().period;
+        else if (!s) lead = t('Part 1 = {part1} was not assigned in the 2008 registry.', part1);
+        else if (hit.dx.part1Info.aps) lead = t('Part 1 = {part1} is assigned to {maker}, for APS film.', part1);
+        else lead = t('Part 1 = {part1} is assigned to {maker}.', part1);
+        blocks.push(h('p', { class: 'result__lead' }, lead));
       }
       const exact = ui.groupCommunity(hit.sameCode);
-      // The entries for this very cassette may record another DX number for
-      // the film's edge (Harman Phoenix II: cassette 017765, edge 105-3). That
-      // one, which the source gives, is shown and looked up instead.
-      const recorded = [...new Set(hit.sameCode.filter((e) => e.part1 !== null).map((e) => codec.formatDxNumber(e.part1, e.part2)))];
-      const edgeDiffers = p.part1 !== null && hit.sameCode.length > 0 && !hit.sameCode.some((e) => e.extract === p.extract);
+      // The entries for this very cassette number (or, with none, for the
+      // same film in other lengths) may record another DX number for the
+      // film's edge (Harman Phoenix II: cassette 017765, edge 105-3), also
+      // where the number gives none (augmented, or above 8191). If none of
+      // them gives the number's own, the source's is shown, and looked up and
+      // drawn if it is the only one; if some do, the others are named.
+      const own = hit.sameCode.filter((e) => e.full === p.digits);
+      const basis = own.length ? own : hit.sameCode;
+      const recorded = [...new Set(basis.filter((e) => e.part1 !== null).map((e) => codec.formatDxNumber(e.part1, e.part2)))];
+      const edgeDiffers = basis.length > 0 && !basis.some((e) => e.extract === p.extract);
+      const also = own.length && !edgeDiffers && p.part1 !== null ? recorded.filter((dx) => dx !== p.dxNumber) : [];
       if (exact.length) {
         blocks.push(h('div', { class: 'source-block' },
           h('h3', { class: 'source-block__title' }, 'The Big Film Database'),
@@ -463,6 +475,9 @@
       }
       if (edgeDiffers && recorded.length) {
         blocks.push(h('p', { class: 'result__lead' }, t('The Big Film Database gives this film’s edge code as DX {dx}.', { dx: recorded.join(i18n.punctuation().list) })));
+      }
+      if (also.length) {
+        blocks.push(h('p', { class: 'result__lead' }, t('The Big Film Database also gives DX {dx} for this cassette number.', { dx: also.join(i18n.punctuation().list) })));
       }
       const similar = ui.groupCommunity(hit.sameExtract);
       if (similar.length) {
@@ -477,8 +492,8 @@
       // above, such a number has no edge code to show or look up.
       let edge = p.part1 !== null && p.part1 > 0 ? { part1: p.part1, part2: p.part2 } : null;
       if (edgeDiffers) {
-        const own = hit.sameCode.find((e) => e.part1 !== null && e.part1 > 0);
-        edge = recorded.length === 1 && own ? { part1: own.part1, part2: own.part2 } : null;
+        const first = basis.find((e) => e.part1 !== null && e.part1 > 0);
+        edge = recorded.length === 1 && first ? { part1: first.part1, part2: first.part2 } : null;
       }
       const edgeCode = edge !== null;
       const link = (exact.length || similar.length) && edgeCode ? ui.bfdLink(edge.part1, edge.part2) : null;

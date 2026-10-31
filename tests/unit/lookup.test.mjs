@@ -194,19 +194,28 @@ describe('lookup with the real tables', () => {
     const status = (part1, part2, name) => lookup.byDx(part1, part2).products.find((p) => p.name === name).status;
     assert.equal(status(96, 12, 'KODAK GOLD 200 Film'), 'in-use');
     assert.equal(status(79, 7, 'KODACOLOR VR200 Film'), 'discontinued');
-    assert.equal(status(1, 3, 'AGFAPAN APX 400 Professional'), 'in-use'); // before Agfa's "no longer manufactured" list
     assert.equal(status(8, 0, 'FUJICOLOR SUPERIA 100'), 'in-use');
     // Harman's section says neither; HP5 was long gone by 2008.
     assert.equal(status(109, 7, 'HP5'), null);
+    // Agfa's first list has no heading either, though its "no longer
+    // manufactured" list follows; it holds films named "(until 12/2001)".
+    assert.equal(status(1, 3, 'AGFAPAN APX 400 Professional'), null);
+    assert.equal(status(31, 1, 'Perutz Primera 200 (until 12/2001)'), null);
     const counts = {};
     for (const p of lookup.products) counts[p.status] = (counts[p.status] || 0) + 1;
-    assert.deepEqual(counts, { 'in-use': 248, discontinued: 55, null: 83 });
+    assert.deepEqual(counts, { 'in-use': 163, discontinued: 55, null: 168 });
   });
 
   test('a cassette number finds the films recorded with it, whose edge may carry another DX number', () => {
     // Harman Phoenix II: cassette 017765 (1776 = 111-0), edge code 105-3 in its notes.
     const found = lookup.search('017765');
     assert.ok(found.some((e) => e.source === 'community' && e.full === '017765' && e.part1 === 105 && e.part2 === 3));
+    // Also where the number gives no DX number (5391 and 3297 are above 2047).
+    const cinestill = lookup.search('753914').filter((e) => e.full === '753914').map((e) => e.name).sort();
+    assert.deepEqual(cinestill, ['CineStill 800T Tungsten Xpro (new) 800Tungsten', 'Cinestill 50D Daylight C-41 / Xpro (new) 50Daylight']);
+    assert.ok(lookup.search('832973').some((e) => e.full === '832973'));
+    // "DX" in front, as for other numbers.
+    assert.ok(lookup.search('DX 753914').some((e) => e.full === '753914'));
   });
 
   test('cassette 017563 is Ilford FP4 Plus, 24 exposures', () => {

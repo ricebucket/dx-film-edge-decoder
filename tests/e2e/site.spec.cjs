@@ -390,13 +390,32 @@ test('choosing a language comes back to the same place on the page', async ({ pa
   await expect.poll(() => page.locator('#how').evaluate((el) => el.getBoundingClientRect().top)).toBeCloseTo(before, -1);
 });
 
+test('choosing a language comes back to the same place, also after following a link to a section', async ({ page }) => {
+  // The header's "Code list" link puts #codes in the address; then 300 px into "How it works".
+  await page.goto('/#codes');
+  await page.evaluate(() => window.scrollTo(0, document.getElementById('how').getBoundingClientRect().top + window.scrollY + 300));
+  const before = await page.locator('#how').evaluate((el) => el.getBoundingClientRect().top);
+  await Promise.all([page.waitForEvent('load'), page.getByLabel('Language').selectOption({ label: '简体中文' })]);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await page.waitForTimeout(500); // past the browser's own jump to an anchor
+  await expect.poll(() => page.locator('#how').evaluate((el) => el.getBoundingClientRect().top)).toBeCloseTo(before, -1);
+  // And back to English.
+  await Promise.all([page.waitForEvent('load'), page.getByLabel('语言').selectOption({ label: 'English' })]);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page.waitForTimeout(500);
+  await expect.poll(() => page.locator('#how').evaluate((el) => el.getBoundingClientRect().top)).toBeCloseTo(before, -1);
+});
+
 test('a page brought back by Back takes the theme and language chosen since on another page', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  // As the sources page saves them; then the page comes back from the browser's cache.
+  // Left for the sources page, which saves them; then back from the browser's cache.
+  await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })));
+  await page.waitForTimeout(5);
   await page.evaluate(() => {
     localStorage.setItem('dx-theme', 'dark');
     localStorage.setItem('dx-lang', 'zh-CN');
+    localStorage.setItem('dx-lang-at', String(Date.now()));
   });
   await Promise.all([
     page.waitForEvent('load'),
@@ -404,6 +423,114 @@ test('a page brought back by Back takes the theme and language chosen since on a
   ]);
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
+
+test('a page brought back by Back takes a language chosen on another page even if it was the one saved, and the theme saved in another tab', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+  await page.goto('/?dx=79-15/23&lang=en');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  // Another tab switches to dark while this one is still open.
+  await page.evaluate(() => localStorage.setItem('dx-theme', 'dark'));
+  await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })));
+  await page.waitForTimeout(5);
+  // On the sources page, 简体中文 is chosen: the language saved already.
+  await page.evaluate(() => localStorage.setItem('dx-lang-at', String(Date.now())));
+  await Promise.all([
+    page.waitForEvent('load'),
+    page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))),
+  ]);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
+
+test('a page brought back by Back keeps the language its link chose, when none was chosen since', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+  await page.goto('/?dx=79-15/23&lang=en');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  // Off to the sources page, choosing nothing there, and back from the browser's cache.
+  await page.evaluate(() => {
+    dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
+    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+  });
+  await page.waitForTimeout(500); // a language change would reload the page by now
+  await expect(page).toHaveURL(/lang=en$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+});
+
+test('the strip fits a 1024 or 1110 px window; in a narrower one, a line under it says it scrolls', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'window widths are set on the desktop');
+  await page.setViewportSize({ width: 1110, height: 800 });
+  await page.goto('/?dx=79-15/23');
+  const line = page.locator('#strip .strip__swipe');
+  await expect(line).toBeHidden();
+  // An iPad mini turned sideways: smaller cells, still the whole code.
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await expect(line).toBeHidden();
+  await page.setViewportSize({ width: 800, height: 800 });
+  await expect(line).toBeVisible();
+  await expect(line).toHaveText('Scroll sideways to see the whole strip.');
+});
+
+test('the header keeps its section links on one row at any width, and a 320 px screen needs no sideways scrolling in the frames table', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'window widths are set on the desktop');
+  await page.goto('/');
+  for (const width of [920, 952, 961, 1024]) {
+    await page.setViewportSize({ width, height: 800 });
+    const rows = await page.locator('.site-nav a').evaluateAll((links) => new Set(links.map((a) => Math.round(a.getBoundingClientRect().top))).size);
+    expect(rows, `${width} px`).toBe(1);
+  }
+  // The frames table holds nothing to focus, so keyboards couldn't scroll it.
+  await page.setViewportSize({ width: 320, height: 700 });
+  const over = await page.locator('.frames-table').evaluate((table) => table.parentElement.scrollWidth - table.parentElement.clientWidth);
+  expect(over).toBeLessThanOrEqual(0);
+});
+
+test('with the scrollbars desktops show, the header keeps its section links on one row, and the strip fits from 1024 px', async ({ browserName, isMobile, baseURL }) => {
+  test.skip(isMobile || browserName !== 'chromium', 'scrollbars are shown in Chromium on the desktop');
+  // Playwright hides them, which leaves a page about 17 px wider than on Windows.
+  const { chromium } = require('@playwright/test');
+  const browser = await chromium.launch({ ignoreDefaultArgs: ['--hide-scrollbars'] });
+  try {
+    const page = await browser.newPage({ viewport: { width: 965, height: 800 } });
+    await page.goto(`${baseURL}/?dx=79-15/23`);
+    await page.locator('#result-title').waitFor();
+    expect(await page.evaluate(() => innerWidth - document.documentElement.clientWidth)).toBeGreaterThan(0);
+    for (const width of [965, 1024, 1125]) {
+      await page.setViewportSize({ width, height: 800 });
+      const rows = await page.locator('.site-nav a').evaluateAll((links) => new Set(links.map((a) => Math.round(a.getBoundingClientRect().top))).size);
+      expect(rows, `${width} px`).toBe(1);
+      if (width >= 1024) await expect(page.locator('#strip .strip__swipe'), `${width} px`).toBeHidden();
+    }
+  } finally {
+    await browser.close();
+  }
+});
+
+test('on phones the language menu shows only its globe, also in Windows contrast themes', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'contrast themes are emulated in Chromium');
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.goto('/');
+  // Those themes give the text a color of their own: it must have no room in the box.
+  const room = await page.locator('#lang-select').evaluate((el) => {
+    const s = getComputedStyle(el);
+    return el.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+  });
+  expect(room).toBeLessThanOrEqual(0);
+});
+
+test('in a short window, such as a phone turned sideways, the header scrolls away so the strip shown fits', async ({ page }) => {
+  await page.setViewportSize({ width: 734, height: 343 });
+  await page.goto('/');
+  await expect(page.locator('.site-header')).toHaveCSS('position', 'static');
+  await page.locator('#finder-q').fill('hp5');
+  await page.locator('.finder__item').getByRole('button', { name: /^Show barcode/ }).first().click();
+  await expect.poll(async () => {
+    const box = await page.locator('#strip .track--data').boundingBox();
+    return box.y >= 0 && box.y + box.height <= 343;
+  }).toBe(true);
 });
 
 test('on phones the page does not shift as it is built', async ({ page, browserName, isMobile }) => {

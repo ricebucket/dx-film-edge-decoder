@@ -9,11 +9,9 @@
 // a color negative and using its code. The corrections and each film found
 // are marked by a red box. They come in two shapes:
 //
-// - 1120 × 840 pixels (4:3, wide enough for the whole strip), for the
-//   README: English as .github/demo.webm, other languages as
-//   .github/demo.<lang>.webm, each with a poster, the corrected code and its
-//   film with a play button (.github/demo.png, .github/demo.<lang>.png).
-//   Playwright records these.
+// - 1120 × 840 pixels (4:3, wide enough for the whole strip), linked from
+//   the README: English as .github/demo.webm, other languages as
+//   .github/demo.<lang>.webm. Playwright records these.
 // - 1120 × 1680 pixels (2:3, upright): .github/demo-vertical.mp4 and
 //   .github/demo-vertical.<lang>.mp4. These are the frames Chromium paints,
 //   encoded as H.264 in the browser (WebCodecs) and saved by
@@ -22,7 +20,8 @@
 // Needs Playwright with Chromium, installed outside this repository; see
 // scripts/run-e2e.mjs. Everything is found by ids, classes, cell numbers and
 // film names, never by the interface's words, so every language plays the
-// same steps.
+// same steps. All the videos are recorded at once, in about a minute; the
+// pointer moves by the clock, so the demo keeps its pace on a busy machine.
 
 import { writeFileSync } from 'node:fs';
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -53,7 +52,7 @@ const H264 = { codec: 'avc1.640028', bitrate: 4_000_000, keyEvery: 2 * FPS };
 // as one wide bar. HP5 PLUS is then the one listed film a one-bar
 // correction gives.
 const BARS = [7, 10, 11, 13, 15, 18, 21, 22, 27];
-const COPIED = { dx: '109-9', frame: '12', film: 'HP5 PLUS' }; // as the I3A list writes it, in every language
+const COPIED = { dx: '109-9', film: 'HP5 PLUS' }; // as the I3A list writes it, in every language
 const LOOK = (value) => `[data-control="look"] [data-value="${value}"]`;
 
 // What the videos show: the file they are saved as (without shape, language
@@ -64,12 +63,6 @@ export const DEMO = { file: '.github/demo', codes: [COPIED.dx, '96-12'] };
 
 // How long the important moments stay on screen, in milliseconds.
 const HOLD = { problem: 2500, photo: 2500, film: 3000 };
-
-// A play button over the poster, drawn only in its screenshot.
-const PLAY = 'html::after { content: ""; position: fixed; z-index: 2147483647; left: 50%; top: 50%;'
-  + ' width: 132px; height: 132px; margin: -66px 0 0 -66px; border-radius: 50%;'
-  + ' background: rgba(16, 24, 32, 0.62) url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M9 6.5v11l9-5.5z\' fill=\'white\'/%3E%3C/svg%3E") 56% 50% / 64px no-repeat;'
-  + ' box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3); }';
 
 function wait(page, ms) {
   if (ms > LONGEST_PAUSE) throw new Error(`a pause of ${ms} ms, over ${LONGEST_PAUSE} ms`);
@@ -151,12 +144,15 @@ function hand(page) {
   const start = { x: Math.round(size.width * 0.75), y: Math.round(size.height * 0.2) }; // clear of the strip
   let at = start;
   async function glide(to, ms = 380) {
-    const steps = Math.max(8, Math.round(ms / 16));
-    for (let i = 1; i <= steps; i++) {
-      const f = i / steps;
+    // Timed by the clock, so that a busy machine moves the pointer as fast, in fewer steps.
+    const from = at;
+    const start = Date.now();
+    for (;;) {
+      const f = Math.min(1, (Date.now() - start) / ms);
       const e = f < 0.5 ? 2 * f * f : 1 - (2 - 2 * f) ** 2 / 2; // ease in and out
-      await page.mouse.move(at.x + (to.x - at.x) * e, at.y + (to.y - at.y) * e);
-      await wait(page, ms / steps);
+      await page.mouse.move(from.x + (to.x - from.x) * e, from.y + (to.y - from.y) * e);
+      if (f === 1) break;
+      await wait(page, 16);
     }
     at = to;
   }
@@ -435,24 +431,6 @@ async function encodeMp4(browser, dir, shots, frames, file) {
   await writeFile(file, mp4({ ...VERTICAL, timescale: 90000, sampleDuration: 90000 / FPS, description: Buffer.from(out.description), samples }));
 }
 
-/** The poster: the strip and the film as the correction leaves them, recorded apart from the video. */
-async function savePoster(browser, lang, file) {
-  const context = await newContext(browser, lang, LANDSCAPE, { reducedMotion: 'reduce' });
-  await context.addInitScript(() => {
-    try { localStorage.setItem('dx-prefs', JSON.stringify({ look: 'bw', mirrored: false })); } catch (e) { /* file:// without storage */ }
-  });
-  const page = await context.newPage();
-  await page.goto(`${PAGE}?dx=${COPIED.dx}/${COPIED.frame}`);
-  // Once the page is drawn: the bars on the strip, done developing, in their fonts.
-  await page.locator('#strip .track--data .cell.is-bar').first().waitFor();
-  await page.locator('#strip .film.is-developing').waitFor({ state: 'detached' });
-  await page.evaluate(() => document.fonts.ready);
-  await page.evaluate(() => window.scrollTo(0, document.getElementById('lighttable').getBoundingClientRect().top + window.scrollY - 70));
-  await wait(page, 500);
-  await page.screenshot({ path: file, style: PLAY });
-  await context.close();
-}
-
 async function languages() {
   const files = await readdir(join(ROOT, 'site', 'js', 'i18n'));
   return ['en', ...files.filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3)).sort()];
@@ -464,16 +442,29 @@ async function main() {
   const dir = await mkdtemp(join(tmpdir(), 'dx-demo-'));
   try {
     await mkdir(join(ROOT, dirname(DEMO.file)), { recursive: true });
-    for (const lang of await languages()) {
+    // Each video plays the demo in real time, so they are all recorded at
+    // once, each in a browser context of its own: about a minute in all.
+    const jobs = (await languages()).flatMap((lang) => {
       const suffix = lang === 'en' ? '' : `.${lang}`;
-      const files = { webm: `${DEMO.file}${suffix}.webm`, poster: `${DEMO.file}${suffix}.png`, mp4: `${DEMO.file}-vertical${suffix}.mp4` };
-      const wide = await recordWebm(browser, lang, join(ROOT, files.webm), dir);
-      await savePoster(browser, lang, join(ROOT, files.poster));
-      const shots = await mkdtemp(join(dir, 'frames-'));
-      const tall = await recordMp4(browser, lang, join(ROOT, files.mp4), shots);
-      await rm(shots, { recursive: true, force: true });
-      console.log(`wrote ${files.webm} (${wide.toFixed(1)} s), ${files.poster} and ${files.mp4} (${tall.toFixed(1)} s)`);
-    }
+      const webm = `${DEMO.file}${suffix}.webm`;
+      const vertical = `${DEMO.file}-vertical${suffix}.mp4`;
+      return [
+        async () => {
+          const seconds = await recordWebm(browser, lang, join(ROOT, webm), await mkdtemp(join(dir, 'webm-')));
+          console.log(`wrote ${webm} (${seconds.toFixed(1)} s)`);
+        },
+        async () => {
+          const shots = await mkdtemp(join(dir, 'frames-'));
+          try {
+            const seconds = await recordMp4(browser, lang, join(ROOT, vertical), shots);
+            console.log(`wrote ${vertical} (${seconds.toFixed(1)} s)`);
+          } finally {
+            await rm(shots, { recursive: true, force: true }); // its frames, a few hundred MB
+          }
+        },
+      ];
+    });
+    await Promise.all(jobs.map((job) => job()));
   } finally {
     await browser.close();
     await rm(dir, { recursive: true, force: true });

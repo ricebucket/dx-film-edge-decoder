@@ -2,6 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { buildData } from '../../scripts/build-data.mjs';
 import { communityStats } from '../../scripts/community-stats.mjs';
@@ -14,7 +15,7 @@ import { mkdtempSync, symlinkSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const require = createRequire(import.meta.url);
-const ROOT = new URL('../..', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('../..', import.meta.url)); // a path, even with spaces or other letters in it
 const data = require('../../site/js/dx-data.js');
 const community = require('../../site/js/dx-data-community.js');
 const createLookup = require('../../site/js/dx-lookup.js');
@@ -28,6 +29,13 @@ describe('generated data files', () => {
     for (const [path, text] of Object.entries(await buildData())) {
       assert.equal(await readFile(join(ROOT, path), 'utf8'), text, path);
     }
+  });
+
+  test('are built the same on a computer set to another language', () => {
+    // Czech sorts "ch" after "h"; the sensitizers must still come in the same order.
+    const env = { ...process.env, LC_ALL: 'cs_CZ.UTF-8', LANG: 'cs_CZ.UTF-8' };
+    const run = spawnSync(process.execPath, [join(ROOT, 'scripts', 'build-data.mjs'), '--check'], { env, encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stdout + run.stderr);
   });
 
   test('each file holds one dataset, so each has one license (see REUSE.toml)', () => {
@@ -166,7 +174,7 @@ describe('documentation screenshots', () => {
     }
   });
 
-  test('the demo video and its poster are under CC BY-SA if their codes show community entries', async () => {
+  test('the demo videos are under CC BY-SA if their codes show community entries', async () => {
     const reuse = await readFile(join(ROOT, 'REUSE.toml'), 'utf8');
     const ccBySa = reuse.split('[[annotations]]').find((a) => a.includes('"CC-BY-SA-4.0"'));
     const lookup = createLookup(data, community);

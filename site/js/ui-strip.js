@@ -81,7 +81,7 @@
       const data = h('div', {
         class: 'track track--data',
         role: opts.interactive ? 'group' : null,
-        'aria-label': opts.interactive ? t('Data track, lower row: press a cell to add or remove a bar. Arrow keys move, 1 and 0 type bars and gaps.') : null,
+        'aria-label': opts.interactive ? t('Data track, lower row: select a cell to add or remove a bar. Arrow keys move, 1 and 0 type bars and gaps.') : null,
         'aria-hidden': opts.interactive ? null : 'true',
       }, dataCells);
 
@@ -121,9 +121,7 @@
         h('span', { class: 'strip__photo-label' }, t('Your photo')));
       // The read-only diagram's scroller is no tab stop (Chromium makes scrolling boxes ones).
       const scroller = h('div', { class: 'strip__scroller', tabindex: opts.interactive ? null : '-1' }, h('div', { class: 'strip__canvas' }, photoRow, film, annot));
-      const swipe = h('p', { class: 'strip__swipe' }, opts.interactive
-        ? t('Swipe sideways or turn your device to landscape.')
-        : t('Swipe sideways to see the whole code.'));
+      const swipe = h('p', { class: 'strip__swipe' }, t('Scroll sideways to see the whole strip.'));
       const strip = h('div', { class: 'strip', 'data-format': format, style: { '--cells': n } }, h('div', { class: 'strip__viewport' }, scroller), swipe);
       host.replaceChildren(strip);
 

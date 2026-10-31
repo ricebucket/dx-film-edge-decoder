@@ -17,12 +17,12 @@ know what a strip of film is.
 Everything runs in your browser. Photos you open in it are not uploaded to any
 server. It also works when `site/index.html` is opened straight from disk.
 
-[![Demo video, about 35 seconds: copying the barcode of a black-and-white film onto the strip, with one bar missed and then corrected, and reading a photo of a color negative](.github/demo.png)](.github/demo.webm)
+[Watch the demo video](.github/demo.webm) (about 35 seconds)
 
 ## What it does
 
 - **An interactive copy of the film edge**, drawn like real film, that decodes
-  as you click: the film and its manufacturer, the DX number, the frame number
+  as you go: the film and its manufacturer, the DX number, the frame number
   as printed (`23`, `23A`, `X`, `00` …) and the matching cassette number.
 - **Checks with explanations**, and when a bar was misread, the one-bar
   corrections that give a valid code, known films first.
@@ -53,10 +53,10 @@ server. It also works when `site/index.html` is opened straight from disk.
 3. **Count the thin bars in the top row** between the wide marks: 11, or 7 for
    the original layout, found on older film and on some later film. Choose the
    matching **Layout**.
-4. **Copy the lower row.** Click every cell where your film has a bar; drag to
-   fill several, or click the first cell and type `1` and `0`. On slide film the
-   bars are clear marks on a black edge; pick the black piece of film under the
-   strip to draw them that way.
+4. **Copy the lower row.** Select every cell where your film has a bar; with a
+   mouse, drag to fill several, or select the first cell and type `1` and `0`.
+   On slide film the bars are clear marks on a black edge; pick the black piece
+   of film under the strip to draw them that way.
 5. **Read the result.** The number printed just before the barcode on your film
    should match the decoded frame label. If the code fails its checks, look
    again at faint bars, compare with the next code along the film, or pick a
@@ -124,7 +124,7 @@ LICENSES/, REUSE.toml license texts, and which files each one covers
 ### Tests
 
 ```sh
-npm test            # unit tests: codec, data, lookups, photo reader
+npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer
 npm run test:e2e    # browser tests: desktop, Android phone, iPhone
 ```
 
@@ -233,22 +233,23 @@ language. When you change one version, make the same change in the other.
   use the fonts installed on your machine, so the Chinese ones need a Chinese
   font (on Ubuntu, the `fonts-noto-cjk` package). Run it after every visible
   change to the page, and look at the results before committing them.
-- The demo video (`.github/demo*.webm`, 1120 × 840), its poster
-  (`.github/demo*.png`) and a vertical version (`.github/demo-vertical*.mp4`,
-  1120 × 1680) are recorded by `npm run demo`, which also needs Playwright:
-  about half a minute each, in each language. It uses the page as a visitor
-  would, copying a black-and-white film's code with one bar missed, taking the
-  correction, and reading the sample photo of a color negative, so run it
-  after visible changes to those parts, and watch the results before
-  committing them. Each video adds about 6–8 MB to the repository.
+- The demo video (`.github/demo*.webm`, 1120 × 840) and a vertical version
+  (`.github/demo-vertical*.mp4`, 1120 × 1680) are recorded by `npm run demo`,
+  which also needs Playwright: about half a minute each, in each language.
+  It uses the page as a visitor would, copying a black-and-white film's code
+  with one bar missed, taking the correction, and reading the sample photo of
+  a color negative, so run it after visible changes to those parts, and watch
+  the results before committing them. Each video adds about 6–8 MB to the
+  repository.
 
 ## License and sources
 
 The code, tests, scripts and documentation are free software under the
-[GNU General Public License v3.0](LICENSE), except the screenshots that show
-entries of The Big Film Database, which are under CC BY-SA 4.0. The film data
-has its own sources and terms, described in [data/README.md](data/README.md). Every source used for
-the project is listed in [research/06](research/06-sources-and-licensing.md).
+[GNU General Public License v3.0](LICENSE), except the screenshots and demo
+videos that show entries of The Big Film Database, which are under CC BY-SA 4.0.
+The film data has its own sources and terms, described in
+[data/README.md](data/README.md). Every source used for the project is listed
+in [research/06](research/06-sources-and-licensing.md).
 
 The license of every file is also recorded in [`REUSE.toml`](REUSE.toml), in
 the [REUSE](https://reuse.software/) format, and the tests on GitHub check it.

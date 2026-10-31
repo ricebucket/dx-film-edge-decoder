@@ -449,9 +449,12 @@ test.describe('film from before the 1990 frame-number extension', () => {
 
   test('the older-film example switches the layout', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Kodacolor VR200, older 7-bar code' }).click();
+    // DX 12-13, Fujicolor Super HGV100 Asia, in the older layout.
+    await page.getByRole('button', { name: 'Fujicolor Super HGV100 Asia, older 7-bar code' }).click();
     await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
-    await expect(page.locator('#result-title')).toHaveText('KODACOLOR VR200 Film');
+    await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
+    await expect(page.locator('#result-title')).toHaveText('Fujicolor Super HGV100 Asia');
+    await expect(page).toHaveURL(/\?dx=12-13$/);
   });
 
   test('a link to a code without a frame opens the 7-bar layout', async ({ page }) => {

@@ -79,6 +79,9 @@
         h('span', { class: 'visually-hidden' }, ' ', t('(opens in a new tab)'))));
   }
 
+  /** Text and its closing period, unless it ends in one already ("sold by Walgreens Co."), as in i18n's fill(). */
+  const period = (text, mark) => (mark === '.' && text.endsWith('.') ? text : text + mark);
+
   function communityItem(e) {
     const p = i18n.punctuation();
     const facts = [];
@@ -89,7 +92,7 @@
     if (e.distributor) facts.push(t('sold by {distributor}', { distributor: e.distributor }));
     // How sure the database is: after the notes, or on its own line where there
     // are none (two entries, both rated 0, a guess).
-    const certainty = (...text) => h('span', { class: 'certainty', title: t('How sure the database is about this (0 = guess, 4 = certain)') }, ...text);
+    const certainty = (...text) => h('span', { class: 'certainty', title: t('How sure the database is about this (0 = low, 4 = high)') }, ...text);
     let notes = null;
     if (e.original) {
       notes = h('span', { class: 'match__original' }, t('Notes: {notes}', { notes: e.original }),
@@ -100,7 +103,7 @@
     return h('li', { class: 'match match--community' },
       h('span', { class: 'match__name' }, e.name),
       e.availability ? h('span', { class: `pill pill--${e.availability === 'on the market' ? 'live' : 'gone'}` }, availabilityLabel(e.availability)) : null,
-      facts.length ? h('span', { class: 'match__facts' }, facts.join(p.comma) + p.period) : null,
+      facts.length ? h('span', { class: 'match__facts' }, period(facts.join(p.comma), p.period)) : null,
       notes,
       e.cassettes.length ? h('span', { class: 'match__cassette' }, i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.list) })) : null);
   }
@@ -272,7 +275,7 @@
     const unknown = [];
     for (const f of fixes) {
       const info = ctx.lookup.byDx(f.result.part1, f.result.part2);
-      const name = info.products.length ? info.products[0].name : info.community.length ? groupCommunity(info.community)[0].name : null;
+      const name = filmName(info); // as the heading would name it
       (name ? known : unknown).push({ f, name });
     }
     const item = ({ f, name }) => {
@@ -293,17 +296,28 @@
     return block;
   }
 
+  /**
+   * The film a DX number's entries name: every registry product, or else the
+   * most certain community entry; null for none. The result's heading and the
+   * photo reader both say it so.
+   */
+  function filmName(info) {
+    if (info.products.length) return info.products.map((p) => p.name).join(' / ');
+    const groups = groupCommunity(info.community);
+    return groups.length ? groups[0].name : null;
+  }
+
   function identity(d, info) {
     const s = info.part1Info.sensitizer;
     const parts = [];
     const products = info.products;
     const groups = groupCommunity(info.community);
-    let title;
-    if (products.length) title = products.length === 1 ? products[0].name : products.map((p) => p.name).join(' / ');
-    else if (groups.length) title = groups[0].name;
-    else if (!d.valid) title = t('DX {dx}, not in the lists', { dx: d.dxNumber });
-    else if (s) title = t('Unlisted {maker} film', { maker: s.label });
-    else title = t('Unregistered DX number');
+    let title = filmName(info);
+    if (title === null) {
+      if (!d.valid) title = t('DX {dx}, not in the lists', { dx: d.dxNumber });
+      else if (s) title = t('Unlisted {maker} film', { maker: s.label });
+      else title = t('Unregistered DX number');
+    }
     // A code that fails its checks is probably misread: say what it reads as, no more.
     if (!d.valid) title = t('As copied: {title}', { title });
 
@@ -432,6 +446,7 @@
   root.DX.ui = root.DX.ui || {};
   root.DX.ui.renderResult = renderResult;
   root.DX.ui.groupCommunity = groupCommunity;
+  root.DX.ui.filmName = filmName;
   root.DX.ui.communityKey = communityKey;
   root.DX.ui.sensitizerName = sensitizerName;
   root.DX.ui.communityItem = communityItem;

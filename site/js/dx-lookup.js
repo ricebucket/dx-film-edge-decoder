@@ -189,6 +189,23 @@
       };
 
       const dx = codec.parseDxNumber(q);
+      if (!dx) {
+        // A cassette number that gives no DX number (augmented, or above
+        // 8191) still finds the films recorded with it.
+        const bare = q.replace(/^dx[\s\-\u2010-\u2015\u2212]*/, '');
+        const cassette = codec.parseCassette(bare);
+        if (cassette) {
+          const only = /^\d{6}$/.test(bare);
+          let found = false;
+          for (const c of community) {
+            if (c.full.slice(0, 5) === cassette.digits.slice(0, 5)) {
+              add(c, only ? 1 : 8);
+              found = true;
+            }
+          }
+          if (only && found) return finish();
+        }
+      }
       if (dx) {
         const hit = byDx(dx.part1, dx.part2);
         // How it was typed says whether it can only be a DX number: "79-15",

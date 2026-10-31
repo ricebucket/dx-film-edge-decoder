@@ -66,7 +66,7 @@ and 96 to Eastman Kodak (1983, released 1988, reassigned 2003).
 | ERA Photo | 1 | 1 |
 | Ferrania Imaging | 7 | 23 |
 | FUJIFILM Corporation | 12 | 74 |
-| Harman Technologies (ILFORD Photo) | 6 | 29 |
+| Harman Technologies | 6 | 29 |
 | KONICA MINOLTA | 11 | 39 |
 | ORWO Media | 4 | 12 |
 | Shanghai General Photo | 1 | 4 |
@@ -74,12 +74,14 @@ and 96 to Eastman Kodak (1983, released 1988, reassigned 2003).
 | Xiamen FUDA | 1 | 3 |
 
 **Product listing.** For each sensitizer, rows of Part 1, Part 2 and product
-name. Agfa-Gevaert, Eastman Kodak and Konica Minolta split their rows into
-"DX numbers that are currently being used" and films "no longer manufactured …
-but which may still be in the marketplace", and FUJIFILM heads its rows with the
-first. The tool shows this as "in production in 2008" or "discontinued by
-2008". The other sensitizers' sections say neither, so the tool gives their
-films no status. In total 389 rows are printed.
+name. Eastman Kodak and Konica Minolta split their rows into "DX numbers that
+are currently being used" and films "no longer manufactured … but which may
+still be in the marketplace", and FUJIFILM heads its rows with the first. The
+tool shows this as "in production in 2008" or "discontinued by 2008".
+Agfa-Gevaert's rows also come in two lists, but only the second has a heading,
+"no longer manufactured"; the first includes films named "(until 12/2001)".
+That first list and the other sensitizers' sections say neither, so the tool
+gives those films no status. In total 389 rows are printed.
 
 ### Quirks found in the document
 
@@ -150,7 +152,7 @@ Wikipedia's "DX number" lists older meanings, without giving a source:
 
 The standard warns that some processing machines may not accept rolls of 37 or
 more exposures. A 24 + 3 roll, 27 exposures, has code 7 under both. The tool
-gives the 2000 meaning and, where it differs, the 1994 one.
+gives the 2000 meaning and, where it differs, the older one Wikipedia lists.
 
 Worked examples: `315223` → 95-2, 24 exposures (Wikipedia); `017563` → 109-12,
 24 exposures (Wikipedia's photo of an ISO 125 cassette, and 109-12 is FP4 PLUS

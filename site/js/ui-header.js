@@ -94,7 +94,10 @@
    */
   function bindVersions(select, page) {
     onPick(select, select.value, () => {
-      try { localStorage.setItem('dx-lang', select.value); } catch (e) { /* storage blocked: each version links to index.html in its language */ }
+      try {
+        localStorage.setItem('dx-lang', select.value);
+        localStorage.setItem('dx-lang-at', String(Date.now()));
+      } catch (e) { /* storage blocked: each version links to index.html in its language */ }
       location.replace(fileIn(page, select.value) + location.hash);
     });
   }
@@ -112,14 +115,21 @@
     select.after(icon('chevron', 'lang-picker__chevron'));
     const paintTheme = bindTheme(document.getElementById('theme-toggle'));
     // Back or Forward can bring a page back as it was left, while a theme or
-    // a language was chosen since, on another page.
+    // a language was chosen since, on another page or in another tab. The
+    // theme is always the saved one. The language is taken over only if it
+    // was chosen after the page was left (`dx-lang-at`), so that a page opened
+    // by a ?lang= link keeps its own language otherwise.
+    let leftAt = Date.now();
+    addEventListener('pagehide', () => { leftAt = Date.now(); });
     addEventListener('pageshow', (e) => {
       if (!e.persisted) return;
       let theme = null;
       let lang = null;
+      let chosenAt = 0;
       try {
         theme = localStorage.getItem('dx-theme');
         lang = localStorage.getItem('dx-lang');
+        chosenAt = Number(localStorage.getItem('dx-lang-at')) || 0;
       } catch (err) {
         return;
       }
@@ -128,7 +138,7 @@
       paintTheme();
       // index.html follows; a page written once per language stays as it is.
       const i18n = root.DX.i18n;
-      if (!options.page && lang && lang !== i18n.current && i18n.available().some((l) => l.code === lang)) {
+      if (!options.page && chosenAt > leftAt && lang && lang !== i18n.current && i18n.available().some((l) => l.code === lang)) {
         if (options.beforeLanguageChange) options.beforeLanguageChange();
         i18n.select(lang);
       }
