@@ -13,6 +13,7 @@ jobs:
   unit:
     name: Unit tests and data check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -24,6 +25,7 @@ jobs:
   licenses:
     name: License check (REUSE)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       # Checks that REUSE.toml gives every file a copyright notice and a license
@@ -37,6 +39,7 @@ jobs:
   browser:
     name: Browser tests (${{ matrix.name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       # Every job runs to the end, so that one run shows every failure.
       fail-fast: false
@@ -82,6 +85,7 @@ jobs:
     needs: [unit, licenses, browser]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && !github.event.repository.fork
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       pages: write

@@ -85,12 +85,11 @@ wide, against the standard's 34.95 mm (Table 2, A):
 These come from a single photo. The clock track reaches past the edge of the
 perforations, so it is cut short wherever a perforation lies. On this negative
 the data track is 2.5 cells tall and the clock track 3.15 (2.4 where a
-perforation cuts it). The page's strip, the photo reader's sample images and the
-diagram above draw both tracks 2.525 cells (1.03 mm) tall instead, because equal
-tracks look better; that is the smallest equal height the standard allows (T3:
-2.06 mm for both). Everything else follows this negative: the perforations are at their
-standard size, spacing and distance from the edge, placed against the code as
-here.
+perforation cuts it). The diagram above draws both tracks 2.525 cells (1.03 mm)
+tall instead, because equal tracks look better; that is the smallest equal
+height the standard allows (T3: 2.06 mm for both). Everything else follows this
+negative: the perforations are at their standard size, spacing and distance
+from the edge, placed against the code as here.
 
 Two other sources agree. Kodak's US 5,665,950, filed in 1995, gives the DX code
 a minimum bar width of 0.015 in (0.38 mm); the 2000 edition of the standard
@@ -121,14 +120,13 @@ The lower-resolution Wikimedia photo of an Agfa negative (DX 47-1, frame 22A)
 was too small to sample reliably; its printed labels agree
 ([report 02](02-frame-numbers.md#what-is-printed-around-the-codes)).
 
-Two practical observations from both photos shaped the tool's strip: the two
-tracks touch, so clock and data bars in the same column merge into one tall
-bar (the start pattern looks like a comb); and the printed number before each
-code is large. On the Kodak negative a whole-frame number is 3.4 cells (1.4 mm)
-tall, 0.6 cells above the film edge and 1.6 cells before its code; an A
-position's number is 2 cells tall, over an arrow, 2.8 cells before its code.
-The next number starts at least 4.3 cells after a code, so the strip, which
-shows one code, draws only the number before it.
+Two practical observations come from both photos: the two tracks touch, so
+clock and data bars in the same column merge into one tall bar (the start
+pattern looks like a comb); and the printed number before each code is large.
+On the Kodak negative a whole-frame number is 3.4 cells (1.4 mm) tall, 0.6
+cells above the film edge and 1.6 cells before its code; an A position's
+number is 2 cells tall, over an arrow, 2.8 cells before its code. The next
+number starts at least 4.3 cells after a code.
 
 ## Which way around
 
@@ -137,8 +135,7 @@ shows one code, draws only the number before it.
 - Antoine Mérino advises reading on the shiny (base) side, not the matte
   (emulsion) side.
 - Seen from the other side, everything is mirrored: the wide mark is on the
-  right and the printed numbers are mirror-written. The tool's Mirror switch
-  draws the strip that way so it can be copied as seen.
+  right and the printed numbers are mirror-written.
 - Upside down (rotated 180°), the code runs above the perforations with the
   data track on top; turning the film fixes this.
 - GB/T 9185-2003 draws the film turned by 180° from this view: in its
@@ -151,91 +148,30 @@ shows one code, draws only the number before it.
 ## Negatives and slides
 
 On negatives the bars are exposed, so they are dense: dark on the clear or
-orange-masked base. The standard designs the code for color negative
-processing and leaves it optional on other film (§7.1). It sets the contrast
-for processed film, assuming it was stored as recommended before and after
-exposure, had not expired and was processed to standard: a gap may have a
-Status M red density of at most 0.50, with bars at least 0.50 denser, and a
-density at 690 nm of at most 0.65, with bars at least 0.90 denser (§7.4). Reversal (slide) processing turns
-exposed areas clear, so on slide film the bars appear as clear marks on the
-black edge. This follows from how reversal processing works; none of the
-sources, the standard included, describe edge codes on slide film. The tool draws the strip that way when the black piece
-of film under it (the Slide look) is chosen, and the photo reader detects either
-polarity by itself.
+orange-masked base. In photos of color negatives with light showing through
+the perforations, the orange base lies about halfway in brightness between the
+dark bars and the white perforations. The standard
+designs the code for color negative processing and leaves it optional on other
+film (§7.1). It sets the contrast for processed film, assuming it was stored as
+recommended before and after exposure, had not expired and was processed to
+standard: a gap may have a Status M red density of at most 0.50, with bars at
+least 0.50 denser, and a density at 690 nm of at most 0.65, with bars at least
+0.90 denser (§7.4). Reversal (slide) processing turns exposed areas clear, so
+on slide film the bars appear as clear marks on the black edge. This follows
+from how reversal processing works; none of the sources, the standard
+included, describe edge codes on slide film.
 
 Black-and-white film developed in color-negative chemistry looks like color
 negative film. Of BW400CN, processed in C-41, Kodak says: "The appearance of
 processed negatives on BW400CN Film is similar to color negative films, but
-with no color in the negative images" (F-4036). The page's BW400CN example is
-therefore drawn in the color-negative look.
+with no color in the negative images" (F-4036).
 
 ## Damage
 
 - The code repeats every half frame, so a scratched, faded or notched copy can
   be checked against the next one along the film.
-- Parity detects any single misread bar. The tool then lists every single-bar
-  change that gives a valid code, with known films first.
-- Photos of faded codes have little contrast; the photo reader reports a
-  confidence value and warns when some cells are close to its threshold.
-
-## Reading codes from photos
-
-The photo reader (`site/js/dx-image.js`) works without any machine-learning or
-external service:
-
-1. Each row of the image, also tilted by up to ±3°, is normalized on its own
-   (on color negatives the orange base lies halfway between dark bars and the
-   white perforations, so one global threshold would fail).
-2. Runs of bars and gaps are matched against the clock pattern, in either
-   direction and for both layouts, and the best match is refined by small
-   shifts of the cell grid. A tall clock track also fits slightly tilted lines,
-   so the slope taken is the one along which the most rows match nearly as
-   well as the best.
-3. The clock track's known bars and gaps give the gray levels of "bar" and
-   "gap" in this photo, in either polarity.
-4. The data track is the neighboring row whose cells best fit the fixed
-   start and stop patterns and the parity rule, among rows that have most of
-   the fixed cells right and whose bits at least half a cell's height of rows
-   agree on: a single row on the border between the tracks can misread a bar
-   and still pass parity, and blank film agrees with itself. Bits are read in
-   clock order, so mirrored or upside-down photos come out right.
-5. If no clock track turns up, a second look allows for a faded or damaged
-   code: less contrast, light that changes along the film, and one clock bar
-   scratched off or one gap filled. It offers only readings that pass their
-   checks, with a note that the bars are faint or damaged.
-
-It is tested on film edges drawn by the project's own renderer: color
-negative, black-and-white and slide; mirrored and upside down; tilted by up to
-2.5°; cells only 4 pixels wide; grain and blur; the 23-cell layout; leader
-frames; and a scratched-out bar. Each of these is drawn with four pairs of
-track heights: as measured on the Kodak negative, equal as the page draws
-them, and the thinnest and thickest data track the standard allows (T2 of
-0.75 and 1.26 mm). With equal tracks only, it is also tested on a faded code,
-read on the second look; light that falls off along the film; a clock with one
-bar scratched off or one gap filled, where most such photos are read and none
-is misread; and large images that have to be reduced, one of them with 3-pixel
-cells just over the size limit. A code that fails its checks is only offered
-when its cells and its clock match are clear-cut and a band of rows agrees on
-its bits; otherwise the photo is reported as unclear rather than misread.
-Tilted beyond the ±3° searched, a code is often still read correctly or not
-read at all, but not always. In tests at 5–12° (October 2026), where the
-perforations looked like bars (light behind a slide's, or a dark background
-behind a negative's), 5–7% of the photos of a 31-cell code were read as
-another film's 23-cell code without a warning, though the reading still called
-it an older 7-bar code without a frame number. Where the perforations did not
-look like bars, none was. Turned straight with the page's Straighten control,
-such a photo reads correctly; with the reader's Layout set to 11 thin bars, it
-looks for that layout only, and says the top row was not found, or that the
-barcode could not be read reliably, rather than misread it. It needs at least
-3–4 pixels per cell; strong perspective or
-curled film is not handled. Photos larger than 1,600 pixels on the long side
-are first reduced to that size, each new pixel the average of the area it
-covers, so a photo just over the limit keeps nearly all its detail. Reading a
-1,600 × 1,200 photo takes about a quarter of a second in Node.js (measured
-October 2026). On the page, the search lets the browser draw and respond every
-10 ms or so, so the page does not freeze while it runs.
-
-![The photo reader after reading a computer-drawn sample: the cells it read are outlined in the photo](img/photo-reader.png)
+- Parity detects any single misread bar.
+- Photos of faded codes have little contrast.
 
 ## Sources
 

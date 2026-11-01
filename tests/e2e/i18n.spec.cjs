@@ -121,6 +121,18 @@ test('the sources page is written in each language: the decoder leads to the one
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
 });
 
+test('the English sources page leads to the decoder in English, also with another language saved', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+  await page.goto('/?dx=79-15/23&lang=en'); // as by an English link
+  await page.locator('.site-footer').getByRole('link', { name: 'Sources and credits' }).click();
+  await expect(page).toHaveURL(/\/sources\.html$/);
+  await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Decoder' }).click();
+  await expect(page).toHaveURL(/\/index\.html\?lang=en#decoder$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+});
+
 test('the page loads only the language it is shown in', async ({ page }) => {
   const requests = [];
   page.on('request', (req) => requests.push(new URL(req.url()).pathname));
@@ -326,6 +338,10 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   await page.locator('#cassette-code').fill('017563');
   await page.getByRole('button', { name: '查询' }).click();
   await expect(page.locator('.cassette__result')).toContainText('24 张');
+  // A row only related by digits says so.
+  await page.locator('#cassette-code').fill('001742');
+  await page.getByRole('button', { name: '查询' }).click();
+  await expect(page.locator('.cassette__result .pill--near')).toHaveText('模糊匹配');
   // Lists of numbers are separated the Chinese way.
   await expect(page.locator('#codes .num-list')).toContainText('、');
   await expect(page.locator('#codes .num-list')).not.toContainText(', ');
@@ -363,7 +379,7 @@ test('every marked part of the page has its text in every language, exactly as t
   expect(missing).toEqual([]);
 });
 
-test('every language fits the screen without sideways scrolling, down to 320 px wide', async ({ page }) => {
+test('every language fits the screen without sideways scrolling, down to 320 px wide', { tag: '@phone' }, async ({ page }) => {
   await page.goto('/');
   const names = await page.evaluate(() => window.DX.i18n.available().filter((l) => l.code !== 'en').map((l) => l.name));
   const { width, height } = page.viewportSize();
@@ -371,6 +387,12 @@ test('every language fits the screen without sideways scrolling, down to 320 px 
     await page.setViewportSize({ width, height });
     await chooseLanguage(page, name);
     await setCells(page, '1010101001111011110101110010101');
+    // Rows with a button of their own and digits marked, in the cassette helper and the search.
+    await page.locator('#cassette-code').fill('001742');
+    await page.locator('#cassette-code').press('Enter');
+    await expect(page.locator('.cassette__result .pill--near')).toBeVisible();
+    await page.locator('#finder-q').fill('002720');
+    await expect(page.locator('.finder__item .pill--near').first()).toBeVisible();
     for (const w of [width, 320]) {
       await page.setViewportSize({ width: w, height });
       expect(await sideOverflow(page), `${name} at ${w} px`).toEqual([]);

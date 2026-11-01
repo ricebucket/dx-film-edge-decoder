@@ -152,10 +152,37 @@ test('a scratched stop bar does not stick to the strip', async ({ page }, testIn
   await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
   await page.locator('#photo-file').setInputFiles(file);
   await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+  // It fails a check, but the strip makes the stop pattern standard: no corrections are promised.
+  await expect(page.locator('.photo__notes')).toContainText('does not pass all checks; compare the result with your film');
+  await expect(page.locator('.photo__notes')).not.toContainText('suggested corrections');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await expect(page.locator('#result .status')).toHaveText('Valid DX code');
   await expect(page.locator('#hint')).toContainText('Valid code');
   await expect(page.locator('#result-title')).toBeFocused();
+});
+
+test('a reading that no single bar can correct promises no corrections', async ({ page }, testInfo) => {
+  const module = 8;
+  const syn = image.synthesize({ part1: 39, part2: 1, frame: 1, module, clockHeight: 3.15, dataHeight: 2.5 });
+  // Bars in the unused cell 14 and the parity cell 27, both empty in this
+  // code: two problems, which no one bar fixes.
+  const codeLeft = (syn.width - 31 * module) / 2;
+  const dataTop = syn.height * 0.42 + 3.15 * module;
+  for (let y = Math.ceil(dataTop); y < Math.floor(dataTop + 2.5 * module); y++) {
+    for (let x = 0; x < syn.width; x++) {
+      const cell = Math.floor((x - codeLeft) / module) + 1;
+      if (cell === 14 || cell === 27) syn.ink[y * syn.width + x] = 1;
+    }
+  }
+  const file = testInfo.outputPath('two-problems.png');
+  await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.locator('.photo__found')).toContainText('DX 39-1, frame 1');
+  await expect(page.locator('.photo__notes')).toContainText('does not pass all checks; compare the result with your film');
+  await expect(page.locator('.photo__notes')).not.toContainText('suggested corrections');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#result .status')).toHaveText('2 problems to check');
+  await expect(page.locator('#result .fixes')).toHaveCount(0);
 });
 
 test('a canceled drag leaves the reader usable', async ({ page }) => {
@@ -263,9 +290,23 @@ test('the layout chosen limits what the reader looks for: a tilted slide is then
   await expect(found).toContainText('DX 74-13, frame 41');
   await expect(layout.getByRole('button', { name: '11 thin bars' })).toHaveAttribute('aria-pressed', 'true');
   // Another photo starts again with Auto, as it does unturned and unflipped.
+  const bar = page.locator('#source');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await bar.getByRole('button', { name: 'Open the photo' }).click();
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await expect(found).toContainText('DX 96-12, frame 14A');
   await expect(layout.getByRole('button', { name: 'Auto' })).toHaveAttribute('aria-pressed', 'true');
+  // Undo brings back the slide's code: its photo opens with the layout it was read with...
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await page.locator('#undo').click();
+  await expect(bar).toContainText('DX 74-13, frame 41');
+  await bar.getByRole('button', { name: 'Open the photo' }).click();
+  await expect(found).toContainText('DX 74-13, frame 41');
+  await expect(layout.getByRole('button', { name: '11 thin bars' })).toHaveAttribute('aria-pressed', 'true');
+  // ...and once removed, the reader is back to Auto.
+  await bar.getByRole('button', { name: 'Remove the photo' }).click();
+  await expect(page.locator('#photo [data-value="auto"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#photo [data-value="long"]')).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('straightening shows a preview while the slider moves, and reads once it stops', async ({ page }) => {
@@ -623,6 +664,56 @@ test('flip mirrors the straightened photo', async ({ page }, testInfo) => {
   await expect(page.locator('.photo__notes')).toContainText('mirrored or upside down');
 });
 
+test('a new search takes the old reading away at once: its step and its outlines on the photo', async ({ page }) => {
+  const steps = page.locator('#photo .photo__step');
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(steps.nth(2)).toHaveAttribute('aria-current', 'step');
+  // Searches from now on wait until told to go on.
+  await page.evaluate(() => {
+    const read = window.DX.image.readBarcodeAsync;
+    window.DX.image.readBarcodeAsync = (...args) => new Promise((go) => { window.goOn = go; }).then(() => read(...args));
+  });
+  const outlined = () => page.locator('.photo__canvas').evaluate((canvas) => {
+    const { data } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+    let n = 0;
+    // The outlines' blue and yellow (ui-photo.js).
+    for (let i = 0; i < data.length; i += 4) {
+      for (const [r, g, b] of [[0x4f, 0xb6, 0xc9], [0xff, 0xd1, 0x66]]) if (Math.abs(data[i] - r) + Math.abs(data[i + 1] - g) + Math.abs(data[i + 2] - b) < 30) n++;
+    }
+    return n;
+  });
+  expect(await outlined()).toBeGreaterThan(0);
+  const layout = page.locator('#photo').getByRole('group', { name: 'Layout' });
+  const read = page.getByRole('button', { name: 'Read again' });
+  // Each from a reading: the sample still reads after the first two, not after turning it.
+  for (const change of [() => layout.getByRole('button', { name: '7 thin bars' }).click(), () => page.getByRole('button', { name: 'Flip' }).click(), () => page.getByRole('button', { name: /^Rotate/ }).first().click()]) {
+    await expect(steps.nth(2)).toHaveAttribute('aria-current', 'step');
+    await page.evaluate(() => { window.goOn = null; });
+    await change();
+    await expect(page.locator('#photo .photo__result')).toContainText('Looking for the barcode');
+    await expect(steps.nth(1)).toHaveAttribute('aria-current', 'step');
+    expect(await outlined()).toBe(0);
+    // Waiting for the search, the button does not stand out (nor grow bolder).
+    await expect(read).not.toHaveClass(/\btool--primary\b/);
+    // Once the search has started, a moment after the message.
+    await page.waitForFunction(() => window.goOn);
+    await page.evaluate(() => window.goOn());
+    await expect(page.locator('#photo .photo__result')).not.toContainText('Looking for the barcode');
+  }
+  // Not read after turning it: reading again is the next step.
+  await expect(read).toHaveClass(/\btool--primary\b/);
+  // Read again from there: the button stays as it is while the search runs, and after it.
+  await page.evaluate(() => { window.goOn = null; });
+  await read.click();
+  await expect(page.locator('#photo .photo__result')).toContainText('Looking for the barcode');
+  await expect(read).toHaveClass(/\btool--primary\b/);
+  await page.waitForFunction(() => window.goOn);
+  await expect(read).toHaveClass(/\btool--primary\b/);
+  await page.evaluate(() => window.goOn());
+  await expect(page.locator('#photo .photo__result')).not.toContainText('Looking for the barcode');
+  await expect(read).toHaveClass(/\btool--primary\b/);
+});
+
 test('the photo keeps its proportions on screen', async ({ page }) => {
   await page.getByRole('button', { name: 'Try a sample' }).click();
   const ratios = await page.locator('.photo__canvas').evaluate((c) => {
@@ -892,19 +983,26 @@ test('a file that is not an image, chosen while a photo is read, keeps its messa
   const file = testInfo.outputPath('notes.txt');
   await writeFile(file, 'not an image');
   await expect(page.getByRole('button', { name: 'Try a sample' })).toBeVisible();
-  // A reading that takes its time.
+  // A reading that takes its time, and says when it has started and ended.
   await page.evaluate(() => {
     const read = window.DX.image.readBarcodeAsync;
     window.DX.image.readBarcodeAsync = async (...args) => {
+      window.reading = 'started';
       await new Promise((resolve) => setTimeout(resolve, 800));
-      return read(...args);
+      try {
+        return await read(...args);
+      } finally {
+        window.reading = 'ended';
+      }
     };
   });
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await expect(page.getByText('Looking for the barcode…')).toBeVisible();
+  await page.waitForFunction(() => window.reading === 'started');
   await page.locator('#photo-file').setInputFiles(file);
   await expect(page.getByText('That file is not an image.')).toBeVisible();
-  await page.waitForTimeout(1200);
+  // However long that reading took, once it is over the message is still there.
+  await page.waitForFunction(() => window.reading === 'ended');
   await expect(page.getByText('That file is not an image.')).toBeVisible();
   await expect(page.locator('.photo__found')).toHaveCount(0);
 });

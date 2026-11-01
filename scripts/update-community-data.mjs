@@ -9,8 +9,10 @@
 //
 // The Big Film Database (dxdatabase) © 2018 by Dxdatabase is licensed under
 // CC BY-SA 4.0: https://github.com/dxdatabase/Open-source-film-database
-// Changes made here: only rows that carry a DX number are kept, and the "Pic"
-// column (box-image file names) is dropped. Everything else is copied verbatim.
+// Changes made here: only rows with a "DX extract" or "DX full" number are
+// kept, the "Pic" column (box-image file names) is dropped, and an "ID" column
+// comes first: a record ID of this tool's own (see assignIds). Everything else
+// is copied verbatim.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -40,7 +42,7 @@ export async function resolveCommit(args, recorded) {
  * date it was first retrieved: a commit's content never changes, so the files
  * stay unchanged.
  */
-export function sourceRecord({ commit, rowsUpstream, rowsKept }, recorded, today = new Date()) {
+export function sourceRecord({ commit, rowsUpstream, rowsKept, lastId }, recorded, today = new Date()) {
   return {
     title: 'The Big Film Database',
     author: 'Dxdatabase',
@@ -52,10 +54,52 @@ export function sourceRecord({ commit, rowsUpstream, rowsKept }, recorded, today
     retrieved: recorded && recorded.commit === commit ? recorded.retrieved : today.toISOString().slice(0, 10),
     rowsUpstream,
     rowsKept,
+    lastId,
     changes: [
       'Kept only rows with a "DX extract" or "DX full" number.',
       'Removed the "Pic" column (box-image file names).',
+      'Added an "ID" column: a record ID of our own for each row, kept while the row is unchanged.',
     ],
+  };
+}
+
+/**
+ * The record IDs of the rows kept, as the database gives none: a row
+ * unchanged since the snapshot before keeps its ID, and a new or changed one
+ * gets the next number after the highest ever given (`lastId`), so that an ID
+ * never names another row. `rows` are the rows kept, without an ID; `before`,
+ * the snapshot's rows, with theirs first.
+ */
+export function assignIds(rows, before, lastId = 0) {
+  const free = new Map();
+  for (const [id, ...fields] of before) {
+    const key = JSON.stringify(fields);
+    if (!free.has(key)) free.set(key, []);
+    free.get(key).push(Number(id));
+  }
+  let last = Math.max(lastId, ...before.map(([id]) => Number(id)));
+  const ids = rows.map((fields) => {
+    const same = free.get(JSON.stringify(fields));
+    return same && same.length ? same.shift() : ++last;
+  });
+  return { ids, lastId: last };
+}
+
+/**
+ * What assignIds compares rows by: their values under the column names the
+ * download and the snapshot share, so that a column added, dropped or moved
+ * upstream changes no unchanged row's ID. `header` is the download's
+ * columns kept, `oldHeader` the snapshot's, its ID column first. They must
+ * share every column `needed`: with fewer values, rows could look alike
+ * and an ID pass to another row.
+ */
+export function sharedColumns(header, oldHeader, needed) {
+  const shared = header.filter((name) => name !== 'ID' && oldHeader.includes(name));
+  const missing = needed.find((name) => !shared.includes(name));
+  if (missing) throw new Error(`film_database_dx.csv has no column "${missing}" to match its rows by; move it away to number every row anew`);
+  return {
+    now: (row) => shared.map((name) => row[header.indexOf(name)]),
+    before: ([id, ...fields]) => [id, ...shared.map((name) => fields[oldHeader.indexOf(name) - 1])],
   };
 }
 
@@ -72,21 +116,30 @@ async function main() {
     if (i === -1) throw new Error(`Column "${name}" missing; upstream format changed`);
     return i;
   };
+  // The ID column is this script's own: one upstream would be read in its place.
+  if (header.includes('ID')) throw new Error('Column "ID" is upstream now, under the name of the column this script adds; upstream format changed');
   const extract = col('DX extract');
   const full = col('DX full');
   const pic = col('Pic');
   // The other columns scripts/build-data.mjs reads: stop before writing anything if one has gone.
-  ['Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country',
-    'Beginning year', 'End year', 'Distributor', 'Ava'].forEach(col);
+  const read = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country',
+    'Beginning year', 'End year', 'Distributor', 'Ava'];
+  read.forEach(col);
   for (const [n, r] of rows.entries()) {
     if (r.length !== header.length) throw new Error(`Row ${n + 2}: ${r.length} fields, expected ${header.length}`);
   }
 
   const keep = rows.filter((r) => r[extract].trim() !== '' || r[full].trim() !== '');
   const dropPic = (r) => r.filter((_, i) => i !== pic);
-  await writeFile(join(OUT_DIR, 'film_database_dx.csv'), formatCsv([dropPic(header), ...keep.map(dropPic)], ';'));
+  // The rows of the snapshot this replaces, with their IDs, if it has them.
+  const path = join(OUT_DIR, 'film_database_dx.csv');
+  const [oldHeader, ...oldRows] = parseCsv(await readFile(path, 'utf8').catch(() => ''), ';');
+  const snapshot = Boolean(oldHeader) && oldHeader[0] === 'ID';
+  const by = sharedColumns(dropPic(header), snapshot ? oldHeader : ['ID', ...dropPic(header)], read);
+  const { ids, lastId } = assignIds(keep.map((r) => by.now(dropPic(r))), snapshot ? oldRows.map(by.before) : [], recorded.lastId);
+  await writeFile(path, formatCsv([['ID', ...dropPic(header)], ...keep.map((r, i) => [String(ids[i]), ...dropPic(r)])], ';'));
 
-  const source = sourceRecord({ commit, rowsUpstream: rows.length, rowsKept: keep.length }, recorded);
+  const source = sourceRecord({ commit, rowsUpstream: rows.length, rowsKept: keep.length, lastId }, recorded);
   await writeFile(join(OUT_DIR, 'source.json'), JSON.stringify(source, null, 2) + '\n');
   console.log(`Kept ${keep.length} of ${rows.length} rows from ${REPO}@${commit.slice(0, 7)}`);
   console.log('Next: npm run build:data, then follow "Updating the data" in data/README.md.');

@@ -51,10 +51,8 @@ label *before* the code it names:
 | Wikimedia, *Dx-film-edge-barcode.jpg* (Agfa, DX 47-1) | `▶22A`, the code for 22A, `23`, … |
 | Wikimedia, *Kodak Telegraph negativ23a.jpg* (Kodak BW400CN) | `23`, the code for 23 (measured, see [report 05](05-reading-real-film.md)), `23A` with an arrow, … |
 
-So when a user reads a code, the printed number just to its left should match
-the decoded frame. The result shows that number as the printed frame label,
-and the strip draws it before the code, at its size on the Kodak negative
-([report 05](05-reading-real-film.md#validation-decoding-a-real-negative)).
+So when a code is read, the printed number just to its left should match the
+decoded frame.
 
 The standard adds that a second row of numbers may run along the opposite
 edge: whole-frame numbers 1, 2 … 36 every eight perforations, or half-frame
@@ -80,8 +78,7 @@ Together: **XX = 61, X = 62, 00 = 63**, and the 6-bit field wraps from 63
 to 0. Ordinary frame numbers run from 1 to 60: Table 5 ends at 60A, and gives
 the numbers beyond 36A, the longest standard roll, for possible future use
 (§7.2.1.5). The alternative labels S, K and F are
-documented only by Zint; which films print them was not found, so the tool
-mentions them as "also printed as" without attributing them to a maker.
+documented only by Zint; which films print them was not found.
 
 | Printed | Frame field | Half-frame flag |
 |---|---|---|
@@ -106,15 +103,13 @@ Half-frame cameras expose two 18 × 24 mm pictures per 38 mm, about one per
 code. Mérino suggests counting positions instead of frames: 0, 0A, 1, 1A, …
 become half frames 0, 1, 2, 3, …, that is 2 × frame + flag. Kodak's printers
 used the same numbering internally: in EP 0838718, half frame 22 becomes
-decimal 44 and 22A becomes 45. The tool shows this "half-frame count" for
-frames 0–60 and leaves it out for XX, X and 00.
+decimal 44 and 22A becomes 45.
 
 ## Short codes
 
 The 23-cell layout has no frame field at all (see [report 01](01-edge-code-format.md)).
 Film with short codes still has printed frame numbers, but they cannot be read
-from the barcode, so the tool shows no frame for it, and its strip leaves out
-the room for the printed number.
+from the barcode.
 
 ## Sources
 

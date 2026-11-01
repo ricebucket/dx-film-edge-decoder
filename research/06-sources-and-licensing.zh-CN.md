@@ -6,12 +6,13 @@
 
 `REUSE.toml` 以 [REUSE](https://reuse.software/) 格式记录了每个文件的版权和许可证，`LICENSES/` 存放各许可证的全文。每个文件只有一种许可证。
 
-- **代码、测试、脚本、样式、网站图标、各语言的界面文字、图示、截图和演示视频，以及这些研究笔记的中英文版本**是为本项目制作的，采用 GNU General Public License v3.0 许可证（见 `LICENSE`）。图示由 `scripts/make-figures.mjs` 绘制，截图由 `scripts/screenshots.mjs` 生成，演示视频由 `scripts/demo-video.mjs` 录制。显示了 The Big Film Database 条目的截图和演示视频（`.github/screenshot*.png`、`research/img/community-result*.png` 和 `.github/demo*`）则采用 CC BY-SA 4.0 许可证。
+- **代码、测试、脚本、样式、网站图标、各语言的界面文字、图示、各 README 文件，以及这些研究笔记的中英文版本**是为本项目制作的，采用 GNU General Public License v3.0 许可证（见 `LICENSE`）。图示由 `scripts/make-figures.mjs` 绘制。
+- **截图**（`.github/screenshot*.png`，由 `scripts/screenshots.mjs` 生成）和**演示视频**（`.github/demo*`，由 `scripts/demo-video.mjs` 录制）显示了 The Big Film Database 的条目，采用 CC BY-SA 4.0 许可证。
 - **`data/i3a-2008/`** 存放 I3A 列表 *DX Codes for 135-Size Film*（2008 年 2 月）中事实内容的转录：第 1 部分的分配，以及与公布内容一致的 DX 码和产品名称。它是用 `scripts/extract-i3a-pdf.py` 生成的，采用 GNU General Public License v3.0 许可证。I3A 文件的文本中没有版权声明或许可条款。
 - **`data/big-film-database/`** 存放 The Big Film Database 的一个改编子集，采用 CC BY-SA 4.0 许可证；其署名和修改清单见 [data/README.zh-CN.md](../data/README.zh-CN.md)。
-- **`site/js/dx-data.js`** 和 **`site/js/dx-data-community.js`** 由 `scripts/build-data.mjs` 根据 `data/` 生成，每个数据集一个文件。前者存放 I3A 数据表，采用 GNU General Public License v3.0 许可证；后者存放 The Big Film Database 的子集，文件头带有它的署名，采用 CC BY-SA 4.0 许可证。
+- **`site/js/dx-data.js`** 和 **`site/js/dx-data-community.js`** 由 `scripts/build-data.mjs` 根据 `data/` 生成，每个数据集一个文件。前者存放 I3A 数据表，采用 GNU General Public License v3.0 许可证；后者存放 The Big Film Database 的子集，文件头带有它的署名，采用 CC BY-SA 4.0 许可证。由这两者生成的 **`site/js/dx-index.js`** 带有同样的署名，也采用 CC BY-SA 4.0 许可证。
 - **`tests/unit/zint-vectors.mjs`** 存放 11 个位串，取自 Zint 条码库针对该格式的测试文件（`backend/tests/test_dxfilmedge.c`，版权 2024–2025 Antoine Mérino），并附有该版权声明，采用 BSD-3-Clause 许可证。使用这些位串的测试在 `tests/unit/codec.test.mjs` 中。
-- 网页使用访问者设备上已安装的字体，不使用第三方代码。在网页中打开的照片不会上传到任何服务器。
+- 网页使用访问者设备上已安装的字体，不使用第三方代码。
 - 浏览器测试所用的 Playwright 是单独安装的，不属于本仓库。
 
 ## 来源
@@ -42,7 +43,7 @@
 
 - International Imaging Industry Association，*DX Codes for 135-Size Film*，2008 年 2 月 — Aurélien Lawley 的文章中链接的 PDF，<https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf>（存档副本：<https://web.archive.org/web/20221222115315/https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf>）；也可以在 <https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association> 查看
 - The Big Film Database (dxdatabase)，作者 Dxdatabase — <https://github.com/dxdatabase/Open-source-film-database>，网站 <https://industrieplus.net/dxdatabase/>，帮助页面 <https://industrieplus.net/dxdatabase/help.html>
-- The (Modified) Big Film Database，作者 Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>
+- The (Modified) Big Film Database，作者 Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>；按 DX 码搜索，以 DX 96-12 为例：<https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12>
 - Patton, Travis & McPherson（Eastman Kodak），美国专利 5,761,558，*Expanded film cartridge bar code*，1998 — <https://patents.google.com/patent/US5761558A/en>
 - Eastman Kodak Company，*KODAK PROFESSIONAL BW400CN Film*，技术资料 F-4036，2004 年 1 月 — 副本：<https://125px.com/docs/film/kodak/f4036-BW400CN.pdf>
 - Wikimedia Commons，*DX-Codierung asb PICT3739.JPG*，作者 Agon S. Buchholz，2004 年 — <https://commons.wikimedia.org/wiki/File:DX-Codierung_asb_PICT3739.JPG>

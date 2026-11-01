@@ -9,7 +9,7 @@
   const i18n = root.DX.i18n;
   const t = i18n.t;
 
-  const COMMUNITY_PREVIEW = 6;
+  const PREVIEW = 6;
 
   function rangeText(from, to) {
     return from === to ? String(from) : `${from}–${to}`;
@@ -18,10 +18,10 @@
   /**
    * A source's own words, as it wrote them: on a page in another language
    * marked as English, which nearly all of them are (WCAG 3.1.2), unless
-   * written in Chinese or Japanese.
+   * written in Chinese or Japanese, or without letters at all (years).
    */
   function source(text) {
-    if (i18n.current === 'en' || /[\u3040-\u30ff\u3400-\u9fff]/.test(text)) return text;
+    if (i18n.current === 'en' || !/[a-z]/i.test(text) || /[\u3040-\u30ff\u3400-\u9fff]/.test(text)) return text;
     return h('span', { lang: 'en' }, text);
   }
 
@@ -46,30 +46,64 @@
 
   /** Everything communityItem shows, except the cassette number: rows alike in this look like one film. */
   function communityKey(e) {
-    return JSON.stringify([e.name, e.manufacturer, e.original, e.reliability, e.country, e.from, e.to, e.distributor, e.availability]);
+    return JSON.stringify([e.extract, e.name, e.manufacturer, e.original, e.reliability, e.country, e.from, e.to, e.distributor, e.availability]);
   }
 
   /**
    * Merge community rows that differ only by cassette number (e.g. 24 and 36
-   * exposures), and list them by their score (js/dx-lookup.js), then name:
-   * the first names a code known only from this database. `boost`, if given,
-   * adds to a row's score where the list is shown (the cassette helper puts
-   * the number typed first).
+   * exposures), in the order given. Each keeps the record IDs of its rows
+   * (`ids`) and their cassette numbers.
    */
-  function groupCommunity(entries, boost) {
+  function groupCommunity(entries) {
+    return collate(entries.map((e) => ({ e, related: false }))).map((f) => f.film);
+  }
+
+  /**
+   * Ranked rows ({ e, related }) as the films a list shows, in their order:
+   * the database's rows that differ only by cassette number (communityKey)
+   * go together, where the first of them comes, with the record IDs (`ids`)
+   * and cassette numbers of all; a registry row stays a film of its own. As
+   * [{ film, source, related, picked }]: `related` as for its first row, and
+   * `picked` if the record ID of any of its rows is in `chosen`.
+   */
+  function collate(rows, chosen = new Set()) {
+    const films = [];
     const groups = new Map();
-    for (const e of entries) {
-      const key = communityKey(e);
-      const score = (e.score || 0) + (boost ? boost(e) : 0);
-      const g = groups.get(key);
-      if (g) {
-        if (e.full && !g.cassettes.includes(e.full)) g.cassettes.push(e.full);
-        g.score = Math.max(g.score, score);
+    for (const { e, related } of rows) {
+      const picked = chosen.has(e.id);
+      if (e.source === 'i3a') {
+        films.push({ film: e, source: 'i3a', related, picked });
+        continue;
+      }
+      const known = groups.get(communityKey(e));
+      if (known) {
+        known.film.ids.push(e.id);
+        if (e.full && !known.film.cassettes.includes(e.full)) known.film.cassettes.push(e.full);
+        known.picked = known.picked || picked;
       } else {
-        groups.set(key, Object.assign({}, e, { cassettes: e.full ? [e.full] : [], score }));
+        const film = { film: Object.assign({}, e, { ids: [e.id], cassettes: e.full ? [e.full] : [] }), source: 'community', related, picked };
+        groups.set(communityKey(e), film);
+        films.push(film);
       }
     }
-    return [...groups.values()].sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'en'));
+    return films;
+  }
+
+  /**
+   * `text` with the middle four digits of its cassette numbers marked where
+   * they are `digits`, the four looked up: the digits of the DX number, which
+   * a row only related by digits can share with what was looked up.
+   */
+  function sharedDigits(text, digits) {
+    const pieces = [];
+    let last = 0;
+    for (const m of text.matchAll(/\d{6}/g)) {
+      if (m[0].slice(1, 5) !== digits) continue;
+      pieces.push(text.slice(last, m.index + 1), h('mark', { class: 'shared' }, m[0].slice(1, 5)));
+      last = m.index + 5;
+    }
+    pieces.push(text.slice(last));
+    return pieces.filter((piece) => piece !== '');
   }
 
   function sensitizerName(s) {
@@ -94,6 +128,11 @@
         h('span', { class: 'visually-hidden' }, ' ', t('(opens in a new tab)'))));
   }
 
+  /** Which source an entry comes from, said on its row: the films of both are in one list. */
+  function sourceTag(source) {
+    return h('span', { class: `source-tag source-tag--${source}` }, source === 'i3a' ? t('I3A') : t('Community'));
+  }
+
   /** Text and its closing period, unless it ends in one already ("sold by Walgreens Co."), as in i18n's fill(). */
   const period = (text, mark) => (mark === '.' && text.endsWith('.') ? text : text + mark);
 
@@ -105,7 +144,14 @@
     return mark === '.' && words.endsWith('.') ? pieces : pieces.concat(mark);
   }
 
-  function communityItem(e) {
+  /**
+   * A row of The Big Film Database, or rows that differ only by cassette
+   * number, as recorded. Options: `related`, the four digits looked up (as
+   * text), for a row only related to them by digits, which says so and marks
+   * them in its cassette numbers; `dx`, its DX number shown; `onShow(entry)`,
+   * a button that shows its barcode (showButton, with `edge`).
+   */
+  function communityItem(e, options = {}) {
     const p = i18n.punctuation();
     const facts = [];
     if (e.manufacturer) facts.push(t('Made by {maker}', { maker: e.manufacturer }));
@@ -120,41 +166,98 @@
       ? h('span', { class: 'match__original' }, ...i18n.parts('Notes: {notes}', { notes: source(e.original) }),
         e.reliability !== null ? certainty(p.space, t('(certainty {n}/4)', { n: e.reliability })) : null)
       : null;
-    return h('li', { class: 'match match--community' },
+    const cassettes = e.cassettes.length ? i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.list) }) : null;
+    const showable = Boolean(options.onShow) && e.part1 !== null;
+    const body = [
       h('span', { class: 'match__name' }, e.name),
+      options.dx && e.part1 !== null ? h('span', { class: 'match__dx' }, `DX ${codec.formatDxNumber(e.part1, e.part2)}`) : null,
+      options.related ? h('span', { class: 'pill pill--near' }, t('Fuzzy match')) : null,
+      sourceTag('community'),
       e.availability ? h('span', { class: `pill pill--${e.availability === 'on the market' ? 'live' : 'gone'}` }, availabilityLabel(e.availability)) : null,
       facts.length ? h('span', { class: 'match__facts' }, ...joined(facts, p.comma, p.period)) : null,
       notes,
-      e.cassettes.length ? h('span', { class: 'match__cassette' }, i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.list) })) : null);
+      cassettes ? h('span', { class: 'match__cassette' }, ...(options.related ? sharedDigits(cassettes, options.related) : [cassettes])) : null,
+    ];
+    if (!showable) return h('li', { class: 'match match--community' }, body);
+    // Named for screen readers with its film, which the row shows.
+    const show = showButton(e, options);
+    return h('li', { class: 'match match--community match--action' }, h('div', { class: 'match__body' }, body), show);
   }
 
-  function productItem(p) {
-    return h('li', { class: 'match match--i3a' },
+  /**
+   * A row's button that shows its film's barcode (options.onShow), and only
+   * that film's: "Show the edge barcode" where the row came from a cassette
+   * number (options.edge), "Show barcode" elsewhere. Named for screen
+   * readers with its film, which the row shows.
+   */
+  function showButton(film, options) {
+    const name = options.edge ? t('Show the edge barcode of {name}', { name: film.name }) : t('Show barcode of {name}', { name: film.name });
+    const show = h('button', { type: 'button', class: 'tool', 'aria-label': name }, options.edge ? t('Show the edge barcode') : t('Show barcode'));
+    show.addEventListener('click', () => options.onShow(film));
+    return show;
+  }
+
+  /**
+   * A registry film. Options, as for communityItem: `dx`, its DX number
+   * shown; `onShow(p)`, a button that shows its barcode. A film listed for
+   * its Part 1 without a Part 2 has no code to show, and gets neither.
+   */
+  function productItem(p, options = {}) {
+    const body = [
       h('span', { class: 'match__name' }, p.name),
+      options.dx && !p.wildcard ? h('span', { class: 'match__dx' }, `DX ${codec.formatDxNumber(p.part1, p.part2)}`) : null,
+      sourceTag('i3a'),
       p.status ? h('span', { class: `pill pill--${p.status === 'in-use' ? 'live' : 'gone'}` }, p.status === 'in-use' ? t('in production in 2008') : t('discontinued by 2008')) : null,
-      p.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null);
+      p.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null,
+    ];
+    if (!options.onShow || p.wildcard) return h('li', { class: 'match match--i3a' }, body);
+    const show = showButton(p, options);
+    return h('li', { class: 'match match--i3a match--action' }, h('div', { class: 'match__body' }, body), show);
   }
 
-  function communityBlock(entries, d) {
-    const groups = groupCommunity(entries);
-    if (!groups.length) return null;
-    const list = h('ul', { class: 'matches' }, groups.slice(0, COMMUNITY_PREVIEW).map(communityItem));
-    const block = h('div', { class: 'source-block' },
-      h('h3', { class: 'source-block__title' }, 'The Big Film Database'),
-      list);
-    if (groups.length > COMMUNITY_PREVIEW) {
-      const more = h('button', { type: 'button', class: 'text-button' }, t('Show all {n}', { n: groups.length }));
+  /**
+   * The films a DX number's entries name, ranked in one list by the lookup's
+   * scoreOf, each row on its own, whatever else is listed: picked if its
+   * record ID is in `picked`; matching exactly if the registry lists it for
+   * this number or a database row records it, and only by digits if its
+   * cassette number gives the number but it records another one or none.
+   * Then the rows of one film go together, where its best row comes
+   * (collate).
+   */
+  function rankFilms(info, picked) {
+    const { ranked, scoreOf } = root.DX.createLookup;
+    const chosen = new Set(picked || []);
+    const rows = [
+      ...info.products.map((e) => ({ e, related: false, match: 10 })),
+      ...info.community.map((e) => ({ e, related: false, match: 10 })),
+      ...info.related.map((e) => ({ e, related: true, match: 5 })),
+    ];
+    return collate(ranked(rows, ({ e, match }) => scoreOf(e, match, chosen.has(e.id)), (r) => r.e), chosen);
+  }
+
+  /** The ranked films (rankFilms) of a DX number, as the result lists them. */
+  function filmsBlock(ranked, info, d) {
+    const digits = String(info.extract).padStart(4, '0');
+    const items = ranked.map(({ film, source, related }) => (source === 'i3a' ? productItem(film) : communityItem(film, related ? { related: digits, dx: true } : {})));
+    if (!items.length) return null;
+    const block = h('div', { class: 'source-block' }, h('ul', { class: 'matches' }, items));
+    if (items.length > PREVIEW) {
+      // On screen, the first few until "Show all"; printed, all of them.
+      const later = items.slice(PREVIEW);
+      for (const item of later) item.classList.add('match--later');
+      const more = h('button', { type: 'button', class: 'text-button' }, t('Show all {n}', { n: items.length }));
       more.addEventListener('click', () => {
-        list.replaceChildren(...groups.map(communityItem));
+        for (const item of later) item.classList.remove('match--later');
         // The button goes: carry on at the first entry it brought.
-        const first = list.children[COMMUNITY_PREVIEW];
-        first.tabIndex = -1;
-        first.focus();
+        later[0].tabIndex = -1;
+        later[0].focus();
         more.remove();
       });
       block.append(more);
     }
-    const link = bfdLink(d.part1, d.part2);
+    if (!ranked.some((f) => f.source === 'community')) return block;
+    // The site lists the rows that record the number.
+    const link = ranked.some((f) => f.source === 'community' && !f.related) ? bfdLink(d.part1, d.part2) : null;
     if (link) block.append(link);
     const about = t('Community-maintained.');
     // What the linked site has goes in the text under the link, not in the link.
@@ -295,7 +398,7 @@
     const unknown = [];
     for (const f of fixes) {
       const info = ctx.lookup.byDx(f.result.part1, f.result.part2);
-      const name = filmName(info); // as the heading would name it
+      const name = filmName(info, ctx.pickedAt(f.result.part1, f.result.part2)); // as the heading would name it
       (name ? known : unknown).push({ f, name });
     }
     const item = ({ f, name }) => {
@@ -317,22 +420,25 @@
   }
 
   /**
-   * The film a DX number's entries name: every registry product, or else the
-   * community entry listed first; null for none. The result's heading and the
-   * photo reader both say it so.
+   * The film a DX number's entries name, at the top of their ranking
+   * (rankFilms): those picked to show its code, or else every registry
+   * product, or else the database's first; null for none. The result's
+   * heading and the photo reader both say it so.
    */
-  function filmName(info) {
-    if (info.products.length) return info.products.map((p) => p.name).join(' / ');
-    const groups = groupCommunity(info.community);
-    return groups.length ? groups[0].name : null;
+  function filmName(info, picked) {
+    const films = rankFilms(info, picked).filter((f) => !f.related);
+    if (!films.length) return null;
+    const [first] = films;
+    const top = first.picked ? films.filter((f) => f.picked) : first.source === 'i3a' ? films.filter((f) => f.source === 'i3a') : [first];
+    return top.map((f) => f.film.name).join(' / ');
   }
 
-  function identity(d, info) {
+  function identity(d, info, picked) {
     const s = info.part1Info.sensitizer;
     const parts = [];
     const products = info.products;
     const groups = groupCommunity(info.community);
-    let title = filmName(info);
+    let title = filmName(info, picked);
     if (title === null) {
       if (!d.valid) title = t('DX {dx}, not in the lists', { dx: d.dxNumber });
       else if (s) title = t('Unlisted {maker} film', { maker: s.label });
@@ -354,17 +460,12 @@
     if (!products.length && groups.length) {
       lines.push(h('p', { class: 'fineprint' }, t('Not in the 2008 registry; the name comes from the community database.')));
     }
-    if (!products.length && !groups.length) {
+    if (!products.length && !groups.length && !info.related.length) {
       lines.push(h('p', { class: 'fineprint' }, t('Not found in either the 2008 I3A registry or The Big Film Database.')));
     }
 
-    if (products.length) {
-      parts.push(h('div', { class: 'source-block' },
-        h('h3', { class: 'source-block__title' }, t('I3A registry, 2008')),
-        h('ul', { class: 'matches' }, products.map(productItem))));
-    }
-    const cb = communityBlock(info.community, d);
-    if (cb) parts.push(cb);
+    const films = filmsBlock(rankFilms(info, picked), info, d);
+    if (films) parts.push(films);
     return { title, lines, parts };
   }
 
@@ -403,8 +504,9 @@
   }
 
   /**
-   * ctx: { decoded, empty (nothing entered yet), lookup, examples, shareUrl, way ('copy' or 'photo'),
-   *        onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
+   * ctx: { decoded, empty (nothing entered yet), lookup, pickedAt(part1, part2) (the record IDs of the films picked to show
+   *        the code that have this DX number, listed first),
+   *        examples, shareUrl, way ('copy' or 'photo'), onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
    */
   function renderResult(container, ctx) {
     const d = ctx.decoded;
@@ -427,7 +529,7 @@
 
     const main = [];
     const side = [];
-    const id = identity(d, info);
+    const id = identity(d, info, ctx.pickedAt(d.part1, d.part2));
     main.push(
       h('h2', { id: 'result-title', class: `result__title${d.valid ? '' : ' result__title--tentative'}`, tabindex: '-1' }, id.title),
       d.valid ? null : h('p', { class: 'fineprint' }, t('The code does not pass its checks yet, so this will probably change once the misread bar is fixed.')),
@@ -470,7 +572,10 @@
   root.DX.ui.communityKey = communityKey;
   root.DX.ui.sensitizerName = sensitizerName;
   root.DX.ui.communityItem = communityItem;
+  root.DX.ui.sharedDigits = sharedDigits;
   root.DX.ui.bfdLink = bfdLink;
+  root.DX.ui.sourceTag = sourceTag;
+  root.DX.ui.collate = collate;
   root.DX.ui.productItem = productItem;
   root.DX.ui.source = source;
 })(globalThis);

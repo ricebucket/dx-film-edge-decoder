@@ -9,8 +9,10 @@
   "retrieved": "2026-10-26",
   "rowsUpstream": 8710,
   "rowsKept": 1676,
+  "lastId": 1676,
   "changes": [
     "Kept only rows with a \"DX extract\" or \"DX full\" number.",
-    "Removed the \"Pic\" column (box-image file names)."
+    "Removed the \"Pic\" column (box-image file names).",
+    "Added an \"ID\" column: a record ID of our own for each row, kept while the row is unchanged."
   ]
 }

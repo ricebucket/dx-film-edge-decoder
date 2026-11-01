@@ -23,6 +23,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { blank } from './lib/js-source.mjs';
 import { isMain } from './lib/main.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -31,7 +32,7 @@ const require = createRequire(import.meta.url);
 const { normalize } = require('../site/js/i18n.js');
 
 // Files whose text is not interface text: the language layer itself and the generated data.
-const SKIP = new Set(['i18n.js', 'dx-data.js', 'dx-data-community.js']);
+const SKIP = new Set(['i18n.js', 'dx-data.js', 'dx-data-community.js', 'dx-index.js']);
 const PLURAL_FORMS = new Set(['zero', 'one', 'two', 'few', 'many', 'other']);
 const STRING = String.raw`'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|\`(?:[^\`\\$]|\\.)*\``;
 
@@ -45,26 +46,48 @@ function unquote(literal) {
 
 const lineOf = (text, index) => text.slice(0, index).split('\n').length;
 
-/** English texts used by the scripts, and calls whose text cannot be read statically. */
+/**
+ * English texts used by the scripts, and calls whose text cannot be read
+ * statically. Calls are found in the code alone (js-source.mjs), so that a
+ * comment or a string neither adds a text nor hides one.
+ */
 export function scriptKeys(file, text) {
   const keys = [];
   const problems = [];
-  const call = new RegExp(String.raw`(?<![\w.$])t\(\s*(${STRING})?`, 'g');
-  for (const m of text.matchAll(call)) {
-    if (m[1]) keys.push({ key: unquote(m[1]), where: `${file}:${lineOf(text, m.index)}` });
-    else problems.push(`${file}:${lineOf(text, m.index)}: t() needs a literal string`);
+  let code;
+  try {
+    code = blank(text);
+  } catch (e) {
+    return { keys, problems: [`${file}: cannot read it (${e.message})`] };
   }
-  // i18n.parts('…', …): t() in pieces, for a text with elements in it.
-  const parts = new RegExp(String.raw`\bi18n\.parts\(\s*(${STRING})?`, 'g');
-  for (const m of text.matchAll(parts)) {
-    if (m[1]) keys.push({ key: unquote(m[1]), where: `${file}:${lineOf(text, m.index)}` });
-    else problems.push(`${file}:${lineOf(text, m.index)}: i18n.parts() needs a literal string`);
+  const literal = (m, group) => unquote(text.slice(...m.indices[group]));
+  // t('…'), and i18n.parts('…', …): t() in pieces, for a text with elements
+  // in it. Either called bare or on i18n (i18n.t, root.DX.i18n.parts …).
+  for (const [name, shown] of [['t', 't()'], ['parts', 'i18n.parts()']]) {
+    const call = new RegExp(String.raw`(?:(?<![\w.$])|(?<=\bi18n\.))${name}\s*\(\s*(${STRING})?`, 'gd');
+    for (const m of code.matchAll(call)) {
+      if (m[1]) keys.push({ key: literal(m, 1), where: `${file}:${lineOf(text, m.index)}` });
+      else problems.push(`${file}:${lineOf(text, m.index)}: ${shown} needs a literal string`);
+    }
   }
-  const plural = new RegExp(String.raw`\bplural\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*(${STRING})\s*,\s*(${STRING})`, 'g');
-  const pluralCalls = [...text.matchAll(/\bplural\(/g)].length;
-  const pluralKeys = [...text.matchAll(plural)];
-  for (const m of pluralKeys) keys.push({ key: unquote(m[2]), where: `${file}:${lineOf(text, m.index)}` });
+  const plural = new RegExp(String.raw`\bplural\s*\(\s*[^,()]+(?:\([^()]*\))?\s*,\s*(${STRING})\s*,\s*(${STRING})`, 'gd');
+  const pluralCalls = [...code.matchAll(/\bplural\s*\(/g)].length;
+  const pluralKeys = [...code.matchAll(plural)];
+  for (const m of pluralKeys) keys.push({ key: literal(m, 2), where: `${file}:${lineOf(text, m.index)}` });
   if (pluralKeys.length !== pluralCalls) problems.push(`${file}: plural() needs a count and two literal strings`);
+  // Any other way of taking them from i18n would hide their calls from this check.
+  const binding = /\bconst t = (?:root\.DX\.)?i18n\.t;/;
+  const bound = code.replace(new RegExp(binding, 'g'), (c) => ' '.repeat(c.length));
+  const other = [
+    /\bi18n\.(?:t|parts|plural)\b(?!\s*\()|\}\s*=\s*(?:[\w$]+\.)*i18n\b/g, // const piece = i18n.parts; const { t } = i18n
+    /(?<![\w$.])(?!i18n\b)[\w$]+\s*=\s*(?:[\w$]+\.)*i18n\b(?!\s*\.)|\bi18n\s*:/g, // const L = root.DX.i18n; const { i18n: L } = DX
+    /\bi18n\s*(?:\?\.|\[)|(?<![\w.$])t\s*\?\./g, // i18n?.t(…), i18n['t'](…), t?.(…)
+  ];
+  // Where t is i18n.t, it is only ever called: not passed on (.map(t)) or renamed.
+  if (binding.test(code)) other.push(/(?<![\w.$])t\b(?!\s*\()/g);
+  for (const m of other.flatMap((re) => [...bound.matchAll(re)]).sort((a, b) => a.index - b.index)) {
+    problems.push(`${file}:${lineOf(text, m.index)}: take texts from i18n only as const t = i18n.t, or by calling i18n.t(), i18n.parts() or i18n.plural()`);
+  }
   return { keys, problems };
 }
 
@@ -228,6 +251,9 @@ function startTags(html) {
   }));
 }
 
+// A link to the decoder page names the language it leads to, English too.
+const INDEX_LINK = /^index\.html(?:\?lang=en)?(#.*)?$/;
+
 /**
  * What an attribute of the English page is in a language's version: the same
  * value, but the page's language on <html>, the language named on links to
@@ -244,10 +270,17 @@ function versionOf(el, name, code, strings, inHeader) {
     const entry = inHeader ? strings[normalize(decode(value))] : undefined;
     return typeof entry === 'string' ? entry.replace(/&/g, '&amp;').replace(/"/g, '&quot;') : undefined;
   }
-  const [, page, hash = ''] = name === 'href' ? /^([\w-]+)\.html(#.*)?$/.exec(value) || [] : [];
-  if (page === 'index') return `index.html?lang=${encodeURIComponent(code)}${hash}`;
-  if (PER_LANGUAGE.includes(page)) return fileIn(page, code) + hash;
-  return value;
+  if (name !== 'href') return value;
+  const index = INDEX_LINK.exec(value);
+  if (index) return `index.html?lang=${encodeURIComponent(code)}${index[1] || ''}`;
+  const [, page, hash = ''] = /^([\w-]+)\.html(#.*)?$/.exec(value) || [];
+  return PER_LANGUAGE.includes(page) ? fileIn(page, code) + hash : value;
+}
+
+/** Whether an English page's links to index.html name English, as each version's name its language. */
+export function checkEnglishLinks(english, file) {
+  return startTags(english).filter((el) => /^index\.html/.test(el.attrs.href || '') && !/^index\.html\?lang=en(#|$)/.test(el.attrs.href))
+    .map((el) => `${file}, line ${el.line}: <${el.name}> links to ${JSON.stringify(el.attrs.href)}, should name English (index.html?lang=en${INDEX_LINK.exec(el.attrs.href)?.[1] || ''})`);
 }
 
 /**
@@ -323,7 +356,9 @@ async function main() {
   const languages = await loadLanguages();
   problems.push(...checkList(require('../site/js/prepaint.js').languages, languages));
   const pages = await loadVersions(languages);
-  for (const { page, english } of pages) problems.push(...checkMenu(english, languages, `site/${fileIn(page, 'en')}`));
+  for (const { page, english } of pages) {
+    problems.push(...checkMenu(english, languages, `site/${fileIn(page, 'en')}`), ...checkEnglishLinks(english, `site/${fileIn(page, 'en')}`));
+  }
   let failed = problems.length > 0;
   for (const p of problems) console.log(p);
   for (const lang of languages) {

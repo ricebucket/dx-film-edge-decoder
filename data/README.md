@@ -1,13 +1,14 @@
 # Data
 
-The film tables behind the decoder, compiled into the two files the web page
+The film tables behind the decoder, compiled into two of the files the web page
 loads: `site/js/dx-data.js` from the I3A list and `site/js/dx-data-community.js`
 from The Big Film Database. They are separate because the two datasets have
-different licenses.
+different licenses. The page also loads `site/js/dx-index.js`, made from both,
+for its lookups by DX number and by cassette number.
 
 | Command | What it does |
 |---|---|
-| `npm run build:data` | rebuilds both files from the CSV files here (`npm test` fails if they are out of date) |
+| `npm run build:data` | rebuilds the three files from the CSV files here (`npm test` fails if they are out of date) |
 | `npm run update:community-data` | re-downloads the snapshot of The Big Film Database recorded in `source.json`; add `-- --latest` for the newest |
 | `npm run stats:community-data` | prints the figures about the snapshot that [research/04](../research/04-community-database.md) quotes |
 | `python3 scripts/extract-i3a-pdf.py <pdf> data/i3a-2008` | re-transcribes the I3A list from a copy of its PDF (needs PyMuPDF) |
@@ -41,15 +42,18 @@ The files in this folder are an adapted subset and remain under CC BY-SA 4.0.
 `source.json` records the upstream commit and retrieval date. Changes made to
 the upstream `film_database.csv`:
 
-1. Only rows with a DX number (`DX extract` or `DX full`) are kept.
+1. Only rows with a `DX extract` or a `DX full` number are kept.
 2. The `Pic` column (box-image file names) is removed.
+3. An `ID` column comes first: a record ID of our own for each row, as the
+   database has none.
 
 When building `site/js/dx-data-community.js`, HTML markup is removed from text
-fields, `#` search tags are split off the names, a missing `DX extract` is taken
-from the middle four digits of `DX full`, and the rows are compacted to arrays.
+fields, `#` search tags are split off the names, and the rows are compacted to
+arrays.
 
 | Column | Meaning |
 |---|---|
+| `ID` | our record ID for the row (see above) |
 | `DX extract` | 16 × Part 1 + Part 2 (four digits) |
 | `DX full` | the six-digit cassette number |
 | `Name` | product name, with optional `#` search tags |
@@ -59,8 +63,17 @@ from the middle four digits of `DX full`, and the rows are compacted to arrays.
 | `Beginning year`, `End year` | free text, e.g. `~1990 ?` |
 | `Ava` | availability: 2 on the market, 1 not sure if discontinued, 0 discontinued |
 
-The data-quality checks, and how the decoder presents this data, are described
-in [research/04](../research/04-community-database.md).
+The data-quality findings are described in
+[research/04](../research/04-community-database.md).
+
+## Record IDs and versions
+
+Each row has a record ID: `bfd-` with the row's `ID` in
+`big-film-database/film_database_dx.csv`, and `i3a-` with the row's place in
+`products.csv` (`i3a-a` in `augmented-cassette-codes.csv`), not counting the
+header: `i3a-137` is on line 138. The update script keeps a database row's ID
+while the row is unchanged, and never gives an ID to another row. The three
+files `npm run build:data` writes share one version: publish them together.
 
 ## Updating the data
 
@@ -73,11 +86,12 @@ in [research/04](../research/04-community-database.md).
    ```
 
    This fetches `film_database.csv` from GitHub, keeps the rows with a DX
-   number and records the commit in `big-film-database/source.json`. For a
-   particular commit, use `-- --commit` with its full 40-character hash.
-   Without an option, the recorded commit is downloaded again, which leaves
-   the files unchanged.
-2. Rebuild the page's data file and run the tests:
+   extract or a cassette number and records the commit in
+   `big-film-database/source.json`. For a particular
+   commit, use `-- --commit` with its full 40-character hash. Without an
+   option, the recorded commit is downloaded again, which leaves the files
+   unchanged.
+2. Rebuild the page's data files and run the tests:
 
    ```sh
    npm run build:data
@@ -85,12 +99,15 @@ in [research/04](../research/04-community-database.md).
    npm run test:e2e
    ```
 
-   The tests check the structure of the data, not its size, so new rows do
-   not break them. If a column is renamed or removed upstream, the update or
-   the build stops with an error naming it; change
+   Besides the structure of the data, some tests check the snapshot itself:
+   the test of the figures quoted in research/04 fails until step 3 is done,
+   and a few tests name particular rows, such as those whose DX extract and
+   cassette number differ. If a column is renamed or removed upstream, the
+   update or the build stops with an error naming it; change
    `scripts/update-community-data.mjs` or `scripts/build-data.mjs` to match. If
-   the test "is a cleaned subset with DX numbers" fails, a row contains
-   something the build does not clean up yet, such as a new kind of markup.
+   the test "is a cleaned subset of the rows with a DX extract or a cassette
+   number" fails, a row contains something the build does not clean up yet,
+   such as a new kind of markup.
 3. Bring [research/04](../research/04-community-database.md) and its Chinese
    version up to date.
    `npm run stats:community-data` prints the figures it quotes in its
@@ -108,14 +125,12 @@ they can still be reproduced from the PDF (linked in
 [research/06](../research/06-sources-and-licensing.md#sources)), and run it
 again. The script stops if its Part 1 table disagrees with the list's own
 summary page. Then rebuild and test as above. A few unit tests check counts of
-the 2008 list (91 assigned Part 1 numbers, 386 products); they change only if
-the correction changes those counts.
+the 2008 list (91 assigned Part 1 numbers, 386 different product rows); they
+change only if the correction changes those counts.
 
 ### If a newer I3A edition turns up
 
 A newer list would go in a folder of its own, such as `data/i3a-2009/`. It
 needs the extraction script adapted to its layout, the paths and the
 `I3A_SOURCE` description in `scripts/build-data.mjs` pointed at it, new counts
-in the tests, and a new section in research/03. The page names the 2008 edition
-in several places ("I3A registry, 2008", "in production in 2008" and others);
-search `site/` for `2008`.
+in the tests, and a new section in research/03.

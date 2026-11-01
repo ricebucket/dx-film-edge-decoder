@@ -416,7 +416,8 @@ test('frames 61 to 63 open from their numbers, and the text form writes them so,
 
 test('the perforations are holes in the film where they are drawn, also when the strip is mirrored', async ({ page }) => {
   // Wide enough to show the whole strip, in every engine.
-  await page.setViewportSize({ width: 1280, height: 800 });
+  const width = 1280;
+  await page.setViewportSize({ width, height: 800 });
   await page.goto('/?dx=79-15/23');
   for (const mirrored of [false, true]) {
     if (mirrored) await page.locator('#mirror-toggle').click();
@@ -424,7 +425,7 @@ test('the perforations are holes in the film where they are drawn, also when the
     await page.locator('#strip .film').scrollIntoViewIfNeeded();
     const film = await page.locator('#strip .film').boundingBox();
     const x0 = Math.max(film.x, 0);
-    const x1 = Math.min(film.x + film.width, page.viewportSize().width);
+    const x1 = Math.min(film.x + film.width, width);
     const clip = { x: x0, y: film.y - 8, width: x1 - x0, height: 24 };
     const shot = decodePng(await page.screenshot({ clip }));
     const k = shot.width / clip.width;
@@ -491,7 +492,8 @@ test.describe('film from before the 1990 frame-number extension', () => {
     await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
     await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
     await expect(page.locator('#result-title')).toHaveText('Fujicolor Super HGV100 Asia');
-    await expect(page).toHaveURL(/\?dx=12-13$/);
+    // The example names its film, The Big Film Database's row, in the address too.
+    await expect(page).toHaveURL(/\?dx=12-13&film=bfd-470$/);
   });
 
   test('a link to a code without a frame opens the 7-bar layout', async ({ page }) => {
@@ -569,7 +571,7 @@ test('focus follows the content it was on: Show barcode, Show all, Undo to anoth
   const all = page.locator('#result').getByRole('button', { name: /^Show all/ });
   await all.focus();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#result .match--community').nth(6)).toBeFocused();
+  await expect(page.locator('#result .matches > li').nth(6)).toBeFocused();
   // Undo back to the other layout draws a new strip; focus stays on its cell.
   await page.goto('/');
   await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();

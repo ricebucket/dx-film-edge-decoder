@@ -4,7 +4,7 @@
   const DX = globalThis.DX;
   const { codec, ui, i18n } = DX;
   const t = i18n.t;
-  const lookup = DX.createLookup(DX.data, DX.communityData);
+  const lookup = DX.createLookup(DX.data, DX.communityData, DX.index);
   const $ = (id) => document.getElementById(id);
 
   // Examples are documented codes: Wikipedia's sample (and a real BW400CN
@@ -14,12 +14,13 @@
   // its film's look; BW400CN is black-and-white film developed like color
   // negative film, and looks like it (Kodak F-4036; research/05). Their labels
   // are looked up when shown, as the page's language file may load after this.
+  // `ids`: the record ID of the film each is, which the result names.
   const examples = () => [
-    { label: t('{film}, frame {frame}', { film: 'Kodak BW400CN', frame: '23' }), code: { part1: 79, part2: 15, frame: 23, half: false }, look: 'negative' },
-    { label: t('{film}, frame {frame}', { film: 'Perutz Primera 200', frame: '22A' }), code: { part1: 47, part2: 1, frame: 22, half: true }, look: 'negative' },
-    { label: t('{film}, frame {frame}', { film: 'Ilford HP5 Plus', frame: '12' }), code: { part1: 109, part2: 9, frame: 12, half: false }, look: 'bw' },
-    { label: t('{film}, frame {frame}', { film: 'Fujichrome Velvia 50', frame: '5A' }), code: { part1: 32, part2: 6, frame: 5, half: true }, look: 'slide' },
-    { label: t('{film}, older 7-bar code', { film: 'Fujicolor Super HGV100 Asia' }), code: { part1: 12, part2: 13 }, format: 'short', look: 'negative' },
+    { label: t('{film}, frame {frame}', { film: 'Kodak BW400CN', frame: '23' }), code: { part1: 79, part2: 15, frame: 23, half: false }, look: 'negative', ids: ['i3a-141'] },
+    { label: t('{film}, frame {frame}', { film: 'Perutz Primera 200', frame: '22A' }), code: { part1: 47, part2: 1, frame: 22, half: true }, look: 'negative', ids: ['i3a-42'] },
+    { label: t('{film}, frame {frame}', { film: 'Ilford HP5 Plus', frame: '12' }), code: { part1: 109, part2: 9, frame: 12, half: false }, look: 'bw', ids: ['i3a-320'] },
+    { label: t('{film}, frame {frame}', { film: 'Fujichrome Velvia 50', frame: '5A' }), code: { part1: 32, part2: 6, frame: 5, half: true }, look: 'slide', ids: ['i3a-254'] },
+    { label: t('{film}, older 7-bar code', { film: 'Fujicolor Super HGV100 Asia' }), code: { part1: 12, part2: 13 }, format: 'short', look: 'negative', ids: ['bfd-470'] },
   ];
 
   const emptyCells = (format) =>
@@ -34,7 +35,10 @@
   // `loaded`: the code came from a link, an example, a search, a photo or a
   // correction, and has not been edited by hand since. Only the all-zero
   // strip needs it: loaded, it is DX 0-0; otherwise nothing is entered yet.
-  const state = { format: 'long', cells: emptyCells('long'), loaded: false, mirrored: false, look: 'negative' };
+  // `picked`: the record IDs of the films picked to show the code (a "Show
+  // barcode", say), which the result lists first while their DX number is on
+  // the strip; kept in the URL (&film=) and by Undo.
+  const state = { format: 'long', cells: emptyCells('long'), loaded: false, mirrored: false, look: 'negative', picked: [] };
   const isEmpty = () => !state.loaded && state.cells === emptyCells(state.format);
   const past = [];
   const future = [];
@@ -60,23 +64,25 @@
 
   function codeFromUrl() {
     const params = new URLSearchParams(location.search);
+    // The films picked to show the code (&film=bfd-1096,i3a-137), by record ID.
+    const picked = (params.get('film') || '').split(',').filter((id) => /^(?:i3a-a?|bfd-)\d+$/.test(id));
     const dx = params.get('dx');
     if (dx) {
       const [num, frameText] = dx.split('/');
       const parsed = codec.parseDxNumber(num);
       if (!parsed || parsed.kind !== 'parts') return null;
-      if (frameText === undefined) return { format: 'short', cells: codec.encode(parsed, 'short'), loaded: true };
+      if (frameText === undefined) return { format: 'short', cells: codec.encode(parsed, 'short'), loaded: true, picked };
       // Also as zxing-cpp writes the code: frames 61 to 63 as numbers ("79-7/62A").
       const leader = /^(6[1-3])(A?)$/i.exec(frameText);
       const frame = leader ? { frame: Number(leader[1]), half: leader[2] !== '' } : codec.parseFrameLabel(frameText);
       if (!frame) return null;
-      return { format: 'long', cells: codec.encode(Object.assign({}, parsed, frame), 'long'), loaded: true };
+      return { format: 'long', cells: codec.encode(Object.assign({}, parsed, frame), 'long'), loaded: true, picked };
     }
     const bits = params.get('bits');
     if (bits && /^[01]+$/.test(bits)) {
       const format = bits.length === 31 ? 'long' : bits.length === 23 ? 'short' : null;
       if (format) {
-        return { format, cells: standardEnds(bits, format), loaded: true };
+        return { format, cells: standardEnds(bits, format), loaded: true, picked };
       }
     }
     // An empty strip in the 23-cell layout ("7 thin bars").
@@ -86,10 +92,21 @@
 
   function stateQuery(decoded) {
     if (isEmpty()) return state.format === 'short' ? '?layout=23' : '';
+    // The films picked, while their DX number is on the strip.
+    const films = pickedAt(decoded.part1, decoded.part2);
+    const film = films.length ? `&film=${films.join(',')}` : '';
     if (decoded.valid) {
-      return `?dx=${decoded.dxNumber}${decoded.frame === null ? '' : `/${decoded.frameLabel}`}`;
+      return `?dx=${decoded.dxNumber}${decoded.frame === null ? '' : `/${decoded.frameLabel}`}${film}`;
     }
-    return `?bits=${state.cells}`;
+    return `?bits=${state.cells}${film}`;
+  }
+
+  /** The record IDs of the films picked to show the code (state.picked) that have this DX number. */
+  function pickedAt(part1, part2) {
+    return state.picked.filter((id) => {
+      const e = lookup.byId(id);
+      return e !== null && e.part1 === part1 && e.part2 === part2;
+    });
   }
 
   /** What "Copy link" copies: the code, and the language it is shown in. */
@@ -118,7 +135,7 @@
     if (url === location.pathname + location.search + location.hash) return;
     rewrites.push(performance.now());
     try {
-      history.replaceState(history.state, '', url); // keeps the time the page was left (js/ui-header.js)
+      history.replaceState(history.state, '', url);
     } catch (e) { /* some browsers refuse this on file:// pages */ }
   }
 
@@ -139,7 +156,7 @@
 
   /** What undo brings back: the code, and where it came from. */
   function snapshot() {
-    return { format: state.format, cells: state.cells, loaded: state.loaded, origin };
+    return { format: state.format, cells: state.cells, loaded: state.loaded, origin, picked: state.picked };
   }
 
   function record(previous) {
@@ -156,6 +173,7 @@
     state.cells = s.cells;
     state.loaded = s.loaded;
     origin = s.origin;
+    state.picked = s.picked;
     update();
   }
 
@@ -222,7 +240,10 @@
     // The folded reader says its photo's code is on the strip: once another
     // code (or none) is there, it shows its steps again.
     if (photo && (!origin || origin.kind !== 'photo')) photo.unfold();
-    const shown = `${state.format}:${state.cells}:${isEmpty() ? way : ''}`;
+    // The films picked to show this code, while their DX number is on the
+    // strip (another frame too): the result lists them first, so that it
+    // names them, as its one-bar corrections do for theirs (pickedAt).
+    const shown = `${state.format}:${state.cells}:${isEmpty() ? way : ''}:${pickKey(state.picked)}`;
     if (shown !== resultShown) {
       resultShown = shown;
       const result = $('result');
@@ -231,10 +252,11 @@
         decoded,
         empty: isEmpty(),
         lookup,
+        pickedAt,
         examples: examples(),
         shareUrl: shareUrl(decoded),
         way,
-        onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label } }),
+        onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label, ids: ex.ids } }),
         onApplyCells(cells) {
           record();
           state.cells = cells;
@@ -269,14 +291,17 @@
     const format = (options && options.format) || state.format;
     const cells = codec.encode(code, format);
     const from = options && options.origin;
+    // The films it was picked to show, if any ({ ids } of where it came from).
+    const picked = (from && from.ids) || [];
     // The same code from the same place again changes nothing, so there is nothing to undo.
     const same = state.loaded && state.format === format && state.cells === cells && Boolean(origin) && Boolean(from) &&
-      origin.kind === from.kind && origin.cells === cells && origin.label === originLabel(from, cells, format);
+      origin.kind === from.kind && origin.cells === cells && origin.label === originLabel(from, cells, format) && pickKey(state.picked) === pickKey(picked);
     if (!same) {
       record();
       state.format = format;
       state.cells = cells;
       state.loaded = true;
+      state.picked = picked;
       setOrigin(from);
     }
     if (options && options.look) {
@@ -318,6 +343,7 @@
       if (isEmpty()) return;
       record();
       origin = null;
+      state.picked = [];
       state.cells = emptyCells(state.format);
       state.loaded = false;
       update();
@@ -438,13 +464,19 @@
   let originUses = 0;
   let sourceShown = '';
 
+  /** Record IDs of picked films (state.picked), as text: '' for none. */
+  function pickKey(ids) {
+    return (ids || []).join(' ');
+  }
+
   /** Note where the code now on the strip came from: { kind, name } or { kind, label }, or nothing. */
   function setOrigin(from) {
     if (!from) {
       origin = null;
       return;
     }
-    origin = Object.assign({}, from, { label: originLabel(from, state.cells, state.format), use: ++originUses, format: state.format, cells: state.cells });
+    // The films picked go to state.picked, which outlasts the bar (Hide).
+    origin = Object.assign({}, from, { ids: undefined, label: originLabel(from, state.cells, state.format), use: ++originUses, format: state.format, cells: state.cells });
   }
 
   /** What the bar says a code from `from` is: its label, or its name and frame. */

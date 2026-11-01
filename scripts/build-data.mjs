@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 // Compile the CSV files in data/ into the lookup tables the web app loads: one file
-// per dataset, because the two have different licenses (see REUSE.toml). The
-// output is deterministic, so `npm test` can check it is current.
+// per dataset, because the two have different licenses (see REUSE.toml), and
+// the indexes it searches them with (scripts/lib/dx-index.mjs). The output is
+// deterministic, so `npm test` can check it is current.
 //
-//   node scripts/build-data.mjs           # write site/js/dx-data*.js
+//   node scripts/build-data.mjs           # write site/js/dx-data*.js and dx-index.js
 //   node scripts/build-data.mjs --check   # exit 1 if a file is out of date
 
 import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { readCsvObjects } from './lib/csv.mjs';
+import { buildIndex } from './lib/dx-index.mjs';
 import { isMain } from './lib/main.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,6 +23,8 @@ const read = (path) => readFile(join(ROOT, path), 'utf8');
 // article lists Part 1 numbers 105-110 under "Ilford Photo".
 const ALSO_KNOWN_AS = { 'Harman Technologies': 'ILFORD Photo' };
 
+// The edition the page's texts name too ("in production in 2008",
+// "discontinued by 2008" …): for a newer one, search site/ for 2008 as well.
 const I3A_SOURCE = {
   title: 'DX Codes for 135-Size Film',
   publisher: 'International Imaging Industry Association (I3A)',
@@ -51,6 +56,16 @@ function script(header, name, value) {
   else (root.DX = root.DX || {}).${name} = data;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 `;
+}
+
+/**
+ * The version the three files share: a hash of what the build writes into
+ * them, so that it changes whenever a build changes any of them, and stays
+ * the same when a build writes the same again. The page stops if the three
+ * differ (site/js/dx-lookup.js), as when the browser kept an old copy of one.
+ */
+export function versionOf(...datasets) {
+  return createHash('sha256').update(JSON.stringify(datasets)).digest('hex').slice(0, 16);
 }
 
 /** The generated files, by path from the repository root. */
@@ -86,14 +101,19 @@ export async function buildData() {
     return [r.assignee ? sensitizerIndex(r.assignee) : -1, r.aps === 'yes' ? 1 : 0, r.previously];
   });
 
+  // Each row of both sources starts with its record ID, by which the page
+  // refers to it: the registry's rows by their row in its files, which do not
+  // change, and the database's by the ID column of its snapshot, which keeps
+  // a row's ID across updates (scripts/update-community-data.mjs).
   // The PDF lists three Agfa products twice; keep one of each.
   const seen = new Set();
   const products = [];
-  for (const p of productRows) {
+  for (const [n, p] of productRows.entries()) {
     const key = [p.part1, p.part2, p.product, p.status].join('|');
     if (seen.has(key)) continue;
     seen.add(key);
     products.push([
+      n + 1,
       Number(p.part1),
       p.part2 === '' ? -1 : Number(p.part2), // -1: Part 2 "not identified" in the list
       p.product,
@@ -103,18 +123,22 @@ export async function buildData() {
     ]);
   }
 
-  const augmented = augmentedRows.map((r) => [r.cassette_code, r.product, indexByFullName(r.sensitizer)]);
+  const augmented = augmentedRows.map((r, n) => [n + 1, r.cassette_code, r.product, indexByFullName(r.sensitizer)]);
 
+  const ids = new Set();
   const community = communityRows.map((r) => {
+    const id = toInt(r.ID, -1);
+    if (id < 1 || ids.has(id)) throw new Error(`film_database_dx.csv: ID "${r.ID}" is missing, repeated or not a whole number`);
+    ids.add(id);
     const full = r['DX full'].trim();
-    // A few rows only have the 6-digit cassette number; its middle four digits
-    // are the DX extract by definition.
-    const extract = toInt(r['DX extract'], /^\d{6}$/.test(full) ? parseInt(full.slice(1, 5), 10) : -1);
+    // As recorded: a few rows have only the cassette number (-1).
+    const extract = toInt(r['DX extract'], -1);
     const rawName = clean(r.Name);
     const hash = rawName.indexOf('#');
     const name = hash === -1 ? rawName : rawName.slice(0, hash).trim();
     const tags = hash === -1 ? '' : rawName.slice(hash).replace(/#/g, ' ').replace(/\s+/g, ' ').trim();
     return [
+      id,
       extract,
       full,
       name,
@@ -135,7 +159,8 @@ export async function buildData() {
  *
  * DX number tables for the DX Film Edge Decoder, transcribed from I3A, "DX Codes
  * for 135-Size Film", February 2008 (factual registry data; see data/README.md).
- * The community data is in dx-data-community.js.
+ * The community data is in dx-data-community.js. Its version is the build's,
+ * the same in all three data files.
  */
 `;
   const communityHeader = `/*
@@ -145,14 +170,35 @@ export async function buildData() {
  * The Big Film Database (dxdatabase) © 2018 by Dxdatabase,
  * https://github.com/dxdatabase/Open-source-film-database (commit ${communitySource.commit.slice(0, 7)}),
  * licensed under CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/.
- * Changes: kept rows with a DX number, dropped image names, split "#" search
- * tags from names, removed HTML markup, compacted to arrays. This whole file,
- * including the code that loads the data, is under CC BY-SA 4.0.
+ * Changes: kept rows with a DX extract or a cassette number, dropped image
+ * names, gave each row a record ID, split "#" search tags from names, removed
+ * HTML markup, compacted to arrays, added the build's version. This whole
+ * file, including the code that loads the data, is under CC BY-SA 4.0.
  */
 `;
+  const indexHeader = `/*
+ * GENERATED by scripts/build-data.mjs from data/ — do not edit by hand.
+ *
+ * The indexes the DX Film Edge Decoder searches by DX number and by cassette
+ * number (scripts/lib/dx-index.mjs): the record numbers of the rows of
+ * dx-data.js and dx-data-community.js (the registry's augmented ones
+ * negative), sorted by the number each search looks up and, under one
+ * number, by score. As it is made
+ * from The Big Film Database (dxdatabase) © 2018 by Dxdatabase,
+ * https://github.com/dxdatabase/Open-source-film-database (commit ${communitySource.commit.slice(0, 7)}),
+ * this whole file is under CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/.
+ * Its version is the build's, the same in all three data files.
+ */
+`;
+  const i3a = { source: I3A_SOURCE, sensitizers, part1, products, augmented };
+  const communityData = { source: communitySource, rows: community };
+  const index = buildIndex(i3a, communityData);
+  // First in each file, where it is seen.
+  const version = versionOf(i3a, communityData, index);
   return {
-    'site/js/dx-data.js': script(i3aHeader, 'data', { source: I3A_SOURCE, sensitizers, part1, products, augmented }),
-    'site/js/dx-data-community.js': script(communityHeader, 'communityData', { source: communitySource, rows: community }),
+    'site/js/dx-data.js': script(i3aHeader, 'data', { version, ...i3a }),
+    'site/js/dx-data-community.js': script(communityHeader, 'communityData', { version, ...communityData }),
+    'site/js/dx-index.js': script(indexHeader, 'index', { version, ...index }),
   };
 }
 

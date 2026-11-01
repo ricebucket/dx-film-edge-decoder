@@ -57,6 +57,8 @@
       "由 {maker} 生产",
     "The registry does not give the Part 2 number for this film":
       "年度报告没有给出这种胶片的第 2 部分编号",
+    "The Big Film Database records no DX number for this film":
+      "The Big Film Database 没有记录这种胶片的 DX 码",
     "This cassette number is outside the range a film edge code can hold":
       "这个暗盒条码超出了潜影条码能表示的范围",
     "The DX number recorded for this film is outside the range a film edge code can hold":
@@ -73,8 +75,8 @@
       "无完整编码",
     "cassette {number}":
       "暗盒条码 {number}",
-    "I3A 2008":
-      "I3A 2008",
+    "I3A":
+      "I3A",
     "Community":
       "社区",
     "Show {n} more":
@@ -141,28 +143,24 @@
       "第 1 部分 {cassette} 是 {part1} + {added}。在 2008 年年度报告中，第 1 部分 = {part1} 分配给了 {maker}；按照标准，感光厂只在自己的第 1 部分编号上加 128、256 或 384。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
     "Part 1 {cassette} is {part1} + {added}; Part 1 = {part1} was not assigned in the 2008 registry. The standard does not say which DX number the film carries.":
       "第 1 部分 {cassette} 是 {part1} + {added}；在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
-    "I3A registry, 2008":
-      "I3A 年度报告，2008 年",
     "Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
       "柯达登记的“augmented”（增补）暗盒条码（ISO 1007，附录 A.4），在常规 DX 范围之外。",
     "Part 1 = {part1} is assigned to {maker}.":
       "第 1 部分 = {part1} 分配给了 {maker}。",
     "Part 1 = {part1} was not assigned in the 2008 registry.":
       "在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。",
-    "The Big Film Database gives this film’s edge code as DX {dx}.":
-      "The Big Film Database 给出这种胶片的潜影条码为 DX {dx}。",
-    "The Big Film Database also gives DX {dx} for this cassette number.":
-      "The Big Film Database 还为这个暗盒条码给出了 DX {dx}。",
     "Show the edge barcode":
       "显示潜影条码",
+    "Show the edge barcode of {name}":
+      "显示潜影条码：{name}",
     "Enter exactly six digits, for example 105514.":
       "请输入正好六位数字，例如 105514。",
     "{n} films found.":
       "找到 {n} 种胶片。",
-    "{n} other films use the same DX number":
-      "另有 {n} 种胶片使用相同的 DX 码",
     "{n} other films have the same middle four digits":
       "另有 {n} 种胶片的中间四位数字相同",
+    "Other films":
+      "其他胶片",
 
     // site/js/ui-photo.js
     "Sample: a computer-drawn color negative.":
@@ -177,8 +175,8 @@
       "没有找到条码的时钟道。请旋转图片，使片边从左到右水平，再选中一个条码；或者在均匀的光线下拍一张更清晰的照片。",
     "The lower row could not be read. Make sure both rows are visible, or try a sharper photo.":
       "无法读取数据道。请确认两道都清楚可见，或换一张更清晰的照片。",
-    "A barcode was found but could not be read reliably. Straighten the image, or select one barcode.":
-      "找到了条码，但无法可靠读取。请拉直图片，或选中一个条码。",
+    "The barcode could not be read reliably. Straighten the image, or select one barcode.":
+      "无法可靠读取条码。请拉直图片，或选中一个条码。",
     "This barcode looks cut off or damaged at its end. Make sure the whole barcode is visible, or try a sharper photo.":
       "这个条码的末端看起来被截断或有损伤。请确认整个条码都清楚可见，或换一张更清晰的照片。",
     "Photo of the film edge":
@@ -287,6 +285,8 @@
       "这张照片里的条较淡或有损伤；请把结果和你的胶片对照。",
     "If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with the whole barcode visible.":
       "如果你胶片的时钟道有 11 根细条而不是 7 根，这个读数就不完整：请让整个条码都清楚可见后重新读取。",
+    "The code as read does not pass all checks; compare the result with your film.":
+      "读出的编码没有通过全部检查；请把结果和你的胶片对照。",
     "The code as read does not pass all checks. Use it, then look at the suggested corrections.":
       "读出的编码没有通过全部检查。请使用它，然后查看建议的修正。",
     "Use this code":
@@ -367,6 +367,8 @@
       "可能已停产",
     "on the market":
       "在售",
+    "Fuzzy match":
+      "模糊匹配",
     "sold by {distributor}":
       "经销商 {distributor}",
     "Notes: {notes}":

@@ -44,7 +44,7 @@
 - 国际影像行业协会（I3A）的 **2008 年 DX 码年度报告**，这是可以免费获取的最新官方列表（[research/03](research/03-dx-numbers-and-registry.zh-CN.md)）。
 - **[The Big Film Database](https://github.com/dxdatabase/Open-source-film-database)**，一个社区数据库，也收录了 2008 年以来推出的胶片和贴牌胶片（[research/04](research/04-community-database.zh-CN.md)）。如果该数据库中有某个 DX 码下的胶片，解码器还会链接到 [Antoine Mérino 的修改版](https://thebigfilmdatabase.merinorus.com)数据库中的这个 DX 码，那里有这些胶卷的图片。
 
-页面上始终分别标注这两个来源。任何编码都不会被赋予两个来源都没有记载的含义：未知编码会报告为未知，同时给出其第 1 部分编号所属的感光厂。
+页面上列出的每种胶片都注明了它出自哪个来源。任何编码都不会被赋予两个来源都没有记载的含义：未知编码会报告为未知，同时给出其第 1 部分编号所属的感光厂。
 
 ## 运行与开发
 
@@ -56,11 +56,12 @@ site/                 网页（按原样部署）
   js/dx-lookup.js     胶片查询和搜索
   js/dx-image.js      从照片中读取编码；合成测试图像
   js/dx-data*.js      胶片数据表，由 data/ 生成
+  js/dx-index.js      它们的查找顺序，由 data/ 生成
   js/ui-*.js, app.js  界面
   js/i18n.js, i18n/   界面语言（见下文“语言”）
 data/                 CSV 格式的胶片数据表，见 data/README.md
 research/             关于格式和数据的研究报告
-  img/                报告中的图示和截图
+  img/                报告中的图示
 scripts/              数据提取与构建、图示、截图、
                       演示视频、语言检查、本地服务器、测试运行器
 tests/unit/           单元测试（node:test）
@@ -72,7 +73,7 @@ LICENSES/, REUSE.toml 许可证全文，以及每种许可证适用于哪些文�
 ### 测试
 
 ```sh
-npm test            # 单元测试：编解码器、数据、查询、照片读取、语言、图示、视频写入、@phone 标记
+npm test            # 单元测试：编解码器、数据、查询、照片读取、语言、图示、视频写入、@phone 标记、链接
 npm run test:e2e    # 浏览器测试：桌面、Android 手机、iPhone
 ```
 
@@ -105,24 +106,24 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 
 1. 把 `site/js/i18n/zh-CN.js` 复制为以语言代码命名的文件，例如 `site/js/i18n/de.js`。设置 `code`、`name`（用该语言本身写的语言名称）和 `punctuation`，并把其中的中文全部换成新语言的文字。`{placeholders}`、HTML 标签以及胶片和产品名称都保持原样。如果该语言有多种复数形式，文字可以写成对象，例如 `{ one: …, few: …, many: …, other: … }`。
 2. 在 `site/js/prepaint.js` 末尾的列表中加入该语言的代码和名称，并用该语言写出语言文件迟迟未到时页面显示的提示（`waiting`）和此时改用英文显示的按钮（`english`）。之后解码器页面会为选择该语言的访问者加载这个文件，语言菜单也会列出它。另外在 `site/index.html` 的 `<noscript>` 部分加上该语言版本的、给未启用 JavaScript 的访问者看的提示，并用 `lang` 标明语言：语言文件需要 JavaScript，所以无法提供这段文字。
-3. 把 `site/sources.html` 复制为以语言代码命名的文件，例如 `site/sources.de.html`，并用新语言写出其中的文字。在 `<html>` 上设置 `lang`，在指向 `index.html` 的链接上加上该语言（`index.html?lang=de#decoder`），并在菜单中把该语言标为 `selected`。然后在来源页面每个版本的菜单中加上该语言。
+3. 把 `site/sources.html` 复制为以语言代码命名的文件，例如 `site/sources.de.html`，并用新语言写出其中的文字。在 `<html>` 上设置 `lang`，把指向 `index.html` 的链接中的 `en` 换成该语言（`index.html?lang=de#decoder`），并在菜单中把该语言标为 `selected`。然后在来源页面每个版本的菜单中加上该语言。
 4. 运行 `npm run check:languages`。它会列出该语言缺少的英文文字、对应英文已不再使用的文字，以及占位符或标签与英文不一致的文字；缺少给未启用 JavaScript 的访问者看的提示时，它也会指出。它还会检查 `site/js/prepaint.js` 是否列出了每一个语言文件及其两段文字，并把来源页面的每个版本与英文版比较：两者需要有相同的元素、链接和菜单，页头的文字也要与解码器页面相同。`npm test` 也会运行同样的检查。
 5. 在 `scripts/make-figures.mjs` 的 `LABELS` 中加入该语言的标签，然后运行 `npm run figures`、`npm run screenshots` 和 `npm run demo`，这样图示、截图和演示视频也会有这种语言的版本。
 
 `npm run check:languages -- --template` 会打印页面上的全部英文文字，可以作为起点。修改或添加 `site/` 中的英文文字时，请在同一次修改中更新每一个语言文件：在此之前测试不会通过。修改来源页面时，请在它的每个版本中做同样的修改，和文档一样。检查能发现增删的来源和改动的链接，但发现不了措辞的改动。
 
-代码在显示文字时才用 `t('…')` 查找它，而不是在脚本加载时：语言文件可能比脚本晚到，在它之前查找的文字会一直是英文。有一项浏览器测试会故意推迟语言文件，只要有文字查找得太早就会失败。
+代码在显示文字时才用 `t('…')`、`i18n.parts('…')` 或 `i18n.plural(…)` 查找它，而不是在脚本加载时：语言文件可能比脚本晚到，在它之前查找的文字会一直是英文。有一项浏览器测试会故意推迟语言文件，只要有文字查找得太早就会失败。
 
 文档有英文和简体中文两个平行的版本：`README.zh-CN.md` 放在 `README.md` 旁边，其余文件也一样。两个版本的内容相同，各自的链接都通向同一语言的其他文件。修改其中一个版本时，请在另一个版本中做同样的修改。
 
 ### 图示与截图
 
 - `research/img/*.svg` 中的图示由 `npm run figures` 根据解码器自身的代码绘制，每种语言各一份。如果图示过时，`npm test` 会失败。
-- 截图（`.github/screenshot*.png` 和 `research/img/*.png`）由 `npm run screenshots` 生成，需要 Playwright（见*测试*）。截图使用你机器上安装的字体，所以中文截图需要中文字体（在 Ubuntu 上是 `fonts-noto-cjk` 软件包）。每次页面有可见的改动后都要运行它，并在提交前检查生成的图片。
+- 截图（`.github/screenshot*.png`）由 `npm run screenshots` 生成，需要 Playwright（见*测试*）。截图使用你机器上安装的字体，所以中文截图需要中文字体（在 Ubuntu 上是 `fonts-noto-cjk` 软件包）。每次页面有可见的改动后都要运行它，并在提交前检查生成的图片。
 - 演示视频（`.github/demo*.webm`，1120 × 840）和竖版视频（`.github/demo-vertical*.mp4`，1120 × 1680）由 `npm run demo` 录制，同样需要 Playwright：每种语言各一段，每段约半分钟。它像访问者那样使用页面：抄写一种黑白片的编码时漏抄一根条，采用给出的修正，再读取彩色负片的示例照片。所以这些部分有可见的改动后都要运行它，并在提交前看一遍生成的视频。
 
 ## 许可证与来源
 
-代码、测试、脚本和文档是自由软件，采用 [GNU General Public License v3.0](LICENSE) 许可证；显示了 The Big Film Database 条目的截图和演示视频除外，它们采用 CC BY-SA 4.0 许可证。胶片数据有自己的来源和条款，见 [data/README.zh-CN.md](data/README.zh-CN.md)。本项目使用的每一个来源都列在 [research/06](research/06-sources-and-licensing.zh-CN.md) 中。
+代码、测试、脚本和文档是自由软件，采用 [GNU General Public License v3.0](LICENSE) 许可证；页面中 The Big Film Database 的副本和由它生成的索引（`site/js/dx-data-community.js` 和 `site/js/dx-index.js`），以及显示了它的条目的截图和演示视频除外，它们采用 CC BY-SA 4.0 许可证。`tests/unit/zint-vectors.mjs` 中取自 Zint 条码库测试的 11 个位串采用 BSD-3-Clause 许可证。胶片数据有自己的来源和条款，见 [data/README.zh-CN.md](data/README.zh-CN.md)。本项目使用的每一个来源都列在 [research/06](research/06-sources-and-licensing.zh-CN.md) 中。
 
 每个文件的许可证还以 [REUSE](https://reuse.software/) 格式记录在 [`REUSE.toml`](REUSE.toml) 中，GitHub 上的测试会检查它。要自己检查，请安装 REUSE 工具（例如用 `pipx install reuse`），然后运行 `reuse lint`。每个文件只有一种许可证，所以从别处加入的材料需要在其中添加一项；如果它的许可证不同，还要放在单独的文件中。

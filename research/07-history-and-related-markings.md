@@ -93,10 +93,7 @@ bare metal at areas 1, 3, 5, 7 and 10, which is ISO 100 (`01010`), 36 exposures
 the upper part of the cassette and the barcode the part below them, with the
 printed digits between the barcode and the slot. The standard puts the two rows
 of contacts at 191.7° and 225.6° around the cassette (Table 10), and the bars
-at least from 257° to 294° (Table 8). The drawing beside the decoder page's
-cassette helper shows this cassette.
-
-This tool does not use the contacts: they are on the cassette, not the film.
+at least from 257° to 294° (Table 8).
 
 ## Cassette barcode
 
@@ -171,7 +168,7 @@ code (§7.1, §7.3).
 - **Values.** US 5,336,873 gives all 83 codes in its FIGS. 5A–5D. In
   US 5,122,645, frame 12A is `1000100001100` (1 is a wide element), with
   `001000011` in the nine data elements; the standard's Table 6 gives the same
-  for 12A.
+  for 12A. This project has not checked the values against real film.
 - **Which film.** Fuji's 1997 patent says: "Since the expanded DX code contains
   a portion representing the frame number, the code FNS is not recorded when
   the expanded DX code is recorded" (US 6,324,345). Film with this code
@@ -180,10 +177,6 @@ code (§7.1, §7.3).
   eight more cells in the DX code or by this code on the opposite edge (§7.1).
   Fujifilm's data sheet for FUJICOLOR C200 shows a single latent-image
   barcode on 135 film.
-- The tool does not read this code: it repeats the frame number printed next
-  to it, adding only the roll length on the last frames of 12-, 20- and
-  24-exposure rolls. This project has not checked the values against real
-  film.
 
 ## Other formats
 

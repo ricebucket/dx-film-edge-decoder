@@ -35,7 +35,7 @@
     flat: t('This image has almost no contrast. Try a sharper, closer photo of the film edge.'),
     'no-clock': t('The barcode’s top row was not found. Turn the image so the film edge runs left to right and select one barcode, or try a sharper photo in even light.'),
     'no-data': t('The lower row could not be read. Make sure both rows are visible, or try a sharper photo.'),
-    unclear: t('A barcode was found but could not be read reliably. Straighten the image, or select one barcode.'),
+    unclear: t('The barcode could not be read reliably. Straighten the image, or select one barcode.'),
     eleven: t('This barcode looks cut off or damaged at its end. Make sure the whole barcode is visible, or try a sharper photo.'),
   });
 
@@ -128,9 +128,11 @@
         if (n === current) li.setAttribute('aria-current', 'step');
         else li.removeAttribute('aria-current');
       }
-      // Only the next step's button stands out.
+      // Only the next step's button stands out. While a search runs, it stays
+      // as it was: changing, it would blink, and its bolder label would make
+      // it wider for a moment, which can move the photo.
       chooseBtn.classList.toggle('tool--primary', current === 1);
-      readBtn.classList.toggle('tool--primary', current === 2);
+      readBtn.classList.toggle('tool--primary', searching ? readBtn.classList.contains('tool--primary') : current === 2);
       // While another photo opens, they would act on the one it replaces.
       // Disabled, a control would drop keyboard focus: it goes to the photo.
       const controls = [rotateLeft, rotateRight, flipBtn, fineInput, ...layoutBtns, readBtn];
@@ -738,6 +740,10 @@
       const usable = selection && selection.w >= 12 && selection.h >= 8;
       const region = usable ? selection : { x: 0, y: 0, w: view.width, h: view.height };
       showMessage(t('Looking for the barcode…'));
+      // The reading it replaces goes at once, its outlines on the photo too.
+      result = null;
+      setStep();
+      draw();
       // aria-disabled rather than disabled, so keyboard focus stays on the button.
       readBtn.setAttribute('aria-disabled', 'true');
       // Let the message paint before the search starts.
@@ -789,7 +795,15 @@
       if (r.confidence < 0.3) notes.push(t('Some cells were hard to tell apart; compare the result with your film.'));
       if (r.weak) notes.push(t('The bars are faint or damaged in this photo; compare the result with your film.'));
       if (r.elevenBars && r.layout !== 'short') notes.push(t('If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with the whole barcode visible.'));
-      if (!d.valid) notes.push(t('The code as read does not pass all checks. Use it, then look at the suggested corrections.'));
+      // The strip makes the start and stop cells standard (app.js) and offers
+      // the one-bar corrections there are for the code then: promised only
+      // if there are some.
+      const onStrip = codec.layout(r.format).map((c) => (c.editable ? r.bits[c.cell - 1] : String(c.fixed))).join('');
+      if (!d.valid) {
+        notes.push(codec.nearMisses(onStrip, r.format).length
+          ? t('The code as read does not pass all checks. Use it, then look at the suggested corrections.')
+          : t('The code as read does not pass all checks; compare the result with your film.'));
+      }
       const apply = h('button', { type: 'button', class: 'tool tool--primary' }, t('Use this code'));
       apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity, {
         label: what,
@@ -848,7 +862,6 @@
       fine = Number(fineInput.value);
       result = null;
       rebuildView();
-      setStep();
       find();
     });
     readBtn.addEventListener('click', () => {

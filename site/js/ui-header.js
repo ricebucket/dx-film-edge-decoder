@@ -97,7 +97,6 @@
     onPick(select, select.value, () => {
       try {
         localStorage.setItem('dx-lang', select.value);
-        localStorage.setItem('dx-lang-at', String(Date.now()));
       } catch (e) { /* storage blocked: each version links to index.html in its language */ }
       location.replace(fileIn(page, select.value) + location.hash);
     });
@@ -115,43 +114,20 @@
     select.before(icon('globe', 'lang-picker__globe'));
     select.after(icon('chevron', 'lang-picker__chevron'));
     const paintTheme = bindTheme(document.getElementById('theme-toggle'));
-    // Back or Forward can bring a page back as it was left, while a theme or
-    // a language was chosen since, on another page or in another tab. The
-    // theme is always the saved one. The language is taken over only if it
-    // was chosen after the page was left (`dx-lang-at`), so that a page opened
-    // by a ?lang= link keeps its own language otherwise.
-    let leftAt = Date.now();
-    addEventListener('pagehide', () => {
-      leftAt = Date.now();
-      // Also for when Back loads the page again instead (js/prepaint.js): in
-      // this history entry, and by address for an earlier entry of the same
-      // page (with another #anchor), which keeps its own history state.
-      if (!options.page) {
-        try { history.replaceState(Object.assign({}, history.state, { leftAt }), ''); } catch (err) { /* refused */ }
-        try { sessionStorage.setItem(`dx-left:${location.pathname}${location.search}`, String(leftAt)); } catch (err) { /* storage blocked */ }
-      }
-    });
+    // Back or Forward can bring a page back as it was left, while a theme was
+    // chosen since, on another page or in another tab: it takes the saved one.
+    // Its language stays the one it was shown in.
     addEventListener('pageshow', (e) => {
       if (!e.persisted) return;
       let theme = null;
-      let lang = null;
-      let chosenAt = 0;
       try {
         theme = localStorage.getItem('dx-theme');
-        lang = localStorage.getItem('dx-lang');
-        chosenAt = Number(localStorage.getItem('dx-lang-at')) || 0;
       } catch (err) {
         return;
       }
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
       else delete document.documentElement.dataset.theme;
       paintTheme();
-      // index.html follows; a page written once per language stays as it is.
-      const i18n = root.DX.i18n;
-      if (!options.page && chosenAt > leftAt && lang && lang !== i18n.current && i18n.available().some((l) => l.code === lang)) {
-        if (options.beforeLanguageChange) options.beforeLanguageChange();
-        i18n.select(lang);
-      }
     });
   }
 

@@ -92,9 +92,9 @@ from [the cell layout](research/01-edge-code-format.md) and
   [Antoine Mérino's edition](https://thebigfilmdatabase.merinorus.com) of the
   database, which has pictures of the films.
 
-The two are always labeled separately on the page. No code is given a meaning
-that neither source documents: an unknown code is reported as unknown, together
-with the manufacturer its Part 1 number belongs to.
+Every film on the page is tagged with the source it comes from. No code is
+given a meaning that neither source documents: an unknown code is reported as
+unknown, together with the manufacturer its Part 1 number belongs to.
 
 ## Running and developing
 
@@ -109,13 +109,14 @@ site/                 the web pages (deployed as is)
   js/dx-lookup.js     film lookups and search
   js/dx-image.js      reading codes from photos; synthetic test images
   js/dx-data*.js      film tables, generated from data/
+  js/dx-index.js      their lookup order, generated from data/
   js/ui-*.js, app.js  the interface
   js/i18n.js, i18n/   interface languages (see Languages below)
 data/                 film tables as CSV, see data/README.md
 research/             research reports on the format and the data
-  img/                their diagrams and screenshots
+  img/                their diagrams
 scripts/              data extraction and build, diagrams, screenshots,
-                      demo videos, language check, local server, test runner
+                      demo videos, language check, local server, test runners
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
 .github/workflows/    tests, license check and GitHub Pages deployment
@@ -125,7 +126,7 @@ LICENSES/, REUSE.toml license texts, and which files each one covers
 ### Tests
 
 ```sh
-npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags
+npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags, links
 npm run test:e2e    # browser tests: desktop, Android phone, iPhone
 ```
 
@@ -197,10 +198,10 @@ To add a language:
    language files cannot supply it, since they need JavaScript.
 3. Copy `site/sources.html` to a file named after the language code, for
    example `site/sources.de.html`, and write its text in the new language.
-   Set `lang` on `<html>`, add the language to the links to `index.html`
-   (`index.html?lang=de#decoder`), and mark the language as `selected` in the
-   menu. Then add the language to the menu of every version of the sources
-   page.
+   Set `lang` on `<html>`, put the language in place of `en` in the links to
+   `index.html` (`index.html?lang=de#decoder`), and mark the language as
+   `selected` in the menu. Then add the language to the menu of every
+   version of the sources page.
 4. Run `npm run check:languages`. It lists English texts the language lacks,
    texts whose English is no longer used, and texts whose placeholders or tags
    differ from the English, and says if the message for visitors without
@@ -220,10 +221,10 @@ When you change the sources page, make the same change in each of its
 versions, as for the documentation. The check notices a source added or
 removed and a changed link, but not changed wording.
 
-Code looks up each text with `t('…')` when it draws it, never as its script
-loads: the language file can come after the scripts, and a text looked up
-before it would stay in English. A browser test holds the file back and fails
-on any text looked up too early.
+Code looks up each text with `t('…')`, `i18n.parts('…')` or `i18n.plural(…)`
+when it draws it, never as its script loads: the language file can come after
+the scripts, and a text looked up before it would stay in English. A browser
+test holds the file back and fails on any text looked up too early.
 
 The documentation comes in two parallel versions, English and Simplified
 Chinese: `README.zh-CN.md` sits next to `README.md`, and so on. Both versions
@@ -235,8 +236,8 @@ language. When you change one version, make the same change in the other.
 - The diagrams in `research/img/*.svg` are drawn from the decoder's own code
   by `npm run figures`, in every language. `npm test` fails if they are out of
   date.
-- The screenshots (`.github/screenshot*.png` and `research/img/*.png`) are
-  taken by `npm run screenshots`, which needs Playwright (see *Tests*). They
+- The screenshots (`.github/screenshot*.png`) are taken by
+  `npm run screenshots`, which needs Playwright (see *Tests*). They
   use the fonts installed on your machine, so the Chinese ones need a Chinese
   font (on Ubuntu, the `fonts-noto-cjk` package). Run it after every visible
   change to the page, and look at the results before committing them.
@@ -251,8 +252,12 @@ language. When you change one version, make the same change in the other.
 ## License and sources
 
 The code, tests, scripts and documentation are free software under the
-[GNU General Public License v3.0](LICENSE), except the screenshots and demo
-videos that show entries of The Big Film Database, which are under CC BY-SA 4.0.
+[GNU General Public License v3.0](LICENSE), except the page's copy of The Big
+Film Database and the index made from it (`site/js/dx-data-community.js` and
+`site/js/dx-index.js`), and the screenshots and demo videos that show its
+entries, which are under CC BY-SA 4.0. The 11 bit strings in
+`tests/unit/zint-vectors.mjs`, taken from the Zint barcode library's tests,
+are under BSD-3-Clause.
 The film data has its own sources and terms, described in
 [data/README.md](data/README.md). Every source used for the project is listed
 in [research/06](research/06-sources-and-licensing.md).

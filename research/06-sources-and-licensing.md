@@ -10,14 +10,14 @@ source consulted for the project.
 texts. Each file has a single license.
 
 - **Code, tests, scripts, styles, the favicon, the interface text in each
-  language, the diagrams, screenshots and demo videos, and these research notes
-  in English and Chinese** were made for this project and are licensed under
-  the GNU General Public License v3.0 (see `LICENSE`). The diagrams are drawn by
-  `scripts/make-figures.mjs`, the screenshots taken by `scripts/screenshots.mjs`
-  and the demo videos recorded by `scripts/demo-video.mjs`. The screenshots and
-  demo videos that show entries from The Big Film Database
-  (`.github/screenshot*.png`, `research/img/community-result*.png` and
-  `.github/demo*`) are licensed under CC BY-SA 4.0 instead.
+  language, the diagrams, the READMEs, and these research notes in English and
+  Chinese** were made for this project and are licensed under the GNU General
+  Public License v3.0 (see `LICENSE`). The diagrams are drawn by
+  `scripts/make-figures.mjs`.
+- **The screenshots** (`.github/screenshot*.png`, taken by
+  `scripts/screenshots.mjs`) and **the demo videos** (`.github/demo*`, recorded
+  by `scripts/demo-video.mjs`) show entries from The Big Film Database and are
+  licensed under CC BY-SA 4.0.
 - **`data/i3a-2008/`** holds a transcription of the factual content of the
   I3A list *DX Codes for 135-Size Film* (February 2008): the Part 1
   assignments, and the DX numbers and product names as published. It was
@@ -31,14 +31,16 @@ texts. Each file has a single license.
   from `data/` by `scripts/build-data.mjs`, one file per dataset. The first
   holds the I3A tables and is licensed under the GNU General Public License
   v3.0; the second holds the Big Film Database subset, carries its attribution
-  in its header and is licensed under CC BY-SA 4.0.
+  in its header and is licensed under CC BY-SA 4.0. **`site/js/dx-index.js`**,
+  generated from both, carries the same attribution and is licensed under
+  CC BY-SA 4.0 too.
 - **`tests/unit/zint-vectors.mjs`** holds 11 bit strings from the Zint barcode
   library's test file for this format (`backend/tests/test_dxfilmedge.c`,
   copyright 2024–2025 Antoine Mérino), with that copyright notice, and is
   licensed under BSD-3-Clause. The tests that use them are in
   `tests/unit/codec.test.mjs`.
 - The web pages use the fonts installed on the visitor's device and no
-  third-party code. Photos opened in them are not uploaded to any server.
+  third-party code.
 - Playwright, used for the browser tests, is installed separately and is not
   part of the repository.
 
@@ -70,7 +72,7 @@ texts. Each file has a single license.
 
 - International Imaging Industry Association, *DX Codes for 135-Size Film*, February 2008 — PDF linked from Aurélien Lawley's article, <https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf> (archived copy: <https://web.archive.org/web/20221222115315/https://aurelien.lawley.com.au/pdf/I3A_DX_codes.pdf>); also viewable at <https://www.yumpu.com/it/document/view/3454560/dx-codes-for-135-size-film-international-imaging-industry-association>
 - The Big Film Database (dxdatabase) by Dxdatabase — <https://github.com/dxdatabase/Open-source-film-database>, website <https://industrieplus.net/dxdatabase/>, help page <https://industrieplus.net/dxdatabase/help.html>
-- The (Modified) Big Film Database by Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>
+- The (Modified) Big Film Database by Antoine Mérino — <https://thebigfilmdatabase.merinorus.com>; its search by DX number, for DX 96-12: <https://thebigfilmdatabase.merinorus.com/search?dx_number=96-12>
 - Patton, Travis & McPherson (Eastman Kodak), US patent 5,761,558, *Expanded film cartridge bar code*, 1998 — <https://patents.google.com/patent/US5761558A/en>
 - Eastman Kodak Company, *KODAK PROFESSIONAL BW400CN Film*, technical data F-4036, January 2004 — copy at <https://125px.com/docs/film/kodak/f4036-BW400CN.pdf>
 - Wikimedia Commons, *DX-Codierung asb PICT3739.JPG* by Agon S. Buchholz, 2004 — <https://commons.wikimedia.org/wiki/File:DX-Codierung_asb_PICT3739.JPG>

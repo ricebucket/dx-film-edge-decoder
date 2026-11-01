@@ -70,7 +70,7 @@ test('on a phone, "Copy failed" and the bar above the strip stay inside the page
   // The longest "back" button, after a cassette lookup.
   await page.locator('#cassette-code').fill('017563');
   await page.getByRole('button', { name: 'Look up' }).click();
-  await page.getByRole('button', { name: 'Show the edge barcode' }).click();
+  await page.locator('.cassette__result .match').first().getByRole('button').click();
   const fits = await page.locator('#source').evaluate((bar) => {
     const edge = bar.getBoundingClientRect().right - parseFloat(getComputedStyle(bar).paddingRight);
     return [...bar.querySelectorAll('button')].every((b) => b.getBoundingClientRect().right <= edge + 0.5);
@@ -97,8 +97,8 @@ test('the browser bar follows the theme chosen on the page', async ({ page }) =>
 
 test('headings step down one level at a time, and the help button is named by its words', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
-  await expect(page.locator('#result h4')).toHaveCount(0);
-  await expect(page.locator('#result h3.source-block__title').first()).toBeVisible();
+  // The films of both sources are one list, under the result's own heading.
+  await expect(page.locator('#result :is(h3, h4)')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Which layout do I have?', exact: true })).toBeVisible();
   // The read-only diagram in "How it works" is no tab stop.
   await expect(page.locator('#layout-figure .strip__scroller')).toHaveAttribute('tabindex', '-1');
@@ -110,7 +110,7 @@ test('it also works opened straight from disk (file://)', async ({ page }) => {
   await setCells(page, '1010101001111011110101110010101'); // DX 79-15, frame 23
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
   await page.locator('#finder-q').fill('hp5 plus');
-  await page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode of / }).click();
+  await page.locator('.finder__item').first().getByRole('button', { name: 'Show barcode' }).click();
   await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
   check();
 });
@@ -138,7 +138,7 @@ test('the sources and credits have a page of their own, reached from the footer'
   await page.locator('#theme-toggle').click();
   const theme = await page.evaluate(() => document.documentElement.dataset.theme);
   await page.getByRole('link', { name: 'DX Film Edge Decoder', exact: true }).click();
-  await expect(page).toHaveURL(/\/index\.html$/);
+  await expect(page).toHaveURL(/\/index\.html\?lang=en$/);
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   const external = requests.filter((u) => !u.startsWith(baseURL) && !u.startsWith('data:') && !u.startsWith('blob:'));
   expect(external).toEqual([]);
@@ -358,12 +358,50 @@ test('printed, the strip keeps its film and bars, fits the page, and the colors 
       width: film.getBoundingClientRect().width,
       bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
       looks: getComputedStyle(document.querySelector('.looks')).display,
+      // Buttons that do nothing on paper ("Show examples", "Show all 33").
+      buttons: [...document.querySelectorAll('#result .text-button')].filter((b) => b.getClientRects().length).map((b) => b.textContent),
     };
   });
   expect(printed.exact).toBe(true);
   expect(printed.width).toBeLessThanOrEqual(700); // A4 or Letter, less the margins
   expect(printed.bg).toBe('#edf2f5');
   expect(printed.looks).toBe('none');
+  expect(printed.buttons).toEqual([]);
+});
+
+test('printed, the result lists every film it has, and none of its buttons', async ({ page }) => {
+  await page.goto('/?dx=39-1/12');
+  const all = page.locator('#result').getByRole('button', { name: /^Show all \d+$/ });
+  const n = Number((await all.textContent()).match(/\d+/)[0]);
+  await page.emulateMedia({ media: 'print' });
+  const printed = await page.evaluate(() => {
+    const shown = (selector) => [...document.querySelectorAll(selector)].filter((el) => el.getClientRects().length);
+    return { films: shown('#result .matches > li').length, buttons: shown('#result button').map((b) => b.textContent) };
+  });
+  expect(printed.films).toBe(n);
+  expect(printed.buttons).toEqual([]);
+  // On screen, the first few until "Show all".
+  await page.emulateMedia({ media: 'screen' });
+  await expect(page.locator('#result .matches > li:visible')).toHaveCount(6);
+});
+
+test('a chosen option keeps its label readable under the pointer', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'a mouse pointer');
+  await page.goto('/');
+  const chosen = page.locator('[data-control="format"] [aria-pressed="true"]');
+  await chosen.hover();
+  const [color, background] = await chosen.evaluate((el) => [getComputedStyle(el).color, getComputedStyle(el).backgroundColor]);
+  expect(color).not.toBe(background);
+});
+
+test('a chosen option tapped on a phone keeps its label readable', { tag: '@phone' }, async ({ page, hasTouch }) => {
+  test.skip(!hasTouch, 'a tap');
+  await page.goto('/');
+  const short = page.locator('[data-control="format"] [data-value="short"]');
+  await short.tap();
+  await expect(short).toHaveAttribute('aria-pressed', 'true');
+  const [color, background] = await short.evaluate((el) => [getComputedStyle(el).color, getComputedStyle(el).backgroundColor]);
+  expect(color).not.toBe(background);
 });
 
 test('arrow keys in the language menu only move through it; Enter changes the language', async ({ page, isMobile }) => {
@@ -406,96 +444,55 @@ test('choosing a language comes back to the same place, also after following a l
   await expect.poll(() => page.locator('#how').evaluate((el) => el.getBoundingClientRect().top)).toBeCloseTo(before, -1);
 });
 
-test('a page brought back by Back takes the theme and language chosen since on another page', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  // Left for the sources page, which saves them; then back from the browser's cache.
+test('a page brought back by Back takes the theme chosen since on another page, and keeps its language', async ({ page }) => {
+  await page.goto('/?dx=79-15/23&lang=zh-CN');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  // Left for the sources page, where dark and English are chosen; then back from the browser's cache.
   await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })));
-  await page.waitForTimeout(5);
   await page.evaluate(() => {
     localStorage.setItem('dx-theme', 'dark');
-    localStorage.setItem('dx-lang', 'zh-CN');
-    localStorage.setItem('dx-lang-at', String(Date.now()));
+    localStorage.setItem('dx-lang', 'en');
   });
-  await Promise.all([
-    page.waitForEvent('load'),
-    page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))),
-  ]);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-});
-
-test('a page brought back by Back takes a language chosen on another page even if it was the one saved, and the theme saved in another tab', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
-  await page.goto('/?dx=79-15/23&lang=en');
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  // Another tab switches to dark while this one is still open.
-  await page.evaluate(() => localStorage.setItem('dx-theme', 'dark'));
-  await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })));
-  await page.waitForTimeout(5);
-  // On the sources page, 简体中文 is chosen: the language saved already.
-  await page.evaluate(() => localStorage.setItem('dx-lang-at', String(Date.now())));
-  await Promise.all([
-    page.waitForEvent('load'),
-    page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))),
-  ]);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-});
-
-test('a page brought back by Back keeps the language its link chose, when none was chosen since', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
-  await page.goto('/?dx=79-15/23&lang=en');
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  // Off to the sources page, choosing nothing there, and back from the browser's cache.
-  await page.evaluate(() => {
-    dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
-    dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
-  });
   await page.waitForTimeout(500); // a language change would reload the page by now
-  await expect(page).toHaveURL(/lang=en$/);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
 });
 
 // Playwright's browsers keep no pages for Back, as Chromium never does for a
-// file: Back loads the page again, which these two check.
-test('a page loaded again by Back takes a language chosen since on another page, and its address says so', async ({ page }) => {
+// file: Back loads the page again, which the tests below check.
+test('a page loaded again by Back shows the language its address names, even if another was chosen since', async ({ page }) => {
   await page.goto('/?dx=79-15/23&lang=zh-CN');
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await page.goto('/sources.zh-CN.html');
   await Promise.all([page.waitForURL(/\/sources\.html$/), page.getByLabel('语言').selectOption('en')]);
   await page.goBack();
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=en$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
-  // Its language menu says so too, not the choice the browser kept from before.
+  await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
+});
+
+test('a page loaded again by Back whose address names no language shows the one saved, and its menu says so', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+  await page.goto('/?dx=79-15/23');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await page.goto('/sources.zh-CN.html');
+  await Promise.all([page.waitForURL(/\/sources\.html$/), page.getByLabel('语言').selectOption('en')]);
+  await page.goBack();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  // Not the choice the browser kept from before.
   await expect(page.getByLabel('Language')).toHaveValue('en');
 });
 
-test('a page loaded again by Back takes a language chosen since, also when its address was visited again in between', async ({ page }) => {
+test('Back from a language chosen on the page itself shows the earlier page in the language its address names', async ({ page }) => {
   await page.goto('/?lang=zh-CN');
-  await page.goto('/sources.zh-CN.html');
-  await page.goto('/?lang=zh-CN'); // the same address again, as by the sources page's name link
-  await Promise.all([page.waitForURL(/lang=en$/), page.getByLabel('语言').selectOption('en')]);
-  await page.goBack(); // the sources page
-  await page.goBack(); // the first visit
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page).toHaveURL(/\?lang=en$/);
-});
-
-test('a page loaded again by Back keeps the language its address names, when none was chosen since', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => {
-    localStorage.setItem('dx-lang', 'zh-CN');
-    localStorage.setItem('dx-lang-at', String(Date.now()));
-  });
-  await page.goto('/?dx=79-15/23&lang=en');
-  await page.goto('/sources.html');
-  await page.goBack();
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=en$/);
+  await page.locator('.site-nav a[href="#finder"]').click();
+  await Promise.all([page.waitForURL(/\?lang=en$/), page.getByLabel('语言').selectOption('en')]);
+  await Promise.all([page.waitForURL(/\?lang=zh-CN$/), page.goBack()]);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
 });
 
 test('picking the language shown again, after stepping through the menu with the keys, keeps no place for later', async ({ page, isMobile }) => {
@@ -561,7 +558,7 @@ test('with the scrollbars desktops show, the header keeps its section links on o
   }
 });
 
-test('on phones the language menu shows only its globe, also in Windows contrast themes', async ({ page, browserName }) => {
+test('on phones the language menu shows only its globe, also in Windows contrast themes', { tag: '@phone' }, async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'contrast themes are emulated in Chromium');
   await page.setViewportSize({ width: 360, height: 740 });
   await page.emulateMedia({ forcedColors: 'active' });

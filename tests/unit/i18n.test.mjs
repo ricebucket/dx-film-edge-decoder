@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { collectKeys, loadLanguages, checkLanguage, checkList, scriptKeys, pageKeys, noscriptLanguages, loadVersions, checkVersions, checkVersion, checkMenu } from '../../scripts/check-languages.mjs';
+import { collectKeys, loadLanguages, checkLanguage, checkList, scriptKeys, pageKeys, noscriptLanguages, loadVersions, checkVersions, checkVersion, checkMenu, checkEnglishLinks } from '../../scripts/check-languages.mjs';
 import { buildFigures } from '../../scripts/make-figures.mjs';
 
 const require = createRequire(import.meta.url);
@@ -156,6 +156,33 @@ describe('interface languages', () => {
     assert.match(problems[0], /x\.js:3: t\(\) needs a literal string/);
   });
 
+  test('the key extractor reads every way the code calls i18n, and flags any other way of taking texts from it', () => {
+    const read = (src) => scriptKeys('x.js', src);
+    const src = [
+      'const t = root.DX.i18n.t;',
+      "i18n.t('On i18n'); root.DX.i18n.parts('In {pieces}', { pieces });",
+      "// t('In a comment')",
+      "const s = \"t('In a string')\"; t('It\\'s');",
+      'i18n.parts(variable);',
+    ].join('\n');
+    const { keys, problems } = read(src);
+    assert.deepEqual(keys.map((k) => k.key), ['On i18n', "It's", 'In {pieces}']);
+    assert.equal(problems.length, 1);
+    assert.match(problems[0], /x\.js:5: i18n\.parts\(\) needs a literal string/);
+    for (const other of ['const { parts } = i18n;', 'const piece = i18n.parts;', 'const say = i18n.t.bind(i18n);', 'const { t } = root.DX.i18n;', 'list.map(i18n.plural);',
+      'const L = root.DX.i18n;', 'const { i18n: L } = DX;', "i18n?.t('x');", "root.DX.i18n?.parts('x');", "i18n['t']('x');"]) {
+      assert.equal(read(other).problems.length, 1, other);
+    }
+    // Where t is i18n.t, it is only ever called.
+    for (const other of ["['x', 'y'].map(t);", 'const say = t;', "t?.('x');"]) {
+      assert.ok(read(`const t = i18n.t;\n${other}`).problems.length > 0, other);
+    }
+    // With a space before the parenthesis, the text is still read.
+    assert.deepEqual(read("const t = i18n.t;\nt ('Spaced'); i18n.parts ('In {x}', { x }); i18n.plural (n, '{n} film', '{n} films');").keys.map((k) => k.key), ['Spaced', 'In {x}', '{n} films']);
+    assert.equal(read("i18n.plural (n, label);").problems.length, 1);
+    assert.match(read("t('unclosed);").problems[0], /x\.js: cannot read it/);
+  });
+
   test('the page extractor reads marked elements and attributes', () => {
     const html = '<p data-i18n>Hello <strong>you</strong>\n  there</p><nav aria-label="Main &amp; more" data-i18n-attr="aria-label"><a data-i18n>Go</a></nav><br><script>if (a < b) x();</script>';
     assert.deepEqual(pageKeys('p.html', html).map((k) => k.key), ['Hello <strong>you</strong> there', 'Main & more', 'Go']);
@@ -167,13 +194,16 @@ describe('the sources page, written once per language', () => {
     const languages = await loadLanguages();
     const pages = await loadVersions(languages);
     assert.deepEqual(pages.map((p) => p.page), ['sources']);
-    for (const { english } of pages) assert.deepEqual(checkMenu(english, languages, 'site/sources.html'), []);
+    for (const { english } of pages) {
+      assert.deepEqual(checkMenu(english, languages, 'site/sources.html'), []);
+      assert.deepEqual(checkEnglishLinks(english, 'site/sources.html'), []);
+    }
     for (const lang of languages) assert.deepEqual(checkVersions(lang, pages), [], lang.code);
   });
 
   test('a version has the same elements and links, names its language on links to index.html, and takes the header’s text from the language file', () => {
     const lang = { code: 'de', name: 'Deutsch', strings: { Sections: 'Abschnitte', 'How it works': 'So funktioniert es', 'DX number': 'DX-Nummer' } };
-    const english = '<html lang="en"><header><nav aria-label="Sections"><a href="index.html#how">How it works</a></nav></header>'
+    const english = '<html lang="en"><header><nav aria-label="Sections"><a href="index.html?lang=en#how">How it works</a></nav></header>'
       + '<main><h1>Sources</h1><ul><li>Wikipedia’s <a href="https://example.org/dx">DX number</a> article</li></ul></main></html>';
     const version = '<html lang="de"><header><nav aria-label="Abschnitte"><a href="index.html?lang=de#how">So funktioniert es</a></nav></header>'
       + '<main><h1>Quellen</h1><ul><li>Der Wikipedia-Artikel <a href="https://example.org/dx">DX number</a></li></ul></main></html>';
@@ -188,6 +218,13 @@ describe('the sources page, written once per language', () => {
       'an attribute the English lacks': version.replace('<h1>', '<h1 class="big">'),
     };
     for (const [what, html] of Object.entries(broken)) assert.equal(checkVersion(lang, english, html, 'v').length, 1, what);
+  });
+
+  test('the English page’s links to index.html name English', () => {
+    assert.deepEqual(checkEnglishLinks('<a class="brand" href="index.html?lang=en">x</a><a href="index.html?lang=en#how">y</a>', 'p'), []);
+    for (const href of ['index.html', 'index.html#how', 'index.html?lang=zh-CN#how']) {
+      assert.equal(checkEnglishLinks(`<p><a href="${href}">x</a></p>`, 'p').length, 1, href);
+    }
   });
 
   test('a missing version is named, with the file to write', () => {

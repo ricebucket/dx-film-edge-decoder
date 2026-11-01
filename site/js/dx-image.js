@@ -18,7 +18,8 @@
  *      the film was mirrored or upside down; bits are read in clock order.
  *   4. If no clock track turns up, a second look allows for a faded or
  *      damaged one: less contrast, light that changes along the film, and one
- *      clock bar scratched off or one gap filled.
+ *      of the single clock bars scratched off or one gap between them filled
+ *      (not a gap next to an end mark, nor a cell of one).
  */
 (function (root, factory) {
   'use strict';

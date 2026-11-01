@@ -18,11 +18,16 @@ function device(name) {
 
 module.exports = defineConfig({
   testDir: 'tests/e2e',
-  // Keep test artifacts (traces, screenshots) out of the project folder.
-  outputDir: process.env.E2E_OUTPUT_DIR || path.join(os.tmpdir(), 'dx-film-edge-decoder-e2e'),
+  // Keep test artifacts (traces, screenshots) out of the project folder, in a
+  // folder of this copy's own: Playwright empties it as a run starts, which
+  // would break a run of another copy at the same time.
+  outputDir: process.env.E2E_OUTPUT_DIR
+    || path.join(os.tmpdir(), `dx-film-edge-decoder-e2e-${require('node:crypto').createHash('sha256').update(__dirname).digest('hex').slice(0, 8)}`),
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
+  // On CI a test that passes only when retried still fails the run; the retry keeps its trace.
+  failOnFlakyTests: Boolean(process.env.CI),
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
     baseURL: `http://localhost:${PORT}`,

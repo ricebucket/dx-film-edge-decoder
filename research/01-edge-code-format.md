@@ -9,9 +9,10 @@ pattern, Part 1 (7 bits), an empty cell, Part 2 (4 bits), a frame number
 (6 bits), a half-frame flag, an empty cell, an even-parity bit and a fixed stop
 pattern: 31 cells in all. Film made before the frame-number extension uses a
 23-cell version without the frame fields. Every rule below is specified in
-GB/T 9185-2003, China's identical adoption of ISO 1007:2000, and is supported
-by at least two other independent sources; the 31-cell layout was also
-confirmed on a real negative.
+GB/T 9185-2003, China's identical adoption of ISO 1007:2000, and all but one
+are supported by at least two other independent sources: only the standard
+counts Part 1 = 0 as valid. The 31-cell layout was also confirmed on a real
+negative.
 
 ## Two tracks
 
@@ -110,24 +111,19 @@ see [report 07](07-history-and-related-markings.md) for the timeline.
 ### Telling the layouts apart needs the clock track
 
 A finding of this project, checked exhaustively in the unit tests: a 23-cell
-code entered into a 31-cell grid (its 23 cells, then empty cells) is *always*
-a valid 31-cell code of the same film, at whole frame 10 or 42. The short
+code copied into the 31-cell layout (its 23 cells, then empty cells 24–27 and
+the 31-cell stop pattern in cells 28–31) is *always* a valid 31-cell code of
+the same film, at whole frame 10 or 42. The short
 code's parity cell and stop pattern `0101` land in the frame field, giving
 frame 10 when its parity cell is empty and 42 when it holds a bar. The frame
 field then adds that parity bar (which already makes Part 1 + Part 2 even) plus
 two more bars, so the payload stays even and the empty long parity cell is
 exactly right. So the data track alone cannot reveal the layout; the clock
-track can, and so can the code's length relative to the perforations. The tool
-therefore asks users to count the thin bars, and when it sees this signature
-in the 31-cell strip it asks whether the top row has 7 thin bars. The photo
-reader matches the whole clock pattern, and neither clock pattern fits inside
-the other. The exception is a 31-cell code cut off by the photo's edge after
-cell 23, where something fills clock gap 22: dust, or a perforation that looks
-like a bar, as on slides and in a black scanner holder. Its clock then looks
-like a 23-cell one. So when a 23-cell clock runs to the edge, the reader looks
-at its end mark again on rows nearer the data track, out of the perforations'
-reach. If the middle of the end mark is a gap there, the reader warns that the
-reading may be incomplete.
+track can, and so can the code's length relative to the perforations. Neither
+clock pattern fits inside the other. The exception is a 31-cell code cut off by
+the edge of a photo after cell 23, where something fills clock gap 22: dust, or
+a perforation that looks like a bar, as on slides and in a black scanner
+holder. Its clock then looks like a 23-cell one.
 
 ## Bit order
 
@@ -187,21 +183,19 @@ All of these, plus every other Zint test vector, are part of the project's unit
 tests (`tests/unit/codec.test.mjs`), together with an exhaustive round trip of
 all 2,048 possible DX numbers.
 
-## Rules the decoder enforces
+## What makes a code valid
 
 | Check | Why |
 |---|---|
-| Start and stop patterns | fixed by the format (the tool draws them, but photos are checked) |
+| Start and stop patterns | fixed by the format |
 | Cells 14 and 26 empty | unassigned, always a gap (GB/T 9185-2003, §7.2.1.3 and §7.2.1.6; "unassigned … left blank" in ISO 1007 via Wikipedia); zxing-cpp rejects codes that break this |
 | Parity | as above |
 
-The decoder accepts Part 1 = 0, which the standard counts as valid (Table 3;
-Annex A.3.1), although zxing-cpp rejects it and the 2008 I3A list leaves it
-unassigned.
+The standard counts Part 1 = 0 as valid (Table 3; Annex A.3.1), although
+zxing-cpp rejects it and the 2008 I3A list leaves it unassigned.
 
-When parity fails, one bar has most likely been misread. Because a single
-parity bit cannot say which, the tool lists every single-cell change that
-produces a valid code and puts those that match a known film first.
+When parity fails, one bar has most likely been misread, but a single parity
+bit cannot say which.
 
 ## Names for the fields
 
@@ -223,11 +217,10 @@ Kodak's and Wikipedia's usage refers to the frame-number extension.
 - **zxing-cpp** (reader) reports a code as text such as `115-10/11A`:
   Part 1, Part 2 and, for the 31-cell layout, the frame number after a slash,
   with `A` for a half frame. It writes the frames printed `XX`, `X` and `00` as
-  61, 62 and 63. This project's shareable links use the same form
-  (`?dx=79-15/23`) and also take the printed labels. It
-  rejects codes whose unused cells hold a bar, whose parity fails or whose
-  Part 1 is 0, and accepts runs of up to 20 equal cells, the longest possible
-  in a valid data track whose Part 1 is not 0 (for example `96-0/0`).
+  61, 62 and 63. It rejects codes whose unused cells hold a bar, whose parity
+  fails or whose Part 1 is 0, and accepts runs of up to 20 equal cells, the
+  longest possible in a valid data track whose Part 1 is not 0 (for example
+  `96-0/0`).
 - **Zint** (generator) accepts the same text form, a four-digit "DX extract"
   (16 × Part 1 + Part 2, 16 to 2047) or a six-digit "DX full" cassette number,
   and the frame labels `X`/`S` (62), `00`/`K` (63) and `F` (0), but not `XX`

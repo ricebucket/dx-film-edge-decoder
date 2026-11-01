@@ -209,7 +209,6 @@
     if (code === current.code || !available().some((l) => l.code === code)) return;
     try {
       localStorage.setItem(STORAGE_KEY, code);
-      localStorage.setItem('dx-lang-at', String(Date.now())); // when, for pages brought back by Back (ui-header.js)
     } catch (e) { /* storage blocked: the URL alone keeps the choice */ }
     // The query built by hand (URLSearchParams would escape the "/" in
     // ?dx=79-15/23), on the page's own address, so it can't lead elsewhere.

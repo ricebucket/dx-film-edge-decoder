@@ -37,24 +37,6 @@ export const SHOTS = [
     communityData: true,
     clip: (page) => region(page, '#lighttable', { above: 16, maxHeight: 832 }).then((r) => ({ ...r, height: 832 })),
   },
-  {
-    // Report 05: the photo reader, after reading the first sample.
-    file: 'research/img/photo-reader',
-    query: '',
-    async prepare(page) {
-      await page.locator('#tab-photo').click();
-      await page.locator('#photo .photo__drop .tool:not(.tool--primary)').click();
-      await page.locator('.photo__found').waitFor();
-    },
-    clip: (page) => region(page, '#photo', { above: 8, maxHeight: 900 }),
-  },
-  {
-    // Report 04: a film known only from the community database.
-    file: 'research/img/community-result',
-    query: '?dx=95-13/1',
-    communityData: true,
-    clip: (page) => region(page, '#result', { above: 8, maxHeight: 760 }),
-  },
 ];
 
 async function languages() {
@@ -80,7 +62,6 @@ async function main() {
         const page = await context.newPage();
         await page.goto(PAGE + shot.query);
         await page.locator('#result-title').waitFor();
-        if (shot.prepare) await shot.prepare(page);
         const file = join(ROOT, `${shot.file}${lang === 'en' ? '' : `.${lang}`}.png`);
         await mkdir(dirname(file), { recursive: true });
         await page.screenshot({ path: file, clip: await shot.clip(page), fullPage: true });

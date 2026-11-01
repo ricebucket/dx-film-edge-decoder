@@ -27,9 +27,8 @@ export async function communityStats() {
   const tally = (column, values) => Object.fromEntries(values.map((v) => [v, count((r) => r[column].trim() === v)]));
   const digits = (text) => /^\d+$/.test(text.trim());
   const full = (r) => (/^\d{6}$/.test(r['DX full'].trim()) ? r['DX full'].trim() : '');
-  // The same rule as scripts/build-data.mjs: a missing DX extract is the
-  // middle four digits of the cassette number.
-  const extract = (r) => (digits(r['DX extract']) ? Number(r['DX extract']) : full(r) ? Number(full(r).slice(1, 5)) : -1);
+  // As recorded: a few rows have only the cassette number.
+  const extract = (r) => (digits(r['DX extract']) ? Number(r['DX extract']) : -1);
 
   // The same range as site/js/dx-lookup.js: Part 1 = 0 is valid, but no maker
   // held it in 2008, so numbers below 16 are not taken as edge codes.
@@ -42,6 +41,7 @@ export async function communityStats() {
     withExtract: count((r) => digits(r['DX extract'])),
     onlyCassette: count((r) => !digits(r['DX extract']) && full(r)),
     extractDisagrees: count((r) => digits(r['DX extract']) && full(r) && Number(r['DX extract']) !== Number(full(r).slice(1, 5))),
+    noCassette: count((r) => digits(r['DX extract']) && !full(r)),
     above2047: count((r) => extract(r) > 2047),
     below16: count((r) => extract(r) >= 0 && extract(r) < 16),
     htmlMarkup: count((r) => Object.values(r).some((v) => /<\/?[a-z][^>]*>/i.test(v))),
@@ -58,11 +58,12 @@ async function main() {
   const n = (x) => x.toLocaleString('en-GB');
   const certainty = Object.values(s.certainty).reduce((a, b) => a + b, 0);
   console.log(`Snapshot: commit ${s.commit}, retrieved ${s.retrieved}
-Rows upstream: ${n(s.rowsUpstream)}; with a DX number: ${n(s.rowsKept)} (${n(s.withExtract)} with a DX extract, ${n(s.onlyCassette)} with only a cassette number)
+Rows upstream: ${n(s.rowsUpstream)}; with a DX extract or a cassette number: ${n(s.rowsKept)} (${n(s.withExtract)} with a DX extract, ${n(s.onlyCassette)} with only a cassette number)
 DX numbers that can appear on a film edge (16-2047): ${n(s.edgeDxNumbers)}, of which not in the 2008 registry: ${n(s.notInRegistry)}
 
 Data-quality findings:
   DX extract disagrees with the cassette number: ${s.extractDisagrees}
+  DX extract without a cassette number: ${s.noCassette}
   number above 2047: ${s.above2047}
   number below 16: ${s.below16}
   HTML markup inside a field: ${s.htmlMarkup}

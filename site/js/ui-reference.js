@@ -81,7 +81,7 @@
       const dx = label(p);
       const show = h('button', { type: 'button', class: 'tool tool--small', disabled: p.wildcard ? true : null,
         'aria-label': p.wildcard ? null : t('Show the barcode of {name}', { name: p.name }) }, t('Show'));
-      if (!p.wildcard) show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'list', name: p.name }));
+      if (!p.wildcard) show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'list', name: p.name, ids: [p.id] }));
       return h('tr', null,
         h('td', { class: 'num' }, dx),
         h('td', null, p.name, p.wildcard ? h('span', { class: 'fineprint products-table__why' }, t('Part 2 not identified in the registry')) : null),
@@ -110,9 +110,12 @@
         .filter((p) => !st || p.status === (st === 'live' ? 'in-use' : 'discontinued'))
         .filter((p) => !q || (part1Alone !== null ? p.part1 === part1Alone
           : p.name.toLowerCase().includes(q) || label(p).startsWith(typed)
-            || (dx !== null && p.part1 === dx.part1 && (p.wildcard || p.part2 === dx.part2))))
-        .sort((a, b) => a.part1 - b.part1 || (a.part2 === null ? -1 : a.part2) - (b.part2 === null ? -1 : b.part2) || a.name.localeCompare(b.name, 'en'));
-      tbody.replaceChildren(...rows.map(rowFor));
+            || (dx !== null && p.part1 === dx.part1 && (p.wildcard || p.part2 === dx.part2))));
+      // In code order, ranked as every list of films is (the lookup's
+      // `ranked`): those listed without a Part 2 first under their Part 1,
+      // then by name.
+      const codeOrder = (p) => -(p.part1 * 17 + (p.part2 === null ? 0 : p.part2 + 1));
+      tbody.replaceChildren(...root.DX.createLookup.ranked(rows, codeOrder).map(rowFor));
       clearPart1.hidden = part1Filter.value === null;
       const n = { n: rows.length, total: lookup.products.length, part1: part1Filter.value };
       if (part1Filter.value === null) {

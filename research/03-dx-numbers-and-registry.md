@@ -1,7 +1,7 @@
 # 03 – DX numbers and the registry
 
 **Question:** what do Part 1 and Part 2 identify, who assigned them, and which
-list of assignments can the tool rely on?
+list of assignments can be relied on?
 
 **Answer in short:** Part 1 identifies a manufacturer and was assigned
 centrally; Part 2 distinguishes that manufacturer's products. GB/T 9185-2003,
@@ -58,7 +58,7 @@ The document has two parts.
 Tudor in 1989 (never renewed), 65 to 3M (1985–1993), 119 to ORWO (1988–1993),
 and 96 to Eastman Kodak (1983, released 1988, reassigned 2003).
 
-| Assignee (as in the table) | Part 1 numbers | Product rows |
+| Assignee (as in the table) | Part 1 numbers | Different product rows |
 |---|---|---|
 | Agfa-Gevaert | 14 | 99 |
 | China Lucky Film | 3 | 10 |
@@ -76,29 +76,28 @@ and 96 to Eastman Kodak (1983, released 1988, reassigned 2003).
 **Product listing.** For each sensitizer, rows of Part 1, Part 2 and product
 name. Eastman Kodak and Konica Minolta split their rows into "DX numbers that
 are currently being used" and films "no longer manufactured … but which may
-still be in the marketplace", and FUJIFILM heads its rows with the first. The
-tool shows this as "in production in 2008" or "discontinued by 2008".
+still be in the marketplace", and FUJIFILM heads its rows with the first.
 Agfa-Gevaert's rows also come in two lists, but only the second has a heading,
 "no longer manufactured"; the first includes films named "(until 12/2001)".
-That first list and the other sensitizers' sections say neither, so the tool
-gives those films no status. In total 389 rows are printed.
+That first list and the other sensitizers' sections say neither. In total 389
+rows are printed.
 
 ### Quirks found in the document
 
 - The summary page counts 28 Part 1 numbers for Eastman Kodak but lists 30;
   the per-number table also has 30.
-- Three Agfa rows (Part 1 17, Part 2 2) are printed twice; the tool keeps one
-  of each, leaving 386 rows.
+- Three Agfa rows (Part 1 17, Part 2 2) are printed twice, so the list has 386
+  different rows.
 - Shanghai General's four brands (Shenguang, Shanghai, Seagull, Rainbow) are
-  listed with Part 2 "not identified", so they match any Part 2 under 88.
+  listed with Part 2 "not identified".
 - Ferrania's Part 2 numbers are printed with leading zeros (`01` … `10`).
 - 16 DX numbers are shared by two or more products, e.g. `3-9` by five
   Agfachrome and Perutz slide films, and `95-2` by Kodak High Definition 400
   and Kodak Hawkeye Traffic Surveillance film, as the standard allows; Shanghai
-  General's four brands also share Part 1 88. The tool shows all of them.
+  General's four brands also share Part 1 88.
 - Harman Technologies is not named as ILFORD in the list; its products (HP5
   PLUS, FP4 PLUS, DELTA …) are ILFORD films, and Wikipedia's table labels these
-  numbers "Ilford Photo", so the tool adds that name in parentheses.
+  numbers "Ilford Photo".
 
 ### How the list was transcribed
 
@@ -151,8 +150,7 @@ Wikipedia's "DX number" lists older meanings, without giving a source:
 | 9 | — | 37 or more |
 
 The standard warns that some processing machines may not accept rolls of 37 or
-more exposures. A 24 + 3 roll, 27 exposures, has code 7 under both. The tool
-gives the 2000 meaning and, where it differs, the older one Wikipedia lists.
+more exposures. A 24 + 3 roll, 27 exposures, has code 7 under both.
 
 Worked examples: `315223` → 95-2, 24 exposures (Wikipedia); `017563` → 109-12,
 24 exposures (Wikipedia's photo of an ISO 125 cassette, and 109-12 is FP4 PLUS
@@ -170,14 +168,10 @@ Coutu pharmacies in Canada, and all five follow the rule: `832973` has
 other four are made from 78 and 82 in the same way. Their Part 2 also matches
 the ordinary DX number of the film each one names (78-1 is KODAK GOLD 100 Film,
 78-2 GOLD 200 and 82-3 MAX 400), but the standard says nothing about Part 2 in
-an augmented number. The cassette helper therefore shows the arithmetic and the
-maker that holds the base Part 1 number, adds the I3A entry for these five,
-and derives no DX number. Find a film lists these five too, by name or
-number. Of the cassette numbers in this range in The Big Film Database, one is
-recorded with a DX number: `333098`, Power Geek 35mm Film For Color Prints, as
-DX 39-1, with a note that the number printed on the box "is not DX code" and
-that the film was identified from its edge barcode. For it, the helper shows
-that record and its edge code instead of the maker the number would point to.
+an augmented number. Of the cassette numbers in this range in The Big Film
+Database, one is recorded with a DX number: `333098`, Power Geek 35mm Film For
+Color Prints, as DX 39-1, with a note that the number printed on the box "is
+not DX code" and that the film was identified from its edge barcode.
 
 Wikipedia cites the cartridge barcode patent with the right title, inventors
 and dates but the number "US 5661558A", which belongs to an unrelated patent

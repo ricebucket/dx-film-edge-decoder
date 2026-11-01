@@ -45,6 +45,7 @@ for (const lang of LANGUAGES) {
       // A decoded film, with the help panels, the photo reader, search and
       // cassette results, and two error messages showing.
       await page.goto('/?dx=96-12/14A');
+      await expect(page.locator('html')).toHaveAttribute('lang', lang);
       for (const help of await page.locator('[data-help]').all()) await help.click();
       await page.locator('#tab-photo').click();
       await page.locator('#photo .photo__drop .tool:not(.tool--primary)').click();
@@ -79,6 +80,14 @@ for (const lang of LANGUAGES) {
       expect(await problems(page, '#decoder')).toEqual([]);
       await page.locator('#clear').click();
       await expect(page.locator('#strip .track--data button.is-bar')).toHaveCount(0);
+      expect(await problems(page, '#decoder')).toEqual([]);
+
+      // Rows only related by digits, marked so, in the search and in a result.
+      await page.locator('#finder-q').fill('002720');
+      await expect(page.locator('.finder__item .pill--near').first()).toBeVisible();
+      expect(await problems(page, '#finder')).toEqual([]);
+      await page.goto('/?dx=87-14');
+      await expect(page.locator('#result .pill--near').first()).toBeVisible();
       expect(await problems(page, '#decoder')).toEqual([]);
     });
 
