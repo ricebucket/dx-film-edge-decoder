@@ -19,6 +19,26 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const read = (path) => readFile(join(ROOT, path), 'utf8');
 
+/**
+ * The rows of a CSV file in data/ as objects keyed by its header, which must
+ * have the columns the build reads: its errors name the file, and the column
+ * missing.
+ */
+async function table(path, columns, delimiter) {
+  const file = path.slice(path.lastIndexOf('/') + 1);
+  let rows;
+  try {
+    rows = readCsvObjects(await read(path), delimiter);
+  } catch (err) {
+    throw new Error(`${file}: ${err.message}`);
+  }
+  const missing = rows.length ? columns.find((name) => !(name in rows[0])) : undefined;
+  // A snapshot from before there were IDs has no ID column at all.
+  if (missing === 'ID') throw new Error(`${file} has no column "ID": \`npm run update:community-data\` gives its rows their IDs`);
+  if (missing !== undefined) throw new Error(`${file} has no column "${missing}"`);
+  return rows;
+}
+
 // Harman Technologies Ltd makes ILFORD Photo films; Wikipedia's "DX number"
 // article lists Part 1 numbers 105-110 under "Ilford Photo".
 const ALSO_KNOWN_AS = { 'Harman Technologies': 'ILFORD Photo' };
@@ -59,10 +79,11 @@ function script(header, name, value) {
 }
 
 /**
- * The version the three files share: a hash of what the build writes into
- * them, so that it changes whenever a build changes any of them, and stays
- * the same when a build writes the same again. The page stops if the three
- * differ (site/js/dx-lookup.js), as when the browser kept an old copy of one.
+ * The version the three files share: a hash of the data the build writes
+ * into them, so that it changes whenever a build changes the data of any of
+ * them, and stays the same when a build writes the same again. The page
+ * stops if the three differ (site/js/dx-lookup.js), as when the browser kept
+ * an old copy of one.
  */
 export function versionOf(...datasets) {
   return createHash('sha256').update(JSON.stringify(datasets)).digest('hex').slice(0, 16);
@@ -70,10 +91,11 @@ export function versionOf(...datasets) {
 
 /** The generated files, by path from the repository root. */
 export async function buildData() {
-  const part1Rows = readCsvObjects(await read('data/i3a-2008/part1-assignments.csv'));
-  const productRows = readCsvObjects(await read('data/i3a-2008/products.csv'));
-  const augmentedRows = readCsvObjects(await read('data/i3a-2008/augmented-cassette-codes.csv'));
-  const communityRows = readCsvObjects(await read('data/big-film-database/film_database_dx.csv'), ';');
+  const part1Rows = await table('data/i3a-2008/part1-assignments.csv', ['part1', 'assignee', 'aps', 'previously']);
+  const productRows = await table('data/i3a-2008/products.csv', ['part1', 'part2', 'product', 'sensitizer', 'status']);
+  const augmentedRows = await table('data/i3a-2008/augmented-cassette-codes.csv', ['cassette_code', 'product', 'sensitizer']);
+  const communityRows = await table('data/big-film-database/film_database_dx.csv', ['ID', 'DX extract', 'DX full', 'Name',
+    'Original Film or informations', 'Manufacturer', 'reliability', 'Country', 'Beginning year', 'End year', 'Distributor', 'Ava'], ';');
   const communitySource = JSON.parse(await read('data/big-film-database/source.json'));
 
   // One table of sensitizers: the Part 1 table's short label ("Eastman Kodak")
@@ -102,9 +124,10 @@ export async function buildData() {
   });
 
   // Each row of both sources starts with its record ID, by which the page
-  // refers to it: the registry's rows by their row in its files, which do not
-  // change, and the database's by the ID column of its snapshot, which keeps
-  // a row's ID across updates (scripts/update-community-data.mjs).
+  // refers to it: the registry's rows by their row in its files, and the
+  // database's by the ID column of its snapshot, which keeps a row's ID
+  // across updates (scripts/update-community-data.mjs). A correction that
+  // adds or removes a registry row renumbers the rows after it.
   // The PDF lists three Agfa products twice; keep one of each.
   const seen = new Set();
   const products = [];
@@ -172,8 +195,9 @@ export async function buildData() {
  * licensed under CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/.
  * Changes: kept rows with a DX extract or a cassette number, dropped image
  * names, gave each row a record ID, split "#" search tags from names, removed
- * HTML markup, compacted to arrays, added the build's version. This whole
- * file, including the code that loads the data, is under CC BY-SA 4.0.
+ * HTML markup, compacted to arrays, added the build's version and a place
+ * for the deploy's build number. This whole file, including the code that
+ * loads the data, is under CC BY-SA 4.0.
  */
 `;
   const indexHeader = `/*
@@ -183,8 +207,8 @@ export async function buildData() {
  * number (scripts/lib/dx-index.mjs): the record numbers of the rows of
  * dx-data.js and dx-data-community.js (the registry's augmented ones
  * negative), sorted by the number each search looks up and, under one
- * number, by score. As it is made
- * from The Big Film Database (dxdatabase) © 2018 by Dxdatabase,
+ * number, by score. As it is made from
+ * The Big Film Database (dxdatabase) © 2018 by Dxdatabase,
  * https://github.com/dxdatabase/Open-source-film-database (commit ${communitySource.commit.slice(0, 7)}),
  * this whole file is under CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/.
  * Its version is the build's, the same in all three data files.
@@ -193,12 +217,14 @@ export async function buildData() {
   const i3a = { source: I3A_SOURCE, sensitizers, part1, products, augmented };
   const communityData = { source: communitySource, rows: community };
   const index = buildIndex(i3a, communityData);
-  // First in each file, where it is seen.
+  // First in each file, where they are seen; the build is left empty for
+  // scripts/stamp-build.mjs to fill in the copy published.
   const version = versionOf(i3a, communityData, index);
+  const build = '';
   return {
-    'site/js/dx-data.js': script(i3aHeader, 'data', { version, ...i3a }),
-    'site/js/dx-data-community.js': script(communityHeader, 'communityData', { version, ...communityData }),
-    'site/js/dx-index.js': script(indexHeader, 'index', { version, ...index }),
+    'site/js/dx-data.js': script(i3aHeader, 'data', { version, build, ...i3a }),
+    'site/js/dx-data-community.js': script(communityHeader, 'communityData', { version, build, ...communityData }),
+    'site/js/dx-index.js': script(indexHeader, 'index', { version, build, ...index }),
   };
 }
 

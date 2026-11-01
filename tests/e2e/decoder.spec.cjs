@@ -108,6 +108,7 @@ test('a second finger on the strip, as in a pinch, leaves no cell pressed and ch
       touch(type, 10, 2);
     }, end);
     await expect(page.locator('#strip .is-pressing')).toHaveCount(0);
+    await expect(page.locator('#strip .ruler__cell.is-here')).toHaveCount(0); // nor does the ruler name one
     await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'false');
     await expect(dataCell(page, 10)).toHaveAttribute('aria-pressed', 'false');
   }
@@ -122,6 +123,7 @@ test('a second finger on the strip, as in a pinch, leaves no cell pressed and ch
       for (const id of lifts) touch('pointerup', id === 1 ? cell : document.body, id);
     }, order);
     await expect(page.locator('#strip .is-pressing')).toHaveCount(0);
+    await expect(page.locator('#strip .ruler__cell.is-here')).toHaveCount(0);
     await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'false');
   }
   // One finger again: a tap.
@@ -159,7 +161,7 @@ test('a misread bar fails parity and the right correction is offered', async ({ 
   await expect(result.locator('#result-title')).toBeFocused();
 });
 
-test('a bar in an unused cell is explained', async ({ page }) => {
+test('a bar in an unassigned cell is explained', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
   await dataCell(page, 14).click();
   await expect(page.locator('#result')).toContainText('Cell 14 should never have a bar');
@@ -419,6 +421,8 @@ test('the perforations are holes in the film where they are drawn, also when the
   const width = 1280;
   await page.setViewportSize({ width, height: 800 });
   await page.goto('/?dx=79-15/23');
+  // The page behind the film is sampled just above it, where the ruler's ticks would be.
+  await page.addStyleTag({ content: '#strip .ruler { visibility: hidden; }' });
   for (const mirrored of [false, true]) {
     if (mirrored) await page.locator('#mirror-toggle').click();
     // The part of the film on screen: on phones it scrolls sideways.
@@ -631,12 +635,20 @@ test('the hint under the strip is only rewritten when it changes', async ({ page
   expect(await page.evaluate(() => window.hintChanges)).toBe(0);
 });
 
+test('cells 14 and 26 are called unassigned, as GB/T 9185-2003 calls them', async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  for (const field of ['blank1', 'blank2']) await expect(page.locator(`#strip .bracket[data-field="${field}"]`)).toHaveAttribute('title', 'Unassigned: always empty');
+  for (const cell of [14, 26]) await expect(dataCell(page, cell)).toHaveAttribute('aria-label', `Cell ${cell} of 31: unassigned cell`);
+  await expect(page.locator('#result .raw-table th', { hasText: /^Unassigned$/ })).toHaveCount(2);
+  await expect(page.locator('#how .fields-table td', { hasText: /^Unassigned$/ })).toHaveCount(2);
+});
+
 test('empty cells that can be clicked show a faint +, which a bar replaces', async ({ page }) => {
   await page.goto('/');
   const plus = (n) => dataCell(page, n).evaluate((el) => getComputedStyle(el, '::after').backgroundImage);
   expect(await plus(7)).toContain('linear-gradient');
   expect(await plus(1)).toBe('none'); // the start pattern is the same on every film
-  expect(await plus(14)).toBe('none'); // an unused cell: it should stay empty
+  expect(await plus(14)).toBe('none'); // an unassigned cell: it should stay empty
   await dataCell(page, 7).click();
   await expect(dataCell(page, 7)).toHaveAttribute('aria-pressed', 'true');
   expect(await plus(7)).toBe('none');
@@ -654,12 +666,18 @@ test('a finger on a cell shows what lifting it will do, unless it scrolls', asyn
       clientX: r.x + r.width / 2 + dx, clientY: r.y + r.height / 2,
     }));
   }, [type, dx]);
+  // The ruler over the film names the cell under the finger, as long as it rests there. (A real
+  // tap on Android also leaves focus on the cell, so there its number stays until focus moves on;
+  // the iPhone gives a tapped cell no focus.)
+  const here = page.locator('#strip .ruler__cell.is-here');
   await touch('pointerdown');
   await expect(cell).toHaveClass(/\bis-pressing\b/);
   await expect(cell).toHaveAttribute('aria-pressed', 'false');
+  await expect(here).toHaveText('8');
   // The finger moves: it is scrolling the strip, so nothing changes.
   await touch('pointermove', 30);
   await expect(cell).not.toHaveClass(/\bis-pressing\b/);
+  await expect(here).toHaveCount(0);
   await touch('pointercancel', 30);
   await expect(cell).toHaveAttribute('aria-pressed', 'false');
   // A tap that lifts in place adds the bar.
@@ -667,4 +685,138 @@ test('a finger on a cell shows what lifting it will do, unless it scrolls', asyn
   await touch('pointerup');
   await expect(cell).not.toHaveClass(/\bis-pressing\b/);
   await expect(cell).toHaveAttribute('aria-pressed', 'true');
+  await expect(here).toHaveCount(0);
+});
+
+test('the ruler follows the latest input: keys take it to the cell with focus, the mouse moving takes it back', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'phones have no mouse to rest on the strip');
+  await page.goto('/?dx=79-15/23');
+  const here = page.locator('#strip .ruler__cell.is-here');
+  await dataCell(page, 7).click();
+  await expect(here).toHaveText('7');
+  // The mouse rests on cell 7 while the keys type on.
+  await page.keyboard.press('1');
+  await page.keyboard.press('0');
+  await expect(dataCell(page, 9)).toBeFocused();
+  await expect(here).toHaveText('9');
+  await page.keyboard.press('ArrowRight');
+  await expect(here).toHaveText('10');
+  // The mouse moves again: the ruler is the mouse's.
+  const box = await dataCell(page, 7).boundingBox();
+  await page.mouse.move(box.x + box.width / 2 + 1, box.y + box.height / 2);
+  await expect(here).toHaveText('7');
+});
+
+test('in Windows contrast themes, the ruler marks the cell pointed at in the color of focus; printed, no cell is focused', async ({ page, browserName, isMobile }) => {
+  test.skip(browserName !== 'chromium' || isMobile, 'contrast themes are a Windows desktop feature');
+  await page.goto('/?dx=79-15/23');
+  await dataCell(page, 18).focus();
+  const color = (sel) => page.locator(sel).evaluate((el) => getComputedStyle(el).color);
+  await page.emulateMedia({ forcedColors: 'active' });
+  const highlight = await page.evaluate(() => {
+    const probe = document.createElement('span');
+    probe.style.color = 'Highlight';
+    document.body.append(probe);
+    const value = getComputedStyle(probe).color;
+    probe.remove();
+    return value;
+  });
+  expect(await color('#strip .ruler__cell.is-here .ruler__num')).toBe(highlight);
+  expect(await color('#strip .ruler__cell[data-cell="20"] .ruler__num')).not.toBe(highlight);
+  // On paper, the focused cell looks like any other: no ring.
+  await page.emulateMedia({ forcedColors: 'none', media: 'print' });
+  const shadow = (cell) => dataCell(page, cell).evaluate((el) => getComputedStyle(el).boxShadow);
+  expect(await shadow(18)).toBe(await shadow(16));
+});
+
+test('after a tap, the ruler names no cell once focus is elsewhere', { tag: '@phone' }, async ({ page, hasTouch }) => {
+  test.skip(!hasTouch, 'a tap needs a touch screen');
+  await page.goto('/?dx=79-15/23');
+  const here = page.locator('#strip .ruler__cell.is-here');
+  await dataCell(page, 8).tap();
+  await expect(dataCell(page, 8)).toHaveAttribute('aria-pressed', 'true');
+  // The finger has lifted, and focus goes elsewhere, as after a tap on another control.
+  await page.locator('#mirror-toggle').focus();
+  await expect(here).toHaveCount(0);
+});
+
+test('a ruler over the film numbers the cells as the texts do: 1 and every fifth, and the cell pointed at', { tag: '@phone' }, async ({ page, isMobile }) => {
+  await page.goto('/?dx=79-15/23');
+  const ruler = page.locator('#strip .ruler__cell');
+  const shown = page.locator('#strip .ruler__num:visible');
+  await expect(ruler).toHaveCount(31);
+  await expect(shown).toHaveText(['1', '5', '10', '15', '20', '25', '30']);
+  // Each tick stands over its own cell, also on a mirrored strip, where 1 is at the right end.
+  const centers = (sel) => page.locator(sel).evaluateAll((els) => els.map((el) => {
+    const r = el.getBoundingClientRect();
+    return r.left + r.width / 2;
+  }));
+  for (const mirrored of [false, true]) {
+    if (mirrored) await page.locator('#mirror-toggle').click();
+    const ticks = await centers('#strip .ruler__cell');
+    const cells = await centers('#strip .track--data .cell');
+    ticks.forEach((x, i) => expect(Math.abs(x - cells[i]), `cell ${i + 1}${mirrored ? ', mirrored' : ''}`).toBeLessThan(0.6));
+    expect(ticks[0] > ticks[30]).toBe(mirrored);
+  }
+  await page.locator('#mirror-toggle').click();
+  // The cell with keyboard focus, or under the mouse, shows its number too; then only it is marked.
+  const here = page.locator('#strip .ruler__cell.is-here');
+  await expect(here).toHaveCount(0);
+  await dataCell(page, 18).focus();
+  await expect(here).toHaveText('18');
+  await expect(shown).toHaveText(['1', '5', '10', '15', '18', '20', '25', '30']);
+  // Its number and tick in the accent color, the others' not.
+  const colors = await page.evaluate(() => {
+    const probe = document.body.appendChild(document.createElement('span'));
+    probe.style.color = 'var(--accent-strong)';
+    const accent = getComputedStyle(probe).color;
+    probe.remove();
+    const of = (n) => {
+      const cell = document.querySelector(`#strip .ruler__cell[data-cell="${n}"]`);
+      return [getComputedStyle(cell.querySelector('.ruler__num')).color, getComputedStyle(cell, '::after').borderLeftColor];
+    };
+    return { accent, here: of(18), other: of(15) };
+  });
+  expect(colors.here).toEqual([colors.accent, colors.accent]);
+  expect(colors.other).not.toContain(colors.accent);
+  // Not read out: the cells' own names give their numbers.
+  for (const where of ['#strip', '#layout-figure']) await expect(page.locator(`${where} .ruler`)).toHaveAttribute('aria-hidden', 'true');
+  expect(await page.locator('#strip .strip__canvas').ariaSnapshot()).not.toMatch(/^\s*- text:/m);
+  await page.keyboard.press('ArrowRight');
+  await expect(here).toHaveText('19');
+  if (!isMobile) {
+    await dataCell(page, 12).hover();
+    await expect(here).toHaveText('12');
+    await page.mouse.move(1, 1);
+    await expect(here).toHaveText('19'); // back to the cell with focus
+  }
+  // Focus gone from the strip: nothing is pointed at.
+  await page.locator('#mirror-toggle').focus();
+  await expect(here).toHaveCount(0);
+  // The 7-bar layout has 23 cells, and the diagram in "How it works" its ruler without a cell pointed at.
+  await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
+  await expect(ruler).toHaveCount(23);
+  await expect(page.locator('#strip .ruler__num:visible')).toHaveText(['1', '5', '10', '15', '20']);
+  await expect(page.locator('#layout-figure .ruler__cell')).toHaveCount(31);
+  await expect(page.locator('#layout-figure .ruler__cell.is-here')).toHaveCount(0);
+});
+
+test('the ruler follows the mouse as it paints a run of bars, and names the cell it was let go on', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'a mouse');
+  await page.goto('/');
+  await dataCell(page, 8).scrollIntoViewIfNeeded();
+  const here = page.locator('#strip .ruler__cell.is-here');
+  const center = async (n) => {
+    const box = await dataCell(page, n).boundingBox();
+    return [box.x + box.width / 2, box.y + box.height / 2];
+  };
+  await page.mouse.move(...await center(8));
+  await page.mouse.down();
+  await expect(here).toHaveText('8');
+  for (const n of [9, 10, 11]) await page.mouse.move(...await center(n), { steps: 3 });
+  // While the button is held, the strip holds the pointer: the cells it crosses get no hover of their own.
+  await expect(here).toHaveText('11');
+  await page.mouse.up();
+  for (const n of [8, 9, 10, 11]) await expect(dataCell(page, n)).toHaveAttribute('aria-pressed', 'true');
+  await expect(here).toHaveText('11');
 });

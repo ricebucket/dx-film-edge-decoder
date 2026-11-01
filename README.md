@@ -104,7 +104,7 @@ build step: open `site/index.html`, or run `npm start` and visit
 [Node.js](https://nodejs.org/) 22 or later.
 
 ```
-site/                 the web pages (deployed as is)
+site/                 the web pages (deployed with the commit stamped in)
   js/dx-codec.js      barcode layout, encoding, decoding, checks
   js/dx-lookup.js     film lookups and search
   js/dx-image.js      reading codes from photos; synthetic test images
@@ -116,7 +116,8 @@ data/                 film tables as CSV, see data/README.md
 research/             research reports on the format and the data
   img/                their diagrams
 scripts/              data extraction and build, diagrams, screenshots,
-                      demo videos, language check, local server, test runners
+                      demo videos, language check, local server, test runners,
+                      the deploy's stamp
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
 .github/workflows/    tests, license check and GitHub Pages deployment
@@ -211,8 +212,8 @@ To add a language:
    menu, and the same header text as the decoder page. `npm test` runs the
    same check.
 5. Add the language's labels to `LABELS` in `scripts/make-figures.mjs`, then
-   run `npm run figures`, `npm run screenshots` and `npm run demo` so the
-   diagrams, screenshots and demo videos exist in the new language.
+   run `npm run media` so the diagrams, screenshots and demo videos exist in
+   the new language.
 
 `npm run check:languages -- --template` prints every English text of the
 page, as a starting point. When you change or add English text in `site/`,
@@ -231,23 +232,29 @@ Chinese: `README.zh-CN.md` sits next to `README.md`, and so on. Both versions
 say the same things, and the links in each lead to the other files in the same
 language. When you change one version, make the same change in the other.
 
-### Diagrams and screenshots
+### Diagrams, screenshots and videos
+
+To make them all again after a visible change, in every language, run:
+
+```sh
+npm run media
+```
+
+It runs the three commands below in turn, in about a minute. It needs
+Playwright (see *Tests*) and, for the Chinese screenshots and videos, a Chinese
+font (on Ubuntu, the `fonts-noto-cjk` package). Look at the results before
+committing them.
 
 - The diagrams in `research/img/*.svg` are drawn from the decoder's own code
   by `npm run figures`, in every language. `npm test` fails if they are out of
   date.
 - The screenshots (`.github/screenshot*.png`) are taken by
-  `npm run screenshots`, which needs Playwright (see *Tests*). They
-  use the fonts installed on your machine, so the Chinese ones need a Chinese
-  font (on Ubuntu, the `fonts-noto-cjk` package). Run it after every visible
-  change to the page, and look at the results before committing them.
+  `npm run screenshots`. They use the fonts installed on your machine.
 - The demo video (`.github/demo*.webm`, 1120 × 840) and a vertical version
-  (`.github/demo-vertical*.mp4`, 1120 × 1680) are recorded by `npm run demo`,
-  which also needs Playwright: about half a minute each, in each language.
-  It uses the page as a visitor would, copying a black-and-white film's code
-  with one bar missed, taking the correction, and reading the sample photo of
-  a color negative, so run it after visible changes to those parts, and watch
-  the results before committing them.
+  (`.github/demo-vertical*.mp4`, 1120 × 1680) are recorded by `npm run demo`:
+  about half a minute each, in each language. It uses the page as a visitor
+  would, copying a black-and-white film's code with one bar missed, taking the
+  correction, and reading the sample photo of a color negative.
 
 ## License and sources
 

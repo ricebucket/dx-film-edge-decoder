@@ -68,6 +68,22 @@ test('the sample photo is read and can be used', async ({ page }) => {
   await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
 });
 
+test('a code read from a photo picks no film, so the result names the film the reader named', async ({ page }) => {
+  // A film picked before, with the sample's DX number.
+  await page.goto('/?dx=96-12/1&film=bfd-930');
+  await expect(page.locator('#result-title')).toHaveText('Kodak Gold 200 GB 200-7');
+  await page.getByRole('tab', { name: 'Read a photo' }).click();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A: KODAK GOLD 200 Film');
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
+  await expect(page).toHaveURL(/\?dx=96-12\/14A$/);
+  // Undo brings back the code before, with its pick.
+  await page.locator('#undo').click();
+  await expect(page.locator('#result-title')).toHaveText('Kodak Gold 200 GB 200-7');
+  await expect(page).toHaveURL(/\?dx=96-12\/1&film=bfd-930$/);
+});
+
 test('an uploaded photo of a mirrored slide is read the right way around', async ({ page }, testInfo) => {
   await upload(page, testInfo, { part1: 34, part2: 13, frame: 7, half: true, mirrored: true, module: 7 }, { look: 'slide' });
   await expect(page.locator('.photo__found')).toContainText('DX 34-13, frame 7A');
@@ -164,7 +180,7 @@ test('a scratched stop bar does not stick to the strip', async ({ page }, testIn
 test('a reading that no single bar can correct promises no corrections', async ({ page }, testInfo) => {
   const module = 8;
   const syn = image.synthesize({ part1: 39, part2: 1, frame: 1, module, clockHeight: 3.15, dataHeight: 2.5 });
-  // Bars in the unused cell 14 and the parity cell 27, both empty in this
+  // Bars in the unassigned cell 14 and the parity cell 27, both empty in this
   // code: two problems, which no one bar fixes.
   const codeLeft = (syn.width - 31 * module) / 2;
   const dataTop = syn.height * 0.42 + 3.15 * module;

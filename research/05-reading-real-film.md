@@ -9,9 +9,10 @@ identical adoption of ISO 1007:2000, sets its size: cells 0.35–0.53 mm wide,
 and the two tracks together reaching 2.06–2.60 mm in from the edge. A real
 Kodak negative fits those limits, with 0.41 mm cells and tracks reaching
 2.3 mm in, but its 31-cell code, 12.6 mm long, is longer than the 11.61 mm the
-standard gives for a code with the blank space at its ends. The code is read with the wide clock mark first, which on correctly oriented film
-is on the left. A photo of that negative decodes cell for cell exactly as the
-standard's layout predicts.
+standard gives for a code with the blank space at its ends. The code is read
+with the wide clock mark first, which on correctly oriented film is on the
+left. A photo of that negative decodes cell for cell exactly as the standard's
+layout predicts.
 
 ## Where the code is
 

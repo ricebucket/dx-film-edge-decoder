@@ -11,6 +11,8 @@ const realCommunity = require('../../site/js/dx-data-community.js');
 const realIndex = require('../../site/js/dx-index.js');
 
 const names = (matches) => matches.map((m) => m.entry.name);
+// Fixtures as the build writes them: the two tables and their index.
+const built = (data, community) => [data, community, buildIndex(data, community)];
 // The index lists rows by record number; the page ranks them when it shows them.
 const rankedNames = (rows) => createLookup.ranked(rows, (e) => createLookup.scoreOf(e)).map((e) => e.name);
 
@@ -46,7 +48,7 @@ const communityFixture = {
 };
 
 describe('lookup with a fixture', () => {
-  const lookup = createLookup(fixture, communityFixture, buildIndex(fixture, communityFixture));
+  const lookup = createLookup(...built(fixture, communityFixture));
 
   test('needs all three files: without one, it stops with an error that names them', () => {
     assert.throws(() => createLookup(fixture, undefined, buildIndex(fixture, communityFixture)), /dx-data-community\.js/);
@@ -230,6 +232,13 @@ describe('lookup with the real tables', () => {
     assert.ok(found.slice(firstOther).every((name) => !both(name)), found.join(' | '));
   });
 
+  test('words that start with "DX" but give no number find the same films however "DX" is joined to them', () => {
+    const ids = (q) => lookup.search(q).map((m) => m.entry.id).sort();
+    const coded = ids('dx coded');
+    assert.ok(coded.length >= 5, coded.join());
+    for (const q of ['coded dx', 'dx-coded', 'DX-coded', 'dxcoded']) assert.deepEqual(ids(q), coded, q);
+  });
+
   test('a number typed with a space, or a DX number also printed in names, finds those names too', () => {
     // "400 135" is no cassette number, though its six digits could be one.
     assert.ok(names(lookup.search('400 135')).some((n) => /135/.test(n) && /400/.test(n)));
@@ -400,7 +409,7 @@ describe('the scores, one part at a time', () => {
       row(85, '', 'Loose A', 'A rebrand of X'), row(85, '', 'Loose B'),
     ],
   };
-  const lookup = createLookup(data, community, buildIndex(data, community));
+  const lookup = createLookup(...built(data, community));
 
   test('by DX number: the cassette number agreeing, then no note, then the certainty, then the name', () => {
     const dx = (part2) => rankedNames(lookup.byDx(5, part2).community);
@@ -479,7 +488,7 @@ describe('search, by how well each film matches', () => {
       row(13, 81, '', 'Acme 400 DX'), // "DX 400" as words, which that number is not
     ],
   };
-  const lookup = createLookup(data, community, buildIndex(data, community));
+  const lookup = createLookup(...built(data, community));
   const found = (q) => lookup.search(q).map((m) => [m.entry.name, m.related]);
 
   test('a number that may also be a word: names with it as a word, as the start of one, inside one, then its DX number\'s films, then those only related by digits, then other fields', () => {
@@ -510,6 +519,29 @@ describe('search, by how well each film matches', () => {
     // "DX 400" is a number first: its films, then the names with its words as typed.
     assert.deepEqual(found('DX 400').map(([name]) => name), ['Registry Pan', 'Exact Cassette', 'Middle Digits', 'Roll Length', 'Acme 400 Pro', 'No Cassette', 'Related Row', 'Acme 400 DX']);
   });
+
+  test('a DX number written as one: a name that carries it as typed comes before a row that has it only in its note', () => {
+    // Both have a note and no certainty, so only how they match tells them apart; by name alone, the note's row would come first.
+    const notes = { source: {}, rows: [row(1, 81, '', 'Aaa Note Only', 'Box says 25-0'), row(2, 81, '', 'Acme 25-0', 'A rebrand')] };
+    const search = createLookup(...built(data, notes)).search;
+    assert.deepEqual(search('25-0').map((m) => m.entry.name), ['Registry Pan', 'Acme 25-0', 'Aaa Note Only']);
+  });
+
+  test('words that start with "DX" but give no number are searched as words, however "DX" is joined to them', () => {
+    // Rows of their own: names that say "DX coded" in three ways, and one that does not.
+    const words = { source: {}, rows: [row(1, 81, '', 'Acme DX coded'), row(2, 81, '', 'Acme DX-coded'), row(3, 81, '', 'Acme dxcoded'), row(4, 81, '', 'Acme coded')] };
+    const search = createLookup(...built(data, words)).search;
+    const sorted = (q) => names(search(q)).sort();
+    assert.deepEqual(sorted('dx coded'), ['Acme DX coded', 'Acme DX-coded', 'Acme dxcoded']);
+    for (const q of ['coded dx', 'dx-coded', 'DX-coded', 'dxcoded']) assert.deepEqual(sorted(q), sorted('dx coded'), q);
+  });
+
+  test('a cassette number typed as one also lists the rows that mention it, after all that its digits find', () => {
+    // Rows of its own, so that the lists above stay as they are.
+    const mentioned = { source: {}, rows: [row(1, 400, '004001', 'Exact Cassette'), row(2, 81, '', 'Plain', 'Box says 004001')] };
+    const search = createLookup(...built(data, mentioned)).search;
+    assert.deepEqual(search('004001').map((m) => [m.entry.name, m.related]), [['Registry Pan', false], ['Exact Cassette', false], ['Plain', false]]);
+  });
 });
 
 // Each index over its whole input space, against the rows read directly.
@@ -526,10 +558,18 @@ describe('the indexes, swept', () => {
     for (const files of [[other(realData), realCommunity, realIndex], [realData, other(realCommunity), realIndex], [realData, realCommunity, other(realIndex)]]) {
       assert.throws(() => createLookup(...files), /different builds/);
     }
-    // Or none at all, from before there were versions.
-    const { version, ...unversioned } = realIndex;
-    assert.match(version, /^[0-9a-f]{16}$/);
-    assert.throws(() => createLookup(realData, realCommunity, unversioned), /different builds/);
+    // Or none at all, from before there were versions, in any one of them.
+    assert.match(realIndex.version, /^[0-9a-f]{16}$/);
+    const unversioned = ({ version, ...rest }) => rest;
+    for (const [n, name] of ['dx-data.js', 'dx-data-community.js', 'dx-index.js'].entries()) {
+      const files = [realData, realCommunity, realIndex].map((f, k) => (k === n ? unversioned(f) : f));
+      assert.throws(() => createLookup(...files), /different builds/, name);
+    }
+    // Or files of another deploy than this dx-lookup.js, in any one of them (tests/unit/stamp.test.mjs stamps whole copies).
+    for (const n of [0, 1, 2]) {
+      const files = [realData, realCommunity, realIndex].map((f, k) => (k === n ? { ...f, build: '0123456789ab' } : f));
+      assert.throws(() => createLookup(...files), /another deploy than dx-lookup\.js/, String(n));
+    }
     assert.doesNotThrow(() => createLookup(realData, realCommunity, realIndex));
   });
 

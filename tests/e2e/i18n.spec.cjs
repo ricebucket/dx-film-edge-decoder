@@ -295,7 +295,7 @@ test('a language in the URL that the page does not have is ignored', async ({ pa
   await expect(page).toHaveURL(/\?dx=79-15\/23$/);
 });
 
-test('Copy link copies the code and the language it is shown in', async ({ page, baseURL }) => {
+test('Copy link copies the code, the film picked and the language it is shown in', async ({ page, baseURL }) => {
   await page.addInitScript(() => {
     window.copied = [];
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text) => { window.copied.push(text); } } });
@@ -308,6 +308,12 @@ test('Copy link copies the code and the language it is shown in', async ({ page,
   await page.getByRole('button', { name: '复制链接' }).click();
   await expect(page.getByRole('button', { name: '链接已复制' })).toBeVisible();
   expect(await page.evaluate(() => window.copied)).toEqual([`${baseURL}/?dx=96-12/14A&lang=zh-CN`]);
+  // A film picked to show the code stays picked in the link.
+  await page.goto('/?dx=96-12/1&film=bfd-930&lang=en');
+  await expect(page.locator('#result-title')).toHaveText('Kodak Gold 200 GB 200-7');
+  await page.getByRole('button', { name: 'Copy link' }).click();
+  await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
+  expect(await page.evaluate(() => window.copied)).toEqual([`${baseURL}/?dx=96-12/1&film=bfd-930&lang=en`]);
 });
 
 test('a link can name the language: it stays in the URL as the code changes, without replacing the saved choice', async ({ page }) => {
@@ -333,11 +339,28 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   await chooseLanguage(page, '简体中文');
   await page.locator('#finder-q').fill('hp5 plus');
   await expect(page.locator('#finder-help')).toContainText('找到');
-  await expect(page.locator('.finder__item').first().locator('.finder__name')).toHaveText('HP5 PLUS');
+  await expect(page.locator('.finder__item').first().locator('.match__name')).toHaveText('HP5 PLUS');
 
   await page.locator('#cassette-code').fill('017563');
   await page.getByRole('button', { name: '查询' }).click();
   await expect(page.locator('.cassette__result')).toContainText('24 张');
+  // A row's pieces are read out apart, with Chinese commas.
+  await page.locator('#cassette-code').fill('106253');
+  await page.getByRole('button', { name: '查询' }).click();
+  expect(await page.locator('.cassette__result .match').first().ariaSnapshot()).toMatch(/FUJICOLOR 200\s*，\s*DX 39-1\s*，\s*I3A\s*，\s*2008 年仍在生产/);
+  // Each list says how many films it has: alone, as just films; after another, as other films.
+  await page.locator('#cassette-code').fill('016834');
+  await page.getByRole('button', { name: '查询' }).click();
+  await expect(page.locator('.cassette__result .source-block__title')).toHaveText(['1 种胶片']);
+  await page.locator('#cassette-code').fill('003770');
+  await page.getByRole('button', { name: '查询' }).click();
+  await expect(page.locator('.cassette__result .source-block__title')).toHaveText(['有 2 种胶片的中间四位数字相同']);
+  await expect(page.locator('.cassette__result summary')).toHaveText(['另有 1 种胶片']);
+  // A recorded number no film edge can carry, as recorded, marked where it is why the film is listed.
+  await page.locator('#cassette-code').fill('037840');
+  await page.getByRole('button', { name: '查询' }).click();
+  await expect(page.locator('.cassette__result .match__recorded')).toHaveText('记录的 DX 码：3784');
+  await expect(page.locator('.cassette__result .match__recorded mark')).toHaveText('3784');
   // A row only related by digits says so.
   await page.locator('#cassette-code').fill('001742');
   await page.getByRole('button', { name: '查询' }).click();

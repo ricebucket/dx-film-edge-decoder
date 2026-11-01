@@ -10,7 +10,11 @@
 //   node scripts/check-languages.mjs --template   # print a dictionary of all English texts
 //
 // It also checks that site/js/prepaint.js lists every language file, since
-// index.html loads only the file of the language it is shown in.
+// index.html loads only the file of the language it is shown in; that the
+// English sources page's language menu lists every language, and its links
+// to index.html name English (?lang=en); and that the code takes texts from
+// i18n only as `const t = i18n.t` or by calling i18n.t(), i18n.parts() or
+// i18n.plural(), the calls this check can read.
 //
 // For each language it lists English texts it lacks, texts whose English is no
 // longer used, texts whose {placeholders} or HTML tags differ from the English,

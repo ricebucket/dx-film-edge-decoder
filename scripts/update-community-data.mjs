@@ -34,7 +34,10 @@ export async function resolveCommit(args, recorded) {
   if (!args.includes('--latest')) return recorded.commit;
   const res = await fetch(`https://api.github.com/repos/${REPO}/commits?path=film_database.csv&per_page=1`);
   if (!res.ok) throw new Error(`GitHub API: HTTP ${res.status}`);
-  return (await res.json())[0].sha;
+  // Checked as --commit is: it goes into the download's address and source.json.
+  const sha = (await res.json())?.[0]?.sha;
+  if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error('GitHub API: no full commit hash of film_database.csv in its answer');
+  return sha;
 }
 
 /**
@@ -86,6 +89,26 @@ export function assignIds(rows, before, lastId = 0) {
 }
 
 /**
+ * What an update did to the record IDs, in a sentence for its maintainer:
+ * `ids` from assignIds, `before` the snapshot's IDs, and `unseen` how many
+ * IDs were in use that no snapshot shows (all of them retired).
+ */
+export function idsReport(ids, before, unseen = 0) {
+  const had = new Set(before);
+  const now = new Set(ids);
+  const added = ids.filter((id) => !had.has(id)).sort((a, b) => a - b);
+  const kept = ids.length - added.length;
+  const retired = before.filter((id) => !now.has(id)).length + unseen;
+  const n = (count) => count.toLocaleString('en-US');
+  return [
+    kept === 0 ? 'No row kept its ID' : kept === 1 ? '1 row kept its ID' : `${n(kept)} rows kept their IDs`,
+    added.length === 0 ? 'none got a new one'
+      : added.length === 1 ? `1 got a new one (${added[0]})` : `${n(added.length)} got new ones (${added[0]}–${added[added.length - 1]})`,
+    retired === 0 ? 'no ID was retired' : retired === 1 ? '1 ID was retired' : `${n(retired)} IDs were retired`,
+  ].join('; ') + '.';
+}
+
+/**
  * What assignIds compares rows by: their values under the column names the
  * download and the snapshot share, so that a column added, dropped or moved
  * upstream changes no unchanged row's ID. `header` is the download's
@@ -118,6 +141,10 @@ async function main() {
   };
   // The ID column is this script's own: one upstream would be read in its place.
   if (header.includes('ID')) throw new Error('Column "ID" is upstream now, under the name of the column this script adds; upstream format changed');
+  // Rows are matched by the first column of a name, but the build reads the
+  // last: under a name given twice, rows would keep their IDs with other values.
+  const twice = header.find((name, i) => header.indexOf(name) !== i);
+  if (twice !== undefined) throw new Error(`Column "${twice}" appears twice; upstream format changed`);
   const extract = col('DX extract');
   const full = col('DX full');
   const pic = col('Pic');
@@ -135,13 +162,27 @@ async function main() {
   const path = join(OUT_DIR, 'film_database_dx.csv');
   const [oldHeader, ...oldRows] = parseCsv(await readFile(path, 'utf8').catch(() => ''), ';');
   const snapshot = Boolean(oldHeader) && oldHeader[0] === 'ID';
+  // Its IDs, checked as the build checks them, before anything is written:
+  // an ID column that is not first would have every row numbered anew, and a
+  // bad or repeated ID would be passed on to the rows written.
+  if (!snapshot && oldHeader && oldHeader.includes('ID')) throw new Error('film_database_dx.csv: the "ID" column is not the first; move it back to the front');
+  const given = new Set();
+  for (const [id] of snapshot ? oldRows : []) {
+    const value = /^\d+$/.test(id.trim()) ? Number(id) : 0;
+    if (value < 1 || given.has(value)) throw new Error(`film_database_dx.csv: ID "${id}" is missing, repeated or not a whole number`);
+    given.add(value);
+  }
   const by = sharedColumns(dropPic(header), snapshot ? oldHeader : ['ID', ...dropPic(header)], read);
   const { ids, lastId } = assignIds(keep.map((r) => by.now(dropPic(r))), snapshot ? oldRows.map(by.before) : [], recorded.lastId);
   await writeFile(path, formatCsv([['ID', ...dropPic(header)], ...keep.map((r, i) => [String(ids[i]), ...dropPic(r)])], ';'));
 
   const source = sourceRecord({ commit, rowsUpstream: rows.length, rowsKept: keep.length, lastId }, recorded);
   await writeFile(join(OUT_DIR, 'source.json'), JSON.stringify(source, null, 2) + '\n');
-  console.log(`Kept ${keep.length} of ${rows.length} rows from ${REPO}@${commit.slice(0, 7)}`);
+  const n = (count) => count.toLocaleString('en-US');
+  console.log(`Kept ${n(keep.length)} of ${n(rows.length)} rows from ${REPO}@${commit.slice(0, 7)}`);
+  // Without a snapshot that has IDs, every row gets a new one, and every ID
+  // in use before is retired: one for each row the last update kept.
+  console.log(idsReport(ids, snapshot ? oldRows.map(([id]) => Number(id)) : [], !snapshot && recorded.lastId > 0 ? recorded.rowsKept : 0));
   console.log('Next: npm run build:data, then follow "Updating the data" in data/README.md.');
 }
 

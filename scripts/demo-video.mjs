@@ -107,7 +107,7 @@ function drawPointer() {
 /**
  * Given to the page: a red box around a part of the result, to show where to
  * look, gone at the next click. The parts are the corrections offered, and
- * the film found (its name, its first list's entries, and its DX number and
+ * the film found (its name, the list of films under it, and its DX number and
  * frame).
  */
 function defineMarks() {

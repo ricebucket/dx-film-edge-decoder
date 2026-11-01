@@ -32,7 +32,10 @@ export async function communityStats() {
 
   // The same range as site/js/dx-lookup.js: Part 1 = 0 is valid, but no maker
   // held it in 2008, so numbers below 16 are not taken as edge codes.
-  const edge = new Set(rows.map(extract).filter((x) => x >= 16 && x <= 2047));
+  const isEdge = (x) => x >= 16 && x <= 2047;
+  const edge = new Set(rows.map(extract).filter(isEdge));
+  // The rows the database marks as on the market, and their edge codes.
+  const onMarket = rows.filter((r) => r.Ava.trim() === '2').map(extract).filter(isEdge);
   return {
     commit: source.commit.slice(0, 7),
     retrieved: source.retrieved,
@@ -50,18 +53,21 @@ export async function communityStats() {
     availability: tally('Ava', ['0', '1', '2']),
     edgeDxNumbers: edge.size,
     notInRegistry: [...edge].filter((x) => !registry.has(x)).length,
+    onMarketWithEdge: onMarket.length,
+    onMarketDxNumbers: new Set(onMarket).size,
+    onMarketNotInRegistry: [...new Set(onMarket)].filter((x) => !registry.has(x)).length,
   };
 }
 
 async function main() {
   const s = await communityStats();
-  const n = (x) => x.toLocaleString('en-GB');
+  const n = (x) => x.toLocaleString('en-US');
   const certainty = Object.values(s.certainty).reduce((a, b) => a + b, 0);
   console.log(`Snapshot: commit ${s.commit}, retrieved ${s.retrieved}
 Rows upstream: ${n(s.rowsUpstream)}; with a DX extract or a cassette number: ${n(s.rowsKept)} (${n(s.withExtract)} with a DX extract, ${n(s.onlyCassette)} with only a cassette number)
 DX numbers that can appear on a film edge (16-2047): ${n(s.edgeDxNumbers)}, of which not in the 2008 registry: ${n(s.notInRegistry)}
 
-Data-quality findings:
+Data-quality findings, in the rows with a DX extract or a cassette number:
   DX extract disagrees with the cassette number: ${s.extractDisagrees}
   DX extract without a cassette number: ${s.noCassette}
   number above 2047: ${s.above2047}
@@ -69,7 +75,11 @@ Data-quality findings:
   HTML markup inside a field: ${s.htmlMarkup}
   "#" search tags in the name: ${s.searchTags}
   certainty recorded: ${certainty} (${Object.entries(s.certainty).map(([k, v]) => `${k}: ${v}`).join(', ')})
-  availability: ${n(s.availability[0])} discontinued, ${s.availability[1]} unsure, ${s.availability[2]} on the market`);
+  availability: ${n(s.availability[0])} discontinued, ${s.availability[1]} unsure, ${s.availability[2]} on the market
+
+Coverage of modern films, in the same rows:
+  rows marked on the market: ${s.availability[2]}, with a DX number that can appear on a film edge: ${s.onMarketWithEdge}
+  their DX numbers: ${s.onMarketDxNumbers}, of which not in the 2008 registry: ${s.onMarketNotInRegistry}`);
 }
 
 if (isMain(import.meta)) {

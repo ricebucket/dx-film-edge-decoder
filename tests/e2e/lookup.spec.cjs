@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { watchConsole, dataCell } = require('./helpers.cjs');
+const { watchConsole, dataCell, setCells } = require('./helpers.cjs');
 
 let checkConsole;
 test.beforeEach(async ({ page }) => {
@@ -11,7 +11,7 @@ test.afterEach(() => checkConsole());
 test('search finds a film and shows its barcode on the strip', async ({ page }) => {
   await page.locator('#finder-q').fill('hp5 plus');
   const first = page.locator('.finder__item').first();
-  await expect(first.locator('.finder__name')).toHaveText('HP5 PLUS');
+  await expect(first.locator('.match__name')).toHaveText('HP5 PLUS');
   await expect(first).toContainText('DX 109-9');
   await page.locator('#finder-frame').fill('12A');
   // Named for screen readers with its film.
@@ -43,31 +43,38 @@ test('search results without a usable DX number say why, in the row', async ({ p
   await page.locator('#finder-q').fill('neopan 400ug');
   const neopan = page.locator('.finder__item').first();
   await expect(neopan.getByRole('button', { name: 'No full code' })).toBeDisabled();
-  await expect(neopan.locator('.finder__why')).toHaveText('No maker held Part 1 = 0 in 2008, so DX 0-0 is not a maker’s code.');
-  await expect(neopan.locator('.finder__dx')).toHaveCount(0); // no cassette number either
+  await expect(neopan.locator('.match__why')).toHaveText('No maker held Part 1 = 0 in 2008, so DX 0-0 is not a maker’s code.');
+  await expect(neopan.locator('.match__dx')).toHaveCount(0);
+  await expect(neopan.locator('.match__cassette')).toHaveCount(0); // no cassette number either
+  await expect(neopan.locator('.match__recorded')).toHaveText('Recorded DX number: 0000');
   await page.locator('#finder-q').fill('cinestill 800t');
   const cine = page.locator('.finder__item').first();
-  await expect(cine.locator('.finder__why')).toHaveText('This cassette number is outside the range a film edge code can hold.');
-  await expect(cine.locator('.finder__dx')).toHaveText('cassette 753914');
+  await expect(cine.locator('.match__why')).toHaveText('This cassette number is outside the range a film edge code can hold.');
+  await expect(cine.locator('.match__cassette')).toHaveText('Cassette number 753914');
+  await expect(cine.locator('.match__recorded')).toHaveText('Recorded DX number: 5391');
   // The registry's own augmented cassette numbers, as its rows.
   await page.locator('#finder-q').fill('832973');
   const coutu = page.locator('.finder__item').first();
-  await expect(coutu.locator('.finder__name')).toHaveText('KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
+  await expect(coutu.locator('.match__name')).toHaveText('KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
   await expect(coutu.locator('.source-tag')).toHaveText('I3A');
-  await expect(coutu.locator('.finder__dx')).toHaveText('cassette 832973');
-  await expect(coutu.locator('.finder__why')).toHaveText('This cassette number is outside the range a film edge code can hold.');
+  await expect(coutu.locator('.match__cassette')).toHaveText('Cassette number 832973');
+  // Its own line says why it has no code to show, so no other line repeats it.
+  await expect(coutu.locator('.match__facts')).toHaveText(['Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.', 'Eastman Kodak Company.']);
+  await expect(coutu.locator('.match__why')).toHaveCount(0);
+  await expect(coutu.getByRole('button', { name: 'No full code' })).toBeDisabled();
   // A number recorded without a cassette number is not called one.
   await page.locator('#finder-q').fill('klick extra definition');
   const klick = page.locator('.finder__item').first();
-  await expect(klick.locator('.finder__why')).toHaveText('The DX number recorded for this film is outside the range a film edge code can hold.');
-  await expect(klick.locator('.finder__dx')).toHaveCount(0);
+  await expect(klick.locator('.match__why')).toHaveText('The DX number recorded for this film is outside the range a film edge code can hold.');
+  await expect(klick.locator('.match__dx')).toHaveCount(0);
+  await expect(klick.locator('.match__recorded')).toHaveText('Recorded DX number: 3784');
 });
 
 test('"DX" and a Part 1 alone lists that Part 1\'s films, and says how to narrow them down', async ({ page }) => {
   const status = page.locator('#finder-help');
   await page.locator('#finder-q').fill('DX 79');
   await expect(status).toHaveText(/^\d+ films have Part 1 = 79\. Add their Part 2 to narrow the list, e\.g\. 79-\d+\.$/);
-  await expect(page.locator('.finder__item').first().locator('.finder__dx')).toHaveText(/^DX 79-/);
+  await expect(page.locator('.finder__item').first().locator('.match__dx')).toHaveText(/^DX 79-/);
   // Even where words of the entries' notes would match it as text.
   await page.locator('#finder-q').fill('DX 120');
   await expect(status).toHaveText(/films? ha(s|ve) Part 1 = 120\./);
@@ -79,7 +86,7 @@ test('a cassette number finds the film recorded with it, as recorded, and its ed
   // Harman Phoenix II: cassette 017765 (1776 = 16 × 111), recorded as 105-3, which its notes say its edge carries.
   await page.locator('#finder-q').fill('017765');
   await expect(page.locator('#finder-help')).toHaveText('1 film found.');
-  await expect(page.locator('.finder__item .finder__dx')).toHaveText('DX 105-3');
+  await expect(page.locator('.finder__item .match__dx')).toHaveText('DX 105-3');
   await page.locator('#cassette-code').fill('017765');
   await page.getByRole('button', { name: 'Look up' }).click();
   const out = page.locator('.cassette__result');
@@ -89,7 +96,7 @@ test('a cassette number finds the film recorded with it, as recorded, and its ed
   // The edge barcode is the one the film's row records, not what the digits give (111-0).
   await expect(out.getByRole('link', { name: /on The Big Film Database/ })).toHaveAttribute('href', /dx_number=105-3$/);
   // Its own button shows it, as recorded.
-  await row.getByRole('button', { name: 'Show the edge barcode of Harman Phoenix II ISO 200', exact: true }).click();
+  await row.getByRole('button', { name: 'Show barcode of Harman Phoenix II ISO 200', exact: true }).click();
   await expect(page.locator('#result .readout__value').first()).toHaveText('105-3');
   await expect(page.locator('#result-title')).toHaveText('Harman Phoenix II ISO 200');
 });
@@ -111,7 +118,7 @@ test('the cassette helper shows the rows for a number as recorded, each with its
   await expect(row('REALA 100 Gen 2').locator('.pill--near')).toHaveText('Fuzzy match');
   await expect(row('REALA 100 Gen 2').locator('mark')).toHaveText('0174');
   // Each row's button is named for screen readers with its film: after it, the result is headed by the registry's.
-  await expect(row('REALA 100 Gen 1').getByRole('button')).toHaveAccessibleName('Show the edge barcode of FUJICOLOR REALA 100 Gen 1');
+  await expect(row('REALA 100 Gen 1').getByRole('button')).toHaveAccessibleName('Show barcode of FUJICOLOR REALA 100 Gen 1');
   await expect(out).not.toContainText('also gives DX');
   await expect(out).not.toContainText('edge code as DX');
   // Its edge barcode is the one it is recorded with.
@@ -126,7 +133,7 @@ test('the cassette helper shows the rows for a number as recorded, each with its
   // one as 103-14. Each row has its own button, for its own film.
   await lookUp('114064');
   await expect(out.locator('div.source-block .match__dx')).toHaveText(['DX 87-14', 'DX 103-14']);
-  await expect(out.getByRole('button', { name: /^Show the edge barcode of / })).toHaveCount(2);
+  await expect(out.getByRole('button', { name: /^Show barcode of / })).toHaveCount(2);
   await expect(out.locator('.result__actions')).toHaveCount(0);
   // 333098 (Power Geek) gives no DX number, and its entry records 39-1: both as they are.
   await lookUp('333098');
@@ -171,15 +178,16 @@ test('Find a film marks the rows a number finds only by some of its digits, and 
   await page.locator('#finder-q').fill('tudorcolor xlx400');
   const tudor = page.locator('.finder__item').first();
   await expect(tudor.getByRole('button', { name: 'No full code' })).toBeDisabled();
-  await expect(tudor.locator('.finder__why')).toHaveText('The Big Film Database records no DX number for this film.');
-  await expect(tudor.locator('.finder__dx')).toHaveText('cassette 606253');
+  await expect(tudor.locator('.match__why')).toHaveText('The Big Film Database records no DX number for this film.');
+  await expect(tudor.locator('.match__dx')).toHaveCount(0);
+  await expect(tudor.locator('.match__cassette')).toHaveText('Cassette number 606253');
 });
 
 test('a cassette number whose middle digits give Part 1 = 0 is called a filler, in Find a film and the cassette helper', async ({ page }) => {
   const note = 'Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX 0-5 is not a maker’s code.';
   await page.locator('#finder-q').fill('000054');
   await expect(page.locator('#finder-help')).toHaveText('3 films found.');
-  await expect(page.locator('.finder__item').first().locator('.finder__why')).toHaveText(note);
+  await expect(page.locator('.finder__item').first().locator('.match__why')).toHaveText(note);
   await page.locator('#cassette-code').fill('000054');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText(note);
@@ -188,7 +196,7 @@ test('a cassette number whose middle digits give Part 1 = 0 is called a filler, 
   await page.locator('#cassette-code').fill('000004');
   await page.getByRole('button', { name: 'Look up' }).click();
   // Those recorded with these digits but no cassette number come in a list of their own, last.
-  await expect(page.locator('.cassette__result summary')).toHaveText(['2 other films have the same middle four digits', 'Other films']);
+  await expect(page.locator('.cassette__result summary')).toHaveText(['2 films have the same middle four digits', '2 other films']);
   await expect(page.locator('.cassette__result details').last().locator('.match__name')).toHaveText(['Fujifilm Neopan 400UG (Uniform grain, first version)', 'Fujifilm Neopan SS - 100 ISO –']);
   // Both folded lists are fuzzy matches, with the digits they share marked where there is a cassette number.
   const folded = page.locator('.cassette__result details');
@@ -197,25 +205,31 @@ test('a cassette number whose middle digits give Part 1 = 0 is called a filler, 
   await expect(folded.last().locator('.pill--near')).toHaveText(['Fuzzy match', 'Fuzzy match']);
 });
 
-test('a cassette number finds the films recorded with its DX number under a cassette number with other digits, in the last list, unmarked', async ({ page }) => {
+test('a cassette number finds the films recorded with its DX number under a cassette number with other digits, in the last list, their DX number marked', async ({ page }) => {
   // Harman Phoenix II is recorded as 105-3 (1683), with cassette 017765.
   await page.locator('#cassette-code').fill('016834');
   await page.getByRole('button', { name: 'Look up' }).click();
   const out = page.locator('.cassette__result');
-  await expect(out.locator('summary')).toHaveText(['Other films']);
-  const row = out.locator('details .match', { hasText: 'Harman Phoenix II' });
+  // The only list: open, never folded, and its films are no "other" ones.
+  await expect(out.locator('summary')).toHaveCount(0);
+  await expect(out.locator('.source-block__title')).toHaveText(['1 film']);
+  const row = out.locator('.match', { hasText: 'Harman Phoenix II' });
   await expect(row.locator('.match__dx')).toHaveText('DX 105-3');
   await expect(row.locator('.pill--near')).toHaveText('Fuzzy match');
-  // Its cassette number shares no digits with this one: none are marked.
+  // Its cassette number shares no digits with this one; its DX number, which these digits give, is why it is listed.
   await expect(row.locator('.match__cassette')).toHaveText('Cassette number 017765');
-  await expect(row.locator('mark')).toHaveCount(0);
+  await expect(row.locator('mark')).toHaveText(['105-3']);
+  await expect(row.locator('.match__dx mark')).toHaveCount(1);
   await expect(out).not.toContainText('Not found in either');
-  // Find a film finds it the same way.
+  // Find a film finds it the same way, and marks it the same way: its row is drawn as in every list.
   await page.locator('#finder-q').fill('016834');
   await expect(page.locator('#finder-help')).toHaveText('1 film found.');
   const item = page.locator('.finder__item', { hasText: 'Harman Phoenix II' });
   await expect(item.locator('.pill--near')).toHaveText('Fuzzy match');
-  await expect(item.locator('mark')).toHaveCount(0);
+  await expect(item.locator('mark')).toHaveText(['105-3']);
+  await expect(item.locator('.match__dx mark')).toHaveCount(1);
+  // The same row, word for word, as in the cassette helper.
+  expect(await item.locator('.match__body').innerText()).toBe(await row.locator('.match__body').innerText());
 });
 
 test('the cassette helper says when a Part 1 is for APS film, as the result does', async ({ page }) => {
@@ -226,7 +240,7 @@ test('the cassette helper says when a Part 1 is for APS film, as the result does
 
 test('search by DX number lists that code first', async ({ page }) => {
   await page.locator('#finder-q').fill('79-15');
-  await expect(page.locator('.finder__item .finder__name').first()).toHaveText('KODAK Professional BW400CN Film');
+  await expect(page.locator('.finder__item .match__name').first()).toHaveText('KODAK Professional BW400CN Film');
   await expect(page.locator('#finder-help')).toContainText('found');
 });
 
@@ -270,7 +284,7 @@ test('a cassette number gives the film, the roll length and the edge code', asyn
   // The line under the box keeps saying where the digits are printed.
   await expect(page.locator('#cassette-help')).toHaveText('Printed between the barcode and the film slot.');
   await expect(out.locator('.match__name').first()).toHaveText('FP4 PLUS');
-  await out.locator('.match').first().getByRole('button', { name: 'Show the edge barcode of FP4 PLUS' }).click();
+  await out.locator('.match').first().getByRole('button', { name: 'Show barcode of FP4 PLUS' }).click();
   await expect(page.locator('#result-title')).toHaveText('FP4 PLUS');
   // A digit that Wikipedia's older list reads differently says so.
   await page.locator('#cassette-code').fill('017560');
@@ -398,7 +412,7 @@ test('the film look and Mirror leave the result as it is, with a list opened in 
 
 test('an entry shows how sure the database is about its note, beside the note only', async ({ page }) => {
   const shown = (entry) => page.evaluate((e) => {
-    const li = window.DX.ui.communityItem(Object.assign({ manufacturer: '', country: '', from: '', to: '', distributor: '', availability: '', cassettes: [] }, e));
+    const li = window.DX.ui.filmItem(Object.assign({ manufacturer: '', country: '', from: '', to: '', distributor: '', availability: '', cassettes: [], extract: null }, e), 'community');
     const certainty = li.querySelector('.certainty');
     return certainty && { text: li.textContent, title: certainty.title };
   }, entry);
@@ -426,7 +440,7 @@ test('on the Chinese page, a source\'s own words are marked as English, and Chin
   const years = await page.evaluate(() => [...document.querySelectorAll('#result .match [lang="en"]')].map((el) => el.textContent));
   expect(years.filter((text) => !/[a-z]/i.test(text))).toEqual([]);
   // Notes and countries a source wrote in Chinese or Japanese stay unmarked.
-  const cjk = await page.evaluate(() => window.DX.ui.communityItem({ name: 'A film', original: '業務記錄用', country: '日本', manufacturer: '', from: '1998', to: '', distributor: '', availability: '', reliability: null, cassettes: [] }).querySelectorAll('[lang="en"]').length);
+  const cjk = await page.evaluate(() => window.DX.ui.filmItem({ name: 'A film', original: '業務記錄用', country: '日本', manufacturer: '', from: '1998', to: '', distributor: '', availability: '', reliability: null, cassettes: [], extract: null }, 'community').querySelectorAll('[lang="en"]').length);
   expect(cjk).toBe(0);
 });
 
@@ -438,7 +452,7 @@ test('community numbers below 16 name films by cassette only, never by the bars 
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText('Orwo ORWOPAN 25');
   // As in Find a film, there is no edge code to show or look up.
-  await expect(page.locator('.cassette__result').getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
+  await expect(page.locator('.cassette__result').getByRole('button', { name: 'Show barcode' })).toHaveCount(0);
   await expect(page.locator('.cassette__result').getByRole('link', { name: /^Look up DX/ })).toHaveCount(0);
 });
 
@@ -448,7 +462,7 @@ test('the cassette helper lists each film once, with all its cassette numbers, s
   await page.getByRole('button', { name: 'Look up' }).click();
   const out = page.locator('.cassette__result');
   await expect(out.locator('div.source-block .match', { hasText: 'SENSIA 100 RA' }).locator('.match__cassette')).toHaveText('Cassette numbers 005150, 105154');
-  await expect(out.locator('summary')).toHaveText(['1 other film has the same middle four digits']);
+  await expect(out.locator('summary')).toHaveText(['1 film has the same middle four digits']);
   await expect(out.locator('details .match__name')).toHaveText(['Voigtländer V Chrome 100']);
   // Every number recorded: a film in one list only.
   const twice = await page.evaluate(() => {
@@ -562,6 +576,43 @@ test('on the narrowest screens, nothing in a cassette helper row runs under its 
   expect(under).toEqual([]);
 });
 
+test('on phones, each cassette helper row has its button under its text; on wider screens, beside it', async ({ page }) => {
+  // Up to 30em (480 px), and from just above it.
+  for (const [width, under] of [[480, true], [481, false], [700, false]]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator('#cassette-code').fill('013954');
+    await page.getByRole('button', { name: 'Look up' }).click();
+    const rows = page.locator('.cassette__result .match--action');
+    await expect(rows.first()).toBeVisible();
+    const placed = await rows.evaluateAll((items) => items.map((li) => li.querySelector(':scope > button').getBoundingClientRect().top >= li.querySelector('.match__body').getBoundingClientRect().bottom - 1));
+    expect(placed.length).toBeGreaterThan(2);
+    expect(placed.every((p) => p === under), `${width} px`).toBe(true);
+  }
+});
+
+test('a row\'s name, DX number, tags and status are read out apart, and shown apart in contrast themes too', async ({ page }) => {
+  await page.locator('#cassette-code').fill('106253');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  const row = page.locator('.cassette__result .match').first();
+  // A comma after each piece, read out but not shown, as in Find a film and the result.
+  expect(await row.ariaSnapshot()).toMatch(/FUJICOLOR 200\s*,\s*DX 39-1\s*,\s*I3A\s*,\s*in production in 2008/);
+  await page.locator('#finder-q').fill('fujicolor 200');
+  await expect(page.locator('.finder__item').nth(1)).toContainText('DX 8-2');
+  expect(await page.locator('.finder__item').nth(1).ariaSnapshot()).toMatch(/FUJICOLOR 200\s*,\s*DX 8-2\s*,\s*I3A\s*,\s*in production in 2008\s*,\s*FUJIFILM Corporation/);
+  // The database's rows too, in the cassette helper and in the result.
+  const community = page.locator('.cassette__result .match--community').first();
+  expect(await community.ariaSnapshot()).toMatch(/Fujicolor 200\s*,\s*DX 39-1\s*,\s*Community\s*,\s*discontinued\s*,\s*Made by/);
+  const dots = page.locator('.cassette__result .row-dot');
+  await expect(dots.first()).toBeHidden();
+  // In Windows contrast themes, where tags and status lose their tint, a dot between the pieces, not read out.
+  await page.emulateMedia({ forcedColors: 'active' });
+  await expect(dots.first()).toBeVisible();
+  expect(await row.ariaSnapshot()).not.toContain('·');
+  await page.goto('/?dx=39-1/1');
+  const result = page.locator('#result .match--community', { hasText: 'Made by Fuji Photo Film' }).first();
+  expect(await result.ariaSnapshot()).toMatch(/Fujicolor 200\s*,\s*Community\s*,\s*discontinued\s*,\s*Made by/);
+});
+
 test('a one-bar correction names the film picked to show the code, as the result does once it is used', async ({ page }) => {
   const title = page.locator('#result-title');
   const fix = (cell) => page.locator('#result .fix').filter({ has: page.locator('.fix__cell').getByText(cell, { exact: true }) });
@@ -608,19 +659,55 @@ test('a picked film stays first when the bar is hidden, and through the address:
   await expect(title).toHaveText('Efiniti Uxi Super 200');
 });
 
-test('a picked film comes first only while its own DX number is on the strip', async ({ page }) => {
+test('a picked film comes first, and is named in the address, only while its own DX number is on the strip', async ({ page }) => {
   // REALA 100 Gen 1 records 10-12; its cassette number 001742 gives 10-14,
   // under which it is a fuzzy match of REALA 100 Gen 2's number.
   await page.locator('#cassette-code').fill('001742');
   await page.getByRole('button', { name: 'Look up' }).click();
   await page.locator('.cassette__result .match', { hasText: 'REALA 100 Gen 1' }).getByRole('button').click();
   await expect(page.locator('#result-title')).toHaveText('FUJICOLOR REALA 100 Gen 1');
+  await expect(page).toHaveURL(/\?dx=10-12\/1&film=bfd-\d+$/);
   // A bar more in Part 2, and the parity bit: DX 10-14.
   for (const cell of [17, 27]) await dataCell(page, cell).click();
   await expect(page.locator('#result .readout__value').first()).toHaveText('10-14');
   const rows = page.locator('#result .matches > li');
   await expect(rows.locator('.match__name')).toHaveText(['FUJICOLOR REALA 100 Gen 2', 'FUJICOLOR REALA 100 Gen 1']);
   await expect(rows.nth(1).locator('.pill--near')).toHaveText('Fuzzy match');
+  await expect(page).toHaveURL(/\?dx=10-14\/1$/);
+  // And back: the film comes first again, and the address names it again.
+  for (const cell of [17, 27]) await dataCell(page, cell).click();
+  await expect(page.locator('#result-title')).toHaveText('FUJICOLOR REALA 100 Gen 1');
+  await expect(page).toHaveURL(/\?dx=10-12\/1&film=bfd-\d+$/);
+});
+
+test('Clear forgets the film picked: the same code entered again by hand names the number\'s own film', async ({ page }) => {
+  const title = page.locator('#result-title');
+  await page.locator('#finder-q').fill('efiniti uxi');
+  await page.locator('.finder__item').first().getByRole('button', { name: 'Show barcode of Efiniti Uxi Super 200' }).click();
+  await expect(title).toHaveText('Efiniti Uxi Super 200');
+  const bits = await page.evaluate(() => window.DX.codec.encode({ part1: 39, part2: 1, frame: 1, half: false }, 'long'));
+  await page.locator('#clear').click();
+  await setCells(page, bits);
+  await expect(title).toHaveText('FUJICOLOR 200');
+  await expect(page).toHaveURL(/\?dx=39-1\/1$/);
+});
+
+test('a link picks only films of its own code, each once, by their IDs as the page writes them', async ({ page }) => {
+  const title = page.locator('#result-title');
+  // An ID written with a leading zero names no film, and goes from the address.
+  await page.goto('/?dx=96-12/1&film=bfd-0930');
+  await expect(title).toHaveText('KODAK GOLD 200 Film');
+  await expect(page).toHaveURL(/\?dx=96-12\/1$/);
+  // An ID given twice stays once.
+  await page.goto('/?dx=96-12/1&film=bfd-930,bfd-930');
+  await expect(title).toHaveText('Kodak Gold 200 GB 200-7');
+  await expect(page).toHaveURL(/\?dx=96-12\/1&film=bfd-930$/);
+  // A film of another DX number (bfd-930 is 96-12) is not picked later either, when its number comes on the strip.
+  await page.goto('/?dx=96-13/1&film=bfd-930');
+  await expect(page).toHaveURL(/\?dx=96-13\/1$/);
+  await dataCell(page, 18).click();
+  await expect(title).toHaveText('As copied: KODAK GOLD 200 Film');
+  await expect(page).not.toHaveURL(/film=/);
 });
 
 test('each film of one cassette number has its own "Show barcode", which names it, also where they have the same DX number', async ({ page }) => {
@@ -629,7 +716,7 @@ test('each film of one cassette number has its own "Show barcode", which names i
   await page.getByRole('button', { name: 'Look up' }).click();
   const out = page.locator('.cassette__result');
   for (const name of ['3M Scotch ColorPrint HR400 Gen 2', 'SCOTCH COLOR PRINT HR 400 Gen 2', '3M Scotch ColorPrint HR400 Gen 2']) {
-    await out.getByRole('button', { name: `Show the edge barcode of ${name}`, exact: true }).click();
+    await out.getByRole('button', { name: `Show barcode of ${name}`, exact: true }).click();
     await expect(page.locator('#result-title')).toHaveText(name);
   }
 });
@@ -640,7 +727,7 @@ test('Find a film and the code list give the films of a Part 1 in the order of t
   const inOrder = (list) => list.every(([part1, part2], i) => i === 0 || part1 > list[i - 1][0] || (part1 === list[i - 1][0] && part2 >= list[i - 1][1]));
   await page.locator('#finder-q').fill('DX 79');
   await expect(page.locator('.finder__item').first()).toBeVisible();
-  const found = codes(await page.locator('.finder__item .finder__dx').allTextContents());
+  const found = codes(await page.locator('.finder__item .match__dx').allTextContents());
   expect(new Set(found.map(([, part2]) => part2)).size).toBeGreaterThan(1);
   expect(inOrder(found), JSON.stringify(found)).toBe(true);
   // Every registered product, those listed without a Part 2 first under their Part 1.
@@ -664,7 +751,7 @@ test('the cassette helper adds the cassette numbers of a film\'s rows in its las
     window.DX.ui.createCassette(host, { lookup: window.DX.createLookup(data, community, index), onShow() {} }).lookup('000810');
     return [...host.querySelectorAll('details')].map((list) => [list.querySelector('summary').textContent, ...[...list.querySelectorAll('.match__cassette')].map((c) => c.textContent)]);
   }, { data, community, index: buildIndex(data, community) });
-  expect(shown).toEqual([['1 other film has the same middle four digits', 'Cassette numbers 100810, 000823']]);
+  expect(shown).toEqual([['1 film has the same middle four digits', 'Cassette numbers 100810, 000823']]);
 });
 
 test('under every DX number, the result lists the fuzzy matches after the films that have the number', async ({ page }) => {
@@ -708,7 +795,7 @@ test('in the cassette helper\'s first list, the films with exactly the number co
   expect(mixed).toBeGreaterThan(0);
 });
 
-test('every film the cassette helper lists that has a code to show has its own "Show the edge barcode", for that film alone', async ({ page }) => {
+test('every film the cassette helper lists that has a code to show has its own "Show barcode", for that film alone', async ({ page }) => {
   const title = page.locator('#result-title');
   const out = page.locator('.cassette__result');
   const lookUp = async (code) => {
@@ -722,16 +809,30 @@ test('every film the cassette helper lists that has a code to show has its own "
   const rows = out.locator('div.source-block .match');
   const n = await rows.count();
   expect(n).toBeGreaterThanOrEqual(10);
-  await expect(out.getByRole('button', { name: /^Show the edge barcode of / })).toHaveCount(n);
+  await expect(out.getByRole('button', { name: /^Show barcode of / })).toHaveCount(n);
   await expect(out.locator('.result__actions')).toHaveCount(0);
+  // The folded lists too, opened as a reader would.
+  for (const list of await out.locator('details').all()) await list.locator('summary').click();
+  const all = await out.locator('.source-block .match').count();
+  expect(all).toBeGreaterThan(n);
+  await expect(out.getByRole('button', { name: /^Show barcode of / })).toHaveCount(all);
   // Each picks its own film, which the result then names.
-  await out.getByRole('button', { name: 'Show the edge barcode of Arista EDU Ultra 100', exact: true }).click();
+  await out.getByRole('button', { name: 'Show barcode of Arista EDU Ultra 100', exact: true }).click();
   await expect(title).toHaveText('Arista EDU Ultra 100');
   await expect(page).toHaveURL(/\?dx=87-3\/1&film=bfd-\d+$/);
   await lookUp('013954');
-  await out.getByRole('button', { name: 'Show the edge barcode of Ferrania Imaging Color FG Plus 100', exact: true }).click();
+  await out.getByRole('button', { name: 'Show barcode of Ferrania Imaging Color FG Plus 100', exact: true }).click();
   await expect(title).toHaveText('Ferrania Imaging Color FG Plus 100');
   await expect(page).toHaveURL(/\?dx=87-3\/1&film=i3a-\d+$/);
+  // A folded row's too.
+  await lookUp('013954');
+  const folded = out.locator('details .match').first();
+  await folded.locator('xpath=ancestor::details').locator('summary').click();
+  const name = await folded.locator('.match__name').textContent();
+  const dx = (await folded.locator('.match__dx').textContent()).replace(/^DX /, '');
+  await folded.getByRole('button', { name: `Show barcode of ${name}`, exact: true }).click();
+  await expect(title).toHaveText(name);
+  await expect(page).toHaveURL(new RegExp(`\\?dx=${dx}/1&film=bfd-\\d+$`));
 });
 
 test('a registry film in the cassette helper has its DX number and its own "Show barcode", which picks it', async ({ page }) => {
@@ -743,13 +844,13 @@ test('a registry film in the cassette helper has its DX number and its own "Show
   await lookUp('106253');
   const registry = out.locator('li.match--i3a');
   await expect(registry.locator('.match__dx')).toHaveText('DX 39-1');
-  await registry.getByRole('button', { name: 'Show the edge barcode of FUJICOLOR 200', exact: true }).click();
+  await registry.getByRole('button', { name: 'Show barcode of FUJICOLOR 200', exact: true }).click();
   await expect(page.locator('#result-title')).toHaveText('FUJICOLOR 200');
   await expect(page).toHaveURL(/\?dx=39-1\/1&film=i3a-\d+$/);
-  // Films the registry lists for Part 1 = 88 without a Part 2 have no code to show.
+  // Films the registry lists for Part 1 = 88 without a Part 2 have no code to show: their DX number says so.
   await lookUp('014080');
   await expect(registry).toHaveCount(4);
-  await expect(registry.locator('.match__dx')).toHaveCount(0);
+  await expect(registry.locator('.match__dx')).toHaveText(['DX 88-?', 'DX 88-?', 'DX 88-?', 'DX 88-?']);
   await expect(registry.getByRole('button')).toHaveCount(0);
 });
 
@@ -770,8 +871,8 @@ test('Find a film says when no film has a DX number, and lists each film once', 
   await expect(status).toHaveText('2 films found.');
   // Rows of one film that record different DX numbers are not copies: one for each number.
   await page.locator('#finder-q').fill('agfacolor 100-n');
-  const agfa = page.locator('.finder__item', { has: page.locator('.finder__name', { hasText: /^AGFA Agfacolor 100-N$/ }) });
-  await expect(agfa.locator('.finder__dx')).toHaveText(['DX 31-2', 'DX 47-3']);
+  const agfa = page.locator('.finder__item', { has: page.locator('.match__name', { hasText: /^AGFA Agfacolor 100-N$/ }) });
+  await expect(agfa.locator('.match__dx')).toHaveText(['DX 31-2', 'DX 47-3']);
   // One letter is not enough to search.
   await page.locator('#finder-q').fill('a');
   await expect(status).toHaveText('Type at least two letters, or a DX number such as 79-15.');
@@ -797,6 +898,14 @@ test('after Back loads the page again, the code list\'s filters are the ones its
   await expect(page.locator('#ref-maker')).toHaveValue('');
   await expect(page.locator('#ref-status')).toHaveValue('');
   await expect(page.locator('#codes').getByText(/registered products\.$/)).toHaveText('386 of 386 registered products.');
+});
+
+test('the code list names every "Show" with its film, also those of films without a code to show', async ({ page }) => {
+  await page.locator('#ref-q').fill('88-?');
+  await expect(page.locator('.products-table tbody tr')).toHaveCount(4);
+  for (const name of ['RAINBOW', 'SEAGULL', 'SHANGHAI', 'SHENGUANG']) {
+    await expect(page.getByRole('button', { name: `Show the barcode of ${name}`, exact: true })).toBeDisabled();
+  }
 });
 
 test('the code list takes a bare film speed as part of a name, not as a DX number', async ({ page }) => {
@@ -877,7 +986,7 @@ test('cassette input is validated', async ({ page }) => {
   await expect(page.locator('.cassette__result')).toContainText('3297 = 16 × 206 + 1: an augmented number');
   await expect(page.locator('.cassette__result .readout__value').nth(1)).toHaveText('—');
   await expect(page.locator('.cassette__result')).toContainText('Part 1 206 is 78 + 128. Part 1 = 78 is assigned to Eastman Kodak');
-  await expect(page.getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
+  await expect(page.locator('.cassette__result').getByRole('button', { name: 'Show barcode' })).toHaveCount(0);
   // The same film in another roll length: the registry's record of it, as a fuzzy match.
   await page.locator('#cassette-code').fill('832974');
   await page.getByRole('button', { name: 'Look up' }).click();
@@ -885,11 +994,14 @@ test('cassette input is validated', async ({ page }) => {
   await expect(registry.locator('.match__name')).toHaveText('KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
   await expect(registry.locator('.pill--near')).toHaveText('Fuzzy match');
   await expect(registry.locator('mark')).toHaveText('3297');
+  // What the registry's row is, said apart from its name and tags.
+  await expect(registry.locator('.match__facts')).toHaveText('Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.');
+  expect(await registry.ariaSnapshot()).toMatch(/Canada\s*,\s*Fuzzy match\s*,\s*I3A\s*,\s*Kodak’s/);
   await page.locator('#cassette-code').fill('753914');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText('Part 1 336 is 80 + 256');
   await expect(page.locator('.cassette__result')).toContainText('CineStill');
-  await expect(page.getByRole('button', { name: 'Show the edge barcode' })).toHaveCount(0);
+  await expect(page.locator('.cassette__result').getByRole('button', { name: 'Show barcode' })).toHaveCount(0);
   await page.locator('#cassette-code').fill('012790');
   await page.getByRole('button', { name: 'Look up' }).click();
   await expect(page.locator('.cassette__result')).toContainText('1–8 exposures');
@@ -971,27 +1083,51 @@ test('the last "Show more" of the search hands focus to the first film it brough
 });
 
 test('a shown code says where it came from, with a way back there', async ({ page }) => {
+  // No smooth scrolling to wait for at each step.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   const bar = page.locator('#source');
   await page.goto('/');
   await expect(bar).toBeHidden();
   await page.locator('.examples .chip').first().click();
   await expect(bar).toHaveText('Example: Kodak BW400CN, frame 23');
 
+  // Back goes to the button used, to carry on with the next film; once its
+  // list no longer shows it, to the field (or the code list's heading).
   await page.locator('#finder-q').fill('hp5 plus');
-  await page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode/ }).click();
+  const found = page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode/ });
+  await found.click();
   await expect(bar).toContainText('From Find a film: HP5 PLUS, frame 1');
+  await bar.getByRole('button', { name: 'Back to the search' }).click();
+  await expect(found).toBeFocused();
+  await page.locator('#finder-q').fill('fp4 plus');
+  await expect(page.locator('.finder__item').first()).toContainText('FP4 PLUS');
   await bar.getByRole('button', { name: 'Back to the search' }).click();
   await expect(page.locator('#finder-q')).toBeFocused();
 
   await page.locator('#cassette-code').fill('017563');
   await page.getByRole('button', { name: 'Look up' }).click();
-  await page.locator('.cassette__result .match').first().getByRole('button').click();
+  const row = page.locator('.cassette__result .match').first().getByRole('button');
+  await row.click();
   await expect(bar).toContainText('From a cassette number: 017563, frame 1');
+  await bar.getByRole('button', { name: 'Back to the cassette number' }).click();
+  await expect(row).toBeFocused();
+  // A row of a folded list, folded again since.
+  await page.locator('#cassette-code').fill('106253');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  const folded = page.locator('.cassette__result details').first();
+  await folded.locator('summary').click();
+  await folded.locator('.match').first().getByRole('button').click();
+  await expect(bar).toContainText('From a cassette number: 106253, frame 1');
+  await folded.locator('summary').click();
   await bar.getByRole('button', { name: 'Back to the cassette number' }).click();
   await expect(page.locator('#cassette-code')).toBeFocused();
 
-  await page.locator('#reference-ui button.tool--small:not([disabled])').first().click();
+  const listed = page.locator('#reference-ui button.tool--small:not([disabled])').first();
+  await listed.click();
   await expect(bar).toContainText('From the code list:');
+  await bar.getByRole('button', { name: 'Back to the code list' }).click();
+  await expect(listed).toBeFocused();
+  await page.locator('#ref-q').fill('fp4');
   await bar.getByRole('button', { name: 'Back to the code list' }).click();
   await expect(page.locator('#codes-title')).toBeFocused();
 
@@ -1008,4 +1144,61 @@ test('a shown code says where it came from, with a way back there', async ({ pag
   await page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode/ }).click();
   await page.locator('#clear').click();
   await expect(bar).toBeHidden();
+});
+
+test('Back comes to the button used last, also when it showed the same code again from a list drawn anew', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const bar = page.locator('#source');
+  const back = (name) => bar.getByRole('button', { name }).click();
+  // Find a film: the same film's button after the search is run again.
+  const first = page.locator('.finder__item').first();
+  await page.locator('#finder-q').fill('hp5 plus');
+  await first.getByRole('button', { name: 'Show barcode of HP5 PLUS', exact: true }).click();
+  await page.locator('#finder-q').fill('fp4 plus');
+  await expect(first.locator('.match__name')).toHaveText('FP4 PLUS');
+  await page.locator('#finder-q').fill('hp5 plus');
+  await expect(first.locator('.match__name')).toHaveText('HP5 PLUS');
+  const again = first.getByRole('button', { name: 'Show barcode of HP5 PLUS', exact: true });
+  await again.click();
+  await back('Back to the search');
+  await expect(again).toBeFocused();
+  // The cassette helper: the same row's button after Look up again.
+  const row = page.locator('.cassette__result .match').first().getByRole('button');
+  for (let n = 0; n < 2; n++) {
+    await page.locator('#cassette-code').fill('106253');
+    await page.getByRole('button', { name: 'Look up' }).click();
+    await row.click();
+  }
+  await back('Back to the cassette number');
+  await expect(row).toBeFocused();
+  // The code list: the same film's "Show" after another filter.
+  const listed = page.locator('.products-table tbody tr').first().getByRole('button');
+  await page.locator('#ref-q').fill('fp4');
+  await listed.click();
+  await page.locator('#ref-q').fill('fp4 plus');
+  await listed.click();
+  await back('Back to the code list');
+  await expect(listed).toBeFocused();
+  // "Know the number already?": its own button.
+  const direct = page.locator('.direct').getByRole('button', { name: 'Show barcode' });
+  await page.locator('#direct-dx').fill('79-15');
+  await direct.click();
+  await expect(bar).toContainText('From Find a film: DX 79-15, frame 1');
+  await back('Back to the search');
+  await expect(direct).toBeFocused();
+});
+
+test('Back brings the button used into view, clear of the header', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' }); // no smooth scrolling to wait for
+  const bar = page.locator('#source');
+  await page.locator('#cassette-code').fill('106253');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  const used = page.locator('.cassette__result div.source-block .match').last().getByRole('button');
+  await used.click();
+  await expect(page.locator('#result-title')).toBeFocused();
+  await bar.getByRole('button', { name: 'Back to the cassette number' }).click();
+  await expect(used).toBeFocused();
+  await expect(used).toBeInViewport({ ratio: 1 });
+  const [top, headerBottom] = await used.evaluate((b) => [b.getBoundingClientRect().top, document.querySelector('.site-header').getBoundingClientRect().bottom]);
+  expect(top).toBeGreaterThanOrEqual(headerBottom);
 });

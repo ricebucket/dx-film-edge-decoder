@@ -62,12 +62,13 @@ Figure 1f. Its details match the table: the last cell of the start pattern is
 always a gap; Part 1 is cells 7–13 and Part 2 cells 15–18, each with its first
 cell as the most significant; the frame row is cells 19–25: the frame field
 in cells 19–24 and, in cell 25, the half-frame "flag"; cells 14 and 26 are
-unassigned gaps, and cell 26 exists only when the frame row does. Wikipedia's *DX number* article
-lists the same fields under the section numbers §6.1.1.1 (entry code) to
-§6.1.1.8 (exit code). Wikipedia's *DX encoding* article describes the frame and
-half-frame bits together as "a seven-bit frame/half-frame number", which
-matches the Kodak patent's "seven bits defining the frame number … defined as
-half frame intervals" and the standard's seven-cell frame row.
+unassigned gaps, and cell 26 exists only when the frame row does.
+Wikipedia's *DX number* article lists the same fields under the section
+numbers §6.1.1.1 (entry code) to §6.1.1.8 (exit code). Wikipedia's
+*DX encoding* article describes the frame and half-frame bits together as
+"a seven-bit frame/half-frame number", which matches the Kodak patent's "seven
+bits defining the frame number … defined as half frame intervals" and the
+standard's seven-cell frame row.
 
 ## The 23-cell layout (no frame number)
 
@@ -113,17 +114,17 @@ see [report 07](07-history-and-related-markings.md) for the timeline.
 A finding of this project, checked exhaustively in the unit tests: a 23-cell
 code copied into the 31-cell layout (its 23 cells, then empty cells 24–27 and
 the 31-cell stop pattern in cells 28–31) is *always* a valid 31-cell code of
-the same film, at whole frame 10 or 42. The short
-code's parity cell and stop pattern `0101` land in the frame field, giving
-frame 10 when its parity cell is empty and 42 when it holds a bar. The frame
-field then adds that parity bar (which already makes Part 1 + Part 2 even) plus
-two more bars, so the payload stays even and the empty long parity cell is
-exactly right. So the data track alone cannot reveal the layout; the clock
-track can, and so can the code's length relative to the perforations. Neither
-clock pattern fits inside the other. The exception is a 31-cell code cut off by
-the edge of a photo after cell 23, where something fills clock gap 22: dust, or
-a perforation that looks like a bar, as on slides and in a black scanner
-holder. Its clock then looks like a 23-cell one.
+the same film, at whole frame 10 or 42. The short code's parity cell and stop
+pattern `0101` land in the frame field, giving frame 10 when its parity cell
+is empty and 42 when it holds a bar. The frame field then adds that parity bar
+(which already makes Part 1 + Part 2 even) plus two more bars, so the payload
+stays even and the empty long parity cell is exactly right. So the data track
+alone cannot reveal the layout; the clock track can, and so can the code's
+length relative to the perforations. Neither clock pattern fits inside the
+other. The exception is a 31-cell code cut off by the edge of a photo after cell
+23, where something fills clock gap 22: dust, or a perforation that looks like a
+bar, as on slides and in a black scanner holder. Its clock then looks like a
+23-cell one.
 
 ## Bit order
 
@@ -217,9 +218,9 @@ Kodak's and Wikipedia's usage refers to the frame-number extension.
 - **zxing-cpp** (reader) reports a code as text such as `115-10/11A`:
   Part 1, Part 2 and, for the 31-cell layout, the frame number after a slash,
   with `A` for a half frame. It writes the frames printed `XX`, `X` and `00` as
-  61, 62 and 63. It rejects codes whose unused cells hold a bar, whose parity
-  fails or whose Part 1 is 0, and accepts runs of up to 20 equal cells, the
-  longest possible in a valid data track whose Part 1 is not 0 (for example
+  61, 62 and 63. It rejects codes whose unassigned cells hold a bar, whose
+  parity fails or whose Part 1 is 0, and accepts runs of up to 20 equal cells,
+  the longest possible in a valid data track whose Part 1 is not 0 (for example
   `96-0/0`).
 - **Zint** (generator) accepts the same text form, a four-digit "DX extract"
   (16 × Part 1 + Part 2, 16 to 2047) or a six-digit "DX full" cassette number,

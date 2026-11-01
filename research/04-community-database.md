@@ -4,11 +4,13 @@
 and how far can it be trusted?
 
 **Answer in short:** The Big Film Database covers 637 DX numbers that can
-appear on a film edge, 277 of them absent from the 2008 registry, including
-most films still sold today. The count leaves out numbers with Part 1 = 0:
-valid under the standard, but held by no maker in 2008. It is openly licensed
-(CC BY-SA 4.0) and carries its own certainty and availability fields, but it
-is built mostly from cassettes and contains a few inconsistencies.
+appear on a film edge, 277 of them absent from the 2008 registry. The count
+leaves out numbers with Part 1 = 0: valid under the standard, but held by no
+maker in 2008. Of the database's rows with a DX extract or a cassette number,
+90 are marked as on the market, and 82 of these have a DX number that can
+appear on a film edge. It is openly licensed (CC BY-SA 4.0) and carries its own
+certainty and availability fields, but it is built mostly from cassettes and
+contains a few inconsistencies.
 
 ## What it is
 
@@ -40,26 +42,24 @@ thought to be, not the entry itself.
 Commit `9aa3890` of the database's GitHub repository (October 10, 2026): 8,710
 rows, of which 1,676 have a DX extract or a cassette number: 1,674 a DX
 extract, 2 only a cassette number.
-`npm run stats:community-data` prints these figures and those in the next
-table; [data/README.md](../data/README.md#updating-the-data) describes how to
+`npm run stats:community-data` prints these figures and the others this report
+quotes; [data/README.md](../data/README.md#updating-the-data) describes how to
 update the snapshot.
 
 ## Data-quality findings
 
+The table counts only the rows with a DX extract or a cassette number.
+
 | Finding | Rows |
 |---|---|
-| DX extract disagrees with the middle digits of the DX full number; the site's "similar emulsions" search lists such a row under its extract, and two entries say which number the film's edge carries (Harman Phoenix II, 017765: 105-3; Power Geek, 333098: 39-1) | 12 |
-| DX extract without a cassette number; among them are 120, 16 mm and sheet films (Kodak Ektar 25 PHR120, KODACHROME 25 Movie 16mm, Vericolor III Type S) | 138 |
-| Number above 2047, e.g. CineStill 50D and 800T cassettes at 5391 (motion-picture film, which has no DX edge code) | 42 |
-| Number below 16, so Part 1 would be 0: valid under the standard, but held by no maker in 2008; their cassette numbers (Fujifilm Neopan and Acros 000000, 000004 and 100004, Konica PAN400 000084, ORWO 000054) have 0000, 0008 or 0005 where the DX number goes, and the 2008 list gives these films no DX number or another one (ORWOPAN 400: 123-3), so such a number is most likely a filler | 14 |
+| DX extract disagrees with the middle digits of the DX full number; the site's "similar emulsions" search lists such a row under its extract | 12 |
+| DX extract without a cassette number; among them are 120, 16 mm and sheet films | 138 |
+| Number above 2047, beyond the DX numbers a film edge can carry | 42 |
+| Number below 16, so Part 1 would be 0: valid under the standard, but held by no maker in 2008, so such a number is most likely a filler | 14 |
 | HTML markup inside a field (`<i>…</i>`) | 3 |
 | `#` search tags appended to the name | 441 |
 | Certainty recorded | 502 (0: 5, 1: 44, 2: 79, 3: 289, 4: 85) |
 | Availability | 1,465 discontinued, 121 unsure, 90 on the market |
-
-Of the 277 numbers absent from the 2008 registry, one, 88-0, is under Part 1
-88, which the registry lists for Shanghai General's four brands without a
-Part 2; the database gives the same four brands 88-0.
 
 Two structural limits matter more than any single row:
 
@@ -80,16 +80,9 @@ DX extract (the ranges are listed in its repository as
 
 ## Coverage of modern films
 
-Spot checks of codes beyond the 2008 list:
-
-| DX number | Community entry |
-|---|---|
-| 95-13 | Kodak Portra 400 new |
-| 95-14 | Kodak Portra 160 (new), the same code alibosworth decoded from a physical strip |
-| 95-11 | Kodak Ektar 100 |
-| 95-15 | Kodak Ultra Max 400 |
-| 110-10 | Kentmere 100 and Kentmere 400 (both listed under the same number) |
-| 39-1 | in the registry as FUJICOLOR 200; the community adds many rebrands (AgfaPhoto Vista Plus 200, store brands) |
+Of the rows with a DX extract or a cassette number, the database marks 90 as on
+the market; 82 of them have a DX number that can appear on a film edge: 54
+different numbers, 21 of them absent from the 2008 registry.
 
 ## Sources
 

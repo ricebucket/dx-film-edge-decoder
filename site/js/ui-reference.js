@@ -79,9 +79,10 @@
 
     function rowFor(p) {
       const dx = label(p);
+      // Named for screen readers with its film, also where it has no code to show.
       const show = h('button', { type: 'button', class: 'tool tool--small', disabled: p.wildcard ? true : null,
-        'aria-label': p.wildcard ? null : t('Show the barcode of {name}', { name: p.name }) }, t('Show'));
-      if (!p.wildcard) show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'list', name: p.name, ids: [p.id] }));
+        'aria-label': t('Show the barcode of {name}', { name: p.name }) }, t('Show'));
+      if (!p.wildcard) show.addEventListener('click', () => onShow({ part1: p.part1, part2: p.part2, frame: 1, half: false }, { kind: 'list', name: p.name, ids: [p.id], button: show }));
       return h('tr', null,
         h('td', { class: 'num' }, dx),
         h('td', null, p.name, p.wildcard ? h('span', { class: 'fineprint products-table__why' }, t('Part 2 not identified in the registry')) : null),

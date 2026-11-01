@@ -134,7 +134,7 @@ describe('decode diagnostics', () => {
     }
   });
 
-  test('a bar in an unused cell is reported', () => {
+  test('a bar in an unassigned cell is reported', () => {
     for (const cell of [14, 26]) {
       const d = dx.decode(flip(good, cell), 'long');
       assert.equal(d.valid, false);

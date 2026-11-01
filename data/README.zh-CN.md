@@ -72,12 +72,12 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
    npm run test:e2e
    ```
 
-   除了数据的结构，有些测试还检查快照本身：检查 research/04 所引用数字的那项测试，在完成第 3 步之前会失败；还有几项测试指名检查特定的行，例如 DX extract 与暗盒条码不一致的那些行。如果上游重命名或删除了某一列，更新或构建会报错停止，并在错误信息中指出该列；请相应修改 `scripts/update-community-data.mjs` 或 `scripts/build-data.mjs`。如果测试“is a cleaned subset of the rows with a DX extract or a cassette number”（是带有 DX extract 或暗盒条码的行的已清理子集）失败，说明某一行包含构建步骤还不会清理的内容，例如一种新的标记。
-3. 更新 [research/04](../research/04-community-database.zh-CN.md) 及其英文版。`npm run stats:community-data` 会打印该报告在摘要、“所用快照”和“数据质量方面的发现”中引用的数字；提交的日期可以在 GitHub 上看到。再检查一遍“现代胶片的覆盖情况”中列出的胶片。
+   除了数据的结构，有些测试还检查快照本身：检查 research/04 所引用数字的那项测试，在完成第 3 步之前会失败；还有几项测试指名检查特定的行，例如 DX extract 与暗盒条码不一致的那些行。改变了的行会得到新的 `bfd-` 编号；`npm test` 会指出 `site/js/app.js` 中哪个示例的编号需要更新。如果上游重命名或删除了某一列，更新或构建会报错停止，并在错误信息中指出该列；请相应修改 `scripts/update-community-data.mjs` 或 `scripts/build-data.mjs`。如果测试“is a cleaned subset of the rows with a DX extract or a cassette number”（是带有 DX extract 或暗盒条码的行的已清理子集）失败，说明某一行包含构建步骤还不会清理的内容，例如一种新的标记。
+3. 更新 [research/04](../research/04-community-database.zh-CN.md) 及其英文版。`npm run stats:community-data` 会打印该报告在摘要、“所用快照”、“数据质量方面的发现”和“现代胶片的覆盖情况”中引用的数字；提交的日期可以在 GitHub 上看到。
 
 ### I3A 列表需要更正时
 
-2008 年 2 月的列表是能找到的最新版本（[research/03](../research/03-dx-numbers-and-registry.zh-CN.md)），所以它的表格只会因为更正转录错误而改变。请在 `scripts/extract-i3a-pdf.py` 中修正出错的原因，而不是手动编辑 CSV 文件，这样它们仍然可以从 PDF（链接见 [research/06](../research/06-sources-and-licensing.zh-CN.md#来源)）重新生成；然后再次运行该脚本。如果脚本提取出的第 1 部分表与列表自身的汇总页不一致，脚本会停止。然后按上面的步骤重新构建并测试。有几个单元测试检查 2008 年列表中的数量（91 个已分配的第 1 部分编号，386 个不同的产品行）；只有当更正改变了这些数量时，这些测试才需要修改。
+2008 年 2 月的列表是能找到的最新版本（[research/03](../research/03-dx-numbers-and-registry.zh-CN.md)），所以它的表格只会因为更正转录错误而改变。请在 `scripts/extract-i3a-pdf.py` 中修正出错的原因，而不是手动编辑 CSV 文件，这样它们仍然可以从 PDF（链接见 [research/06](../research/06-sources-and-licensing.zh-CN.md#来源)）重新生成；然后再次运行该脚本。如果脚本提取出的第 1 部分表与列表自身的汇总页不一致，脚本会停止。然后按上面的步骤重新构建并测试。有几个单元测试检查 2008 年列表中的数量（91 个已分配的第 1 部分编号，386 个不同的产品行）；只有当更正改变了这些数量时，这些测试才需要修改。如果更正时在 `products.csv` 中增删了一行，其后各行的 `i3a-` 编号都会改变；`npm test` 会指出 `site/js/app.js` 中哪个示例的编号需要更新。
 
 ### 如果出现更新的 I3A 版本
 

@@ -64,7 +64,7 @@
 
   function codeFromUrl() {
     const params = new URLSearchParams(location.search);
-    // The films picked to show the code (&film=bfd-1096,i3a-137), by record ID.
+    // The films picked to show the code (&film=i3a-141,bfd-1096), by record ID.
     const picked = (params.get('film') || '').split(',').filter((id) => /^(?:i3a-a?|bfd-)\d+$/.test(id));
     const dx = params.get('dx');
     if (dx) {
@@ -303,6 +303,10 @@
       state.loaded = true;
       state.picked = picked;
       setOrigin(from);
+    } else {
+      // Only the button may be another, from a list drawn anew since: Back
+      // comes back to the one used last.
+      origin.button = from.button;
     }
     if (options && options.look) {
       state.look = options.look;
@@ -377,11 +381,14 @@
   let way = 'copy';
   let ready = false; // set once start() has drawn the page
 
-  /** Classic scripts, run in the order given as if they had been in the page (also from file://). */
+  /**
+   * Classic scripts, run in the order given as if they had been in the page
+   * (also from file://), of the build the page's own scripts are (prepaint.js).
+   */
   function loadScripts(srcs) {
     return Promise.all(srcs.map((src) => new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = src;
+      script.src = src + (DX.query || '');
       script.async = false;
       script.onload = resolve;
       script.onerror = () => reject(new Error(`${src} could not be loaded`));
@@ -457,9 +464,9 @@
   // ---- where the code came from ----------------------------------------------------------
 
   // The bar above the strip says where its code came from (ui-source.js):
-  // { kind, label, use, format, cells }, plus a photo's thumbnail, its
-  // barcode lined up for the strip and what the reader needs to show it again
-  // (kept); null for a code copied by hand.
+  // { kind, label, use, format, cells }, plus the button that showed it, a
+  // photo's thumbnail, its barcode lined up for the strip and what the reader
+  // needs to show it again (kept); null for a code copied by hand.
   let origin = null;
   let originUses = 0;
   let sourceShown = '';
@@ -491,6 +498,17 @@
       // The photo this code came from, also when the reader has moved on to another.
       setWay('photo', { focus: true, kept: origin && origin.kind === 'photo' ? origin.kept : null });
       return;
+    }
+    // The button that showed the code, while its list still shows it: Find a
+    // film may have searched again since, or the cassette helper folded it
+    // (where some browsers keep its box, but take no focus there).
+    const used = origin && origin.button;
+    if (used && used.isConnected && (used.checkVisibility ? used.checkVisibility() : used.getClientRects().length > 0)) {
+      used.focus({ preventScroll: true });
+      if (document.activeElement === used) {
+        used.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
+        return;
+      }
     }
     const target = $({ finder: 'finder-q', cassette: 'cassette-code', list: 'codes-title' }[kind]);
     if (target.tagName !== 'INPUT') target.tabIndex = -1; // the code list's heading
@@ -563,7 +581,13 @@
     ui.bindHeader({ beforeLanguageChange: () => { flushUrl(); savePlace(); } });
     loadPrefs();
     const fromUrl = codeFromUrl();
-    if (fromUrl) Object.assign(state, fromUrl);
+    if (fromUrl) {
+      Object.assign(state, fromUrl);
+      // Of the films a link picks, only those of its own code, each once, as
+      // the page writes them (stateQuery): no pick it doesn't show.
+      const d = codec.decode(state.cells, state.format);
+      state.picked = [...new Set(pickedAt(d.part1, d.part2))];
+    }
     bindToolbar();
     // A button named in running text ("turn on Mirror") works the one it names,
     // and pressed again turns it back off: "7 thin bars" goes back to the other layout.
@@ -588,7 +612,8 @@
     bindWays();
     setWay('copy');
 
-    // Every "Show" button asks for a frame, which only the 31-cell layout has.
+    // Every "Show" button gives a code with a frame (1, unless Find a film is
+    // given another), which only the 31-cell layout has.
     // The page scrolls to the strip; focus goes along, to the result's heading.
     const show = (code, from) => {
       loadCode(code, { format: 'long', origin: from });
@@ -655,6 +680,9 @@
       state.format = format;
       state.cells = standardEnds(cells, format);
       state.loaded = true;
+      // A photo picks no film, as a code typed in picks none: the result then
+      // names the film the reader named (Undo brings back an earlier pick).
+      state.picked = [];
       // Clear bars on a dark edge are slide film; dark bars are not, so a
       // Slide look from before gives way to the negative.
       const look = polarity === 'light' ? 'slide' : state.look === 'slide' ? 'negative' : null;

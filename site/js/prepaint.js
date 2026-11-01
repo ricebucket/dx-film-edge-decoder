@@ -18,6 +18,11 @@
     return;
   }
   (root.DX = root.DX || {}).languages = languages;
+  // A published copy loads its scripts as "js/…?v=<build>" (scripts/stamp-build.mjs).
+  // Files loaded later ask for the same build, rather than what a browser
+  // kept of an earlier one.
+  const v = document.currentScript ? new URL(document.currentScript.src).searchParams.get('v') : null;
+  root.DX.query = v ? `?v=${encodeURIComponent(v)}` : '';
   let theme = null;
   let intro = null;
   let saved = null;
@@ -42,7 +47,7 @@
   // has failed to load, and the page is in English).
   const html = document.documentElement;
   const script = document.createElement('script');
-  script.src = `js/i18n/${lang.code}.js`;
+  script.src = `js/i18n/${lang.code}.js${root.DX.query}`;
   script.fetchPriority = 'high'; // the page waits for it, so ahead of the other scripts
   let settle = null;
   root.DX.languageLoaded = new Promise((resolve) => {

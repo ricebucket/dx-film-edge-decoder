@@ -356,7 +356,7 @@
 
   // ---- data track -------------------------------------------------------------------
 
-  /** The share of a row's fixed cells (start, stop, unused) that read as they should. */
+  /** The share of a row's fixed cells (start, stop, unassigned) that read as they should. */
   function fixedFit(bits, format) {
     let ok = 0;
     let total = 0;
@@ -368,7 +368,7 @@
     return ok / total;
   }
 
-  /** How much a row looks like a DX data track: fixed cells, empty unused cells, parity. */
+  /** How much a row looks like a DX data track: fixed cells, empty unassigned cells, parity. */
   function dataScore(bits, format) {
     const d = codec.decode(bits, format);
     return fixedFit(bits, format) + (d.parity.ok ? 0.25 : 0) + (d.part1 > 0 ? 0.05 : 0);

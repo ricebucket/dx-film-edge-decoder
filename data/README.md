@@ -87,10 +87,9 @@ files `npm run build:data` writes share one version: publish them together.
 
    This fetches `film_database.csv` from GitHub, keeps the rows with a DX
    extract or a cassette number and records the commit in
-   `big-film-database/source.json`. For a particular
-   commit, use `-- --commit` with its full 40-character hash. Without an
-   option, the recorded commit is downloaded again, which leaves the files
-   unchanged.
+   `big-film-database/source.json`. For a particular commit, use
+   `-- --commit` with its full 40-character hash. Without an option, the
+   recorded commit is downloaded again, which leaves the files unchanged.
 2. Rebuild the page's data files and run the tests:
 
    ```sh
@@ -102,18 +101,18 @@ files `npm run build:data` writes share one version: publish them together.
    Besides the structure of the data, some tests check the snapshot itself:
    the test of the figures quoted in research/04 fails until step 3 is done,
    and a few tests name particular rows, such as those whose DX extract and
-   cassette number differ. If a column is renamed or removed upstream, the
-   update or the build stops with an error naming it; change
-   `scripts/update-community-data.mjs` or `scripts/build-data.mjs` to match. If
-   the test "is a cleaned subset of the rows with a DX extract or a cassette
-   number" fails, a row contains something the build does not clean up yet,
-   such as a new kind of markup.
+   cassette number differ. A row that changed gets a new `bfd-` ID; `npm test`
+   then names any example in `site/js/app.js` whose ID needs updating. If a
+   column is renamed or removed upstream, the update or the build stops with an
+   error naming it; change `scripts/update-community-data.mjs` or
+   `scripts/build-data.mjs` to match. If the test "is a cleaned subset of the
+   rows with a DX extract or a cassette number" fails, a row contains something
+   the build does not clean up yet, such as a new kind of markup.
 3. Bring [research/04](../research/04-community-database.md) and its Chinese
-   version up to date.
-   `npm run stats:community-data` prints the figures it quotes in its
-   summary, under "Snapshot used" and in "Data-quality findings"; the date of
-   the commit is shown on GitHub. Check the films listed under "Coverage of
-   modern films" again.
+   version up to date. `npm run stats:community-data` prints the figures it
+   quotes in its summary, under "Snapshot used", in "Data-quality findings"
+   and under "Coverage of modern films"; the date of the commit is shown on
+   GitHub.
 
 ### When the I3A list needs a correction
 
@@ -126,7 +125,9 @@ they can still be reproduced from the PDF (linked in
 again. The script stops if its Part 1 table disagrees with the list's own
 summary page. Then rebuild and test as above. A few unit tests check counts of
 the 2008 list (91 assigned Part 1 numbers, 386 different product rows); they
-change only if the correction changes those counts.
+change only if the correction changes those counts. A correction that adds or
+removes a row of `products.csv` renumbers the `i3a-` IDs after it; `npm test`
+then names any example in `site/js/app.js` whose ID needs updating.
 
 ### If a newer I3A edition turns up
 

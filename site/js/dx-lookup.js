@@ -166,6 +166,12 @@
   /** A row's place in the cassette number index: its cassette number's middle four digits. */
   const cassetteKey = (e) => middleOf(e.full);
 
+  // The deploy this code was published with: scripts/stamp-build.mjs writes
+  // the commit into it and into the three data files of the copy published.
+  // Empty in the repository, where the files come from disk and no browser
+  // keeps an older one.
+  const BUILD = '';
+
   /**
    * `data` from dx-data.js, `communityData` from dx-data-community.js and
    * `index` from dx-index.js, built from the two: all three are needed.
@@ -173,11 +179,12 @@
   function createLookup(data, communityData, index) {
     if (!data || !communityData || !index) throw new Error('The film data did not load: the page needs dx-data.js, dx-data-community.js and dx-index.js.');
     // The three come from one build, which gives them one version (a hash of
-    // what it wrote: scripts/build-data.mjs). One of them cached from another
-    // build would point the index at the wrong rows, and searches would miss
-    // films without a word.
-    if (data.version !== index.version || communityData.version !== index.version) {
-      throw new Error('The film data does not match: dx-data.js, dx-data-community.js and dx-index.js come from different builds.');
+    // the data it wrote), and from this code's deploy (BUILD). One of them
+    // cached from another build would point the index at the wrong rows, and
+    // searches would miss films without a word; files of another deploy might
+    // be read with their columns out of place, as other values.
+    if (data.version !== index.version || communityData.version !== index.version || [data, communityData, index].some((d) => (d.build || '') !== BUILD)) {
+      throw new Error('The film data does not match: dx-data.js, dx-data-community.js and dx-index.js come from different builds, or from another deploy than dx-lookup.js.');
     }
     const sensitizers = data.sensitizers;
     const { products, community, augmented } = entriesOf(data, communityData);
@@ -303,12 +310,13 @@
      * number written as one ("79-15", "DX 1279") lists that code's entries, as
      * byDx finds them, and a cassette number ("315223") as byCassette does:
      * the exact matches, then those only related by digits, whose `related`
-     * gives the four digits looked up ("1279"; otherwise false). A Part 1 and
-     * Part 2 ("100-2") also find the names that carry them as typed, after
-     * those. A number that may also be words, such as "400" (a film speed) or
-     * "0 1 2 7 9 4", lists the films it gives after names that have it as a
-     * word, as the start of one, or as typed, and before names that only
-     * contain each of its pieces, and matches in other fields.
+     * gives the four digits looked up ("1279"; otherwise false). Text that can
+     * only be a number ("100-2", "DX 1279", "315223") also finds the names that
+     * carry its pieces as typed, after those. A number that may also be words,
+     * such as "400" (a film speed) or "0 1 2 7 9 4", lists the films it gives
+     * after names that have it as a word, as the start of one, or as typed, and
+     * before names that only contain each of its pieces, and matches in other
+     * fields.
      *
      * Each result's score is scoreOf, with how well it matches (MATCH,
      * below); a film found in more than one way keeps its best score.
@@ -337,7 +345,7 @@
       // them. Text that can only be a number lists names that match it too,
       // after all that the number finds: better more films, ranked, than too
       // few ("DX coded" is no number, and its names rank as usual).
-      const only = (dx && dx.kind === 'parts') || /^dx/.test(q) || /^\d{6}$/.test(bare);
+      const only = (dx && dx.kind === 'parts') || (/^dx/.test(q) && Boolean(dx || cassette)) || /^\d{6}$/.test(bare);
       const MATCH = only
         ? { exact: 10, roll: 7, middle: 6, recorded: 5, typed: 4, words: 3.8, starts: 3.6, inName: 3.4, pieces: 3, elsewhere: 2 }
         : { words: 9, starts: 8.5, inName: 8, exact: 7, roll: 6, middle: 5.5, recorded: 5, pieces: 4, elsewhere: 3 };
@@ -361,9 +369,10 @@
         hit.related.forEach((e) => add(e, scoreOf(e, MATCH.recorded), String(hit.extract).padStart(4, '0')));
         if (dx.kind === 'parts') {
           // Names that carry it as typed ("AGFACOLOR OPTIMA 100-2", "VR100-4");
-          // "20-0" is still no "200", nor part of "120-0".
+          // "20-0" is still no "200", nor part of "120-0". Other fields that
+          // carry it are found below, ranked after names.
           const typed = new RegExp(`(^|[^0-9])${escapeRegExp(q)}($|[^0-9])`);
-          for (const h of nameIndex()) if (typed.test(h.text)) add(h.entry, scoreOf(h.entry, MATCH.typed));
+          for (const h of nameIndex()) if (typed.test(h.name)) add(h.entry, scoreOf(h.entry, MATCH.typed));
         }
       }
 
@@ -411,11 +420,16 @@
       products,
       community,
       augmented,
-      /** The row with this record ID (entriesOf), or null: the ID names its source's table and its number there. */
+      /**
+       * The row with this record ID (entriesOf), or null: the ID names its
+       * source's table and its number there, written as the row's own ID is
+       * ("bfd-0930" is none).
+       */
       byId(id) {
         const m = /^(i3a-a|i3a-|bfd-)(\d+)$/.exec(id);
         const at = m && { 'i3a-': productAt, 'i3a-a': augmentedAt, 'bfd-': rowAt }[m[1]];
-        return (at && at[Number(m[2])]) || null;
+        const e = at && at[Number(m[2])];
+        return e && e.id === id ? e : null;
       },
       part1Info,
       byDx,
@@ -435,5 +449,6 @@
   createLookup.WEIGHT = WEIGHT;
   createLookup.UNRATED = UNRATED;
   createLookup.cassetteKey = cassetteKey;
+  createLookup.BUILD = BUILD;
   return createLookup;
 });

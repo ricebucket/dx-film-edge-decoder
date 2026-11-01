@@ -6,12 +6,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { buildData, versionOf } from '../../scripts/build-data.mjs';
 import { communityStats } from '../../scripts/community-stats.mjs';
-import { resolveCommit, sourceRecord, assignIds } from '../../scripts/update-community-data.mjs';
+import { resolveCommit, sourceRecord, assignIds, idsReport } from '../../scripts/update-community-data.mjs';
 import { parseCsv, formatCsv, readCsvObjects } from '../../scripts/lib/csv.mjs';
 import { SHOTS } from '../../scripts/screenshots.mjs';
 import { DEMO } from '../../scripts/demo-video.mjs';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, symlinkSync, rmSync, cpSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, symlinkSync, rmSync, cpSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const require = createRequire(import.meta.url);
@@ -33,6 +33,36 @@ describe('generated data files', () => {
     }
   });
 
+  test('a file the build cannot read stops it, with an error that names the file, and the column if one is missing', () => {
+    // The build run on a copy of the scripts and the data, with the data changed by `edit`.
+    const stops = (edit) => {
+      const dir = mkdtempSync(join(tmpdir(), 'dx-build-'));
+      try {
+        for (const file of ['build-data.mjs', 'lib/csv.mjs', 'lib/dx-index.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
+        for (const file of ['dx-codec.js', 'dx-lookup.js']) cpSync(join(ROOT, 'site', 'js', file), join(dir, 'site', 'js', file));
+        cpSync(join(ROOT, 'data'), join(dir, 'data'), { recursive: true });
+        edit(join(dir, 'data'));
+        const run = spawnSync(process.execPath, [join(dir, 'scripts', 'build-data.mjs'), '--check'], { encoding: 'utf8' });
+        assert.equal(run.status, 1, run.stdout);
+        return run.stderr.trim();
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    };
+    const snapshot = (edit) => (dir) => {
+      const csv = join(dir, 'big-film-database', 'film_database_dx.csv');
+      writeFileSync(csv, formatCsv(edit(parseCsv(readFileSync(csv, 'utf8'), ';')), ';'));
+    };
+    // A snapshot from before there were IDs (scripts/update-community-data.mjs gives them).
+    assert.equal(stops(snapshot((rows) => rows.map((r) => r.slice(1)))),
+      'film_database_dx.csv has no column "ID": `npm run update:community-data` gives its rows their IDs');
+    // A column the build reads, renamed in the snapshot only.
+    assert.equal(stops(snapshot(([header, ...rows]) => [header.map((name) => (name === 'reliability' ? 'Reliability' : name)), ...rows])),
+      'film_database_dx.csv has no column "reliability"');
+    // A blank line at the end of a file.
+    assert.equal(stops((dir) => appendFileSync(join(dir, 'i3a-2008', 'products.csv'), '\n')), 'products.csv: CSV row 391 has 1 fields, expected 6');
+  });
+
   test('are built the same on a computer set to another language', () => {
     // Czech sorts "ch" after "h"; the sensitizers must still come in the same order.
     const env = { ...process.env, LC_ALL: 'cs_CZ.UTF-8', LANG: 'cs_CZ.UTF-8' };
@@ -41,23 +71,33 @@ describe('generated data files', () => {
   });
 
   test('each file holds one dataset, so each has one license (see REUSE.toml)', () => {
-    assert.deepEqual(Object.keys(data), ['version', 'source', 'sensitizers', 'part1', 'products', 'augmented']);
-    assert.deepEqual(Object.keys(community), ['version', 'source', 'rows']);
+    assert.deepEqual(Object.keys(data), ['version', 'build', 'source', 'sensitizers', 'part1', 'products', 'augmented']);
+    assert.deepEqual(Object.keys(community), ['version', 'build', 'source', 'rows']);
     // The record numbers of the rows of both, and nothing else.
-    assert.deepEqual(Object.keys(index), ['version', 'dx', 'any', 'recorded', 'related', 'cassette', 'recordedOnly']);
-    for (const [name, refs] of Object.entries(index)) if (name !== 'version') assert.ok(refs.every(Number.isInteger), name);
+    assert.deepEqual(Object.keys(index), ['version', 'build', 'dx', 'any', 'recorded', 'related', 'cassette', 'recordedOnly']);
+    for (const [name, refs] of Object.entries(index)) if (!['version', 'build'].includes(name)) assert.ok(refs.every(Number.isInteger), name);
   });
 
-  test('the three carry the version of the build that wrote them, which changes with anything it wrote', () => {
+  test('the three carry the version of the build that wrote them, which changes with anything it wrote, and an empty deploy build', () => {
     assert.match(data.version, /^[0-9a-f]{16}$/);
     assert.equal(community.version, data.version);
     assert.equal(index.version, data.version);
-    // A hash of what the build wrote, without the version itself.
-    const content = (file) => Object.fromEntries(Object.entries(file).filter(([name]) => name !== 'version'));
+    // Filled only in the copy published (scripts/stamp-build.mjs, tests/unit/stamp.test.mjs).
+    for (const file of [data, community, index]) assert.equal(file.build, '');
+    // A hash of the data the build wrote, without the version and the build.
+    const content = (file) => Object.fromEntries(Object.entries(file).filter(([name]) => !['version', 'build'].includes(name)));
     const [i3a, rows, refs] = [data, community, index].map(content);
     assert.equal(versionOf(i3a, rows, refs), data.version);
     assert.notEqual(versionOf(i3a, { ...rows, rows: rows.rows.slice(1) }, refs), data.version);
     assert.notEqual(versionOf(i3a, rows, { ...refs, dx: refs.dx.slice().reverse() }), data.version);
+    // Every part of every file counts, so that none can be kept from another build.
+    const files = [i3a, rows, refs];
+    for (const [n, file] of files.entries()) {
+      for (const key of Object.keys(file)) {
+        const changed = files.map((f, k) => (k === n ? { ...f, [key]: null } : f));
+        assert.notEqual(versionOf(...changed), data.version, `${['dx-data.js', 'dx-data-community.js', 'dx-index.js'][n]}: ${key}`);
+      }
+    }
   });
 
   test('every row starts with a record ID of its own, by which the index and the page refer to it', () => {
@@ -75,6 +115,31 @@ describe('generated data files', () => {
     assert.equal(lookup.byId('bfd-0'), null);
     const all = [...lookup.products, ...lookup.augmented, ...lookup.community].map((e) => e.id);
     assert.equal(new Set(all).size, all.length);
+    // Each ID gives its own row, and only written as the row's own is.
+    for (const id of all) assert.equal(lookup.byId(id).id, id);
+    for (const id of ['bfd-01', 'bfd-0930', 'i3a-0141', 'i3a-a01', 'bfd-1 ', ' bfd-1', 'BFD-1', 'bfd-1e1', 'bfd-', '', undefined]) {
+      assert.equal(lookup.byId(id), null, String(id));
+    }
+  });
+
+  test('the examples in site/js/app.js name their films by record IDs that still give those films', async () => {
+    // A correction that adds or removes a row of products.csv renumbers the
+    // i3a- IDs after it, and an update gives a changed row a new bfd- ID: then
+    // the examples' IDs need updating.
+    const app = await readFile(join(ROOT, 'site/js/app.js'), 'utf8');
+    const lookup = createLookup(data, community, index);
+    const films = [...app.matchAll(/code: \{ part1: (\d+), part2: (\d+)\b[^\n]*\bids: \[([^\]]*)\]/g)].map(([, part1, part2, ids]) => [`DX ${part1}-${part2}`,
+      ...[...ids.matchAll(/'([^']*)'/g)].map(([, id]) => {
+        const e = lookup.byId(id);
+        return e && `DX ${e.part1}-${e.part2} ${e.name}`;
+      })]);
+    assert.deepEqual(films, [
+      ['DX 79-15', 'DX 79-15 KODAK Professional BW400CN Film'],
+      ['DX 47-1', 'DX 47-1 Perutz Primera 200 (from 01/2002 on)'],
+      ['DX 109-9', 'DX 109-9 HP5 PLUS'],
+      ['DX 32-6', 'DX 32-6 FUJICHROME VELVIA 50'],
+      ['DX 12-13', 'DX 12-13 Fujicolor Super HGV100 Asia'],
+    ]);
   });
 
   test('the community file and the index made from it carry attribution for the CC BY-SA data', async () => {
@@ -177,6 +242,14 @@ describe('community data', () => {
     }
   });
 
+  test('records certainty and availability only with the values data/README.md explains, or none', () => {
+    // Others would rank by a certainty above 4, or drop out of the counts in research/04.
+    for (const [, , , name, , , , reliability, , , , , availability] of community.rows) {
+      assert.ok([-1, 0, 1, 2, 3, 4].includes(reliability), `${name}: reliability ${reliability}`);
+      assert.ok([-1, 0, 1, 2].includes(availability), `${name}: Ava ${availability}`);
+    }
+  });
+
   test('the figures quoted in research/04 agree with the page\'s own counts', async () => {
     const s = await communityStats();
     const page = createLookup(data, community, index).stats();
@@ -191,18 +264,23 @@ describe('community data', () => {
     const numbers = (text) => [...text.matchAll(/\d{1,3}(?:,\d{3})+|\d+/g)].map((m) => Number(m[0].replace(/,/g, '')));
     const expected = {
       answer: [s.edgeDxNumbers, s.notInRegistry],
+      onMarket: [s.availability[2], s.onMarketWithEdge],
       snapshot: [s.rowsUpstream, s.rowsKept, s.withExtract, s.onlyCassette],
       findings: [[s.extractDisagrees], [s.noCassette], [s.above2047], [s.below16], [s.htmlMarkup], [s.searchTags],
         [Object.values(s.certainty).reduce((a, b) => a + b, 0), ...Object.entries(s.certainty).flatMap(([k, v]) => [Number(k), v])],
         Object.values(s.availability)],
+      coverage: [s.availability[2], s.onMarketWithEdge, s.onMarketDxNumbers, s.onMarketNotInRegistry, 2008],
     };
     for (const file of ['research/04-community-database.md', 'research/04-community-database.zh-CN.md']) {
-      // The same sections in both: the short answer, What it is, The file, Snapshot used, Data-quality findings …
+      // The same sections in both: the short answer, What it is, The file, Snapshot used, Data-quality findings, Coverage of modern films.
       const sections = (await readFile(join(ROOT, file), 'utf8')).split(/^## /m);
       const answer = sections[0].trim().split(/\n\s*\n/).pop();
       const snapshot = sections[3].split(/\)\s*:|）：/).slice(1).join('');
       const rows = sections[4].split('\n').filter((l) => l.startsWith('|')).slice(2).map((l) => l.split('|').slice(-2)[0]);
-      assert.deepEqual({ answer: numbers(answer).slice(0, 2), snapshot: numbers(snapshot), findings: rows.map(numbers) }, expected, file);
+      // Then, after "Part 1 = 0" and the registry's year: how many rows are on the market, and how many of them have such a number.
+      const onMarket = numbers(answer.split(/Part 1 = 0|第 1 部分为 0/)[1]).filter((n) => n !== 2008).slice(0, 2);
+      const coverage = numbers(sections[5].split('\n').slice(1).join('\n'));
+      assert.deepEqual({ answer: numbers(answer).slice(0, 2), onMarket, snapshot: numbers(snapshot), findings: rows.map(numbers), coverage }, expected, file);
     }
   });
 });
@@ -214,6 +292,22 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     await assert.rejects(resolveCommit(['--commit', full.slice(0, 7)], null), /full 40-character/);
     await assert.rejects(resolveCommit(['--commit'], null), /full 40-character/);
     assert.equal(await resolveCommit([], community.source), full);
+  });
+
+  test('--latest takes the newest commit only as a full commit hash too', async () => {
+    // GitHub's answer, given in place of a request.
+    const fetch = globalThis.fetch;
+    const answer = (body) => { globalThis.fetch = async () => ({ ok: true, json: async () => body }); };
+    try {
+      answer([{ sha: 'b'.repeat(40) }]);
+      assert.equal(await resolveCommit(['--latest'], community.source), 'b'.repeat(40));
+      for (const body of [[], [{}], [{ sha: 'b'.repeat(7) }], null]) {
+        answer(body);
+        await assert.rejects(resolveCommit(['--latest'], community.source), /no full commit hash/, JSON.stringify(body));
+      }
+    } finally {
+      globalThis.fetch = fetch;
+    }
   });
 
   test('a quote left open stops the CSV reader, instead of swallowing the rows after it', () => {
@@ -234,32 +328,42 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     assert.deepEqual(assignIds([['N', 'x']], [['9', 'A', 'y']], 3), { ids: [10], lastId: 10 });
   });
 
-  test('a column added or moved upstream leaves every unchanged row its ID; an upstream ID column stops the update', () => {
-    // The update run offline, in a copy of its scripts, on a snapshot of two
-    // rows with IDs 3 and 7 and a download given in place of GitHub's.
-    const columns = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country', 'Beginning year', 'End year', 'Distributor', 'Ava'];
-    const rows = [['0291', '002910', 'A 200', '', 'Maker A', '', 'Japan', '', '', '', '0'], ['0293', '002930', 'B 400', '', 'Maker B', '3', 'Italy', '', '', '', '1']];
-    const update = (header, upstream) => {
-      const dir = mkdtempSync(join(tmpdir(), 'dx-update-'));
-      try {
-        for (const file of ['update-community-data.mjs', 'lib/csv.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
-        const out = join(dir, 'data', 'big-film-database');
-        mkdirSync(out, { recursive: true });
-        writeFileSync(join(out, 'source.json'), JSON.stringify({ commit: 'a'.repeat(40), retrieved: '2030-01-01', lastId: 7 }));
-        const snapshot = formatCsv([['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]], ';');
-        writeFileSync(join(out, 'film_database_dx.csv'), snapshot);
-        const text = formatCsv([header, ...upstream], ';');
-        writeFileSync(join(dir, 'fetch.mjs'), `globalThis.fetch = async () => ({ ok: true, text: async () => ${JSON.stringify(text)} });\n`);
-        const run = spawnSync(process.execPath, ['--import', pathToFileURL(join(dir, 'fetch.mjs')).href, join(dir, 'scripts', 'update-community-data.mjs')], { encoding: 'utf8' });
-        const written = readFileSync(join(out, 'film_database_dx.csv'), 'utf8');
-        return { status: run.status, error: run.stderr, unchanged: written === snapshot, ids: parseCsv(written, ';').slice(1).map((r) => r[0]) };
-      } finally {
-        rmSync(dir, { recursive: true, force: true });
-      }
-    };
-    // As upstream gives them: with its Pic column, and a row without a number, which is not kept.
-    const header = [...columns, 'Pic'];
-    const upstream = [[...rows[0], 'a.jpg'], ['', '', 'No number', '', '', '', '', '', '', '', '0', ''], [...rows[1], '']];
+  test('the update says what it did to the record IDs', () => {
+    assert.equal(idsReport([1, 1677, 1678, 1679, 5], [1, 2, 3, 5]), '2 rows kept their IDs; 3 got new ones (1677–1679); 2 IDs were retired.');
+    assert.equal(idsReport([1, 8], [1, 2]), '1 row kept its ID; 1 got a new one (8); 1 ID was retired.');
+    assert.equal(idsReport(Array.from({ length: 1676 }, (_, i) => i + 1), []), 'No row kept its ID; 1,676 got new ones (1–1676); no ID was retired.');
+    assert.equal(idsReport([3, 7], [3, 7]), '2 rows kept their IDs; none got a new one; no ID was retired.');
+    assert.equal(idsReport([1677, 1678], [], 1676), 'No row kept its ID; 2 got new ones (1677–1678); 1,676 IDs were retired.');
+  });
+
+  // The update run offline, in a copy of its scripts, on a snapshot (by
+  // default two rows with IDs 3 and 7) and a download given in place of GitHub's.
+  const columns = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country', 'Beginning year', 'End year', 'Distributor', 'Ava'];
+  const rows = [['0291', '002910', 'A 200', '', 'Maker A', '', 'Japan', '', '', '', '0'], ['0293', '002930', 'B 400', '', 'Maker B', '3', 'Italy', '', '', '', '1']];
+  const update = (header, upstream, snapshotRows = [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]]) => {
+    const dir = mkdtempSync(join(tmpdir(), 'dx-update-'));
+    try {
+      for (const file of ['update-community-data.mjs', 'lib/csv.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
+      const out = join(dir, 'data', 'big-film-database');
+      mkdirSync(out, { recursive: true });
+      writeFileSync(join(out, 'source.json'), JSON.stringify({ commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2, lastId: 7 }));
+      const snapshot = formatCsv(snapshotRows, ';');
+      writeFileSync(join(out, 'film_database_dx.csv'), snapshot);
+      const text = formatCsv([header, ...upstream], ';');
+      writeFileSync(join(dir, 'fetch.mjs'), `globalThis.fetch = async () => ({ ok: true, text: async () => ${JSON.stringify(text)} });\n`);
+      const run = spawnSync(process.execPath, ['--import', pathToFileURL(join(dir, 'fetch.mjs')).href, join(dir, 'scripts', 'update-community-data.mjs')], { encoding: 'utf8' });
+      const written = readFileSync(join(out, 'film_database_dx.csv'), 'utf8');
+      // `said`: its first two lines, what it kept and what it did to the IDs.
+      return { status: run.status, error: run.stderr, said: run.stdout.split('\n').slice(0, 2), unchanged: written === snapshot, ids: parseCsv(written, ';').slice(1).map((r) => r[0]) };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  };
+  // As upstream gives them: with its Pic column, and a row without a number, which is not kept.
+  const header = [...columns, 'Pic'];
+  const upstream = [[...rows[0], 'a.jpg'], ['', '', 'No number', '', '', '', '', '', '', '', '0', ''], [...rows[1], '']];
+
+  test('a column added or moved upstream leaves every unchanged row its ID; an upstream ID column, or a snapshot without a column the rows are matched by, stops the update', () => {
     const at = (name) => header.indexOf(name);
     assert.deepEqual(update(header, upstream).ids, ['3', '7']);
     // A column added after Pic, two columns swapped, and Pic moved first.
@@ -276,6 +380,48 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     assert.equal(theirs.status, 1);
     assert.match(theirs.error, /Column "ID"/);
     assert.ok(theirs.unchanged);
+    // A snapshot without a column the build reads (one renamed upstream and in
+    // the scripts, say): rows told apart only by it could pass their IDs to
+    // each other, so nothing is written.
+    const country = columns.indexOf('Country') + 1;
+    const old = update(header, upstream, [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]].map((r) => r.filter((_, i) => i !== country)));
+    assert.equal(old.status, 1);
+    assert.match(old.error, /no column "Country"/);
+    assert.ok(old.unchanged);
+    // A snapshot without an ID column: every row gets a new number, after the highest ever given (7).
+    const first = update(header, upstream, [columns, ...rows]);
+    assert.equal(first.status, 0, first.error);
+    assert.deepEqual(first.ids, ['8', '9']);
+  });
+
+  test('the update prints how many rows it kept, then what it did to their record IDs', () => {
+    // With a thousand more rows without a number, written as idsReport writes its counts.
+    const same = update(header, [...upstream, ...Array(1000).fill(upstream[1])]);
+    assert.deepEqual(same.said, [`Kept 2 of 1,003 rows from dxdatabase/Open-source-film-database@${'a'.repeat(7)}`, '2 rows kept their IDs; none got a new one; no ID was retired.']);
+    const changed = update(header, [upstream[0], upstream[1], [...rows[1].slice(0, 2), 'B 400 Pro', ...rows[1].slice(3), '']]);
+    assert.equal(changed.said[1], '1 row kept its ID; 1 got a new one (8); 1 ID was retired.');
+    // Without a snapshot that has IDs, the IDs of the rows the last update kept are all retired.
+    assert.equal(update(header, upstream, [columns, ...rows]).said[1], 'No row kept its ID; 2 got new ones (8–9); 2 IDs were retired.');
+  });
+
+  test('a column name given twice upstream, or a snapshot whose IDs are not as the update writes them, stops the update before it writes anything', () => {
+    // The update matches rows by the first column of a name, the build reads the last.
+    const twice = update([...header, 'Name'], upstream.map((r) => [...r, 'Another name']));
+    assert.equal(twice.status, 1);
+    assert.match(twice.error, /Column "Name" appears twice/);
+    assert.ok(twice.unchanged);
+    // The ID column first, and in it whole numbers from 1, each once: as the build reads them.
+    for (const [snapshotRows, error] of [
+      [[[...columns, 'ID'], [...rows[0], '3'], [...rows[1], '7']], /the "ID" column is not the first/],
+      [[['ID', ...columns], ['x3', ...rows[0]], ['7', ...rows[1]]], /ID "x3" is missing, repeated or not a whole number/],
+      [[['ID', ...columns], ['0', ...rows[0]], ['7', ...rows[1]]], /ID "0" is missing/],
+      [[['ID', ...columns], ['3', ...rows[0]], ['3', ...rows[1]]], /ID "3" is missing, repeated/],
+    ]) {
+      const run = update(header, upstream, snapshotRows);
+      assert.equal(run.status, 1, String(error));
+      assert.match(run.error, error);
+      assert.ok(run.unchanged, String(error));
+    }
   });
 
   test('downloading the recorded commit again leaves source.json as it is', async () => {

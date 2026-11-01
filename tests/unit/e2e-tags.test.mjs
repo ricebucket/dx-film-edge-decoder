@@ -14,9 +14,10 @@ import { blank } from '../../scripts/lib/js-source.mjs';
 const E2E = fileURLToPath(new URL('../e2e/', import.meta.url));
 const FILES = /\.(spec|test)\.[cm]?[jt]sx?$/; // the files Playwright runs by default
 // What a test can tell the device by: the phones' own fixtures, the size of
-// its screen, and the browser or project it runs in (here WebKit runs only on
-// the iPhone).
-const DEVICE = String.raw`\b(isMobile|hasTouch|viewport(?:Size)?|browserName|channel|defaultBrowserType|browserType|project)\b`;
+// its screen, the browser or project it runs in (here WebKit runs only on the
+// iPhone), and what the page itself can ask of touch, the pointer and the
+// browser.
+const DEVICE = String.raw`\b(isMobile|hasTouch|viewport(?:Size)?|browserName|channel|defaultBrowserType|browserType|project|matchMedia|maxTouchPoints|ontouchstart|userAgent)\b`;
 
 /** Where the bracket at `open` closes, or -1. */
 function closing(code, open) {
@@ -85,7 +86,7 @@ function check(file, src) {
     // Desktop only: its first line skips the test where isMobile is true.
     const skip = /^\s*test\.skip\(([^,]*),/.exec(body);
     const desktopOnly = skip && /^\s*(isMobile|.*\|\|\s*isMobile|isMobile\s*\|\|.*)\s*$/.test(skip[1]) && !/!\s*(isMobile|hasTouch)\b|isMobile\s*[=!]==?/.test(skip[1]);
-    if (!phone && !desktopOnly) problems.push(`${where}: ${src.slice(at + m[0].length, titleEnd)} depends on the device (isMobile, hasTouch, the screen size, the browser or the project) without the @phone tag`);
+    if (!phone && !desktopOnly) problems.push(`${where}: ${src.slice(at + m[0].length, titleEnd)} depends on the device (isMobile, hasTouch, the screen size, the browser, the project, or what the page asks of touch, the pointer or the browser) without the @phone tag`);
   }
   for (const m of code.matchAll(new RegExp(DEVICE, 'g'))) {
     if (!devices.some(([from, to]) => m.index > from && m.index < to)) problems.push(`${file}:${lineOf(src, m.index)}: ${m[0]} outside a test this check can vouch for`);
@@ -144,6 +145,10 @@ test('the check passes tests it can vouch for and fails all else', () => {
     'the project from test.info()': "test('a', async ({ page }) => {\n  const { project } = test.info();\n});",
     'the browser type': "test('a', async ({ browser }) => {\n  if (browser.browserType().name() === 'webkit') {}\n});",
     'the default browser type': "test('a', async ({ page, defaultBrowserType }) => {\n  if (defaultBrowserType === 'webkit') {}\n});",
+    'the page\'s own pointer': "test('a', async ({ page }) => {\n  if (await page.evaluate(() => matchMedia('(pointer: coarse)').matches)) {}\n});",
+    'the page\'s own touch points': "test('a', async ({ page }) => {\n  if (await page.evaluate(() => navigator.maxTouchPoints > 0)) {}\n});",
+    'the page\'s own touch events': "test('a', async ({ page }) => {\n  if (await page.evaluate(() => window.ontouchstart !== undefined)) {}\n});",
+    'the browser\'s name for itself': "test('a', async ({ page }) => {\n  if ((await page.evaluate(() => navigator.userAgent)).includes('iPhone')) {}\n});",
   };
   for (const [what, src] of Object.entries(fails)) assert.ok(check('p.spec.cjs', src).problems.length > 0, what);
   for (const name of ['a.spec.js', 'a.spec.cjs', 'a.spec.ts', 'a.test.mjs', 'a.spec.tsx']) assert.ok(FILES.test(name), name);
@@ -198,6 +203,27 @@ test('GitHub runs every browser test on the desktop, in parts, and the @phone te
   assert.ok(desktop.length > 0, 'desktop jobs');
   assert.deepEqual(desktop, desktop.map((_, i) => ['--project=desktop', `--shard=${i + 1}/${desktop.length}`]));
   assert.deepEqual(runs.filter((r) => !desktop.includes(r)), [[...phones.map((name) => `--project=${name}`), '--grep', '@phone']]);
-  // … and each job runs the tests its line names.
-  assert.match(workflow, /^\s*- run: npm run test:e2e -- \$\{\{ matrix\.tests \}\}\s*$/m);
+  // … and each job runs the tests its line names, in a step that is not turned off or let fail.
+  const step = /^( +)- run: npm run test:e2e -- \$\{\{ matrix\.tests \}\}[ \t]*\n((?:\1 {2,}.*\n)*)/m.exec(workflow);
+  assert.ok(step, 'the step that runs the browser tests');
+  assert.doesNotMatch(step[2], /^\s+(?:if|continue-on-error):/m);
+  const browser = /^ {2}browser:\n((?: {4}.*\n|\s*\n)*)/m.exec(workflow);
+  assert.ok(browser && browser[1].includes(step[0]), 'the browser job');
+  assert.doesNotMatch(browser[1], /^ {4}(?:if|continue-on-error):/m);
+});
+
+test('GitHub runs the unit tests with `npm test`, fails a run on a test.only or a flaky test, and deploys only after every job passed', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const config = blank(readFileSync(join(root, 'playwright.config.cjs'), 'utf8'));
+  const workflow = readFileSync(join(root, '.github/workflows/tests.yml'), 'utf8');
+  // `npm test` (scripts/run-unit.mjs) fails where `node --test` alone would not, and it also checks the generated data files.
+  const unit = /^ {2}unit:\n((?: {4}.*\n|\s*\n)*)/m.exec(workflow);
+  assert.ok(unit, 'the unit job');
+  assert.match(unit[1], /^ {6}- run: npm test\s*$/m);
+  // Neither the job nor a step of it is turned off, or let fail.
+  assert.doesNotMatch(unit[1], /^\s+(?:if|continue-on-error):/m);
+  // A test.only left in would run alone, and a test that passes only when retried would pass.
+  assert.match(config, /\bforbidOnly:\s*Boolean\(process\.env\.CI\)/);
+  assert.match(config, /\bfailOnFlakyTests:\s*Boolean\(process\.env\.CI\)/);
+  assert.match(workflow, /^ {4}needs: \[unit, licenses, browser\]\s*$/m);
 });

@@ -168,10 +168,7 @@ Coutu pharmacies in Canada, and all five follow the rule: `832973` has
 other four are made from 78 and 82 in the same way. Their Part 2 also matches
 the ordinary DX number of the film each one names (78-1 is KODAK GOLD 100 Film,
 78-2 GOLD 200 and 82-3 MAX 400), but the standard says nothing about Part 2 in
-an augmented number. Of the cassette numbers in this range in The Big Film
-Database, one is recorded with a DX number: `333098`, Power Geek 35mm Film For
-Color Prints, as DX 39-1, with a note that the number printed on the box "is
-not DX code" and that the film was identified from its edge barcode.
+an augmented number.
 
 Wikipedia cites the cartridge barcode patent with the right title, inventors
 and dates but the number "US 5661558A", which belongs to an unrelated patent
@@ -180,9 +177,8 @@ as Mérino cites.
 
 ## After 2008
 
-Films introduced after the list (for example Kodak Portra 400 of 2010 or
-Ektar 100 of 2008) are absent from it. Their codes are known only from
-community sources, see [report 04](04-community-database.md).
+Films introduced after the list are absent from it. Their codes are known only
+from community sources, see [report 04](04-community-database.md).
 
 ## Sources
 

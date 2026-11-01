@@ -1,8 +1,9 @@
 /*
  * "Find a film's code" (search + direct entry) and "Have the cassette?".
- * Both end in onShow({ part1, part2, frame, half }, { kind, name, ids }),
- * which puts the code on the strip and says where it came from; `ids`, the
- * record IDs of the films picked, if any, which come first in the result.
+ * Both end in onShow({ part1, part2, frame, half }, { kind, name, ids,
+ * button }), which puts the code on the strip and says where it came from;
+ * `ids`, the record IDs of the films picked, if any, which come first in
+ * the result; `button`, the one used, which "Back to …" comes back to.
  */
 (function (root) {
   'use strict';
@@ -68,55 +69,22 @@
       frameHelp.classList.remove('is-error');
     });
 
+    // A row as in every list of films (ui.filmItem), with the film's maker, as no lead names it,
+    // and why a film has no code to draw. Its "Show barcode" takes the frame typed above.
     function resultItem({ entry, related }) {
-      const dx = dxOf(entry);
-      const isI3a = entry.source === 'i3a';
-      const maker = ui.sensitizerName(entry.sensitizer);
-      const detail = isI3a
-        ? ({ 'in-use': t('{maker}. In production in 2008.', { maker }), discontinued: t('{maker}. Discontinued by 2008.', { maker }) }[entry.status] || maker)
-        : [entry.manufacturer && t('Made by {maker}', { maker: entry.manufacturer }), entry.original && ui.source(entry.original)]
-          .filter(Boolean).flatMap((piece, i) => (i ? [i18n.punctuation().sentence, piece] : [piece]));
-      // Rows without a usable DX number can't be drawn: registry rows whose
-      // Part 2 was never identified, database rows with only a cassette
-      // number, numbers above 2047 (the registry's augmented ones too), and
-      // community numbers below 16 (where Part 1 would be 0, which no maker
-      // held in 2008).
-      const showable = dx !== null && !entry.wildcard;
-      const why = entry.wildcard
-        ? t('The registry does not give the Part 2 number for this film')
-        : entry.extract === null ? t('The Big Film Database records no DX number for this film')
-        : entry.extract > 2047
-          ? (entry.full ? t('This cassette number is outside the range a film edge code can hold') : t('The DX number recorded for this film is outside the range a film edge code can hold'))
-          // A cassette number whose middle digits give Part 1 = 0 (Neopan 000004, ORWOPAN 000054).
-          : entry.full
-            ? t('Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code', { dx: codec.formatDxNumber(0, entry.extract) })
-            : t('No maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code', { dx: codec.formatDxNumber(0, entry.extract) });
-      // Named for screen readers with its film, which the row shows.
-      const button = h('button', {
-        type: 'button', class: 'tool', disabled: showable ? null : true,
-        'aria-label': showable ? t('Show barcode of {name}', { name: entry.name }) : null,
-      }, showable ? t('Show barcode') : t('No full code'));
-      if (showable) {
-        button.addEventListener('click', () => {
+      const film = entry.source === 'community' ? Object.assign({}, entry, { cassettes: entry.full ? [entry.full] : [], ids: [entry.id] }) : entry;
+      const row = ui.filmItem(film, entry.source, {
+        related: related || null,
+        dx: true,
+        maker: true,
+        explain: true,
+        onShow(f, button) {
           const frame = readFrame(frameInput, frameHelp);
-          if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame), { kind: 'finder', name: entry.name, ids: [entry.id] });
-        });
-      }
-      const label = dx ? `DX ${entry.wildcard ? `${entry.part1}-?` : dx}` : entry.full ? t('cassette {number}', { number: entry.full }) : null;
-      // Only related by digits: its cassette number, with the digits shared marked.
-      const cassette = related && entry.full ? t('cassette {number}', { number: entry.full }) : null;
-      return h('li', { class: 'finder__item' },
-        h('div', { class: 'finder__text' },
-          h('p', { class: 'finder__name' }, entry.name),
-          h('p', { class: 'finder__meta' },
-            label && !(cassette && !dx) ? h('span', { class: 'finder__dx' }, label) : null,
-            cassette ? h('span', { class: 'finder__dx' }, ...ui.sharedDigits(cassette, related)) : null,
-            related ? h('span', { class: 'pill pill--near' }, t('Fuzzy match')) : null,
-            ui.sourceTag(entry.source),
-            detail && detail.length ? h('span', { class: 'finder__detail' }, detail) : null),
-          // Said in the row, where touch and keyboard users see it too.
-          showable ? null : h('p', { class: 'fineprint finder__why' }, why + i18n.punctuation().period)),
-        button);
+          if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame), { kind: 'finder', name: entry.name, ids: [entry.id], button });
+        },
+      });
+      row.classList.add('finder__item');
+      return row;
     }
 
     function showPage() {
@@ -183,10 +151,11 @@
     const directFrame = h('input', { type: 'text', id: 'direct-frame', class: 'input input--short', placeholder: '23A', value: '1', autocomplete: 'off', 'aria-describedby': 'direct-help' });
     const directMsg = h('p', { class: 'form-message', id: 'direct-help', 'aria-live': 'polite' },
       t('DX number as 79-15, or the 4-digit form 1279. Frame as printed: 23, 23A, X, 00 …'));
+    const directShow = h('button', { type: 'submit', class: 'tool tool--primary' }, t('Show barcode'));
     const directForm = h('form', { class: 'direct', novalidate: true },
       h('div', { class: 'field' }, h('label', { for: 'direct-dx' }, t('DX number')), dxInput),
       h('div', { class: 'field' }, h('label', { for: 'direct-frame' }, t('Frame')), directFrame),
-      h('button', { type: 'submit', class: 'tool tool--primary' }, t('Show barcode')),
+      directShow,
       directMsg);
     directForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -201,7 +170,7 @@
       if (!frame) return;
       directMsg.classList.remove('is-error');
       directMsg.textContent = t('Showing DX {dx}, frame {frame}.', { dx: `${dx.part1}-${dx.part2}`, frame: codec.frameLabel(frame.frame, frame.half) });
-      onShow({ part1: dx.part1, part2: dx.part2, frame: frame.frame, half: frame.half }, { kind: 'finder', name: `DX ${dx.part1}-${dx.part2}` });
+      onShow({ part1: dx.part1, part2: dx.part2, frame: frame.frame, half: frame.half }, { kind: 'finder', name: `DX ${dx.part1}-${dx.part2}`, button: directShow });
     });
 
     host.replaceChildren(
@@ -446,13 +415,6 @@
       // An augmented number names a film only where the I3A list records it;
       // Annex A.4 says which maker it belongs to, but not which DX number the
       // film carries.
-      // Those with the same middle four digits, as fuzzy matches, with their
-      // cassette numbers and those digits marked.
-      const augmentedItem = (related) => (entry) => h('li', { class: 'match match--i3a' }, h('span', { class: 'match__name' }, entry.name),
-        related ? h('span', { class: 'pill pill--near' }, t('Fuzzy match')) : null,
-        ui.sourceTag('i3a'),
-        h('span', { class: 'match__facts' }, t('Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.')),
-        related ? h('span', { class: 'match__cassette' }, ...ui.sharedDigits(i18n.plural(1, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: entry.code }), p.extractText)) : null);
       const blocks = [];
       if (a) {
         const s = lookup.part1Info(a.basePart1).sensitizer;
@@ -479,11 +441,12 @@
       // some digits: the registry's records with the same middle four digits
       // and the database's rows where only the roll length differs; folded,
       // the database's rows with the same middle four digits, and the other
-      // films recorded with these four digits as their DX number. The
-      // database's rows as recorded, each with its own DX number and a button
-      // for it; each film once, in the first list it comes in: rows of it in a
-      // later one only add their cassette numbers to it, as rows that differ
-      // only by cassette number do within one list (ui.collate).
+      // films recorded with these four digits as their DX number, which
+      // their rows mark. The database's rows as recorded, each with its own
+      // DX number and a button for it; each film once, in the first list it
+      // comes in: rows of it in a later one only add their cassette numbers
+      // to it, as rows that differ only by cassette number do within one list
+      // (ui.collate).
       const { ranked, scoreOf } = root.DX.createLookup;
       const score = ({ e, match }) => scoreOf(e, match);
       const listed = new Map();
@@ -495,29 +458,28 @@
         return !first;
       });
       const rows = (entries, match) => entries.map((e) => ({ e, related: match < 10, match }));
-      // A database film's rows (ids), or a registry film.
-      const showRow = (e) => onShow({ part1: e.part1, part2: e.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits, ids: e.ids || [e.id] });
-      const item = ({ film, source, related }) => {
-        if (source === 'community') return ui.communityItem(film, { related: related && p.extractText, dx: true, onShow: showRow, edge: true });
-        return film.code === undefined ? ui.productItem(film, { dx: true, onShow: showRow, edge: true }) : augmentedItem(related)(film);
-      };
+      // A database film's rows (ids), or a registry film; and the button used.
+      const showRow = (e, button) => onShow({ part1: e.part1, part2: e.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits, ids: e.ids || [e.id], button });
+      const item = ({ film, source, related }) => ui.filmItem(film, source, { related: related ? p.extractText : null, dx: true, onShow: showRow });
       // All three lists before any is drawn: a later one can add cassette numbers to a film in an earlier one.
       const [near, similar, loose] = [
         [...rows(a ? hit.augmented : hit.dx ? hit.dx.products : [], 10), ...rows(hit.exact, 10), ...rows(hit.augmentedRelated, 7), ...rows(hit.sameFirstFive, 7)],
         rows(hit.sameMiddle, 6),
         rows(hit.recordedOnly, 5),
       ].map(films);
-      if (near.length) blocks.push(h('div', { class: 'source-block' }, h('ul', { class: 'matches' }, near.map(item))));
-      if (similar.length) {
-        blocks.push(h('details', { class: 'source-block source-block--more' },
-          h('summary', null, i18n.plural(similar.length, '{n} other film has the same middle four digits', '{n} other films have the same middle four digits')),
-          h('ul', { class: 'matches' }, similar.map(item))));
-      }
-      if (loose.length) {
-        blocks.push(h('details', { class: 'source-block source-block--more' },
-          h('summary', null, t('Other films')),
-          h('ul', { class: 'matches' }, loose.map(item))));
-      }
+      // The first list shows, and never folds; the others fold under their titles.
+      // "Other" films follow others: alone, they are just films.
+      const lists = [
+        { films: near, title: null },
+        { films: similar, title: () => i18n.plural(similar.length, '{n} film has the same middle four digits', '{n} films have the same middle four digits') },
+        { films: loose, title: (only) => (only ? i18n.plural(loose.length, '{n} film', '{n} films') : i18n.plural(loose.length, '{n} other film', '{n} other films')) },
+      ].filter((list) => list.films.length);
+      lists.forEach(({ films: shown, title }, i) => {
+        const heading = title ? title(lists.length === 1) : null;
+        const ul = h('ul', { class: 'matches' }, shown.map(item));
+        if (i === 0) blocks.push(h('div', { class: 'source-block' }, heading ? h('p', { class: 'source-block__title' }, heading) : null, ul));
+        else blocks.push(h('details', { class: 'source-block source-block--more' }, h('summary', null, heading), ul));
+      });
       // The DX number the rows with exactly this number record (none if they
       // record several); where none records one, the number's own reading.
       // Either only if an edge can carry it: Part 1 = 0 is valid, but no maker

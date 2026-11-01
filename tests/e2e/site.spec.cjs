@@ -282,6 +282,61 @@ test('only what can be clicked has a ring or a pill-shaped outline', async ({ pa
   expect(await outlinedButNotClickable()).toEqual([]);
 });
 
+test('the source tags are plain gray text, with no tint, outline or teal, which mark what can be selected', async ({ page }) => {
+  // In a result, in Find a film and in the cassette helper.
+  await page.goto('/?dx=39-1/1');
+  await page.locator('#finder-q').fill('fujicolor 200');
+  await page.locator('#cassette-code').fill('106253');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  for (const where of ['#result', '#finder-ui', '#cassette-ui']) await expect(page.locator(`${where} .source-tag`).first()).toBeVisible();
+  for (const colorScheme of ['light', 'dark']) {
+    await page.emulateMedia({ colorScheme });
+    const looks = await page.evaluate(() => {
+      const probe = document.body.appendChild(document.createElement('span'));
+      probe.style.color = 'var(--ink-3)';
+      const gray = getComputedStyle(probe).color;
+      probe.remove();
+      return [...document.querySelectorAll('.source-tag')].map((el) => {
+        const s = getComputedStyle(el);
+        const boxed = ['Top', 'Right', 'Bottom', 'Left'].some((side) => parseFloat(s[`border${side}Width`]) > 0 && s[`border${side}Style`] !== 'none');
+        return { tag: el.textContent, plain: s.color === gray && s.backgroundColor === 'rgba(0, 0, 0, 0)' && s.backgroundImage === 'none' && !boxed && s.outlineStyle === 'none' && s.boxShadow === 'none' };
+      });
+    });
+    expect(looks.length, colorScheme).toBeGreaterThan(10);
+    expect(looks.filter((l) => !l.plain), colorScheme).toEqual([]);
+  }
+});
+
+test('record IDs never show on the page: not in its text, its names for screen readers or its tooltips', async ({ page }) => {
+  // The page refers to rows by them, and its address names a film picked (&film=), but nothing it shows does.
+  await page.goto('/?dx=96-12/1&film=bfd-930');
+  await expect(page.locator('#result-title')).toHaveText('Kodak Gold 200 GB 200-7');
+  await page.locator('#finder-q').fill('kodak gold 200');
+  await page.locator('.finder__item').first().getByRole('button', { name: /^Show barcode of / }).click();
+  await expect(page.locator('#source')).toContainText('From Find a film:');
+  await page.locator('#cassette-code').fill('017563');
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.locator('.cassette__result details .match').first()).toBeAttached();
+  const seen = await page.evaluate(() => {
+    const id = /\b(?:i3a-a?|bfd-)\d+\b/;
+    const out = [];
+    let texts = 0;
+    // Every text, also of rows folded away or not shown yet ("Show all").
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (['SCRIPT', 'STYLE'].includes(node.parentElement.tagName)) continue;
+      texts++;
+      if (id.test(node.data)) out.push(`text: ${node.data.trim()}`);
+    }
+    for (const name of ['aria-label', 'aria-description', 'title', 'alt', 'placeholder']) {
+      for (const el of document.querySelectorAll(`[${name}]`)) if (id.test(el.getAttribute(name))) out.push(`${name}: ${el.getAttribute(name)}`);
+    }
+    return { texts, out };
+  });
+  expect(seen.texts).toBeGreaterThan(1000);
+  expect(seen.out).toEqual([]);
+});
+
 test('on phones the introduction can be folded away, and stays folded', { tag: '@phone' }, async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phones only: wider screens always show it');
   await page.goto('/');
@@ -349,6 +404,9 @@ test('a link to the code list lands at its heading, and a reload comes back to t
 test('printed, the strip keeps its film and bars, fits the page, and the colors are the light ones', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/?dx=79-15/23');
+  // A cell with focus, which the ruler marks on screen.
+  await dataCell(page, 18).focus();
+  await expect(page.locator('#strip .ruler__cell.is-here')).toHaveText('18');
   await page.emulateMedia({ media: 'print', colorScheme: 'dark' });
   const printed = await page.evaluate(() => {
     const film = document.querySelector('#strip .film');
@@ -367,6 +425,18 @@ test('printed, the strip keeps its film and bars, fits the page, and the colors 
   expect(printed.bg).toBe('#edf2f5');
   expect(printed.looks).toBe('none');
   expect(printed.buttons).toEqual([]);
+  // The ruler over it keeps its numbers, each over its own cell, and on paper marks no cell.
+  await expect(page.locator('#strip .ruler__num:visible')).toHaveText(['1', '5', '10', '15', '20', '25', '30']);
+  const centers = (sel) => page.locator(sel).evaluateAll((els) => els.map((el) => {
+    const r = el.getBoundingClientRect();
+    return r.left + r.width / 2;
+  }));
+  const ticks = await centers('#strip .ruler__cell');
+  const cells = await centers('#strip .track--data .cell');
+  expect(ticks).toHaveLength(31);
+  ticks.forEach((x, i) => expect(Math.abs(x - cells[i]), `cell ${i + 1}`).toBeLessThan(0.6));
+  const marked = await page.locator('#strip .ruler__cell[data-cell="18"]').evaluate((el) => [getComputedStyle(el, '::after').borderLeftWidth, getComputedStyle(el.querySelector('.ruler__num')).display]);
+  expect(marked).toEqual(['1px', 'none']);
 });
 
 test('printed, the result lists every film it has, and none of its buttons', async ({ page }) => {
@@ -595,4 +665,27 @@ test('on phones the page does not shift as it is built', { tag: '@phone' }, asyn
     setTimeout(() => resolve(total), 100);
   }));
   expect(shift).toBeLessThan(0.05);
+});
+
+test('a published copy asks for the files it loads later by the build its page names its scripts with', async ({ page }) => {
+  // The pages as scripts/stamp-build.mjs writes them; the server ignores the query.
+  await page.route('**/*', async (route) => {
+    if (route.request().resourceType() !== 'document') return route.continue();
+    const response = await route.fetch();
+    const html = (await response.text())
+      .replace(/(\ssrc="js\/[^"?#]+\.js)"/g, '$1?v=0123456789ab"')
+      .replace(/(\shref="css\/[^"?#]+\.css)"/g, '$1?v=0123456789ab"');
+    await route.fulfill({ response, body: html });
+  });
+  const asked = [];
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.pathname.startsWith('/js/')) asked.push(url.pathname + url.search);
+  });
+  await page.goto('/?lang=zh-CN');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', '');
+  await page.locator('#tab-photo').click();
+  await expect.poll(() => asked).toEqual(expect.arrayContaining(['/js/i18n/zh-CN.js?v=0123456789ab', '/js/dx-image.js?v=0123456789ab', '/js/ui-photo.js?v=0123456789ab']));
+  expect(asked.filter((url) => !url.endsWith('?v=0123456789ab'))).toEqual([]);
 });

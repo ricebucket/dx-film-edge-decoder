@@ -7,10 +7,12 @@
  * from there. The sources page is written once per language instead
  * (sources.html, sources.zh-CN.html …) and loads none of this.
  *
- * Text in the code goes through t('English text {name}', { name }), looked up
- * when it is drawn, never as a script loads: the language file can come in
- * after the scripts (js/prepaint.js), and text looked up before it would stay
- * English. tests/e2e/i18n.spec.cjs holds the file back to catch that.
+ * Text in the code goes through t('English text {name}', { name }), or
+ * i18n.parts() and i18n.plural() for text with elements in it or a count,
+ * looked up when it is drawn, never as a script loads: the language file can
+ * come in after the scripts (js/prepaint.js), and text looked up before it
+ * would stay English. tests/e2e/i18n.spec.cjs holds the file back to catch
+ * that.
  *
  * Elements of the page marked data-i18n get their content in the current
  * language, and data-i18n-attr="aria-label title …" names attributes that do

@@ -24,6 +24,7 @@
     "check:languages": "node scripts/check-languages.mjs",
     "figures": "node scripts/make-figures.mjs",
     "screenshots": "node scripts/screenshots.mjs",
-    "demo": "node scripts/demo-video.mjs"
+    "demo": "node scripts/demo-video.mjs",
+    "media": "npm run figures && npm run screenshots && npm run demo"
   }
 }

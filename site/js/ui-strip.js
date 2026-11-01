@@ -1,6 +1,7 @@
 /*
  * The interactive film strip: clock track, clickable data track, printed
- * edge labels and the field annotations underneath.
+ * edge labels, a ruler of cell numbers above and the field annotations
+ * underneath.
  *
  * Cells are kept in reading order in the DOM; mirroring is done with CSS
  * (direction: rtl on the grids), so cell N is always data-cell="N".
@@ -16,11 +17,11 @@
   const fieldNames = () => ({
     start: t('start pattern'),
     part1: t('Part 1'),
-    blank1: t('unused cell'),
+    blank1: t('unassigned cell'),
     part2: t('Part 2'),
     frame: t('frame number'),
     half: t('half-frame flag'),
-    blank2: t('unused cell'),
+    blank2: t('unassigned cell'),
     parity: t('parity'),
     stop: t('stop pattern'),
   });
@@ -42,6 +43,7 @@
     let refs = null;
     let focusCell = null;
     let stroke = null;
+    let hovered = null; // the cell under the mouse, for the ruler
     let resizeObserver = null;
     // Fingers on the screen, anywhere: a second one makes a pinch or a
     // two-finger scroll, not a tap, so the first one's press is dropped and
@@ -55,6 +57,7 @@
         if (touches.size > 1 && stroke && stroke.touch) {
           stroke.btn.classList.remove('is-pressing');
           stroke = null;
+          showHere();
         }
       }, true);
       const lift = (e) => { touches.delete(e.pointerId); };
@@ -115,6 +118,13 @@
         perfs,
         h('div', { class: 'film__row' }, before, h('div', { class: 'film__code' }, clock, data)));
 
+      // Over the film, the cells' numbers, which the page's texts use ("Add
+      // the bar in cell 18"): a tick for each cell, the number at 1 and every
+      // fifth, and that of the cell pointed at (showHere).
+      const ruler = layout.map((c) => h('span', { class: `ruler__cell${c.cell === 1 || c.cell % 5 === 0 ? ' is-major' : ''}`, 'data-cell': c.cell },
+        h('span', { class: 'ruler__num' }, String(c.cell))));
+      const rulerRow = h('div', { class: 'ruler', 'aria-hidden': 'true' }, h('div', { class: 'ruler__grid' }, ruler));
+
       const fields = codec.getFormat(format).fields;
       const brackets = fields.map((f) =>
         h('div', {
@@ -122,23 +132,18 @@
           'data-field': f.id,
           'data-from': f.from,
           style: { 'grid-column': `${f.from} / ${f.to + 1}` },
-          title: f.kind === 'blank' ? t('Unused: always empty') : null,
+          title: f.kind === 'blank' ? t('Unassigned: always empty') : null,
         },
         h('span', { class: 'bracket__name' }, short[f.id] || ''),
         h('span', { class: 'bracket__value' })));
-      const weights = layout.map((c) =>
-        h('span', { class: `weight weight--${c.field}`, 'data-cell': c.cell },
-          c.weight ? String(c.weight) : c.field === 'half' ? 'A' : c.field === 'parity' ? 'P' : ''));
-
       const annot = h('div', { class: 'annot', 'aria-hidden': 'true' },
-        h('div', { class: 'annot__grid annot__weights' }, weights),
         h('div', { class: 'annot__grid annot__fields' }, brackets));
 
       // A photo's barcode, stretched so each cell sits over its own (render's state.photo).
       const photoRow = h('div', { class: 'strip__photo', hidden: true, 'aria-hidden': 'true' },
         h('span', { class: 'strip__photo-label' }, t('Your photo')));
       // The read-only diagram's scroller is no tab stop (Chromium makes scrolling boxes ones).
-      const scroller = h('div', { class: 'strip__scroller', tabindex: opts.interactive ? null : '-1' }, h('div', { class: 'strip__canvas' }, photoRow, film, annot));
+      const scroller = h('div', { class: 'strip__scroller', tabindex: opts.interactive ? null : '-1' }, h('div', { class: 'strip__canvas' }, photoRow, rulerRow, film, annot));
       const swipe = h('p', { class: 'strip__swipe' }, t('Scroll sideways to see the whole strip.'));
       const strip = h('div', { class: 'strip', 'data-format': format, style: { '--cells': n } }, h('div', { class: 'strip__viewport' }, scroller), swipe);
       host.replaceChildren(strip);
@@ -157,7 +162,7 @@
       requestAnimationFrame(overflow);
 
       if (opts.interactive) bindEvents(data);
-      return { format, strip, scroller, photoRow, film, clock, data, before, annot, layout, brackets, weights };
+      return { format, strip, scroller, photoRow, film, clock, data, before, annot, layout, brackets, ruler };
     }
 
     // ---- editing ----------------------------------------------------------
@@ -165,6 +170,15 @@
     function cellButton(target) {
       const el = target && target.closest ? target.closest('button.cell--edit') : null;
       return el && refs.data.contains(el) ? el : null;
+    }
+
+    /** The mouse is over `target`: the ruler names its cell, if it is one of the data track's. */
+    function point(target) {
+      const el = target && target.closest ? target.closest('[data-cell]') : null;
+      const cell = el && refs.data.contains(el) ? Number(el.dataset.cell) : null;
+      if (cell === hovered) return;
+      hovered = cell;
+      showHere();
     }
 
     function setCell(cellNo, bar) {
@@ -193,6 +207,7 @@
           // will do, as hovering does with a mouse.
           btn.classList.add('is-pressing');
           stroke = { touch: true, id: e.pointerId, x: e.clientX, y: e.clientY, cellNo, btn };
+          showHere();
           return;
         }
         e.preventDefault();
@@ -209,12 +224,24 @@
       });
 
       track.addEventListener('pointermove', (e) => {
-        if (!stroke || stroke.id !== e.pointerId) return;
-        if (stroke.touch) {
-          if (scrolled(stroke, e)) stroke.btn.classList.remove('is-pressing');
+        // The mouse moving again takes the ruler back from the keys (keydown).
+        if (!stroke && e.pointerType === 'mouse') {
+          point(e.target);
           return;
         }
-        const btn = cellButton(document.elementFromPoint(e.clientX, e.clientY));
+        if (!stroke || stroke.id !== e.pointerId) return;
+        if (stroke.touch) {
+          if (scrolled(stroke, e)) {
+            stroke.btn.classList.remove('is-pressing');
+            showHere();
+          }
+          return;
+        }
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        // The track holds the pointer while it paints (setPointerCapture), so
+        // the cells it crosses get no pointerover: the ruler follows it here.
+        point(under);
+        const btn = cellButton(under);
         if (btn && setCell(Number(btn.dataset.cell), stroke.value)) emit(false);
       });
 
@@ -222,6 +249,7 @@
         if (!stroke || stroke.id !== e.pointerId) return;
         const s = stroke;
         stroke = null;
+        showHere();
         if (s.touch) {
           s.btn.classList.remove('is-pressing');
           if (e.type === 'pointerup' && !scrolled(s, e)) {
@@ -236,6 +264,21 @@
       };
       track.addEventListener('pointerup', end);
       track.addEventListener('pointercancel', end);
+
+      // The cell under the mouse, for the ruler; a finger's is the one it
+      // presses. While the track holds the pointer, the browser says it is
+      // over the track itself, not over a cell: pointermove says where then.
+      track.addEventListener('pointerover', (e) => {
+        if (e.pointerType === 'touch' || e.target === track) return;
+        point(e.target);
+      });
+      track.addEventListener('pointerleave', (e) => {
+        if (e.pointerType === 'touch') return;
+        hovered = null;
+        showHere();
+      });
+      track.addEventListener('focusin', showHere);
+      track.addEventListener('focusout', () => setTimeout(showHere));
 
       // Keyboard activation arrives as a click with detail 0.
       track.addEventListener('click', (e) => {
@@ -261,6 +304,8 @@
         else if (e.key === 'End') target = state.mirrored ? editable[0] : editable[editable.length - 1];
         else if (['1', '0', 'Backspace', 'Delete'].includes(e.key)) {
           e.preventDefault();
+          hovered = null; // the latest input wins: the ruler follows focus until the mouse moves
+          showHere();
           // Typing goes in reading order from cell 7, right after the start
           // pattern, as the hint says: on a mirrored strip, to the left.
           const previous = state.cells;
@@ -279,8 +324,23 @@
           return;
         } else return;
         e.preventDefault();
+        hovered = null;
+        showHere();
         if (target !== undefined && target !== null) moveFocus(target);
       });
+    }
+
+    /**
+     * The ruler names the cell pointed at: the one under the mouse, else the
+     * one a finger presses, else the one with focus.
+     */
+    function showHere() {
+      if (!refs || !opts.interactive) return;
+      const active = document.activeElement;
+      const focused = active && refs.data.contains(active) ? Number(active.dataset.cell) : null;
+      const pressed = stroke && stroke.touch && stroke.btn.classList.contains('is-pressing') ? stroke.cellNo : null;
+      const here = hovered || pressed || focused;
+      for (const el of refs.ruler) el.classList.toggle('is-here', Number(el.dataset.cell) === here);
     }
 
     function setFocusCell(cellNo) {
@@ -352,7 +412,6 @@
         el.classList.toggle('is-error', issueCells.has(cellNo));
         if (el.tagName === 'BUTTON') el.setAttribute('aria-pressed', String(bar));
       }
-      for (const el of refs.weights) el.classList.toggle('is-error', issueCells.has(Number(el.dataset.cell)));
 
       // Nothing entered yet: a blank strip (the page says so; on its own, no bars).
       const empty = state.empty !== undefined ? state.empty : refs.layout.every((c) => !c.editable || state.cells[c.cell - 1] === '0');
@@ -385,6 +444,7 @@
         if (refs.photoRow.lastChild !== state.photo) refs.photoRow.replaceChildren(label, state.photo);
       } else if (refs.photoRow.lastChild !== label) refs.photoRow.replaceChildren(label);
       refs.photoRow.hidden = !state.photo;
+      showHere();
     }
 
     /** Bars fade in left to right, like a latent image developing. */

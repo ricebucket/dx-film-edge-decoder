@@ -39,6 +39,9 @@ test.afterEach(() => checkConsole());
 for (const lang of LANGUAGES) {
   for (const colorScheme of ['light', 'dark']) {
     test(`axe finds no WCAG A or AA problems (${lang}, ${colorScheme})`, async ({ page }) => {
+      // Six passes of axe, a few seconds each: three times the usual time, so
+      // that a busy computer does not stop it halfway.
+      test.slow();
       await page.addInitScript((code) => localStorage.setItem('dx-lang', code), lang);
       await page.emulateMedia({ colorScheme });
 

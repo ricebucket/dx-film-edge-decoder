@@ -44,7 +44,7 @@
     }[value] || value;
   }
 
-  /** Everything communityItem shows, except the cassette number: rows alike in this look like one film. */
+  /** Everything filmItem shows of a database row, except the cassette number: rows alike in this look like one film. */
   function communityKey(e) {
     return JSON.stringify([e.extract, e.name, e.manufacturer, e.original, e.reliability, e.country, e.from, e.to, e.distributor, e.availability]);
   }
@@ -145,74 +145,122 @@
   }
 
   /**
-   * A row of The Big Film Database, or rows that differ only by cassette
-   * number, as recorded. Options: `related`, the four digits looked up (as
-   * text), for a row only related to them by digits, which says so and marks
-   * them in its cassette numbers; `dx`, its DX number shown; `onShow(entry)`,
-   * a button that shows its barcode (showButton, with `edge`).
+   * A row's short pieces (its name, DX number, tags and status), each one
+   * followed by a separator that is read out but not shown, unless nothing
+   * follows it: on screen, tint and spacing set them apart. Between two of
+   * them, a middle dot that is not read out, shown only where Windows
+   * contrast themes take the tint away. Then the rest of the row (`rest`).
    */
-  function communityItem(e, options = {}) {
+  function separated(short, rest) {
+    const pieces = short.filter(Boolean);
+    const after = rest.filter(Boolean);
+    return pieces.flatMap((piece, i) => {
+      const next = i + 1 < pieces.length;
+      if (!next && !after.length) return [piece];
+      const said = h('span', { class: 'visually-hidden' }, i18n.punctuation().comma);
+      return next ? [piece, said, h('span', { class: 'row-dot', 'aria-hidden': 'true' }, '·')] : [piece, said];
+    }).concat(after);
+  }
+
+  /** Four digits, as a cassette number carries a DX number in its middle: 0625. */
+  const four = (n) => String(n).padStart(4, '0');
+
+  /**
+   * One film in any list of films: the result's, Find a film's and the
+   * cassette helper's. `film` is a registry film, one of the registry's
+   * augmented cassette numbers (`code`), or a row of The Big Film Database
+   * (`cassettes`: rows that differ only by cassette number come as one), and
+   * `kind` says which source ('i3a' or 'community'). Its short pieces come
+   * first (separated), then what its source records. Options:
+   * - `dx`: its DX number shown;
+   * - `related`: the four digits looked up, for a film listed only for them:
+   *   it says so, and they are marked where it has them, in a cassette number
+   *   or else as its recorded DX number;
+   * - `maker`: a registry film's maker said, where no lead above names it;
+   * - `onShow(film, button)`: a "Show barcode" on a film with a code to draw
+   *   (showButton);
+   * - `explain`: on a film without one, a disabled "No full code", and why.
+   */
+  function filmItem(film, kind, options = {}) {
     const p = i18n.punctuation();
+    const augmented = kind === 'i3a' && film.code !== undefined;
+    const registry = kind === 'i3a' && !augmented;
+    const related = options.related || null;
+    const cassettes = augmented ? [film.code] : registry ? [] : film.cassettes || (film.full ? [film.full] : []);
+    // The digits looked up are marked where the row has them: in a cassette
+    // number, or else as the DX number it records, which is then why it is listed.
+    const inCassette = Boolean(related) && cassettes.some((c) => c.slice(1, 5) === related);
+    const markRecorded = Boolean(related) && !inCassette && film.extract !== null && film.extract !== undefined && four(film.extract) === related;
+    const edge = film.part1 !== null && film.part1 !== undefined;
+    const number = !edge ? null : film.wildcard ? `${film.part1}-?` : codec.formatDxNumber(film.part1, film.part2);
+    const status = registry
+      ? film.status && h('span', { class: `pill pill--${film.status === 'in-use' ? 'live' : 'gone'}` }, film.status === 'in-use' ? t('in production in 2008') : t('discontinued by 2008'))
+      : !augmented && film.availability && h('span', { class: `pill pill--${film.availability === 'on the market' ? 'live' : 'gone'}` }, availabilityLabel(film.availability));
     const facts = [];
-    if (e.manufacturer) facts.push(t('Made by {maker}', { maker: e.manufacturer }));
-    const y = years(e);
-    if (y) facts.push(y);
-    if (e.country) facts.push(source(e.country));
-    if (e.distributor) facts.push(t('sold by {distributor}', { distributor: e.distributor }));
+    if (kind === 'i3a') {
+      if (options.maker && film.sensitizer) facts.push(sensitizerName(film.sensitizer));
+    } else {
+      if (film.manufacturer) facts.push(t('Made by {maker}', { maker: film.manufacturer }));
+      const y = years(film);
+      if (y) facts.push(y);
+      if (film.country) facts.push(source(film.country));
+      if (film.distributor) facts.push(t('sold by {distributor}', { distributor: film.distributor }));
+    }
     // How sure the database is about the note, after it: the database rates
     // only its notes, and shows the value nowhere else.
     const certainty = (...text) => h('span', { class: 'certainty', title: t('How sure the database is about this (0 = low, 4 = high)') }, ...text);
-    const notes = e.original
-      ? h('span', { class: 'match__original' }, ...i18n.parts('Notes: {notes}', { notes: source(e.original) }),
-        e.reliability !== null ? certainty(p.space, t('(certainty {n}/4)', { n: e.reliability })) : null)
+    const notes = kind === 'community' && film.original
+      ? h('span', { class: 'match__original' }, ...i18n.parts('Notes: {notes}', { notes: source(film.original) }),
+        film.reliability !== null ? certainty(p.space, t('(certainty {n}/4)', { n: film.reliability })) : null)
       : null;
-    const cassettes = e.cassettes.length ? i18n.plural(e.cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: e.cassettes.join(p.list) }) : null;
-    const showable = Boolean(options.onShow) && e.part1 !== null;
-    const body = [
-      h('span', { class: 'match__name' }, e.name),
-      options.dx && e.part1 !== null ? h('span', { class: 'match__dx' }, `DX ${codec.formatDxNumber(e.part1, e.part2)}`) : null,
-      options.related ? h('span', { class: 'pill pill--near' }, t('Fuzzy match')) : null,
-      sourceTag('community'),
-      e.availability ? h('span', { class: `pill pill--${e.availability === 'on the market' ? 'live' : 'gone'}` }, availabilityLabel(e.availability)) : null,
+    // A recorded number that no film edge can carry (Part 1 = 0, or above 2047), as recorded.
+    const recorded = kind === 'community' && !edge && film.extract !== null
+      ? h('span', { class: 'match__recorded' }, ...i18n.parts('Recorded DX number: {digits}', { digits: markRecorded ? h('mark', { class: 'shared' }, four(film.extract)) : four(film.extract) }))
+      : null;
+    const numbers = cassettes.length ? i18n.plural(cassettes.length, 'Cassette number {numbers}', 'Cassette numbers {numbers}', { numbers: cassettes.join(p.list) }) : null;
+    const showable = (registry && !film.wildcard) || (kind === 'community' && edge);
+    let button = null;
+    if (options.onShow && showable) button = showButton(film, options);
+    else if (options.onShow && options.explain) button = h('button', { type: 'button', class: 'tool', disabled: true }, t('No full code'));
+    // Why there is no code to draw, where the row's own line doesn't say it.
+    const why = !button || showable || film.wildcard || augmented ? null
+      : film.extract === null ? t('The Big Film Database records no DX number for this film')
+      : film.extract > 2047
+        ? (film.full ? t('This cassette number is outside the range a film edge code can hold') : t('The DX number recorded for this film is outside the range a film edge code can hold'))
+        // A cassette number whose middle digits give Part 1 = 0 (Neopan 000004, ORWOPAN 000054).
+        : film.full
+          ? t('Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code', { dx: codec.formatDxNumber(0, film.extract) })
+          : t('No maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code', { dx: codec.formatDxNumber(0, film.extract) });
+    const body = separated([
+      h('span', { class: 'match__name' }, film.name),
+      options.dx && number ? h('span', { class: 'match__dx' }, 'DX ', markRecorded && edge ? h('mark', { class: 'shared' }, number) : number) : null,
+      related ? h('span', { class: 'pill pill--near' }, t('Fuzzy match')) : null,
+      sourceTag(kind),
+      status || null,
+    ], [
+      registry && film.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null,
+      augmented ? h('span', { class: 'match__facts' }, t('Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.')) : null,
       facts.length ? h('span', { class: 'match__facts' }, ...joined(facts, p.comma, p.period)) : null,
       notes,
-      cassettes ? h('span', { class: 'match__cassette' }, ...(options.related ? sharedDigits(cassettes, options.related) : [cassettes])) : null,
-    ];
-    if (!showable) return h('li', { class: 'match match--community' }, body);
-    // Named for screen readers with its film, which the row shows.
-    const show = showButton(e, options);
-    return h('li', { class: 'match match--community match--action' }, h('div', { class: 'match__body' }, body), show);
+      recorded,
+      numbers ? h('span', { class: 'match__cassette' }, ...(related ? sharedDigits(numbers, related) : [numbers])) : null,
+      // Said in the row, where touch and keyboard users see it too.
+      why ? h('span', { class: 'match__why' }, why + p.period) : null,
+    ]);
+    const row = `match match--${kind === 'i3a' ? 'i3a' : 'community'}`;
+    if (!button) return h('li', { class: row }, body);
+    return h('li', { class: `${row} match--action` }, h('div', { class: 'match__body' }, body), button);
   }
 
   /**
-   * A row's button that shows its film's barcode (options.onShow), and only
-   * that film's: "Show the edge barcode" where the row came from a cassette
-   * number (options.edge), "Show barcode" elsewhere. Named for screen
-   * readers with its film, which the row shows.
+   * A row's "Show barcode", which shows its film's barcode (options.onShow),
+   * and only that film's. Named for screen readers with its film, which the
+   * row shows. onShow gets the button too, for "Back to …" to come back to.
    */
   function showButton(film, options) {
-    const name = options.edge ? t('Show the edge barcode of {name}', { name: film.name }) : t('Show barcode of {name}', { name: film.name });
-    const show = h('button', { type: 'button', class: 'tool', 'aria-label': name }, options.edge ? t('Show the edge barcode') : t('Show barcode'));
-    show.addEventListener('click', () => options.onShow(film));
+    const show = h('button', { type: 'button', class: 'tool', 'aria-label': t('Show barcode of {name}', { name: film.name }) }, t('Show barcode'));
+    show.addEventListener('click', () => options.onShow(film, show));
     return show;
-  }
-
-  /**
-   * A registry film. Options, as for communityItem: `dx`, its DX number
-   * shown; `onShow(p)`, a button that shows its barcode. A film listed for
-   * its Part 1 without a Part 2 has no code to show, and gets neither.
-   */
-  function productItem(p, options = {}) {
-    const body = [
-      h('span', { class: 'match__name' }, p.name),
-      options.dx && !p.wildcard ? h('span', { class: 'match__dx' }, `DX ${codec.formatDxNumber(p.part1, p.part2)}`) : null,
-      sourceTag('i3a'),
-      p.status ? h('span', { class: `pill pill--${p.status === 'in-use' ? 'live' : 'gone'}` }, p.status === 'in-use' ? t('in production in 2008') : t('discontinued by 2008')) : null,
-      p.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null,
-    ];
-    if (!options.onShow || p.wildcard) return h('li', { class: 'match match--i3a' }, body);
-    const show = showButton(p, options);
-    return h('li', { class: 'match match--i3a match--action' }, h('div', { class: 'match__body' }, body), show);
   }
 
   /**
@@ -238,7 +286,7 @@
   /** The ranked films (rankFilms) of a DX number, as the result lists them. */
   function filmsBlock(ranked, info, d) {
     const digits = String(info.extract).padStart(4, '0');
-    const items = ranked.map(({ film, source, related }) => (source === 'i3a' ? productItem(film) : communityItem(film, related ? { related: digits, dx: true } : {})));
+    const items = ranked.map(({ film, source, related }) => filmItem(film, source, related ? { related: digits, dx: true } : {}));
     if (!items.length) return null;
     const block = h('div', { class: 'source-block' }, h('ul', { class: 'matches' }, items));
     if (items.length > PREVIEW) {
@@ -306,7 +354,7 @@
       }
       return h('tr', { class: ok ? null : 'is-error' },
         h('th', { scope: 'row' }, h('span', { class: `swatch swatch--${f.kind === 'blank' ? 'blank' : f.kind === 'fixed' ? 'fixed' : f.id}` }),
-          { start: t('Start'), part1: t('Part 1'), blank1: t('Unused'), part2: t('Part 2'), frame: t('Frame'), half: t('A flag'), blank2: t('Unused'), parity: t('Parity'), stop: t('Stop') }[f.id]),
+          { start: t('Start'), part1: t('Part 1'), blank1: t('Unassigned'), part2: t('Part 2'), frame: t('Frame'), half: t('A flag'), blank2: t('Unassigned'), parity: t('Parity'), stop: t('Stop') }[f.id]),
         h('td', null, rangeText(f.from, f.to)),
         h('td', null, h('code', { class: 'bits' }, bits)),
         h('td', null, value));
@@ -423,7 +471,7 @@
    * The film a DX number's entries name, at the top of their ranking
    * (rankFilms): those picked to show its code, or else every registry
    * product, or else the database's first; null for none. The result's
-   * heading and the photo reader both say it so.
+   * heading, its one-bar corrections and the photo reader say it so.
    */
   function filmName(info, picked) {
     const films = rankFilms(info, picked).filter((f) => !f.related);
@@ -571,11 +619,11 @@
   root.DX.ui.filmName = filmName;
   root.DX.ui.communityKey = communityKey;
   root.DX.ui.sensitizerName = sensitizerName;
-  root.DX.ui.communityItem = communityItem;
+  root.DX.ui.filmItem = filmItem;
   root.DX.ui.sharedDigits = sharedDigits;
+  root.DX.ui.separated = separated;
   root.DX.ui.bfdLink = bfdLink;
   root.DX.ui.sourceTag = sourceTag;
   root.DX.ui.collate = collate;
-  root.DX.ui.productItem = productItem;
   root.DX.ui.source = source;
 })(globalThis);

@@ -1135,7 +1135,7 @@ h1 {
   box-shadow: none;
 }
 
-/* A faint + in each empty cell that can be clicked, except the two unused
+/* A faint + in each empty cell that can be clicked, except the two unassigned
    cells, which should stay empty. */
 .cell--edit:not(.is-bar):not([data-field^="blank"])::after {
   content: "";
@@ -1148,7 +1148,7 @@ h1 {
 }
 
 /* Under the mouse, or a finger until it lifts, a cell shows what a click will
-   do: a pale bar in an empty cell, a lighter bar in a full one. */
+   do: a pale bar in an empty cell, under its +, a lighter bar in a full one. */
 @media (hover: hover) {
   .cell--edit:hover:not(.is-bar) {
     background: var(--film-hover);
@@ -1156,10 +1156,6 @@ h1 {
 
   .cell--edit.is-bar:hover {
     background: color-mix(in srgb, var(--film-mark) 82%, var(--film-base));
-  }
-
-  .cell--edit:hover::after {
-    content: none;
   }
 }
 
@@ -1169,10 +1165,6 @@ h1 {
 
 .cell--edit.is-pressing.is-bar {
   background: color-mix(in srgb, var(--film-mark) 82%, var(--film-base));
-}
-
-.cell--edit.is-pressing::after {
-  content: none;
 }
 
 .cell--fixed {
@@ -1268,12 +1260,75 @@ h1 {
   flex: none;
 }
 
+/* Over the film, the cells' numbers (ui-strip.js): a tick for each cell, the
+   number at 1 and every fifth, and that of the cell pointed at. The ticks are
+   borders, which Windows contrast themes keep. */
+.ruler {
+  padding-left: var(--label-w);
+  padding-right: var(--tail-w);
+}
+
+.ruler__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cells), var(--cell));
+  height: 1.45rem;
+}
+
+.ruler__cell {
+  position: relative;
+  direction: ltr;
+}
+
+.ruler__cell::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  height: 4px;
+  border-left: 1px solid var(--ink-3);
+}
+
+.ruler__cell.is-major::after {
+  height: 8px;
+}
+
+.ruler__num {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  font: 500 0.68rem/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+.ruler__cell.is-major .ruler__num {
+  display: block;
+}
+
+/* The cell pointed at, on screen only: on paper it would point at nothing. */
+@media screen {
+  .ruler__cell.is-here .ruler__num {
+    display: block;
+    font-weight: 700;
+    color: var(--accent-strong);
+  }
+
+  .ruler__cell.is-here::after {
+    left: calc(50% - 0.5px);
+    height: 8px;
+    border-left: 2px solid var(--accent-strong);
+  }
+}
+
 /* Seen from the back of the film: everything reverses, print included. */
 .strip.is-mirrored .film__row {
   flex-direction: row-reverse;
 }
 
 .strip.is-mirrored .track,
+.strip.is-mirrored .ruler__grid,
 .strip.is-mirrored .annot__grid {
   direction: rtl;
 }
@@ -1294,6 +1349,7 @@ h1 {
   mask-position: 0 0, right calc(var(--perfs-left) - var(--cell) * 6.79) bottom var(--perfs-bottom);
 }
 
+.strip.is-mirrored .ruler,
 .strip.is-mirrored .annot {
   padding-left: var(--tail-w);
   padding-right: var(--label-w);
@@ -1335,17 +1391,6 @@ h1 {
 
 .annot__grid > * {
   direction: ltr;
-}
-
-.weight {
-  text-align: center;
-  font: 600 0.66rem/1.6 var(--font-mono);
-  color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
-}
-
-.weight.is-error {
-  color: var(--danger);
 }
 
 .bracket {
@@ -1902,6 +1947,12 @@ h1 {
   color: var(--accent);
 }
 
+/* The title of a cassette's first list, which never folds: plain text, as it is no control. */
+.source-block__title {
+  margin: 0;
+  color: var(--ink-2);
+}
+
 /* Where a film comes from: plain gray text, never a tint or an outline, so
    that it does not read as one of the status pills beside it. */
 .source-tag {
@@ -1941,7 +1992,9 @@ h1 {
 
 .match__facts,
 .match__original,
-.match__cassette {
+.match__recorded,
+.match__cassette,
+.match__why {
   flex-basis: 100%;
   font-size: 0.88rem;
   color: var(--ink-2);
@@ -1992,6 +2045,18 @@ mark.shared {
   white-space: nowrap;
 }
 
+/* Between a row's name, DX number, tags and status (ui.separated): shown only
+   where Windows contrast themes take the tags' tint away. */
+.row-dot {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  .row-dot {
+    display: inline;
+  }
+}
+
 /* A row with a button of its own, as in Find a film. */
 .match--action {
   display: grid;
@@ -2008,10 +2073,9 @@ mark.shared {
   min-width: 0;
 }
 
-/* On the narrowest screens, the button under the row's text: beside it, a
-   status such as "possibly discontinued" would run under the button (in
-   English, up to 324 px wide). */
-@media (max-width: 21.25em) {
+/* On phones, the button under the row's text: beside it, the film's name and
+   details would have a few words a line. */
+@media (max-width: 30em) {
   .match--action {
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
@@ -2311,43 +2375,8 @@ thead th {
   margin: 8px 0 0;
 }
 
-.finder__item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--rule);
-}
-
-.finder__name {
-  font-weight: 600;
-}
-
-.finder__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 10px;
-  margin-top: 2px;
-  font-size: 0.86rem;
-  color: var(--ink-2);
-}
-
-/* Why a film has no barcode to show, under its details. */
-.finder__why {
-  margin-top: 2px;
-}
-
 .products-table__why {
   display: block;
-}
-
-.finder__dx {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
 }
 
 .finder__direct {
@@ -2806,6 +2835,15 @@ thead th {
   .strip__scroller {
     overflow: visible;
   }
+
+  /* Focus is the screen's: on paper, no cell is selected. */
+  .cell--edit:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--film-guide);
+  }
+
+  .cell--edit.is-bar:focus-visible {
+    box-shadow: none;
+  }
 }
 
 /* ---- Windows contrast themes (forced colors) ---------------------------------------------
@@ -2825,6 +2863,15 @@ thead th {
   .cell--edit:focus-visible {
     outline: 3px solid Highlight;
     outline-offset: -3px;
+  }
+
+  /* The ruler's number of the cell pointed at, in the color of focus. */
+  .ruler__cell.is-here .ruler__num {
+    color: Highlight;
+  }
+
+  .ruler__cell.is-here::after {
+    border-left-color: Highlight;
   }
 
   .tool[aria-pressed="true"],

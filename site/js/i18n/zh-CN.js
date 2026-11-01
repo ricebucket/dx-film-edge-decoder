@@ -49,14 +49,8 @@
       "显示示例",
     "Hide examples":
       "隐藏示例",
-    "{maker}. In production in 2008.":
-      "{maker}。2008 年仍在生产。",
-    "{maker}. Discontinued by 2008.":
-      "{maker}。截至 2008 年已停产。",
     "Made by {maker}":
       "由 {maker} 生产",
-    "The registry does not give the Part 2 number for this film":
-      "年度报告没有给出这种胶片的第 2 部分编号",
     "The Big Film Database records no DX number for this film":
       "The Big Film Database 没有记录这种胶片的 DX 码",
     "This cassette number is outside the range a film edge code can hold":
@@ -73,8 +67,6 @@
       "显示条码",
     "No full code":
       "无完整编码",
-    "cassette {number}":
-      "暗盒条码 {number}",
     "I3A":
       "I3A",
     "Community":
@@ -143,24 +135,22 @@
       "第 1 部分 {cassette} 是 {part1} + {added}。在 2008 年年度报告中，第 1 部分 = {part1} 分配给了 {maker}；按照标准，感光厂只在自己的第 1 部分编号上加 128、256 或 384。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
     "Part 1 {cassette} is {part1} + {added}; Part 1 = {part1} was not assigned in the 2008 registry. The standard does not say which DX number the film carries.":
       "第 1 部分 {cassette} 是 {part1} + {added}；在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
-    "Listed by Kodak as an “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
-      "柯达登记的“augmented”（增补）暗盒条码（ISO 1007，附录 A.4），在常规 DX 范围之外。",
+    "Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
+      "柯达的“augmented”（增补）暗盒条码（ISO 1007，附录 A.4），在常规 DX 范围之外。",
     "Part 1 = {part1} is assigned to {maker}.":
       "第 1 部分 = {part1} 分配给了 {maker}。",
     "Part 1 = {part1} was not assigned in the 2008 registry.":
       "在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。",
-    "Show the edge barcode":
-      "显示潜影条码",
-    "Show the edge barcode of {name}":
-      "显示潜影条码：{name}",
     "Enter exactly six digits, for example 105514.":
       "请输入正好六位数字，例如 105514。",
     "{n} films found.":
       "找到 {n} 种胶片。",
-    "{n} other films have the same middle four digits":
-      "另有 {n} 种胶片的中间四位数字相同",
-    "Other films":
-      "其他胶片",
+    "{n} films have the same middle four digits":
+      "有 {n} 种胶片的中间四位数字相同",
+    "{n} other films":
+      "另有 {n} 种胶片",
+    "{n} films":
+      "{n} 种胶片",
 
     // site/js/ui-photo.js
     "Sample: a computer-drawn color negative.":
@@ -371,6 +361,8 @@
       "模糊匹配",
     "sold by {distributor}":
       "经销商 {distributor}",
+    "Recorded DX number: {digits}":
+      "记录的 DX 码：{digits}",
     "Notes: {notes}":
       "备注：{notes}",
     "How sure the database is about this (0 = low, 4 = high)":
@@ -423,7 +415,7 @@
       "输入模式",
     "Part 1":
       "第 1 部分",
-    "Unused":
+    "Unassigned":
       "未指定位",
     "Part 2":
       "第 2 部分",
@@ -541,7 +533,7 @@
     // site/js/ui-strip.js
     "start pattern":
       "输入模式",
-    "unused cell":
+    "unassigned cell":
       "未指定位",
     "frame number":
       "画幅号",
@@ -559,7 +551,7 @@
       "第 {cell} 位（共 {total} 位）：{field}",
     "Data track, lower row: select a cell to add or remove a bar. Arrow keys move, 1 and 0 type bars and gaps.":
       "数据道（下方）：选择一个单元可添加或去掉条。方向键移动，按 1 和 0 键输入条和空。",
-    "Unused: always empty":
+    "Unassigned: always empty":
       "未指定位：始终为空",
     "Scroll sideways to see the whole strip.":
       "左右滚动可以看到整个片条。",
@@ -673,7 +665,7 @@
       "<span class=\"swatch swatch--part1\"></span>第 1 部分",
     "Product class, a 7-bit number with weights 64, 32, 16, 8, 4, 2, 1.":
       "产品类别，7 位二进制数，各位的对应数字为 64、32、16、8、4、2、1。",
-    "<span class=\"swatch swatch--blank\"></span>Unused":
+    "<span class=\"swatch swatch--blank\"></span>Unassigned":
       "<span class=\"swatch swatch--blank\"></span>未指定位",
     "Always empty.":
       "始终为空。",
