@@ -167,9 +167,9 @@ async function main() {
   // bad or repeated ID would be passed on to the rows written.
   if (!snapshot && oldHeader && oldHeader.includes('ID')) throw new Error('film_database_dx.csv: the "ID" column is not the first; move it back to the front');
   const given = new Set();
-  for (const [id] of snapshot ? oldRows : []) {
+  for (const [n, [id]] of (snapshot ? oldRows : []).entries()) {
     const value = /^\d+$/.test(id.trim()) ? Number(id) : 0;
-    if (value < 1 || given.has(value)) throw new Error(`film_database_dx.csv: ID "${id}" is missing, repeated or not a whole number`);
+    if (value < 1 || given.has(value)) throw new Error(`film_database_dx.csv: CSV row ${n + 2}: ID "${id}" is missing, repeated or not a whole number`);
     given.add(value);
   }
   const by = sharedColumns(dropPic(header), snapshot ? oldHeader : ['ID', ...dropPic(header)], read);
@@ -180,9 +180,11 @@ async function main() {
   await writeFile(join(OUT_DIR, 'source.json'), JSON.stringify(source, null, 2) + '\n');
   const n = (count) => count.toLocaleString('en-US');
   console.log(`Kept ${n(keep.length)} of ${n(rows.length)} rows from ${REPO}@${commit.slice(0, 7)}`);
-  // Without a snapshot that has IDs, every row gets a new one, and every ID
-  // in use before is retired: one for each row the last update kept.
-  console.log(idsReport(ids, snapshot ? oldRows.map(([id]) => Number(id)) : [], !snapshot && recorded.lastId > 0 ? recorded.rowsKept : 0));
+  // The IDs in use that the snapshot no longer shows are retired too: one for
+  // each row the last update kept, less the rows the snapshot has (all of
+  // them, without a snapshot that has IDs). Before IDs, none was in use.
+  const before = snapshot ? oldRows.map(([id]) => Number(id)) : [];
+  console.log(idsReport(ids, before, recorded.lastId > 0 ? Math.max(0, (recorded.rowsKept || 0) - before.length) : 0));
   console.log('Next: npm run build:data, then follow "Updating the data" in data/README.md.');
 }
 

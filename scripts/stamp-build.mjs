@@ -4,22 +4,23 @@
 // test has passed (.github/workflows/tests.yml); the repository keeps the
 // slots empty, so site/ still opens from disk as it is.
 //
-//   node scripts/stamp-build.mjs <commit hash> [site directory]
+//   node scripts/stamp-build.mjs <commit hash> <site directory>
 //
 // - dx-lookup.js and the three data files get the build, so that the page
 //   stops on files of two deploys that a browser kept mixed.
+// - So do the photo reader's two scripts, which the page loads later: from
+//   another deploy, they make it ask for a reload (site/js/app.js).
 // - Every page asks for its scripts and stylesheet as "…?v=<build>", so that
 //   browsers fetch a new deploy's files rather than reuse old ones; the files
 //   the page loads later ask for the same (site/js/prepaint.js).
 
 import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, resolve } from 'node:path';
 import { isMain } from './lib/main.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = ['js/dx-data.js', 'js/dx-data-community.js', 'js/dx-index.js'];
+const READER = ['js/dx-image.js', 'js/ui-photo.js'];
 
 /** `text` with its one `from` replaced by `to`: a slot missing, or found twice, stops the stamp. */
 function once(text, from, to, file) {
@@ -31,13 +32,15 @@ function once(text, from, to, file) {
 /** Stamp the site in `dir` (a copy: its files are changed in place) with `build`. */
 export async function stampBuild(dir, build) {
   if (!/^[0-9a-f]{7,40}$/.test(build)) throw new Error(`"${build}" is not a commit hash`);
-  const edit = async (file, change) => {
-    const path = join(dir, file);
-    await writeFile(path, change(await readFile(path, 'utf8')));
-  };
-  await edit('js/dx-lookup.js', (text) => once(text, "const BUILD = '';", `const BUILD = '${build}';`, 'js/dx-lookup.js'));
+  // A relative directory is read from where the command runs.
+  const site = resolve(dir);
+  // Every file is stamped in memory first and written only when all of them
+  // are: a stamp that stops leaves the copy as it was, never half stamped.
+  const stamped = new Map();
+  const edit = async (file, change) => stamped.set(file, change(await readFile(join(site, file), 'utf8')));
+  for (const file of ['js/dx-lookup.js', ...READER]) await edit(file, (text) => once(text, "const BUILD = '';", `const BUILD = '${build}';`, file));
   for (const file of DATA) await edit(file, (text) => once(text, '"build":""', `"build":"${build}"`, file));
-  const pages = (await readdir(dir)).filter((name) => name.endsWith('.html')).sort();
+  const pages = (await readdir(site)).filter((name) => name.endsWith('.html')).sort();
   for (const page of pages) {
     await edit(page, (text) => {
       const out = text
@@ -47,18 +50,26 @@ export async function stampBuild(dir, build) {
       return out;
     });
   }
+  for (const [file, text] of stamped) await writeFile(join(site, file), text);
   // The stamped code takes the stamped data, as the page will.
-  const load = createRequire(join(dir, 'js', 'stamp.cjs'));
+  const load = createRequire(join(site, 'js', 'stamp.cjs'));
   const createLookup = load('./dx-lookup.js');
   if (createLookup.BUILD !== build) throw new Error('js/dx-lookup.js: the build did not take');
+  if (load('./dx-image.js').BUILD !== build) throw new Error('js/dx-image.js: the build did not take');
   createLookup(load('./dx-data.js'), load('./dx-data-community.js'), load('./dx-index.js'));
   return { pages };
 }
 
 if (isMain(import.meta)) {
-  const [build = '', dir = join(ROOT, 'site')] = process.argv.slice(2);
+  // No directory of its own: a command without one would stamp the files in
+  // the working tree, which the repository keeps unstamped.
+  const [build = '', dir] = process.argv.slice(2);
+  if (!dir) {
+    console.error('Usage: node scripts/stamp-build.mjs <commit hash> <site directory>');
+    process.exit(1);
+  }
   stampBuild(dir, build).then(
-    ({ pages }) => console.log(`Stamped build ${build} into ${dir}: js/dx-lookup.js, the three data files and ${pages.join(', ')}.`),
+    ({ pages }) => console.log(`Stamped build ${build} into ${dir}: js/dx-lookup.js, the photo reader, the three data files and ${pages.join(', ')}.`),
     (err) => {
       console.error(err.message);
       process.exit(1);

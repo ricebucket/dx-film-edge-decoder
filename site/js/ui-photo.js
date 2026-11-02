@@ -13,6 +13,10 @@
   const i18n = root.DX.i18n;
   const t = i18n.t;
 
+  // The deploy this file was published with (scripts/stamp-build.mjs), which
+  // the page checks when it loads the photo reader (app.js).
+  const BUILD = '';
+
   const MAX_WORKING_SIDE = 2400;
   /** A size in whole pixels, never 0: a canvas or bitmap of size 0 can't be drawn from. */
   const atLeastOne = (v) => Math.max(1, Math.round(v));
@@ -944,4 +948,5 @@
 
   root.DX.ui = root.DX.ui || {};
   root.DX.ui.createPhoto = createPhoto;
+  createPhoto.BUILD = BUILD;
 })(globalThis);

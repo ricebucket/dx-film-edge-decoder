@@ -37,12 +37,14 @@
       "有效编码。画幅号 {frame}。",
     "The photo reader could not be loaded. Choose “Read a photo” to try again.":
       "无法加载照片读取功能。再次选择“读取照片”即可重试。",
+    "This page is out of date. Reload it.":
+      "此页面已过时。请刷新。",
 
     // site/js/ui-finder.js
-    "e.g. Portra 400, HP5, Fujicolor 200, 79-15":
-      "例如 Portra 400、HP5、Fujicolor 200、79-15",
-    "Type at least two letters, or a DX number such as 79-15.":
-      "至少输入两个字母，或输入 DX 码，例如 79-15。",
+    "e.g. Portra 400, HP5, Fujicolor 200":
+      "例如 Portra 400、HP5、Fujicolor 200",
+    "Type at least two letters.":
+      "至少输入两个字母。",
     "Show more":
       "显示更多",
     "Show examples":
@@ -55,12 +57,14 @@
       "The Big Film Database 没有记录这种胶片的 DX 码",
     "This cassette number is outside the range a film edge code can hold":
       "这个暗盒条码超出了潜影条码能表示的范围",
-    "The DX number recorded for this film is outside the range a film edge code can hold":
-      "这种胶片记录的 DX 码超出了潜影条码能表示的范围",
+    "No film edge code can hold this number":
+      "潜影条码无法表示这个 DX 码",
     "Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code":
       "很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂，所以 DX {dx} 不是任何感光厂的编码",
-    "No maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code":
-      "2008 年时第 1 部分 = 0 没有分配给任何感光厂，所以 DX {dx} 不是任何感光厂的编码",
+    "Most likely a filler number: no maker held Part 1 = 0 in 2008":
+      "很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂",
+    "No maker held Part 1 = 0 in 2008":
+      "2008 年时第 1 部分 = 0 没有分配给任何感光厂",
     "Show barcode of {name}":
       "显示条码：{name}",
     "Show barcode":
@@ -75,12 +79,6 @@
       "再显示 {n} 条",
     "Nothing matches “{q}”. Try fewer words, or part of the name.":
       "没有与“{q}”匹配的结果。试试少输入几个词，或只输入名称的一部分。",
-    "{n} films have Part 1 = {part1}. Add their Part 2 to narrow the list, e.g. {dx}.":
-      "有 {n} 种胶片的第 1 部分是 {part1}。加上第 2 部分可以缩小范围，例如 {dx}。",
-    "No film in the lists has Part 1 = {part1}. A DX number has two parts, such as 79-15.":
-      "列表中没有第 1 部分是 {part1} 的胶片。DX 码由两部分组成，例如 79-15。",
-    "No film in the lists has DX {dx}.":
-      "列表中没有 DX 码为 {dx} 的胶片。",
     "DX number as 79-15, or the 4-digit form 1279. Frame as printed: 23, 23A, X, 00 …":
       "DX 码写作 79-15，或四位数形式 1279。画幅号按片边印的写：23、23A、X、00……",
     "DX number":
@@ -93,8 +91,8 @@
       "请按胶片上印的写画幅号，例如 23、23A、X、00。",
     "Showing DX {dx}, frame {frame}.":
       "正在显示 DX {dx}，画幅 {frame}。",
-    "Film name, maker or DX number":
-      "胶片名称、制造厂或 DX 码",
+    "Film name or maker":
+      "胶片名称或制造厂",
     "Show with frame":
       "显示的画幅号",
     "as printed, e.g. 12 or 12A":
@@ -639,8 +637,8 @@
       "数一数<strong>时钟道</strong>两个宽标记之间有几根细条。<strong>11 根细条</strong>：带画幅号的 31 位条码，约 1990 年起使用。<strong>7 根细条</strong>：1983 年最初的 23 位条码，不含画幅号。",
     "Find a film’s code":
       "查找胶片的编码",
-    "Search by film name, maker or DX number, then show its barcode on the strip to compare with your film.":
-      "按胶片名称、制造厂或 DX 码搜索，再把它的条码显示在片条上，和你的胶片对照。",
+    "Search by film name or maker, then show its barcode on the strip to compare with your film.":
+      "按胶片名称或制造厂搜索，再把它的条码显示在片条上，和你的胶片对照。",
     "Have the cassette?":
       "有暗盒吗？",
     "The six digits on a 35&nbsp;mm cassette usually carry the film’s DX number and the roll length. Enter them to identify the film.":

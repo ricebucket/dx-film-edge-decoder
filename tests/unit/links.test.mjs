@@ -64,3 +64,15 @@ test('a heading\'s place is named as GitHub names it', () => {
   const ids = places('# 04 – The data\n## `big-film-database/` – community data\n```sh\n# not a heading\n```\n## Fuji’s frame-number barcode\n## 更新数据\n## Notes\n## Notes\n', false);
   assert.deepEqual([...ids], ['04--the-data', 'big-film-database--community-data', 'fujis-frame-number-barcode', '更新数据', 'notes', 'notes-1']);
 });
+
+test('the npm commands that the documentation, the scripts and the workflow name are scripts in package.json', () => {
+  const { scripts } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+  const code = readdirSync(join(ROOT, 'scripts'), { recursive: true }).filter((name) => name.endsWith('.mjs')).map((name) => join('scripts', name));
+  const named = new Set();
+  for (const file of [...documents().filter((name) => name.endsWith('.md')), ...code, '.github/workflows/tests.yml']) {
+    const text = readFileSync(join(ROOT, file), 'utf8');
+    for (const [, run, alias] of text.matchAll(/\bnpm (?:run ([\w:-]+)|(test|start)\b)/g)) named.add(run || alias);
+  }
+  assert.ok(named.size >= 10, [...named].join(', '));
+  assert.deepEqual([...named].filter((name) => !Object.hasOwn(scripts, name)), []);
+});

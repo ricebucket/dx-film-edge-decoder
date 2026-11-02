@@ -383,7 +383,9 @@
 
   /**
    * Classic scripts, run in the order given as if they had been in the page
-   * (also from file://), of the build the page's own scripts are (prepaint.js).
+   * (also from file://), asked for by the build the page's own scripts are
+   * (prepaint.js). A host that keeps only its latest files, as GitHub Pages
+   * does, sends those whatever the build: photoReader checks.
    */
   function loadScripts(srcs) {
     return Promise.all(srcs.map((src) => new Promise((resolve, reject) => {
@@ -410,6 +412,10 @@
   function photoReader() {
     if (!photoLoading) {
       photoLoading = loadScripts(['js/dx-image.js', 'js/ui-photo.js']).then(() => {
+        // Of another deploy than the page, one published since it opened: the
+        // page can't use it, and loading it again gives the same files.
+        const build = DX.createLookup.BUILD;
+        if (DX.image.BUILD !== build || ui.createPhoto.BUILD !== build) throw Object.assign(new Error('The photo reader comes from another deploy'), { outdated: true });
         photo = ui.createPhoto($('photo'), photoHooks);
         return photo;
       });
@@ -434,9 +440,9 @@
       photoReader().then((reader) => {
         $('photo').removeAttribute('aria-busy');
         if (way === 'photo') reader.open(options);
-      }, () => {
+      }, (err) => {
         $('photo').removeAttribute('aria-busy');
-        if (way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error' }, t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
+        if (way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error' }, err.outdated ? t('This page is out of date. Reload it.') : t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
       });
     } else if (photo) {
       photo.close();

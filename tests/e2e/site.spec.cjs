@@ -401,6 +401,15 @@ test('a link to the code list lands at its heading, and a reload comes back to t
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before - 40);
 });
 
+test('the code list\'s long table is a layer of its own, which changes elsewhere on the page leave alone', async ({ page }) => {
+  await page.goto('/');
+  const box = page.locator('#codes .table-scroll--tall');
+  await expect(box.locator('tbody tr').first()).toHaveCount(1);
+  // Without it, high-density screens go through all its rows again for each
+  // cell the mouse crosses on the strip.
+  expect(await box.evaluate((el) => getComputedStyle(el).isolation)).toBe('isolate');
+});
+
 test('printed, the strip keeps its film and bars, fits the page, and the colors are the light ones', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/?dx=79-15/23');
@@ -435,8 +444,22 @@ test('printed, the strip keeps its film and bars, fits the page, and the colors 
   const cells = await centers('#strip .track--data .cell');
   expect(ticks).toHaveLength(31);
   ticks.forEach((x, i) => expect(Math.abs(x - cells[i]), `cell ${i + 1}`).toBeLessThan(0.6));
-  const marked = await page.locator('#strip .ruler__cell[data-cell="18"]').evaluate((el) => [getComputedStyle(el, '::after').borderLeftWidth, getComputedStyle(el.querySelector('.ruler__num')).display]);
-  expect(marked).toEqual(['1px', 'none']);
+  const marked = await page.locator('#strip .ruler__cell[data-cell="18"]').evaluate((el) => [getComputedStyle(el, '::after').borderLeftColor, getComputedStyle(el.querySelector('.ruler__num')).visibility]);
+  const plain = await page.locator('#strip .ruler__cell[data-cell="17"]').evaluate((el) => getComputedStyle(el, '::after').borderLeftColor);
+  expect(marked).toEqual([plain, 'hidden']);
+});
+
+test('printed, a cell with focus looks like any other, with a bar or without', async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  const shadow = (cell) => dataCell(page, cell).evaluate((el) => getComputedStyle(el).boxShadow);
+  // In 79-15, frame 23, cells 16 and 18 have bars; 19 and 21 have none.
+  for (const [focused, like] of [[18, 16], [19, 21]]) {
+    await page.emulateMedia({ media: 'screen' });
+    await dataCell(page, focused).focus();
+    expect(await shadow(focused), `cell ${focused} on screen`).not.toBe(await shadow(like)); // its ring
+    await page.emulateMedia({ media: 'print' });
+    expect(await shadow(focused), `cell ${focused} printed`).toBe(await shadow(like));
+  }
 });
 
 test('printed, the result lists every film it has, and none of its buttons', async ({ page }) => {
@@ -688,4 +711,25 @@ test('a published copy asks for the files it loads later by the build its page n
   await page.locator('#tab-photo').click();
   await expect.poll(() => asked).toEqual(expect.arrayContaining(['/js/i18n/zh-CN.js?v=0123456789ab', '/js/dx-image.js?v=0123456789ab', '/js/ui-photo.js?v=0123456789ab']));
   expect(asked.filter((url) => !url.endsWith('?v=0123456789ab'))).toEqual([]);
+});
+
+test('a photo reader of another deploy than the page, as a host that keeps only its latest files sends, asks for a reload', async ({ page }) => {
+  // One of the reader's scripts carries another build than the page's own (none here).
+  let other = 'ui-photo.js';
+  await page.route('**/js/*.js*', async (route) => {
+    if (!new URL(route.request().url()).pathname.endsWith(`/js/${other}`)) return route.continue();
+    const response = await route.fetch();
+    const body = (await response.text()).replace("const BUILD = '';", "const BUILD = '0123456789ab';");
+    await route.fulfill({ response, body });
+  });
+  const message = page.locator('#photo .form-message.is-error');
+  await page.goto('/');
+  await page.locator('#tab-photo').click();
+  await expect(message).toHaveText('This page is out of date. Reload it.');
+  await expect(page.locator('#photo .photo__drop')).toHaveCount(0);
+  other = 'dx-image.js';
+  await page.goto('/?lang=zh-CN');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await page.locator('#tab-photo').click();
+  await expect(message).toHaveText('此页面已过时。请刷新。');
 });

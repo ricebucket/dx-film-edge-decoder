@@ -45,7 +45,6 @@
     return out;
   }
 
-  const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const AVAILABILITY = { 0: 'discontinued', 1: 'possibly discontinued', 2: 'on the market' };
 
@@ -97,7 +96,7 @@
       };
     });
     // The registry's "augmented" cassette numbers (Annex A.4), which give no
-    // DX number: found by search like its other films, by name or by number.
+    // DX number: found by search like its other films, by name.
     const augmented = data.augmented.map(([record, code, name, s]) => ({
       id: `i3a-a${record}`, source: 'i3a', record, code, full: code, extract: parseInt(code.slice(1, 5), 10),
       part1: null, part2: null, name, sensitizer: sensitizer(s), status: null,
@@ -306,84 +305,29 @@
     }
 
     /**
-     * Search by film name, maker or number, as [{ entry, related }]. A DX
-     * number written as one ("79-15", "DX 1279") lists that code's entries, as
-     * byDx finds them, and a cassette number ("315223") as byCassette does:
-     * the exact matches, then those only related by digits, whose `related`
-     * gives the four digits looked up ("1279"; otherwise false). Text that can
-     * only be a number ("100-2", "DX 1279", "315223") also finds the names that
-     * carry its pieces as typed, after those. A number that may also be words,
-     * such as "400" (a film speed) or "0 1 2 7 9 4", lists the films it gives
-     * after names that have it as a word, as the start of one, or as typed, and
-     * before names that only contain each of its pieces, and matches in other
-     * fields.
+     * Search by film name or maker, as [{ entry }]: names that have every
+     * word typed as a whole word, as the start of one, or as typed, then
+     * names that only contain each word somewhere, then matches in other
+     * fields (tags, notes, maker, distributor). Numbers are words like any
+     * others here: a DX number and a cassette number have lookups of their
+     * own (byDx, byCassette), which the page offers apart.
      *
-     * Each result's score is scoreOf, with how well it matches (MATCH,
-     * below); a film found in more than one way keeps its best score.
+     * Each result's score is scoreOf, with how well it matches (MATCH, below);
+     * a film found in more than one way keeps its best score.
      */
     function search(query, limit) {
       const q = normalize(query).trim();
       if (!q) return [];
       const found = new Map();
-      const add = (entry, score, related) => {
+      const add = (entry, score) => {
         const known = found.get(entry.id);
-        if (!known || score > known.score) found.set(entry.id, { entry, score, related: related || false });
+        if (!known || score > known.score) found.set(entry.id, { entry, score });
       };
-
-      const dx = codec.parseDxNumber(q);
-      const bare = q.replace(/^dx[\s\-‐-―−]*/, '');
-      const cassette = codec.parseCassette(bare);
-      // How it was typed says whether it can only be a number: "79-15",
-      // "DX 1279" or six plain digits can; "400" (a film speed) or "400 135"
-      // can also be part of a name. So how well each kind of match matches:
-      // a number's own films (exact), and those that share some of its
-      // digits (only the roll length differs, the same middle four digits, or
-      // recorded with them as their DX number); names that carry it as typed;
-      // and, for what may be words, names with them as whole words, as word
-      // starts, or all as typed, ahead of the number's films, and names that
-      // only contain each piece somewhere, or matches in other fields, after
-      // them. Text that can only be a number lists names that match it too,
-      // after all that the number finds: better more films, ranked, than too
-      // few ("DX coded" is no number, and its names rank as usual).
-      const only = (dx && dx.kind === 'parts') || (/^dx/.test(q) && Boolean(dx || cassette)) || /^\d{6}$/.test(bare);
-      const MATCH = only
-        ? { exact: 10, roll: 7, middle: 6, recorded: 5, typed: 4, words: 3.8, starts: 3.6, inName: 3.4, pieces: 3, elsewhere: 2 }
-        : { words: 9, starts: 8.5, inName: 8, exact: 7, roll: 6, middle: 5.5, recorded: 5, pieces: 4, elsewhere: 3 };
-      const product = (p) => scoreOf(p, MATCH.exact);
-      if (cassette && (!dx || dx.kind === 'cassette')) {
-        // As the cassette helper finds them: the registry's record of it or
-        // the films of its DX number, the rows with exactly this number, then
-        // those that share only some of its digits.
-        const hit = byCassette(cassette.digits);
-        hit.augmented.forEach((e) => add(e, scoreOf(e, MATCH.exact)));
-        if (hit.dx) hit.dx.products.forEach((p) => add(p, product(p)));
-        hit.exact.forEach((e) => add(e, scoreOf(e, MATCH.exact)));
-        const near = cassette.extractText;
-        [...hit.augmentedRelated, ...hit.sameFirstFive].forEach((e) => add(e, scoreOf(e, MATCH.roll), near));
-        hit.sameMiddle.forEach((e) => add(e, scoreOf(e, MATCH.middle), near));
-        hit.recordedOnly.forEach((e) => add(e, scoreOf(e, MATCH.recorded), near));
-      } else if (dx) {
-        const hit = byDx(dx.part1, dx.part2);
-        hit.products.forEach((p) => add(p, product(p)));
-        hit.community.forEach((e) => add(e, scoreOf(e, MATCH.exact)));
-        hit.related.forEach((e) => add(e, scoreOf(e, MATCH.recorded), String(hit.extract).padStart(4, '0')));
-        if (dx.kind === 'parts') {
-          // Names that carry it as typed ("AGFACOLOR OPTIMA 100-2", "VR100-4");
-          // "20-0" is still no "200", nor part of "120-0". Other fields that
-          // carry it are found below, ranked after names.
-          const typed = new RegExp(`(^|[^0-9])${escapeRegExp(q)}($|[^0-9])`);
-          for (const h of nameIndex()) if (typed.test(h.name)) add(h.entry, scoreOf(h.entry, MATCH.typed));
-        }
-      }
-
+      const MATCH = { words: 9, starts: 8.5, inName: 8, pieces: 4, elsewhere: 3 };
       // A token matches the text as typed, part of one word, or the start of
       // neighboring words written together ("tmax" or "tmax400" for "T-MAX 400").
-      // Text that can only be a number matches as typed, its digits not run
-      // into others: "20-0" is no "200", nor part of "120-0".
-      const tokens = q.split(/\s+/).filter(Boolean).map((t) => ({ t, c: compact(t) || t, bounded: new RegExp(`(^|[^0-9])${escapeRegExp(t)}($|[^0-9])`) }));
-      const matches = only
-        ? (h, { bounded }) => bounded.test(h.text)
-        : (h, { t, c }) => h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c));
+      const tokens = q.split(/\s+/).filter(Boolean).map((t) => ({ t, c: compact(t) || t }));
+      const matches = (h, { t, c }) => h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c));
       for (const h of nameIndex()) {
         if (!tokens.every((k) => matches(h, k))) continue;
         let match = MATCH.elsewhere;
@@ -393,12 +337,8 @@
         else if (tokens.every(({ t }) => h.name.includes(t))) match = MATCH.pieces;
         add(h.entry, scoreOf(h.entry, match));
       }
-      return finish();
-
-      function finish() {
-        const out = ranked([...found.values()], (r) => r.score, (r) => r.entry).map((r) => ({ entry: r.entry, related: r.related }));
-        return limit ? out.slice(0, limit) : out;
-      }
+      const out = ranked([...found.values()], (r) => r.score, (r) => r.entry).map((r) => ({ entry: r.entry }));
+      return limit ? out.slice(0, limit) : out;
     }
 
     function stats() {

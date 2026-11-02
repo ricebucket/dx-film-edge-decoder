@@ -694,20 +694,62 @@ test('the ruler follows the latest input: keys take it to the cell with focus, t
   const here = page.locator('#strip .ruler__cell.is-here');
   await dataCell(page, 7).click();
   await expect(here).toHaveText('7');
-  // The mouse rests on cell 7 while the keys type on.
+  const box = await dataCell(page, 7).boundingBox();
+  const moveMouse = (dx) => page.mouse.move(box.x + box.width / 2 + dx, box.y + box.height / 2);
+  // The mouse rests on cell 7 while an arrow key moves focus on.
+  await page.keyboard.press('ArrowRight');
+  await expect(dataCell(page, 8)).toBeFocused();
+  await expect(here).toHaveText('8');
+  await moveMouse(1);
+  await expect(here).toHaveText('7');
+  // And while the keys type on.
   await page.keyboard.press('1');
   await page.keyboard.press('0');
-  await expect(dataCell(page, 9)).toBeFocused();
-  await expect(here).toHaveText('9');
-  await page.keyboard.press('ArrowRight');
+  await expect(dataCell(page, 10)).toBeFocused();
   await expect(here).toHaveText('10');
   // The mouse moves again: the ruler is the mouse's.
-  const box = await dataCell(page, 7).boundingBox();
-  await page.mouse.move(box.x + box.width / 2 + 1, box.y + box.height / 2);
+  await moveMouse(2);
   await expect(here).toHaveText('7');
+  // Space and Enter, which switch the cell with focus, take it too.
+  await page.keyboard.press(' ');
+  await expect(here).toHaveText('10');
+  await moveMouse(1);
+  await expect(here).toHaveText('7');
+  await page.keyboard.press('Enter');
+  await expect(here).toHaveText('10');
+  // So does Tab, bringing focus back into the strip with the mouse resting on cell 7.
+  await page.keyboard.press('Shift+Tab');
+  await moveMouse(2);
+  await expect(here).toHaveText('7');
+  await page.keyboard.press('Tab');
+  const focused = await page.evaluate(() => document.activeElement.dataset.cell);
+  expect(focused).not.toBe('7');
+  await expect(here).toHaveText(focused);
 });
 
-test('in Windows contrast themes, the ruler marks the cell pointed at in the color of focus; printed, no cell is focused', async ({ page, browserName, isMobile }) => {
+test('pointing at a cell changes only colors and visibility: the mouse crossing the strip lays nothing out again', async ({ page, browserName, isMobile }) => {
+  test.skip(browserName !== 'chromium' || isMobile, 'Chromium counts its layouts; phones have no mouse');
+  await page.goto('/?dx=79-15/23');
+  // The code list is built once the page is idle: before counting, not while.
+  await expect(page.locator('#reference-ui .assign-table')).toHaveCount(1);
+  const here = page.locator('#strip .ruler__cell.is-here');
+  await page.locator('#strip').scrollIntoViewIfNeeded();
+  await page.evaluate(() => document.fonts.ready);
+  const boxes = [];
+  for (let n = 7; n <= 20; n++) boxes.push(await dataCell(page, n).boundingBox());
+  const y = boxes[0].y + boxes[0].height / 2;
+  await page.mouse.move(boxes[0].x + boxes[0].width / 2, y);
+  await expect(here).toHaveText('7');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Performance.enable');
+  const layouts = async () => (await cdp.send('Performance.getMetrics')).metrics.find((m) => m.name === 'LayoutCount').value;
+  const before = await layouts();
+  for (const box of boxes.slice(1)) await page.mouse.move(box.x + box.width / 2, y);
+  await expect(here).toHaveText('20');
+  expect(await layouts()).toBe(before);
+});
+
+test('in Windows contrast themes, the ruler marks the cell pointed at in the color of focus, and its ticks keep their shapes', async ({ page, browserName, isMobile }) => {
   test.skip(browserName !== 'chromium' || isMobile, 'contrast themes are a Windows desktop feature');
   await page.goto('/?dx=79-15/23');
   await dataCell(page, 18).focus();
@@ -723,10 +765,22 @@ test('in Windows contrast themes, the ruler marks the cell pointed at in the col
   });
   expect(await color('#strip .ruler__cell.is-here .ruler__num')).toBe(highlight);
   expect(await color('#strip .ruler__cell[data-cell="20"] .ruler__num')).not.toBe(highlight);
-  // On paper, the focused cell looks like any other: no ring.
-  await page.emulateMedia({ forcedColors: 'none', media: 'print' });
-  const shadow = (cell) => dataCell(page, cell).evaluate((el) => getComputedStyle(el).boxShadow);
-  expect(await shadow(18)).toBe(await shadow(16));
+  // The ticks keep their shapes, which are borders partly transparent: the
+  // lower half of each, the upper half at 1 and every fifth, both halves and
+  // their right borders at the cell pointed at.
+  const ticks = await page.evaluate(() => [12, 15, 18].map((n) => {
+    const cell = document.querySelector(`#strip .ruler__cell[data-cell="${n}"]`);
+    return ['::before', '::after'].map((half) => {
+      const style = getComputedStyle(cell, half);
+      return [style.borderLeftColor, style.borderRightColor];
+    });
+  }));
+  const none = 'rgba(0, 0, 0, 0)';
+  const text = await color('#strip .ruler__cell[data-cell="20"] .ruler__num'); // the theme's
+  const [minor, major, here] = ticks;
+  expect(minor).toEqual([[text, none], [none, none]]);
+  expect(major).toEqual([[text, none], [text, none]]);
+  expect(here).toEqual([[highlight, highlight], [highlight, highlight]]);
 });
 
 test('after a tap, the ruler names no cell once focus is elsewhere', { tag: '@phone' }, async ({ page, hasTouch }) => {
@@ -740,6 +794,30 @@ test('after a tap, the ruler names no cell once focus is elsewhere', { tag: '@ph
   await expect(here).toHaveCount(0);
 });
 
+test('with the text twice as large, the number of the cell pointed at stays clear of the numbers beside it', { tag: '@phone' }, async ({ page }) => {
+  await page.goto('/?dx=79-15/23');
+  // As with a browser set to a 32 px default font size: the numbers grow, the cells don't.
+  await page.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
+  const clashes = [];
+  // The cells that can take focus next to a number always shown (10, 15, 20, 25).
+  for (const n of [9, 11, 14, 16, 19, 21, 24, 26]) {
+    await dataCell(page, n).focus();
+    await expect(page.locator('#strip .ruler__cell.is-here')).toHaveText(String(n));
+    clashes.push(...await page.evaluate((n) => {
+      const box = (c) => {
+        const el = document.querySelector(`#strip .ruler__cell[data-cell="${c}"] .ruler__num`);
+        return el && getComputedStyle(el).visibility === 'visible' ? el.getBoundingClientRect() : null;
+      };
+      const here = box(n);
+      return [n - 1, n + 1].filter((c) => {
+        const b = box(c);
+        return b && b.right > here.left && b.left < here.right;
+      }).map((c) => `${n} runs into ${c}`);
+    }, n));
+  }
+  expect(clashes).toEqual([]);
+});
+
 test('a ruler over the film numbers the cells as the texts do: 1 and every fifth, and the cell pointed at', { tag: '@phone' }, async ({ page, isMobile }) => {
   await page.goto('/?dx=79-15/23');
   const ruler = page.locator('#strip .ruler__cell');
@@ -747,14 +825,18 @@ test('a ruler over the film numbers the cells as the texts do: 1 and every fifth
   await expect(ruler).toHaveCount(31);
   await expect(shown).toHaveText(['1', '5', '10', '15', '20', '25', '30']);
   // Each tick stands over its own cell, also on a mirrored strip, where 1 is at the right end.
-  const centers = (sel) => page.locator(sel).evaluateAll((els) => els.map((el) => {
-    const r = el.getBoundingClientRect();
-    return r.left + r.width / 2;
-  }));
+  // Both read at once, two frames after the strip is drawn: a mirrored one scrolls a frame later.
+  const centers = () => page.evaluate(async () => {
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame);
+    const of = (sel) => [...document.querySelectorAll(sel)].map((el) => {
+      const r = el.getBoundingClientRect();
+      return r.left + r.width / 2;
+    });
+    return [of('#strip .ruler__cell'), of('#strip .track--data .cell')];
+  });
   for (const mirrored of [false, true]) {
     if (mirrored) await page.locator('#mirror-toggle').click();
-    const ticks = await centers('#strip .ruler__cell');
-    const cells = await centers('#strip .track--data .cell');
+    const [ticks, cells] = await centers();
     ticks.forEach((x, i) => expect(Math.abs(x - cells[i]), `cell ${i + 1}${mirrored ? ', mirrored' : ''}`).toBeLessThan(0.6));
     expect(ticks[0] > ticks[30]).toBe(mirrored);
   }

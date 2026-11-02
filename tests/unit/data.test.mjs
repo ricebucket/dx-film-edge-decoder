@@ -10,8 +10,9 @@ import { resolveCommit, sourceRecord, assignIds, idsReport } from '../../scripts
 import { parseCsv, formatCsv, readCsvObjects } from '../../scripts/lib/csv.mjs';
 import { SHOTS } from '../../scripts/screenshots.mjs';
 import { DEMO } from '../../scripts/demo-video.mjs';
-import { spawnSync } from 'node:child_process';
-import { mkdtempSync, symlinkSync, rmSync, cpSync, mkdirSync, writeFileSync, readFileSync, appendFileSync } from 'node:fs';
+import { filesStarting, videosDue } from '../../scripts/media.mjs';
+import { spawn, spawnSync } from 'node:child_process';
+import { mkdtempSync, symlinkSync, rmSync, cpSync, mkdirSync, writeFileSync, readFileSync, readdirSync, appendFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const require = createRequire(import.meta.url);
@@ -59,8 +60,62 @@ describe('generated data files', () => {
     // A column the build reads, renamed in the snapshot only.
     assert.equal(stops(snapshot(([header, ...rows]) => [header.map((name) => (name === 'reliability' ? 'Reliability' : name)), ...rows])),
       'film_database_dx.csv has no column "reliability"');
-    // A blank line at the end of a file.
-    assert.equal(stops((dir) => appendFileSync(join(dir, 'i3a-2008', 'products.csv'), '\n')), 'products.csv: CSV row 391 has 1 fields, expected 6');
+    // A blank line at the end of a file: the row after its last, whatever a correction made of its rows.
+    const [head, ...body] = parseCsv(readFileSync(join(ROOT, 'data', 'i3a-2008', 'products.csv'), 'utf8'));
+    assert.equal(stops((dir) => appendFileSync(join(dir, 'i3a-2008', 'products.csv'), '\n')), `products.csv: CSV row ${body.length + 2} has 1 fields, expected ${head.length}`);
+    // An ID given twice, as after an edit by hand: the error names the row.
+    assert.match(stops(snapshot(([header, first, second, ...rows]) => [header, first, [first[0], ...second.slice(1)], ...rows])),
+      /^film_database_dx\.csv: CSV row 3: ID "\d+" is missing, repeated or not a whole number$/);
+    // source.json, which records the database's commit: broken, or without it.
+    const record = (text) => (dir) => writeFileSync(join(dir, 'big-film-database', 'source.json'), text);
+    assert.match(stops(record('{ "commit": "abc", }')), /^source\.json: /);
+    assert.equal(stops(record('{}')), 'source.json has no "commit"');
+  });
+
+  test('every column the build reads, renamed in its file, stops it with the file and the column named; a column it does not read changes nothing', async () => {
+    const delimiters = { 'i3a-2008/part1-assignments.csv': ',', 'i3a-2008/products.csv': ',', 'i3a-2008/augmented-cassette-codes.csv': ',', 'big-film-database/film_database_dx.csv': ';' };
+    // The build, with --check, on a copy of the scripts, the generated files and the data, with one column renamed.
+    const renamed = async (file, column) => {
+      const dir = mkdtempSync(join(tmpdir(), 'dx-build-'));
+      try {
+        for (const f of ['build-data.mjs', 'lib/csv.mjs', 'lib/dx-index.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', f), join(dir, 'scripts', f));
+        for (const f of ['dx-codec.js', 'dx-lookup.js', 'dx-data.js', 'dx-data-community.js', 'dx-index.js']) cpSync(join(ROOT, 'site', 'js', f), join(dir, 'site', 'js', f));
+        cpSync(join(ROOT, 'data'), join(dir, 'data'), { recursive: true });
+        const csv = join(dir, 'data', file);
+        const [head, ...body] = parseCsv(readFileSync(csv, 'utf8'), delimiters[file]);
+        writeFileSync(csv, formatCsv([head.map((name) => (name === column ? `${name} (renamed)` : name)), ...body], delimiters[file]));
+        return await new Promise((resolve, reject) => {
+          const child = spawn(process.execPath, [join(dir, 'scripts', 'build-data.mjs'), '--check'], { stdio: ['ignore', 'pipe', 'pipe'] });
+          let said = '';
+          child.stdout.on('data', (d) => { said += d; });
+          child.stderr.on('data', (d) => { said += d; });
+          child.on('error', reject);
+          child.on('close', (status) => resolve({ status, said: said.trim() }));
+        });
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    };
+    const cases = Object.keys(delimiters).flatMap((file) => parseCsv(readFileSync(join(ROOT, 'data', file), 'utf8'), delimiters[file])[0].map((column) => [file, column]));
+    assert.ok(cases.length >= 20, `${cases.length} columns`);
+    const runs = await Promise.all(cases.map(([file, column]) => renamed(file, column)));
+    const unread = [];
+    cases.forEach(([file, column], i) => {
+      const { status, said } = runs[i];
+      const name = file.slice(file.lastIndexOf('/') + 1);
+      if (status === 0) {
+        assert.match(said, /^Up to date/, `${name}: ${column}`);
+        unread.push(`${name}: ${column}`);
+      } else if (column === 'ID') {
+        assert.equal(said, `${name} has no column "ID": \`npm run update:community-data\` gives its rows their IDs`);
+      } else {
+        assert.equal(said, `${name} has no column "${column}"`, `${name}: ${column}`);
+      }
+    });
+    // In the registry's files, the page of the PDF, kept for checking the
+    // transcription, is the only column the build does not read. (The
+    // database's snapshot may gain columns upstream that it does not read.)
+    assert.deepEqual(unread.filter((column) => !column.startsWith('film_database_dx.csv')), ['products.csv: page']);
   });
 
   test('are built the same on a computer set to another language', () => {
@@ -340,13 +395,13 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
   // default two rows with IDs 3 and 7) and a download given in place of GitHub's.
   const columns = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country', 'Beginning year', 'End year', 'Distributor', 'Ava'];
   const rows = [['0291', '002910', 'A 200', '', 'Maker A', '', 'Japan', '', '', '', '0'], ['0293', '002930', 'B 400', '', 'Maker B', '3', 'Italy', '', '', '', '1']];
-  const update = (header, upstream, snapshotRows = [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]]) => {
+  const update = (header, upstream, snapshotRows = [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]], recorded = { commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2, lastId: 7 }) => {
     const dir = mkdtempSync(join(tmpdir(), 'dx-update-'));
     try {
       for (const file of ['update-community-data.mjs', 'lib/csv.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
       const out = join(dir, 'data', 'big-film-database');
       mkdirSync(out, { recursive: true });
-      writeFileSync(join(out, 'source.json'), JSON.stringify({ commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2, lastId: 7 }));
+      writeFileSync(join(out, 'source.json'), JSON.stringify(recorded));
       const snapshot = formatCsv(snapshotRows, ';');
       writeFileSync(join(out, 'film_database_dx.csv'), snapshot);
       const text = formatCsv([header, ...upstream], ';');
@@ -402,6 +457,12 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     assert.equal(changed.said[1], '1 row kept its ID; 1 got a new one (8); 1 ID was retired.');
     // Without a snapshot that has IDs, the IDs of the rows the last update kept are all retired.
     assert.equal(update(header, upstream, [columns, ...rows]).said[1], 'No row kept its ID; 2 got new ones (8–9); 2 IDs were retired.');
+    // So are those of rows taken out of the snapshot by hand: all of them, or one.
+    assert.equal(update(header, upstream, [['ID', ...columns]]).said[1], 'No row kept its ID; 2 got new ones (8–9); 2 IDs were retired.');
+    assert.equal(update(header, upstream, [['ID', ...columns], ['3', ...rows[0]]]).said[1], '1 row kept its ID; 1 got a new one (8); 1 ID was retired.');
+    // None was in use before the first update that gave IDs: its source.json has no lastId.
+    assert.equal(update(header, upstream, [columns, ...rows], { commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2 }).said[1],
+      'No row kept its ID; 2 got new ones (1–2); no ID was retired.');
   });
 
   test('a column name given twice upstream, or a snapshot whose IDs are not as the update writes them, stops the update before it writes anything', () => {
@@ -415,7 +476,7 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
       [[[...columns, 'ID'], [...rows[0], '3'], [...rows[1], '7']], /the "ID" column is not the first/],
       [[['ID', ...columns], ['x3', ...rows[0]], ['7', ...rows[1]]], /ID "x3" is missing, repeated or not a whole number/],
       [[['ID', ...columns], ['0', ...rows[0]], ['7', ...rows[1]]], /ID "0" is missing/],
-      [[['ID', ...columns], ['3', ...rows[0]], ['3', ...rows[1]]], /ID "3" is missing, repeated/],
+      [[['ID', ...columns], ['3', ...rows[0]], ['3', ...rows[1]]], /CSV row 3: ID "3" is missing, repeated/],
     ]) {
       const run = update(header, upstream, snapshotRows);
       assert.equal(run.status, 1, String(error));
@@ -459,6 +520,30 @@ describe('documentation screenshots', () => {
       return hit.community.length + hit.related.length > 0;
     });
     assert.equal(ccBySa.includes(`"${DEMO.file}*"`), shows);
+  });
+
+  test('`npm run media` records the videos again only when the screenshots show a change, or with --force', async () => {
+    const pkg = JSON.parse(await readFile(join(ROOT, 'package.json'), 'utf8'));
+    assert.equal(pkg.scripts.media, 'node scripts/media.mjs');
+    // The files it compares: each screenshot and video, in every language.
+    const langs = readdirSync(join(ROOT, 'site', 'js', 'i18n')).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
+    const each = (base, ext) => [`${base}${ext}`, ...langs.map((lang) => `${base}.${lang}${ext}`)];
+    assert.deepEqual(filesStarting(SHOTS.map((shot) => shot.file)), SHOTS.flatMap((shot) => each(shot.file, '.png')).sort());
+    assert.deepEqual(filesStarting([DEMO.file]), [...each(DEMO.file, '.webm'), ...each(`${DEMO.file}-vertical`, '.mp4')].sort());
+    const due = (state) => videosDue({ force: false, screensChanged: false, screensCommitted: true, videosCommitted: true, ...state });
+    assert.equal(due({}), null);
+    assert.match(due({ force: true }), /--force/);
+    assert.match(due({ screensChanged: true }), /screenshots changed/);
+    // Screenshots taken on their own since the last commit, whose videos are still there; not
+    // once the videos have been recorded since; and where git can't tell, only a change in the run.
+    assert.match(due({ screensCommitted: false }), /last commit/);
+    assert.equal(due({ screensCommitted: false, videosCommitted: false }), null);
+    assert.equal(due({ screensCommitted: null, videosCommitted: null }), null);
+    // An option mistyped stops it before it makes anything.
+    const run = spawnSync(process.execPath, [join(ROOT, 'scripts', 'media.mjs'), '--forced'], { encoding: 'utf8' });
+    assert.equal(run.status, 1);
+    assert.equal(run.stderr.trim(), 'Unknown option --forced: the only one is --force.');
+    assert.equal(run.stdout, '');
   });
 });
 

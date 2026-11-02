@@ -90,17 +90,22 @@
   }
 
   /**
-   * `text` with the middle four digits of its cassette numbers marked where
-   * they are `digits`, the four looked up: the digits of the DX number, which
-   * a row only related by digits can share with what was looked up.
+   * `text` with its cassette numbers marked where they match what was looked
+   * up: whole where one is `whole`, the cassette number looked up; else its
+   * middle four digits where they are `digits`, the digits of the DX number,
+   * which a row only related by digits can share with what was looked up.
    */
-  function sharedDigits(text, digits) {
+  function sharedDigits(text, digits, whole) {
     const pieces = [];
     let last = 0;
     for (const m of text.matchAll(/\d{6}/g)) {
-      if (m[0].slice(1, 5) !== digits) continue;
-      pieces.push(text.slice(last, m.index + 1), h('mark', { class: 'shared' }, m[0].slice(1, 5)));
-      last = m.index + 5;
+      if (whole && m[0] === whole) {
+        pieces.push(text.slice(last, m.index), h('mark', { class: 'shared' }, m[0]));
+        last = m.index + 6;
+      } else if (digits && m[0].slice(1, 5) === digits) {
+        pieces.push(text.slice(last, m.index + 1), h('mark', { class: 'shared' }, m[0].slice(1, 5)));
+        last = m.index + 5;
+      }
     }
     pieces.push(text.slice(last));
     return pieces.filter((piece) => piece !== '');
@@ -171,11 +176,14 @@
    * augmented cassette numbers (`code`), or a row of The Big Film Database
    * (`cassettes`: rows that differ only by cassette number come as one), and
    * `kind` says which source ('i3a' or 'community'). Its short pieces come
-   * first (separated), then what its source records. Options:
+   * first (separated): its name, DX number, "Fuzzy match", status, then its
+   * source; then what its source records. Options:
    * - `dx`: its DX number shown;
    * - `related`: the four digits looked up, for a film listed only for them:
    *   it says so, and they are marked where it has them, in a cassette number
    *   or else as its recorded DX number;
+   * - `cassette`: the cassette number looked up, marked whole where the film
+   *   has it;
    * - `maker`: a registry film's maker said, where no lead above names it;
    * - `onShow(film, button)`: a "Show barcode" on a film with a code to draw
    *   (showButton);
@@ -213,7 +221,9 @@
       ? h('span', { class: 'match__original' }, ...i18n.parts('Notes: {notes}', { notes: source(film.original) }),
         film.reliability !== null ? certainty(p.space, t('(certainty {n}/4)', { n: film.reliability })) : null)
       : null;
-    // A recorded number that no film edge can carry (Part 1 = 0, or above 2047), as recorded.
+    // A recorded number the lookup takes as no edge code (entriesOf), as
+    // recorded: above 2047, more than an edge can carry, or with Part 1 = 0,
+    // which no maker held in 2008.
     const recorded = kind === 'community' && !edge && film.extract !== null
       ? h('span', { class: 'match__recorded' }, ...i18n.parts('Recorded DX number: {digits}', { digits: markRecorded ? h('mark', { class: 'shared' }, four(film.extract)) : four(film.extract) }))
       : null;
@@ -223,27 +233,29 @@
     if (options.onShow && showable) button = showButton(film, options);
     else if (options.onShow && options.explain) button = h('button', { type: 'button', class: 'tool', disabled: true }, t('No full code'));
     // Why there is no code to draw, where the row's own line doesn't say it.
+    // The number recorded is on its line above ("Recorded DX number"): not
+    // named again.
     const why = !button || showable || film.wildcard || augmented ? null
       : film.extract === null ? t('The Big Film Database records no DX number for this film')
       : film.extract > 2047
-        ? (film.full ? t('This cassette number is outside the range a film edge code can hold') : t('The DX number recorded for this film is outside the range a film edge code can hold'))
+        ? (film.full ? t('This cassette number is outside the range a film edge code can hold') : t('No film edge code can hold this number'))
         // A cassette number whose middle digits give Part 1 = 0 (Neopan 000004, ORWOPAN 000054).
         : film.full
-          ? t('Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code', { dx: codec.formatDxNumber(0, film.extract) })
-          : t('No maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code', { dx: codec.formatDxNumber(0, film.extract) });
+          ? t('Most likely a filler number: no maker held Part 1 = 0 in 2008')
+          : t('No maker held Part 1 = 0 in 2008');
     const body = separated([
       h('span', { class: 'match__name' }, film.name),
       options.dx && number ? h('span', { class: 'match__dx' }, 'DX ', markRecorded && edge ? h('mark', { class: 'shared' }, number) : number) : null,
       related ? h('span', { class: 'pill pill--near' }, t('Fuzzy match')) : null,
-      sourceTag(kind),
       status || null,
+      sourceTag(kind),
     ], [
       registry && film.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null,
       augmented ? h('span', { class: 'match__facts' }, t('Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.')) : null,
       facts.length ? h('span', { class: 'match__facts' }, ...joined(facts, p.comma, p.period)) : null,
       notes,
       recorded,
-      numbers ? h('span', { class: 'match__cassette' }, ...(related ? sharedDigits(numbers, related) : [numbers])) : null,
+      numbers ? h('span', { class: 'match__cassette' }, ...(related || options.cassette ? sharedDigits(numbers, related, options.cassette) : [numbers])) : null,
       // Said in the row, where touch and keyboard users see it too.
       why ? h('span', { class: 'match__why' }, why + p.period) : null,
     ]);

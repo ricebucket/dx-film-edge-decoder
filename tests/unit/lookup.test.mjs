@@ -121,17 +121,9 @@ describe('lookup with a fixture', () => {
     const found = names(lookup.search('acme'));
     assert.deepEqual(found.slice(0, 2), ['ACME Chrome 100', 'ACME Color 200']);
     assert.ok(found.includes('Shop Brand 200 #cheap'), 'matches the "original film" field');
-    assert.deepEqual(names(lookup.search('5-1')).slice(0, 1), ['ACME Color 200']);
     assert.deepEqual(names(lookup.search('zed photo')), ['Zed Pan']);
     assert.deepEqual(lookup.search('   '), []);
     assert.equal(lookup.search('acme', 1).length, 1);
-  });
-
-  test('a DX number found by search lists the rows only related by digits last, marked', () => {
-    const found = lookup.search('5-1');
-    assert.deepEqual(found.map((m) => [m.entry.name, m.related]), [
-      ['ACME Color 200', false], ['Other Brand 200', false], ['Shop Brand 200 #cheap', false], ['Loose Brand 200', false], ['Mislabeled Brand 200', false],
-      ['Odd Brand 100', '0081'], ['Unsure Brand 200', '0081']]);
   });
 
   test('byCassette separates exact cassette matches from those where only the roll length differs, those with the same DX digits, and those recorded with them but no cassette number that carries them', () => {
@@ -150,10 +142,11 @@ describe('lookup with a fixture', () => {
     assert.equal(lookup.byCassette('12'), null);
   });
 
-  test('a cassette number found by search lists its own records first, then those only related by digits, marked', () => {
-    assert.deepEqual(lookup.search('000811').map((m) => [m.entry.name, m.related]), [
-      ['ACME Color 200', false], ['Shop Brand 200 #cheap', false],
-      ['Odd Brand 100', '0081'], ['Other Brand 200', '0081'], ['Unsure Brand 200', '0081'], ['Loose Brand 200', '0081'], ['Mislabeled Brand 200', '0081']]);
+  test('search finds names and makers, not films by their DX number or cassette number, which have lookups of their own', () => {
+    assert.ok(lookup.byDx(5, 1).community.length > 0);
+    assert.ok(lookup.byCassette('000811').exact.length > 0);
+    for (const q of ['5-1', 'DX 5-1', '0081', '000811']) assert.deepEqual(lookup.search(q), [], q);
+    assert.ok(lookup.search('acme').every((m) => !('related' in m)));
   });
 });
 
@@ -178,34 +171,16 @@ describe('lookup with the real tables', () => {
     const portra = names(lookup.search('portra'));
     assert.match(portra[0], /PORTRA/);
     assert.ok(portra.findIndex((n) => /Portrait/i.test(n)) > portra.findIndex((n) => /PORTRA\b/.test(n)));
-    assert.equal(names(lookup.search('79-15'))[0], 'KODAK Professional BW400CN Film');
-    assert.equal(names(lookup.search('79 15'))[0], 'KODAK Professional BW400CN Film', 'space as separator');
     assert.ok(lookup.search('ilford delta').length > 0, 'ILFORD resolves through the sensitizer alias');
   });
 
-  test('search reads a DX number in every form the codec does', () => {
-    // As typed in "Know the number already?": any separator, full-width
-    // signs, and the extract without its leading zero (Lawley writes 550).
-    for (const q of ['79-15', '79–15', '79—15', '79/15', '79.15', '79 15', '７９－１５', '1279', '012794']) {
-      assert.equal(names(lookup.search(q))[0], 'KODAK Professional BW400CN Film', q);
+  test('a DX number or a cassette number finds a film only where its text has it: they have lookups of their own', () => {
+    const text = (e) => [e.name, e.tags, e.original, e.manufacturer, e.distributor].filter(Boolean).join(' ').toLowerCase();
+    for (const q of ['79-15', 'DX 1279', '012794', '017765', '753914', '832973', '333098']) {
+      const words = q.toLowerCase().split(' ');
+      assert.ok(lookup.search(q).every((m) => words.every((w) => text(m.entry).includes(w) || text(m.entry).replace(/[^a-z0-9]/g, '').includes(w.replace(/[^a-z0-9]/g, '')))), q);
     }
-    for (const q of ['550', '0550', '34-6']) assert.equal(names(lookup.search(q))[0], 'FUJICHROME ASTIA 100 PROFESSIONAL', q);
-  });
-
-  test('a DX number written as one lists only that code\'s films, if any, and then those only related by digits', () => {
-    // "20-0" is not "200", "0-5" is not "400-5".
-    assert.deepEqual(lookup.search('20-0'), []);
-    assert.deepEqual(lookup.search('0-5'), []);
-    for (const q of ['79-15', 'DX 79-15', 'DX 1279', '012794']) {
-      const results = lookup.search(q);
-      assert.ok(results.length > 0, q);
-      assert.ok(results.every((m) => m.entry.part1 === 79 && m.entry.part2 === 15), q);
-    }
-    // 014061 and 114064 give 87-14, but record other numbers.
-    const found = lookup.search('87-14');
-    const related = found.filter((m) => m.related).map((m) => m.entry.full).sort();
-    assert.deepEqual(related, ['014061', '114064']);
-    assert.ok(found.findIndex((m) => m.related) > found.findLastIndex((m) => !m.related));
+    assert.deepEqual(lookup.search('012794'), []);
   });
 
   test('names match by words within one field, or neighboring words written together', () => {
@@ -239,45 +214,21 @@ describe('lookup with the real tables', () => {
     for (const q of ['coded dx', 'dx-coded', 'DX-coded', 'dxcoded']) assert.deepEqual(ids(q), coded, q);
   });
 
-  test('a number typed with a space, or a DX number also printed in names, finds those names too', () => {
-    // "400 135" is no cassette number, though its six digits could be one.
+  test('a number typed with a space, or a generation code printed in names, finds those names', () => {
     assert.ok(names(lookup.search('400 135')).some((n) => /135/.test(n) && /400/.test(n)));
-    // 100-2 is a DX number and a generation code: the code's films first, then names with it.
-    const gen2 = lookup.search('100-2');
-    assert.ok(gen2[0].entry.part1 === 100 && gen2[0].entry.part2 === 2);
-    assert.ok(names(gen2).includes('AGFACOLOR OPTIMA 100-2'));
+    // 100-2 is also a generation code, which names carry.
+    assert.ok(names(lookup.search('100-2')).includes('AGFACOLOR OPTIMA 100-2'));
     assert.ok(names(lookup.search('100-4')).some((n) => /VR100-4/.test(n)));
-    // Still: "20-0" is not "200", nor part of "120-0".
-    assert.deepEqual(lookup.search('20-0'), []);
   });
 
-  test('a bare number is a film speed first: its DX number comes after films with it in their name, before those that only mention it elsewhere', () => {
-    // 1600 is also DX 100-0.
+  test('a bare number is a word: names with it first, then films that have it only in other fields', () => {
     const results = lookup.search('1600').map((m) => m.entry);
-    const dx = lookup.byDx(100, 0).community;
-    assert.ok(dx.length > 0);
-    const firstDx = results.findIndex((e) => dx.includes(e));
-    assert.ok(firstDx > 0);
-    assert.ok(results.slice(0, firstDx).every((e) => /1600/.test(e.name)));
-    assert.deepEqual(results.slice(firstDx, firstDx + dx.length), dx);
-    const later = results.slice(firstDx + dx.length);
-    assert.ok(later.length > 0 && later.every((e) => !/1600/.test(e.name)));
-  });
-
-  test('a cassette number typed one digit at a time is read as one, and comes before films that only contain its digits', () => {
-    const found = (q) => lookup.search(q).map((m) => [m.entry.id, m.related]);
-    // As typed together: the registry's BW400CN, then the database's three
-    // rows that share 1279, marked as only related by those digits.
-    const asNumber = found('012794');
-    assert.equal(asNumber.length, 4);
-    const typed = found('0 1 2 7 9 4');
-    assert.deepEqual(typed.slice(0, asNumber.length), asNumber);
-    // Then the names that have each digit somewhere: "VR-G400 Gen 2 – VRG 400-1 – Emulsion 5097".
-    assert.ok(typed.slice(asNumber.length).some(([id]) => /VR-G400/.test(lookup.byId(id).name)));
-    // Harman Phoenix II's 017765 gives 111-0, but it records 105-3: the film
-    // with exactly this number, not one of 111-0's fuzzy matches.
-    const [first] = lookup.search('0 1 7 7 6 5');
-    assert.deepEqual([first.entry.full, first.related], ['017765', false]);
+    const inName = results.findIndex((e) => !/1600/.test(e.name));
+    assert.ok(inName > 0, 'names first');
+    assert.ok(results.slice(inName).every((e) => !/1600/.test(e.name)));
+    // DX 100-0 (16 × 100) gives none of its films by that number.
+    const dx = lookup.byDx(100, 0).community.filter((e) => !/1600/.test([e.name, e.tags, e.original].join(' ')));
+    assert.ok(dx.length > 0 && dx.every((e) => !results.includes(e)));
   });
 
   test('a registry film has the status its maker\'s section states, and none where it states none', () => {
@@ -296,24 +247,10 @@ describe('lookup with the real tables', () => {
     assert.deepEqual(counts, { 'in-use': 163, discontinued: 55, null: 168 });
   });
 
-  test('a cassette number finds the films recorded with it, as recorded, whatever DX number they give', () => {
-    // Harman Phoenix II: cassette 017765 (1776 = 111-0), recorded as 105-3, the code on its edge by its notes.
-    const found = lookup.search('017765');
-    assert.ok(found.some((m) => !m.related && m.entry.full === '017765' && m.entry.part1 === 105 && m.entry.part2 === 3));
-    // Also where the number gives no DX number (5391 and 3297 are above 2047).
-    const cinestill = lookup.search('753914').filter((m) => m.entry.full === '753914').map((m) => m.entry.name).sort();
-    assert.deepEqual(cinestill, ['CineStill 800T Tungsten Xpro (new) 800Tungsten', 'Cinestill 50D Daylight C-41 / Xpro (new) 50Daylight']);
-    assert.ok(lookup.search('753914').filter((m) => m.entry.full !== '753914').every((m) => m.related));
-    assert.ok(lookup.search('832973').some((m) => m.entry.full === '832973'));
-    // "DX" in front, as for other numbers.
-    assert.ok(lookup.search('DX 753914').some((m) => m.entry.full === '753914'));
-    // The registry's own augmented numbers come first, by number and by name.
-    const coutu = lookup.search('832973')[0].entry;
-    assert.equal(coutu.source, 'i3a');
-    assert.equal(coutu.name, 'KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada');
-    assert.equal(coutu.part1, null);
-    assert.ok(lookup.search('DX 733633').some((m) => m.entry.source === 'i3a' && m.entry.code === '733633'));
-    assert.equal(lookup.search('jean coutu').filter((m) => m.entry.source === 'i3a').length, 5);
+  test('the registry\'s augmented cassette numbers are found by their names', () => {
+    const coutu = lookup.search('jean coutu').filter((m) => m.entry.source === 'i3a');
+    assert.equal(coutu.length, 5);
+    assert.ok(coutu.every((m) => m.entry.part1 === null && m.entry.code));
   });
 
   test('a row keeps its cassette number and its DX number apart, as the database records them', () => {
@@ -353,7 +290,6 @@ describe('lookup with the real tables', () => {
     // cassette number that gives 105-3 finds it there, as only related.
     const harman = lookup.byCassette('016834');
     assert.deepEqual(harman.recordedOnly.map((e) => e.full), ['017765']);
-    assert.deepEqual(lookup.search('016834').map((m) => [m.entry.full, m.related]), [['017765', '1683']]);
   });
 
   test('cassette 017563 is Ilford FP4 Plus, 24 exposures', () => {
@@ -370,7 +306,6 @@ describe('lookup with the real tables', () => {
     // The same film in another roll length: its record, as only related.
     assert.deepEqual(lookup.byCassette('832974').augmentedRelated.map((e) => e.code), ['832973']);
     assert.deepEqual(lookup.byCassette('832974').augmented, []);
-    assert.deepEqual(lookup.search('832974').map((m) => [m.entry.source, m.entry.full, m.related]), [['i3a', '832973', '3297'], ['community', '832973', '3297']]);
     assert.deepEqual(lookup.byCassette('732983').augmentedRelated.map((e) => e.code), ['832983']);
     for (const [code, basePart1] of [['832973', 78], ['732983', 78], ['832983', 78], ['733633', 82], ['833633', 82]]) {
       const other = lookup.byCassette(code);
@@ -489,42 +424,21 @@ describe('search, by how well each film matches', () => {
     ],
   };
   const lookup = createLookup(...built(data, community));
-  const found = (q) => lookup.search(q).map((m) => [m.entry.name, m.related]);
+  const found = (q) => names(lookup.search(q));
 
-  test('a number that may also be a word: names with it as a word, as the start of one, inside one, then its DX number\'s films, then those only related by digits, then other fields', () => {
-    assert.deepEqual(found('400'), [
-      // Acme 400 Pro is found both as a word and as a film of DX 25-0: the better match counts.
-      ['Acme 400', false], ['Acme 400 DX', false], ['Acme 400 Pro', false],
-      ['Acme 4000', false],
-      ['Acme X400', false],
-      ['Registry Pan', false], ['Exact Cassette', false], ['Middle Digits', false], ['Roll Length', false], ['No Cassette', false],
-      ['Related Row', '0400'],
-      ['Plain', false],
-    ]);
+  test('a number is a word like any other: names with it as a word, as the start of one, inside one, then other fields', () => {
+    // Not the films of DX 25-0 (400 = 16 × 25), nor those of cassette numbers with 0400: they have lookups of their own.
+    assert.deepEqual(found('400'), ['Acme 400', 'Acme 400 DX', 'Acme 400 Pro', 'Acme 4000', 'Acme X400', 'Plain']);
+    assert.deepEqual(found('25-0'), ['Acme 25-0']);
+    assert.deepEqual(found('DX 400'), ['Acme 400 DX']);
+    assert.deepEqual(found('004001'), []);
   });
 
-  test('a cassette number that may also be words: its films, then the same first five digits, the same middle four, the films that record its DX number, then names with its pieces, then other fields', () => {
-    assert.deepEqual(found('0 0 4 0 0 1'), [
-      ['Registry Pan', false], ['Exact Cassette', false],
-      ['Roll Length', '0400'],
-      ['Middle Digits', '0400'], ['Related Row', '0400'],
-      ['Acme 400 Pro', '0400'], ['No Cassette', '0400'],
-      ['Film 1040', false],
-      ['Plain', false],
-    ]);
-  });
-
-  test('a DX number written as one: its films, those only related by digits, then the names that carry it as typed', () => {
-    assert.deepEqual(found('25-0').slice(-2), [['Related Row', '0400'], ['Acme 25-0', false]]);
-    // "DX 400" is a number first: its films, then the names with its words as typed.
-    assert.deepEqual(found('DX 400').map(([name]) => name), ['Registry Pan', 'Exact Cassette', 'Middle Digits', 'Roll Length', 'Acme 400 Pro', 'No Cassette', 'Related Row', 'Acme 400 DX']);
-  });
-
-  test('a DX number written as one: a name that carries it as typed comes before a row that has it only in its note', () => {
+  test('a name that carries a number comes before a row that has it only in its note', () => {
     // Both have a note and no certainty, so only how they match tells them apart; by name alone, the note's row would come first.
     const notes = { source: {}, rows: [row(1, 81, '', 'Aaa Note Only', 'Box says 25-0'), row(2, 81, '', 'Acme 25-0', 'A rebrand')] };
     const search = createLookup(...built(data, notes)).search;
-    assert.deepEqual(search('25-0').map((m) => m.entry.name), ['Registry Pan', 'Acme 25-0', 'Aaa Note Only']);
+    assert.deepEqual(names(search('25-0')), ['Acme 25-0', 'Aaa Note Only']);
   });
 
   test('words that start with "DX" but give no number are searched as words, however "DX" is joined to them', () => {
@@ -534,13 +448,6 @@ describe('search, by how well each film matches', () => {
     const sorted = (q) => names(search(q)).sort();
     assert.deepEqual(sorted('dx coded'), ['Acme DX coded', 'Acme DX-coded', 'Acme dxcoded']);
     for (const q of ['coded dx', 'dx-coded', 'DX-coded', 'dxcoded']) assert.deepEqual(sorted(q), sorted('dx coded'), q);
-  });
-
-  test('a cassette number typed as one also lists the rows that mention it, after all that its digits find', () => {
-    // Rows of its own, so that the lists above stay as they are.
-    const mentioned = { source: {}, rows: [row(1, 400, '004001', 'Exact Cassette'), row(2, 81, '', 'Plain', 'Box says 004001')] };
-    const search = createLookup(...built(data, mentioned)).search;
-    assert.deepEqual(search('004001').map((m) => [m.entry.name, m.related]), [['Registry Pan', false], ['Exact Cassette', false], ['Plain', false]]);
   });
 });
 
@@ -635,18 +542,11 @@ describe('the indexes, swept', () => {
     }
   });
 
-  test('a search\'s matches are the rows themselves; only a number finds rows related by digits, and after the exact ones', () => {
+  test('a search\'s matches are the rows themselves', () => {
     const all = new Set([...lookup.products, ...lookup.community, ...lookup.augmented]);
-    for (const q of ['portra', 'hp5', 'fomapan 100', 'tri-x', 'superia', 'kodak gold', 'cinestill']) {
+    for (const q of ['portra', 'hp5', 'fomapan 100', 'tri-x', 'superia', 'kodak gold', 'cinestill', '1600']) {
       const found = lookup.search(q);
       assert.ok(found.length > 0 && found.every((m) => all.has(m.entry)), q);
-      assert.ok(found.every((m) => !m.related), q);
-    }
-    for (const q of ['79-15', 'DX 87-14', '012794', '002720', '017765', '333098', '753914', 'DX 753914', '1600']) {
-      const found = lookup.search(q);
-      assert.ok(found.length > 0 && found.every((m) => all.has(m.entry)), q);
-      const firstRelated = found.findIndex((m) => m.related);
-      if (firstRelated >= 0) assert.ok(found.slice(firstRelated).every((m) => m.related), q);
     }
   });
 });

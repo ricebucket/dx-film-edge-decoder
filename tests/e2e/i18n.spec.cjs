@@ -347,7 +347,7 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   // A row's pieces are read out apart, with Chinese commas.
   await page.locator('#cassette-code').fill('106253');
   await page.getByRole('button', { name: '查询' }).click();
-  expect(await page.locator('.cassette__result .match').first().ariaSnapshot()).toMatch(/FUJICOLOR 200\s*，\s*DX 39-1\s*，\s*I3A\s*，\s*2008 年仍在生产/);
+  expect(await page.locator('.cassette__result .match').first().ariaSnapshot()).toMatch(/FUJICOLOR 200\s*，\s*DX 39-1\s*，\s*2008 年仍在生产\s*，\s*I3A/);
   // Each list says how many films it has: alone, as just films; after another, as other films.
   await page.locator('#cassette-code').fill('016834');
   await page.getByRole('button', { name: '查询' }).click();
@@ -414,8 +414,8 @@ test('every language fits the screen without sideways scrolling, down to 320 px 
     await page.locator('#cassette-code').fill('001742');
     await page.locator('#cassette-code').press('Enter');
     await expect(page.locator('.cassette__result .pill--near')).toBeVisible();
-    await page.locator('#finder-q').fill('002720');
-    await expect(page.locator('.finder__item .pill--near').first()).toBeVisible();
+    await page.locator('#finder-q').fill('fujicolor 200');
+    await expect(page.locator('.finder__item').first()).toBeVisible();
     for (const w of [width, 320]) {
       await page.setViewportSize({ width: w, height });
       expect(await sideOverflow(page), `${name} at ${w} px`).toEqual([]);

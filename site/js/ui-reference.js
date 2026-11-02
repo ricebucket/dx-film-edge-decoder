@@ -92,15 +92,16 @@
     }
 
     function render() {
-      // As the finder reads it: full-width characters, "DX" in front, any
-      // dash, and a DX number in any form ("79 15", "1279", "012794").
+      // As "Know the number already?" reads it (codec.parseDxNumber):
+      // full-width characters, "DX" in front, any dash, and a DX number in
+      // any form ("79 15", "1279", "012794").
       const q = text.value.normalize('NFKC').trim().toLowerCase();
       const typed = q.replace(/^dx[\s\-\u2010-\u2015\u2212]*/, '').replace(/\s*[-\u2010-\u2015\u2212]+\s*/g, '-');
       // A bare number such as "200" is more likely a film speed than a DX
       // extract: only "DX 200" or four digits ("1279") are read as one.
       const read = q ? codec.parseDxNumber(q) : null;
       const dx = read && (read.kind !== 'extract' || /^dx/.test(q) || /^\d{4}$/.test(q)) ? read : null;
-      // "DX 12" alone means Part 1 = 12, as in Find a film, not every number starting with 12.
+      // "DX 12" alone means Part 1 = 12, not every number starting with 12.
       const lone = /^dx[\s\-\u2010-\u2015\u2212]*(\d{1,3})$/.exec(q);
       const part1Alone = lone && Number(lone[1]) <= 127 ? Number(lone[1]) : null;
       const m = maker.value === '' ? null : lookup.sensitizers[Number(maker.value)];

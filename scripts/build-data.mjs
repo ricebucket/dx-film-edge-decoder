@@ -39,6 +39,19 @@ async function table(path, columns, delimiter) {
   return rows;
 }
 
+/** source.json, which records the database's commit: its errors name it too. */
+async function source(path) {
+  const file = path.slice(path.lastIndexOf('/') + 1);
+  let record;
+  try {
+    record = JSON.parse(await read(path));
+  } catch (err) {
+    throw new Error(`${file}: ${err.message}`);
+  }
+  if (typeof record?.commit !== 'string') throw new Error(`${file} has no "commit"`);
+  return record;
+}
+
 // Harman Technologies Ltd makes ILFORD Photo films; Wikipedia's "DX number"
 // article lists Part 1 numbers 105-110 under "Ilford Photo".
 const ALSO_KNOWN_AS = { 'Harman Technologies': 'ILFORD Photo' };
@@ -96,7 +109,7 @@ export async function buildData() {
   const augmentedRows = await table('data/i3a-2008/augmented-cassette-codes.csv', ['cassette_code', 'product', 'sensitizer']);
   const communityRows = await table('data/big-film-database/film_database_dx.csv', ['ID', 'DX extract', 'DX full', 'Name',
     'Original Film or informations', 'Manufacturer', 'reliability', 'Country', 'Beginning year', 'End year', 'Distributor', 'Ava'], ';');
-  const communitySource = JSON.parse(await read('data/big-film-database/source.json'));
+  const communitySource = await source('data/big-film-database/source.json');
 
   // One table of sensitizers: the Part 1 table's short label ("Eastman Kodak")
   // paired with the full name used as the product-section title.
@@ -149,9 +162,9 @@ export async function buildData() {
   const augmented = augmentedRows.map((r, n) => [n + 1, r.cassette_code, r.product, indexByFullName(r.sensitizer)]);
 
   const ids = new Set();
-  const community = communityRows.map((r) => {
+  const community = communityRows.map((r, n) => {
     const id = toInt(r.ID, -1);
-    if (id < 1 || ids.has(id)) throw new Error(`film_database_dx.csv: ID "${r.ID}" is missing, repeated or not a whole number`);
+    if (id < 1 || ids.has(id)) throw new Error(`film_database_dx.csv: CSV row ${n + 2}: ID "${r.ID}" is missing, repeated or not a whole number`);
     ids.add(id);
     const full = r['DX full'].trim();
     // As recorded: a few rows have only the cassette number (-1).
@@ -195,9 +208,9 @@ export async function buildData() {
  * licensed under CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/.
  * Changes: kept rows with a DX extract or a cassette number, dropped image
  * names, gave each row a record ID, split "#" search tags from names, removed
- * HTML markup, compacted to arrays, added the build's version and a place
- * for the deploy's build number. This whole file, including the code that
- * loads the data, is under CC BY-SA 4.0.
+ * HTML markup, compacted to arrays, added the build's version and a field
+ * for the commit it is published from. This whole file, including the code
+ * that loads the data, is under CC BY-SA 4.0.
  */
 `;
   const indexHeader = `/*

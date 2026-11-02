@@ -1,9 +1,10 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stampBuild } from '../../scripts/stamp-build.mjs';
 
@@ -28,12 +29,25 @@ function files(dir) {
   return { createLookup: load('./dx-lookup.js'), data: DATA.map((file) => load(`./${file}`)) };
 }
 
+/**
+ * The build the photo reader's two scripts carry in `dir`: dx-image.js as
+ * Node loads it, ui-photo.js (which needs a browser) as written.
+ */
+function readerBuilds(dir) {
+  const image = createRequire(join(dir, 'js', 'test.cjs'))('./dx-image.js').BUILD;
+  const slots = [...readFileSync(join(dir, 'js', 'ui-photo.js'), 'utf8').matchAll(/const BUILD = '([^']*)';/g)].map((m) => m[1]);
+  assert.equal(slots.length, 1, 'ui-photo.js has one build');
+  return [image, slots[0]];
+}
+
 describe('publishing (scripts/stamp-build.mjs)', () => {
   test('the repository keeps the build empty in the code and the three data files, which match so', () => {
     const { createLookup, data } = files(SITE);
     assert.equal(createLookup.BUILD, '');
     for (const file of data) assert.equal(file.build, '');
     assert.doesNotThrow(() => createLookup(...data));
+    // The photo reader, which the page checks against its own when it loads it.
+    assert.deepEqual(readerBuilds(SITE), ['', '']);
   });
 
   test('the copy published carries the commit in the code and the data, and asks for every script and stylesheet by it', async () => {
@@ -44,6 +58,7 @@ describe('publishing (scripts/stamp-build.mjs)', () => {
       assert.equal(createLookup.BUILD, 'a1b2c3d4e5f6');
       for (const file of data) assert.equal(file.build, 'a1b2c3d4e5f6');
       assert.doesNotThrow(() => createLookup(...data));
+      assert.deepEqual(readerBuilds(dir), ['a1b2c3d4e5f6', 'a1b2c3d4e5f6']);
       for (const page of pages) {
         const html = readFileSync(join(dir, page), 'utf8');
         const local = [...html.matchAll(/\s(?:src|href)="((?:js|css)\/[^"]+)"/g)].map((m) => m[1]);
@@ -56,7 +71,7 @@ describe('publishing (scripts/stamp-build.mjs)', () => {
     });
   });
 
-  test('code and data of different deploys stop the page, either way round', async () => {
+  test('code and data of different deploys stop the page, either way around', async () => {
     await withCopy(async (dir) => {
       await stampBuild(dir, '0123456789ab');
       const stamped = files(dir);
@@ -67,6 +82,57 @@ describe('publishing (scripts/stamp-build.mjs)', () => {
         const mixed = stamped.data.map((file, k) => (k === n ? unstamped.data[k] : file));
         assert.throws(() => stamped.createLookup(...mixed), /another deploy/, DATA[n]);
       }
+    });
+  });
+
+  test('the command stamps only the directory it is given', async () => {
+    await withCopy(async (dir) => {
+      // The script in a copy of the project, run without a directory: the copy's site/ stays as it was.
+      for (const file of ['stamp-build.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'project', 'scripts', file));
+      cpSync(SITE, join(dir, 'project', 'site'), { recursive: true });
+      const index = readFileSync(join(dir, 'project', 'site', 'index.html'), 'utf8');
+      const run = spawnSync(process.execPath, [join(dir, 'project', 'scripts', 'stamp-build.mjs'), 'a1b2c3d4e5f6'], { cwd: join(dir, 'project'), encoding: 'utf8' });
+      assert.equal(run.status, 1);
+      assert.match(run.stderr, /^Usage: node scripts\/stamp-build\.mjs <commit hash> <site directory>/);
+      assert.equal(readFileSync(join(dir, 'project', 'site', 'index.html'), 'utf8'), index);
+    });
+  });
+
+  test('the command stamps a copy named by a path relative to where it runs', async () => {
+    await withCopy(async (dir) => {
+      const run = spawnSync(process.execPath, [join(ROOT, 'scripts', 'stamp-build.mjs'), 'a1b2c3d4e5f6', basename(dir)], { cwd: dirname(dir), encoding: 'utf8' });
+      assert.equal(run.status, 0, run.stderr);
+      const { createLookup, data } = files(dir);
+      assert.equal(createLookup.BUILD, 'a1b2c3d4e5f6');
+      for (const file of data) assert.equal(file.build, 'a1b2c3d4e5f6');
+    });
+  });
+
+  test('a stamp that stops leaves the copy as it was: every slot and page is checked before a file is written', async () => {
+    await withCopy(async (dir) => {
+      const all = () => Object.fromEntries(readdirSync(dir, { recursive: true }).filter((name) => /\.(?:js|html)$/.test(name)).map((name) => [name, readFileSync(join(dir, name), 'utf8')]));
+      // The last data file with its slot twice: the code and the other two would be stamped by then.
+      const index = join(dir, 'js', 'dx-index.js');
+      const text = readFileSync(index, 'utf8');
+      writeFileSync(index, text.replace('"build":""', '"build":"","build":""'));
+      let before = all();
+      await assert.rejects(stampBuild(dir, 'a1b2c3d4e5f6'), /js\/dx-index\.js: expected "build":"" exactly once/);
+      assert.deepEqual(all(), before);
+      // A page with no script or stylesheet: the code and the data would be stamped by then.
+      writeFileSync(index, text);
+      writeFileSync(join(dir, 'extra.html'), '<!doctype html><title>Nothing to stamp</title>');
+      before = all();
+      await assert.rejects(stampBuild(dir, 'a1b2c3d4e5f6'), /extra\.html: no script or stylesheet to stamp/);
+      assert.deepEqual(all(), before);
+    });
+  });
+
+  test('the stamp checks the copy it stamped: code and data that do not go together stop it', async () => {
+    await withCopy(async (dir) => {
+      // dx-index.js of another build: its version is another.
+      const file = join(dir, 'js', 'dx-index.js');
+      writeFileSync(file, readFileSync(file, 'utf8').replace(/"version":"[0-9a-f]{16}"/, '"version":"0000000000000000"'));
+      await assert.rejects(stampBuild(dir, 'a1b2c3d4e5f6'), /different builds/);
     });
   });
 
@@ -93,8 +159,16 @@ describe('publishing (scripts/stamp-build.mjs)', () => {
   test('GitHub stamps the commit into the copy it publishes, before it uploads it', () => {
     const workflow = readFileSync(join(ROOT, '.github/workflows/tests.yml'), 'utf8');
     const deploy = workflow.slice(workflow.search(/^ {2}deploy:$/m));
-    const stamp = deploy.search(/^ {8}run: node scripts\/stamp-build\.mjs "\$\{GITHUB_SHA::12\}"\s*$/m);
+    const stamp = deploy.search(/^ {8}run: node scripts\/stamp-build\.mjs "\$\{GITHUB_SHA::12\}" site\s*$/m);
     const upload = deploy.search(/^ {8}uses: actions\/upload-pages-artifact@/m);
     assert.ok(stamp > 0 && upload > stamp, 'the stamp comes before the upload, in the deploy job');
+    // … whenever the upload runs, and a stamp that fails stops the deploy.
+    const step = (at) => deploy.slice(deploy.lastIndexOf('\n      - ', at), deploy.indexOf('\n      - ', at));
+    const when = (text) => (/^ {6}(?:- | {2})if: (.+)$/m.exec(text) || [])[1];
+    assert.ok(when(step(upload)), 'the upload has its condition');
+    assert.equal(when(step(stamp)), when(step(upload)));
+    assert.doesNotMatch(step(stamp), /continue-on-error:/);
+    // What it uploads is the folder the stamp wrote.
+    assert.match(step(upload), /^ {10}path: site\s*$/m);
   });
 });

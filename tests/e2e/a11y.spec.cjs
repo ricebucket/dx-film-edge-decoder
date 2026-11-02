@@ -14,7 +14,7 @@ const LANGUAGES = ['en', ...fs.readdirSync(path.join(__dirname, '..', '..', 'sit
 
 /**
  * axe's findings, one line each (rule, element, advice); empty when the page
- * passes. `loading`: the page has not finished loading, and Safari's
+ * passes. `include`: the parts of the page to check, one or several. `loading`: the page has not finished loading, and Safari's
  * document.fonts.ready waits for that.
  */
 async function problems(page, include, { loading = false } = {}) {
@@ -25,7 +25,7 @@ async function problems(page, include, { loading = false } = {}) {
     return loading || document.fonts.ready;
   }, loading);
   const builder = new AxeBuilder({ page }).withTags(WCAG);
-  if (include) builder.include(include);
+  for (const part of [].concat(include || [])) builder.include(part);
   const { violations } = await builder.analyze();
   return violations.flatMap((v) => v.nodes.map((n) => `${v.id}: ${n.target.join(' ')}: ${v.help}`));
 }
@@ -39,7 +39,7 @@ test.afterEach(() => checkConsole());
 for (const lang of LANGUAGES) {
   for (const colorScheme of ['light', 'dark']) {
     test(`axe finds no WCAG A or AA problems (${lang}, ${colorScheme})`, async ({ page }) => {
-      // Six passes of axe, a few seconds each: three times the usual time, so
+      // Seven passes of axe, a few seconds each: three times the usual time, so
       // that a busy computer does not stop it halfway.
       test.slow();
       await page.addInitScript((code) => localStorage.setItem('dx-lang', code), lang);
@@ -85,10 +85,13 @@ for (const lang of LANGUAGES) {
       await expect(page.locator('#strip .track--data button.is-bar')).toHaveCount(0);
       expect(await problems(page, '#decoder')).toEqual([]);
 
-      // Rows only related by digits, marked so, in the search and in a result.
-      await page.locator('#finder-q').fill('002720');
-      await expect(page.locator('.finder__item .pill--near').first()).toBeVisible();
-      expect(await problems(page, '#finder')).toEqual([]);
+      // Rows only related by digits, marked so, in the cassette helper and in a result; the search's rows.
+      await page.locator('#cassette-code').fill('002720');
+      await page.locator('#cassette-code').press('Enter');
+      await expect(page.locator('.cassette__result .pill--near').first()).toBeVisible();
+      await page.locator('#finder-q').fill('fujicolor 200');
+      await expect(page.locator('.finder__item').first()).toBeVisible();
+      expect(await problems(page, ['#finder', '#cassette'])).toEqual([]);
       await page.goto('/?dx=87-14');
       await expect(page.locator('#result .pill--near').first()).toBeVisible();
       expect(await problems(page, '#decoder')).toEqual([]);

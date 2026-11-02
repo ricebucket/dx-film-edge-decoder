@@ -31,7 +31,7 @@ server. It also works when `site/index.html` is opened straight from disk.
 - **Read a photo or scan**: the decoder finds the barcode itself, even on
   mirrored or upside-down film and on slides, and shows which cells it read.
   The photo then stays in view, its barcode lined up over the strip's cells.
-- **Find a film's code** by name or DX number, **look up a cassette number**,
+- **Find a film's code** by name or maker, **look up a cassette number**,
   and browse the **2008 DX code list**. A code shown from any of them says
   above the strip where it came from, with a way back.
 - Undo and redo, shareable links such as `?dx=79-15/23`, light and dark themes,
@@ -127,7 +127,7 @@ LICENSES/, REUSE.toml license texts, and which files each one covers
 ### Tests
 
 ```sh
-npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags, links
+npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags, links, deploy stamp
 npm run test:e2e    # browser tests: desktop, Android phone, iPhone
 ```
 
@@ -240,16 +240,20 @@ To make them all again after a visible change, in every language, run:
 npm run media
 ```
 
-It runs the three commands below in turn, in about a minute. It needs
-Playwright (see *Tests*) and, for the Chinese screenshots and videos, a Chinese
-font (on Ubuntu, the `fonts-noto-cjk` package). Look at the results before
-committing them.
+It runs the three commands below in turn, in about a minute. It records the
+videos only when the screenshots changed, since each recording comes out a
+little different and adds about 27 MB to the repository's history. To record
+them anyway, for a change that only the videos show (the photo reader, for
+example), run `npm run media -- --force`. It needs Playwright (see *Tests*).
+The screenshots and videos use the fonts installed on your machine, so the
+Chinese ones need a Chinese font (on Ubuntu, the `fonts-noto-cjk` package).
+Look at the results before committing them.
 
 - The diagrams in `research/img/*.svg` are drawn from the decoder's own code
   by `npm run figures`, in every language. `npm test` fails if they are out of
   date.
 - The screenshots (`.github/screenshot*.png`) are taken by
-  `npm run screenshots`. They use the fonts installed on your machine.
+  `npm run screenshots`.
 - The demo video (`.github/demo*.webm`, 1120 × 840) and a vertical version
   (`.github/demo-vertical*.mp4`, 1120 × 1680) are recorded by `npm run demo`:
   about half a minute each, in each language. It uses the page as a visitor

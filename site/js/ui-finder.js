@@ -15,24 +15,27 @@
 
   const PAGE = 25;
 
-  function dxOf(entry) {
-    return entry.part1 === null ? null : codec.formatDxNumber(entry.part1, entry.part2);
-  }
-
   /**
-   * Search results ({ entry, related }) without community rows that differ
-   * only by cassette number: in this list they look the same.
+   * Search results ({ entry }) with the community rows that differ only by
+   * cassette number as one, where the first of them comes: with the cassette
+   * numbers (`cassettes`) and record IDs (`ids`) of all, as ui.collate gives
+   * a film in the other lists.
    */
   function distinct(matches) {
-    const seen = new Set();
-    return matches.filter(({ entry: e, related }) => {
+    const seen = new Map();
+    return matches.filter((match) => {
+      const e = match.entry;
       if (e.source !== 'community') return true;
-      // Rows without a DX number, and those related by digits, are listed by
-      // cassette number, so that tells them apart.
-      const key = `${e.part1 === null || related ? e.full : ''}:${related}:${ui.communityKey(e)}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
+      // Rows without a DX number are listed by cassette number, so that tells them apart.
+      const key = `${e.part1 === null ? e.full : ''}:${ui.communityKey(e)}`;
+      const first = seen.get(key);
+      if (!first) {
+        seen.set(key, Object.assign(match, { cassettes: e.full ? [e.full] : [], ids: [e.id] }));
+        return true;
+      }
+      if (e.full && !first.cassettes.includes(e.full)) first.cassettes.push(e.full);
+      first.ids.push(e.id);
+      return false;
     });
   }
 
@@ -51,11 +54,11 @@
   function createFinder(host, { lookup, onShow }) {
     const input = h('input', {
       type: 'search', id: 'finder-q', class: 'input input--search', autocomplete: 'off', spellcheck: 'false',
-      placeholder: t('e.g. Portra 400, HP5, Fujicolor 200, 79-15'),
+      placeholder: t('e.g. Portra 400, HP5, Fujicolor 200'),
       'aria-describedby': 'finder-help',
     });
     const status = h('p', { class: 'finder__status', id: 'finder-help', 'aria-live': 'polite' },
-      t('Type at least two letters, or a DX number such as 79-15.'));
+      t('Type at least two letters.'));
     const list = h('ul', { class: 'finder__results' });
     const more = h('button', { type: 'button', class: 'text-button', hidden: true }, t('Show more'));
 
@@ -71,10 +74,9 @@
 
     // A row as in every list of films (ui.filmItem), with the film's maker, as no lead names it,
     // and why a film has no code to draw. Its "Show barcode" takes the frame typed above.
-    function resultItem({ entry, related }) {
-      const film = entry.source === 'community' ? Object.assign({}, entry, { cassettes: entry.full ? [entry.full] : [], ids: [entry.id] }) : entry;
+    function resultItem({ entry, cassettes, ids }) {
+      const film = entry.source === 'community' ? Object.assign({}, entry, { cassettes, ids }) : entry;
       const row = ui.filmItem(film, entry.source, {
-        related: related || null,
         dx: true,
         maker: true,
         explain: true,
@@ -95,39 +97,16 @@
       more.textContent = t('Show {n} more', { n: Math.min(PAGE, results.length - shown) });
     }
 
-    /** "DX 79": a Part 1 on its own, without its Part 2; null for anything else. */
-    function lonePart1(q) {
-      const m = /^dx[\s\-\u2010-\u2015\u2212]*(\d{1,3})$/i.exec(q.normalize('NFKC'));
-      return m && Number(m[1]) <= 127 ? Number(m[1]) : null;
-    }
-
     let timer = null;
     function run() {
       const q = input.value.trim();
       list.replaceChildren();
       shown = 0;
-      const tooShort = q.length < 2 && !/\d/.test(q);
-      // "DX" and a Part 1 alone: its films, so that the Part 2 can be picked from them.
-      const part1 = lonePart1(q);
-      if (part1 !== null) {
-        // In the order of their Part 2, those listed without one first; under
-        // one Part 2, by the film's own score (scoreOf), the registry's first.
-        const { ranked, scoreOf } = root.DX.createLookup;
-        const score = (e) => (15 - (e.part2 === null ? -1 : e.part2)) * 1e7 + scoreOf(e);
-        results = distinct(ranked([...lookup.products, ...lookup.community].filter((e) => e.part1 === part1), score)
-          .map((entry) => ({ entry, related: false })));
-      } else {
-        results = q && !tooShort ? distinct(lookup.search(q)) : [];
-      }
-      const dx = results.length || part1 !== null ? null : codec.parseDxNumber(q);
-      if (!q || tooShort) status.textContent = t('Type at least two letters, or a DX number such as 79-15.');
-      else if (part1 !== null) {
-        const example = results.filter(({ entry }) => !entry.wildcard).map(({ entry }) => dxOf(entry)).find(Boolean);
-        status.textContent = example
-          ? i18n.plural(results.length, '{n} film has Part 1 = {part1}. Add its Part 2 to narrow the list, e.g. {dx}.', '{n} films have Part 1 = {part1}. Add their Part 2 to narrow the list, e.g. {dx}.', { part1, dx: example })
-          : t('No film in the lists has Part 1 = {part1}. A DX number has two parts, such as 79-15.', { part1 });
-      } else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
-      else if (dx) status.textContent = t('No film in the lists has DX {dx}.', { dx: codec.formatDxNumber(dx.part1, dx.part2) });
+      // Names and makers only: a DX number and a cassette number each have a lookup of their own.
+      const tooShort = q.length < 2;
+      results = q && !tooShort ? distinct(lookup.search(q)) : [];
+      if (!q || tooShort) status.textContent = t('Type at least two letters.');
+      else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
       else status.textContent = t('Nothing matches “{q}”. Try fewer words, or part of the name.', { q });
       showPage();
     }
@@ -175,7 +154,7 @@
 
     host.replaceChildren(
       h('div', { class: 'finder__search' },
-        h('label', { for: 'finder-q', class: 'field-label' }, icon('search'), t('Film name, maker or DX number')),
+        h('label', { for: 'finder-q', class: 'field-label' }, icon('search'), t('Film name or maker')),
         input,
         h('div', { class: 'finder__frame' },
           h('label', { for: 'finder-frame' }, t('Show with frame')), frameInput, frameHelp),
@@ -434,19 +413,20 @@
         else lead = t('Part 1 = {part1} is assigned to {maker}.', part1);
         blocks.push(h('p', { class: 'result__lead' }, lead));
       }
-      // The films in one list, each with its source, ranked by the lookup's
-      // scoreOf, each row on its own. Matching exactly: the registry's record
-      // of this number, or its films for the DX number, and the database's
-      // rows with exactly this number. Then, marked as fuzzy matches, those that share only
-      // some digits: the registry's records with the same middle four digits
-      // and the database's rows where only the roll length differs; folded,
-      // the database's rows with the same middle four digits, and the other
-      // films recorded with these four digits as their DX number, which
-      // their rows mark. The database's rows as recorded, each with its own
-      // DX number and a button for it; each film once, in the first list it
-      // comes in: rows of it in a later one only add their cassette numbers
-      // to it, as rows that differ only by cassette number do within one list
-      // (ui.collate).
+      // The films of both sources together, each with its source, ranked by
+      // the lookup's scoreOf, each row on its own, in up to three lists.
+      // First, matching exactly: the registry's record of this number, or its
+      // films for the DX number, and the database's rows with exactly this
+      // number; then, marked as fuzzy matches, those that share only some
+      // digits: the registry's records with the same middle four digits and
+      // the database's rows where only the roll length differs. Second, the
+      // database's rows with the same middle four digits; third, the other
+      // films recorded with these four digits as their DX number, which their
+      // rows mark. The database's rows as recorded, each with its own DX
+      // number and, where it has a code to draw, a button for it; each film
+      // once, in the first list it comes in: rows of it in a later one only
+      // add their cassette numbers to it, as rows that differ only by
+      // cassette number do within one list (ui.collate).
       const { ranked, scoreOf } = root.DX.createLookup;
       const score = ({ e, match }) => scoreOf(e, match);
       const listed = new Map();
@@ -460,7 +440,7 @@
       const rows = (entries, match) => entries.map((e) => ({ e, related: match < 10, match }));
       // A database film's rows (ids), or a registry film; and the button used.
       const showRow = (e, button) => onShow({ part1: e.part1, part2: e.part2, frame: 1, half: false }, { kind: 'cassette', name: p.digits, ids: e.ids || [e.id], button });
-      const item = ({ film, source, related }) => ui.filmItem(film, source, { related: related ? p.extractText : null, dx: true, onShow: showRow });
+      const item = ({ film, source, related }) => ui.filmItem(film, source, { related: related ? p.extractText : null, cassette: p.digits, dx: true, onShow: showRow });
       // All three lists before any is drawn: a later one can add cassette numbers to a film in an earlier one.
       const [near, similar, loose] = [
         [...rows(a ? hit.augmented : hit.dx ? hit.dx.products : [], 10), ...rows(hit.exact, 10), ...rows(hit.augmentedRelated, 7), ...rows(hit.sameFirstFive, 7)],

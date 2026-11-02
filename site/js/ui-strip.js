@@ -207,6 +207,7 @@
           // will do, as hovering does with a mouse.
           btn.classList.add('is-pressing');
           stroke = { touch: true, id: e.pointerId, x: e.clientX, y: e.clientY, cellNo, btn };
+          hovered = null; // a finger takes the ruler from a resting mouse
           showHere();
           return;
         }
@@ -277,7 +278,11 @@
         hovered = null;
         showHere();
       });
-      track.addEventListener('focusin', showHere);
+      track.addEventListener('focusin', (e) => {
+        // Focus the keyboard brought in (Tab) takes the ruler, as keys do.
+        if (e.target.matches(':focus-visible')) hovered = null;
+        showHere();
+      });
       track.addEventListener('focusout', () => setTimeout(showHere));
 
       // Keyboard activation arrives as a click with detail 0.
@@ -293,6 +298,10 @@
       track.addEventListener('keydown', (e) => {
         const btn = cellButton(e.target);
         if (!btn || e.altKey || e.ctrlKey || e.metaKey) return;
+        // The latest input wins: any key in the strip takes the ruler to the
+        // cell with focus, until the mouse moves again.
+        hovered = null;
+        showHere();
         const cellNo = Number(btn.dataset.cell);
         const editable = refs.layout.filter((c) => c.editable).map((c) => c.cell);
         const pos = editable.indexOf(cellNo);
@@ -304,8 +313,6 @@
         else if (e.key === 'End') target = state.mirrored ? editable[0] : editable[editable.length - 1];
         else if (['1', '0', 'Backspace', 'Delete'].includes(e.key)) {
           e.preventDefault();
-          hovered = null; // the latest input wins: the ruler follows focus until the mouse moves
-          showHere();
           // Typing goes in reading order from cell 7, right after the start
           // pattern, as the hint says: on a mirrored strip, to the left.
           const previous = state.cells;
@@ -324,8 +331,6 @@
           return;
         } else return;
         e.preventDefault();
-        hovered = null;
-        showHere();
         if (target !== undefined && target !== null) moveFocus(target);
       });
     }
@@ -339,8 +344,13 @@
       const active = document.activeElement;
       const focused = active && refs.data.contains(active) ? Number(active.dataset.cell) : null;
       const pressed = stroke && stroke.touch && stroke.btn.classList.contains('is-pressing') ? stroke.cellNo : null;
-      const here = hovered || pressed || focused;
-      for (const el of refs.ruler) el.classList.toggle('is-here', Number(el.dataset.cell) === here);
+      const here = refs.ruler[(hovered || pressed || focused) - 1] || null;
+      // Only the cell that stops being marked and the one that starts: the
+      // mouse calls this on every move.
+      if (here === refs.here) return;
+      if (refs.here) refs.here.classList.remove('is-here');
+      if (here) here.classList.add('is-here');
+      refs.here = here;
     }
 
     function setFocusCell(cellNo) {

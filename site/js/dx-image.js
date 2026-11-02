@@ -862,5 +862,10 @@
     }
   }
 
-  return { grayFromRGBA, readBarcode, readBarcodeAsync, synthesize, compose, matchClock, runs };
+  // The deploy this file was published with: scripts/stamp-build.mjs writes
+  // the commit into it. The page loads the photo reader later than its own
+  // scripts, and checks that it comes from the same deploy (app.js).
+  const BUILD = '';
+
+  return { BUILD, grayFromRGBA, readBarcode, readBarcodeAsync, synthesize, compose, matchClock, runs };
 });
