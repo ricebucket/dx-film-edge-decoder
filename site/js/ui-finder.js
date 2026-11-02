@@ -58,7 +58,7 @@
       'aria-describedby': 'finder-help',
     });
     const status = h('p', { class: 'finder__status', id: 'finder-help', 'aria-live': 'polite' },
-      t('Type at least two letters.'));
+      t('Type at least two characters.'));
     const list = h('ul', { class: 'finder__results' });
     const more = h('button', { type: 'button', class: 'text-button', hidden: true }, t('Show more'));
 
@@ -82,7 +82,7 @@
         explain: true,
         onShow(f, button) {
           const frame = readFrame(frameInput, frameHelp);
-          if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame), { kind: 'finder', name: entry.name, ids: [entry.id], button });
+          if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame), { kind: 'finder', name: entry.name, ids: ids || [entry.id], button });
         },
       });
       row.classList.add('finder__item');
@@ -102,11 +102,13 @@
       const q = input.value.trim();
       list.replaceChildren();
       shown = 0;
-      // Names and makers only: a DX number and a cassette number each have a lookup of their own.
+      // The rows' words (names, makers, notes, tags), never their DX or cassette numbers: each has a lookup of its own.
       const tooShort = q.length < 2;
       results = q && !tooShort ? distinct(lookup.search(q)) : [];
-      if (!q || tooShort) status.textContent = t('Type at least two letters.');
+      if (!q || tooShort) status.textContent = t('Type at least two characters.');
       else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
+      // A DX number or a cassette number has a lookup of its own, which fewer words won't reach.
+      else if (codec.parseDxNumber(q) || codec.parseCassette(q)) status.textContent = t('Nothing matches “{q}”.', { q });
       else status.textContent = t('Nothing matches “{q}”. Try fewer words, or part of the name.', { q });
       showPage();
     }

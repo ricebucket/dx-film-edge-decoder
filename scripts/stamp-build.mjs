@@ -14,8 +14,9 @@
 //   browsers fetch a new deploy's files rather than reuse old ones; the files
 //   the page loads later ask for the same (site/js/prepaint.js).
 
-import { readFile, writeFile, readdir } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { isMain } from './lib/main.mjs';
 
@@ -34,8 +35,8 @@ export async function stampBuild(dir, build) {
   if (!/^[0-9a-f]{7,40}$/.test(build)) throw new Error(`"${build}" is not a commit hash`);
   // A relative directory is read from where the command runs.
   const site = resolve(dir);
-  // Every file is stamped in memory first and written only when all of them
-  // are: a stamp that stops leaves the copy as it was, never half stamped.
+  // Every file is stamped in memory and checked before any is written: a
+  // check that stops the stamp leaves the copy as it was.
   const stamped = new Map();
   const edit = async (file, change) => stamped.set(file, change(await readFile(join(site, file), 'utf8')));
   for (const file of ['js/dx-lookup.js', ...READER]) await edit(file, (text) => once(text, "const BUILD = '';", `const BUILD = '${build}';`, file));
@@ -50,21 +51,32 @@ export async function stampBuild(dir, build) {
       return out;
     });
   }
+  // The stamped code takes the stamped data, as the page will: Node loads
+  // them from a temporary folder, with the codec they need.
+  const check = await mkdtemp(join(tmpdir(), 'dx-stamp-check-'));
+  try {
+    await mkdir(join(check, 'js'));
+    await writeFile(join(check, 'js', 'dx-codec.js'), await readFile(join(site, 'js', 'dx-codec.js')));
+    for (const [file, text] of stamped) if (file.startsWith('js/')) await writeFile(join(check, file), text);
+    const load = createRequire(join(check, 'js', 'stamp.cjs'));
+    const createLookup = load('./dx-lookup.js');
+    if (createLookup.BUILD !== build) throw new Error('js/dx-lookup.js: the build did not take');
+    if (load('./dx-image.js').BUILD !== build) throw new Error('js/dx-image.js: the build did not take');
+    createLookup(load('./dx-data.js'), load('./dx-data-community.js'), load('./dx-index.js'));
+  } finally {
+    await rm(check, { recursive: true, force: true });
+  }
   for (const [file, text] of stamped) await writeFile(join(site, file), text);
-  // The stamped code takes the stamped data, as the page will.
-  const load = createRequire(join(site, 'js', 'stamp.cjs'));
-  const createLookup = load('./dx-lookup.js');
-  if (createLookup.BUILD !== build) throw new Error('js/dx-lookup.js: the build did not take');
-  if (load('./dx-image.js').BUILD !== build) throw new Error('js/dx-image.js: the build did not take');
-  createLookup(load('./dx-data.js'), load('./dx-data-community.js'), load('./dx-index.js'));
   return { pages };
 }
 
 if (isMain(import.meta)) {
   // No directory of its own: a command without one would stamp the files in
-  // the working tree, which the repository keeps unstamped.
-  const [build = '', dir] = process.argv.slice(2);
-  if (!dir) {
+  // the working tree, which the repository keeps unstamped. Nor a second:
+  // anything after the directory would be left out.
+  const args = process.argv.slice(2);
+  const [build = '', dir] = args;
+  if (!dir || args.length > 2) {
     console.error('Usage: node scripts/stamp-build.mjs <commit hash> <site directory>');
     process.exit(1);
   }

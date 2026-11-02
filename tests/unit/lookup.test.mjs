@@ -441,6 +441,17 @@ describe('search, by how well each film matches', () => {
     assert.deepEqual(names(search('25-0')), ['Acme 25-0', 'Aaa Note Only']);
   });
 
+  test('digits joined by a mark stay apart: "25-0" is no film speed 250, nor part of "125-0"', () => {
+    const marks = { source: {}, rows: [row(1, 81, '', 'Acme 25-0'), row(2, 81, '', 'Acme 250'), row(3, 81, '', 'Acme 1250'), row(4, 81, '', 'Acme 125-0'), row(5, 81, '', 'Acme 100 (24+3)'), row(6, 81, '', 'Acme Gold 100-2')] };
+    const search = createLookup(...built(data, marks)).search;
+    const found = (q) => names(search(q));
+    assert.deepEqual(found('25-0'), ['Acme 25-0']);
+    assert.deepEqual(found('5-0'), []);
+    assert.deepEqual(found('100-2'), ['Acme Gold 100-2']);
+    // Words with letters keep their marks optional, as before.
+    assert.deepEqual(found('gold 100'), ['Acme Gold 100-2']);
+  });
+
   test('words that start with "DX" but give no number are searched as words, however "DX" is joined to them', () => {
     // Rows of their own: names that say "DX coded" in three ways, and one that does not.
     const words = { source: {}, rows: [row(1, 81, '', 'Acme DX coded'), row(2, 81, '', 'Acme DX-coded'), row(3, 81, '', 'Acme dxcoded'), row(4, 81, '', 'Acme coded')] };

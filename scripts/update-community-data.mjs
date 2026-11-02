@@ -17,26 +17,35 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { parseCsv, formatCsv } from './lib/csv.mjs';
+import { parseCsv, formatCsv, checkFieldCounts } from './lib/csv.mjs';
 import { isMain } from './lib/main.mjs';
 
 const REPO = 'dxdatabase/Open-source-film-database';
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'big-film-database');
 
+// A commit goes into the download's address and source.json, wherever it
+// comes from: only as a full hash. GitHub also serves a short one, but it can
+// become ambiguous as the repository grows.
+const fullHash = (sha) => typeof sha === 'string' && /^[0-9a-f]{40}$/.test(sha);
+
 /** The commit to download: the one named, the newest (--latest) or the one recorded. */
 export async function resolveCommit(args, recorded) {
   const i = args.indexOf('--commit');
+  // An option it does not know, such as a typo, would download the recorded commit again.
+  const unknown = args.find((arg, n) => arg !== '--commit' && arg !== '--latest' && !(i !== -1 && n === i + 1));
+  if (unknown !== undefined) throw new Error(`Unknown option ${unknown}: the options are --latest and --commit <full 40-character hash>.`);
   if (i !== -1) {
-    // GitHub also serves a short hash, but one can become ambiguous as the repository grows.
-    if (!/^[0-9a-f]{40}$/.test(args[i + 1] || '')) throw new Error('--commit needs the full 40-character commit hash');
+    if (!fullHash(args[i + 1])) throw new Error('--commit needs the full 40-character commit hash');
     return args[i + 1];
   }
-  if (!args.includes('--latest')) return recorded.commit;
+  if (!args.includes('--latest')) {
+    if (!fullHash(recorded?.commit)) throw new Error('source.json has no full commit hash in "commit": give one with --commit');
+    return recorded.commit;
+  }
   const res = await fetch(`https://api.github.com/repos/${REPO}/commits?path=film_database.csv&per_page=1`);
   if (!res.ok) throw new Error(`GitHub API: HTTP ${res.status}`);
-  // Checked as --commit is: it goes into the download's address and source.json.
   const sha = (await res.json())?.[0]?.sha;
-  if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error('GitHub API: no full commit hash of film_database.csv in its answer');
+  if (!fullHash(sha)) throw new Error('GitHub API: no full commit hash of film_database.csv in its answer');
   return sha;
 }
 
@@ -126,13 +135,34 @@ export function sharedColumns(header, oldHeader, needed) {
   };
 }
 
+/** The rows of a CSV file: its errors name it, as the build's do. */
+function readCsv(text, file) {
+  try {
+    return parseCsv(text, ';');
+  } catch (err) {
+    throw new Error(`${file}: ${err.message}`);
+  }
+}
+
+/** source.json, which records the commit downloaded last: its errors name it, as the build's do. */
+async function readRecord() {
+  let recorded;
+  try {
+    recorded = JSON.parse(await readFile(join(OUT_DIR, 'source.json'), 'utf8'));
+  } catch (err) {
+    throw new Error(`source.json: ${err.message}`);
+  }
+  if (recorded === null || typeof recorded !== 'object') throw new Error('source.json is not a JSON object');
+  return recorded;
+}
+
 async function main() {
-  const recorded = JSON.parse(await readFile(join(OUT_DIR, 'source.json'), 'utf8'));
+  const recorded = await readRecord();
   const commit = await resolveCommit(process.argv.slice(2), recorded);
   const url = `https://raw.githubusercontent.com/${REPO}/${commit}/film_database.csv`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-  const [header, ...rows] = parseCsv(await res.text(), ';');
+  const [header, ...rows] = readCsv(await res.text(), url);
 
   const col = (name) => {
     const i = header.indexOf(name);
@@ -152,19 +182,19 @@ async function main() {
   const read = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country',
     'Beginning year', 'End year', 'Distributor', 'Ava'];
   read.forEach(col);
-  for (const [n, r] of rows.entries()) {
-    if (r.length !== header.length) throw new Error(`Row ${n + 2}: ${r.length} fields, expected ${header.length}`);
-  }
+  checkFieldCounts(header, rows, url);
 
   const keep = rows.filter((r) => r[extract].trim() !== '' || r[full].trim() !== '');
   const dropPic = (r) => r.filter((_, i) => i !== pic);
   // The rows of the snapshot this replaces, with their IDs, if it has them.
   const path = join(OUT_DIR, 'film_database_dx.csv');
-  const [oldHeader, ...oldRows] = parseCsv(await readFile(path, 'utf8').catch(() => ''), ';');
+  const [oldHeader, ...oldRows] = readCsv(await readFile(path, 'utf8').catch(() => ''), 'film_database_dx.csv');
   const snapshot = Boolean(oldHeader) && oldHeader[0] === 'ID';
-  // Its IDs, checked as the build checks them, before anything is written:
-  // an ID column that is not first would have every row numbered anew, and a
-  // bad or repeated ID would be passed on to the rows written.
+  // Its rows and IDs, checked as the build checks them, before anything is
+  // written: a stray quote would join rows into one, an ID column that is not
+  // first would have every row numbered anew, and a bad or repeated ID would
+  // be passed on to the rows written.
+  if (oldHeader) checkFieldCounts(oldHeader, oldRows, 'film_database_dx.csv');
   if (!snapshot && oldHeader && oldHeader.includes('ID')) throw new Error('film_database_dx.csv: the "ID" column is not the first; move it back to the front');
   const given = new Set();
   for (const [n, [id]] of (snapshot ? oldRows : []).entries()) {
@@ -181,10 +211,12 @@ async function main() {
   const n = (count) => count.toLocaleString('en-US');
   console.log(`Kept ${n(keep.length)} of ${n(rows.length)} rows from ${REPO}@${commit.slice(0, 7)}`);
   // The IDs in use that the snapshot no longer shows are retired too: one for
-  // each row the last update kept, less the rows the snapshot has (all of
-  // them, without a snapshot that has IDs). Before IDs, none was in use.
+  // each row the last update kept, less the snapshot's IDs that update could
+  // have given (those up to its lastId). Without a snapshot that has IDs, all
+  // of them are; before IDs, none was in use.
   const before = snapshot ? oldRows.map(([id]) => Number(id)) : [];
-  console.log(idsReport(ids, before, recorded.lastId > 0 ? Math.max(0, (recorded.rowsKept || 0) - before.length) : 0));
+  const shown = before.filter((id) => id <= recorded.lastId).length;
+  console.log(idsReport(ids, before, recorded.lastId > 0 ? Math.max(0, (recorded.rowsKept || 0) - shown) : 0));
   console.log('Next: npm run build:data, then follow "Updating the data" in data/README.md.');
 }
 

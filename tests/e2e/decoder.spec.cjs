@@ -727,6 +727,81 @@ test('the ruler follows the latest input: keys take it to the cell with focus, t
   await expect(here).toHaveText(focused);
 });
 
+test('only the mouse moving takes the ruler from the keys: not a scroll or a new layout under a resting mouse', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'phones have no mouse to rest on the strip');
+  const here = page.locator('#strip .ruler__cell.is-here');
+  // The cell under the mouse at (x, y), once the browser has seen it come there, as its hover shows.
+  const hovered = async (x, y) => {
+    const n = await page.evaluate(([x, y]) => document.elementFromPoint(x, y).closest('#strip .track--data [data-cell]').dataset.cell, [x, y]);
+    await expect.poll(() => dataCell(page, n).evaluate((el) => el.matches(':hover'))).toBe(true);
+    return n;
+  };
+  // In a window too narrow for the whole strip, the arrow keys scroll it under the resting mouse.
+  await page.setViewportSize({ width: 700, height: 900 });
+  await page.goto('/?dx=79-15/23');
+  await page.locator('#lighttable').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  let box = await dataCell(page, 12).boundingBox();
+  let [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  await page.mouse.move(x, y);
+  await expect(here).toHaveText('12');
+  await dataCell(page, 11).focus();
+  for (let i = 0; i < 15; i++) await page.keyboard.press('ArrowRight');
+  await expect(dataCell(page, 26)).toBeFocused();
+  const under = await hovered(x, y);
+  expect(under).not.toBe('26');
+  await expect(here).toHaveText('26');
+  await page.mouse.move(x + 1, y);
+  await expect(here).toHaveText(under);
+
+  // A mouse resting off the strip, which a scroll of the page brings under it.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/?dx=79-15/23');
+  await page.locator('#lighttable').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  box = await dataCell(page, 12).boundingBox();
+  [x, y] = [box.x + box.width / 2, box.y + box.height / 2 - 150];
+  await page.mouse.move(x, y);
+  await dataCell(page, 9).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(here).toHaveText('10');
+  await page.evaluate(() => window.scrollBy({ top: 150, behavior: 'instant' }));
+  expect(await hovered(x, y)).toBe('12');
+  await expect(here).toHaveText('10');
+  await page.mouse.move(x + 1, y);
+  await expect(here).toHaveText('12');
+  // Any key in the strip takes it, Ctrl+Z too.
+  await page.keyboard.press('Control+z');
+  await expect(here).toHaveText('10');
+
+  // A new layout drawn by keyboard: the mouse rests just past the last cell of the 23-cell strip, on no cell.
+  await page.goto('/?dx=79-15/23');
+  await page.locator('#lighttable').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  box = await dataCell(page, 23).boundingBox();
+  await page.mouse.move(box.x + box.width - 3, box.y + box.height / 2);
+  await expect(here).toHaveText('23');
+  await page.locator('#format-short').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#strip .ruler__cell')).toHaveCount(23);
+  await expect(here).toHaveCount(0);
+});
+
+test('a finger takes the ruler from a resting mouse, as keys do', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'a mouse resting on the strip, as on a computer with a touch screen');
+  await page.goto('/?dx=79-15/23');
+  const here = page.locator('#strip .ruler__cell.is-here');
+  await dataCell(page, 7).hover();
+  await expect(here).toHaveText('7');
+  // Playwright cannot hold a touch down, so the pointer event is sent directly.
+  await dataCell(page, 12).evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    el.dispatchEvent(new PointerEvent('pointerdown', {
+      pointerId: 9, pointerType: 'touch', isPrimary: true, bubbles: true,
+      clientX: r.x + r.width / 2, clientY: r.y + r.height / 2,
+    }));
+  });
+  await expect(dataCell(page, 12)).toHaveClass(/\bis-pressing\b/);
+  await expect(here).toHaveText('12');
+});
+
 test('pointing at a cell changes only colors and visibility: the mouse crossing the strip lays nothing out again', async ({ page, browserName, isMobile }) => {
   test.skip(browserName !== 'chromium' || isMobile, 'Chromium counts its layouts; phones have no mouse');
   await page.goto('/?dx=79-15/23');
@@ -747,6 +822,34 @@ test('pointing at a cell changes only colors and visibility: the mouse crossing 
   for (const box of boxes.slice(1)) await page.mouse.move(box.x + box.width / 2, y);
   await expect(here).toHaveText('20');
   expect(await layouts()).toBe(before);
+});
+
+test('the ruler marks the cell pointed at with colors and visibility only', { tag: '@phone' }, async ({ page }) => {
+  // The rule itself, in every engine: a transform, say, lays nothing out, so the layout count misses it.
+  await page.goto('/?dx=79-15/23');
+  // Every computed property of a ruler cell, of its ticks and of its number.
+  const styles = (n) => page.evaluate((n) => {
+    const of = (el, pseudo) => {
+      const s = getComputedStyle(el, pseudo);
+      return Object.fromEntries([...s].map((name) => [name, s.getPropertyValue(name)]));
+    };
+    const cell = document.querySelector(`#strip .ruler__cell[data-cell="${n}"]`);
+    return { cell: of(cell), before: of(cell, '::before'), after: of(cell, '::after'), number: of(cell.querySelector('.ruler__num')) };
+  }, n);
+  const here = page.locator('#strip .ruler__cell.is-here');
+  // A cell whose number shows only when pointed at, and one whose number always shows.
+  for (const n of [18, 20]) {
+    const plain = await styles(n);
+    await dataCell(page, n).focus();
+    await expect(here).toHaveText(String(n));
+    const marked = await styles(n);
+    await page.locator('#mirror-toggle').focus();
+    await expect(here).toHaveCount(0);
+    const changed = Object.keys(plain).flatMap((part) => Object.keys(plain[part])
+      .filter((name) => plain[part][name] !== marked[part][name]).map((name) => `${part} ${name}`));
+    expect(changed.length, `cell ${n}`).toBeGreaterThan(0);
+    expect(changed.filter((p) => !/ (?:[\w-]+-)?color$| visibility$/.test(p)), `cell ${n}`).toEqual([]);
+  }
 });
 
 test('in Windows contrast themes, the ruler marks the cell pointed at in the color of focus, and its ticks keep their shapes', async ({ page, browserName, isMobile }) => {

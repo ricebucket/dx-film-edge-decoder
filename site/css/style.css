@@ -2047,8 +2047,9 @@ h1 {
   color: var(--near);
 }
 
-/* The digits a row only related by digits shares with what was looked up:
-   tinted, and bold for print, where tints go. */
+/* What a row shares with what was looked up: the whole cassette number, or
+   the digits that relate the row to it. Tinted, and bold for print, where
+   tints go. */
 mark.shared {
   padding: 0 1px;
   border-radius: 3px;

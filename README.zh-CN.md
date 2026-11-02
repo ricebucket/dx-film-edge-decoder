@@ -10,7 +10,7 @@
 
 一切都在你的浏览器中运行。你在页面中打开的照片不会上传到任何服务器。直接从磁盘打开 `site/index.html` 时也能使用。
 
-[观看演示视频](.github/demo.zh-CN.webm)（约 35 秒）
+[观看演示视频](.github/demo.zh-CN.webm)（约 40 秒）
 
 ## 功能
 
@@ -125,11 +125,11 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 npm run media
 ```
 
-它依次运行下面的三条命令，大约需要一分钟。只有截图有变化时，它才重新录制视频，因为每次录制的结果都略有不同，而且会让仓库的历史增加约 27 MB。如果改动只在视频中看得到（例如照片读取），要强制重新录制，运行 `npm run media -- --force`。它需要 Playwright（见*测试*）。截图和视频使用你机器上安装的字体，所以中文截图和视频需要中文字体（在 Ubuntu 上是 `fonts-noto-cjk` 软件包）。提交前请检查生成的结果。
+它依次运行下面的命令，只需几秒钟；录制视频时大约需要一分钟。只有截图有变化时，它才重新录制视频，因为每次录制的结果都略有不同，而且会让仓库的历史增加约 27 MB。如果改动只在视频中看得到（例如照片读取），要强制重新录制，运行 `npm run media -- --force`。它需要 Playwright（见*测试*）。截图和视频使用你机器上安装的字体，所以中文截图和视频需要中文字体（在 Ubuntu 上是 `fonts-noto-cjk` 软件包）。提交前请检查生成的结果。
 
 - `research/img/*.svg` 中的图示由 `npm run figures` 根据解码器自身的代码绘制，每种语言各一份。如果图示过时，`npm test` 会失败。
 - 截图（`.github/screenshot*.png`）由 `npm run screenshots` 生成。
-- 演示视频（`.github/demo*.webm`，1120 × 840）和竖版视频（`.github/demo-vertical*.mp4`，1120 × 1680）由 `npm run demo` 录制：每种语言各一段，每段约半分钟。它像访问者那样使用页面：抄写一种黑白片的编码时漏抄一根条，采用给出的修正，再读取彩色负片的示例照片。
+- 演示视频（`.github/demo*.webm`，1120 × 840）和竖版视频（`.github/demo-vertical*.mp4`，1120 × 1680）由 `npm run demo` 录制：每种语言各一段，每段约半分钟。它像访问者那样使用页面：抄写一种黑白片的编码时漏抄一根条，采用给出的修正，然后切换到深色主题，读取彩色负片的示例照片。
 
 ## 许可证与来源
 

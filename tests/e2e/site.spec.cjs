@@ -449,7 +449,7 @@ test('printed, the strip keeps its film and bars, fits the page, and the colors 
   expect(marked).toEqual([plain, 'hidden']);
 });
 
-test('printed, a cell with focus looks like any other, with a bar or without', async ({ page }) => {
+test('printed, a cell with focus looks like any other, with a bar or without', { tag: '@phone' }, async ({ page }) => {
   await page.goto('/?dx=79-15/23');
   const shadow = (cell) => dataCell(page, cell).evaluate((el) => getComputedStyle(el).boxShadow);
   // In 79-15, frame 23, cells 16 and 18 have bars; 19 and 21 have none.
@@ -722,7 +722,8 @@ test('a photo reader of another deploy than the page, as a host that keeps only 
     const body = (await response.text()).replace("const BUILD = '';", "const BUILD = '0123456789ab';");
     await route.fulfill({ response, body });
   });
-  const message = page.locator('#photo .form-message.is-error');
+  // An alert, which screen readers read out as it comes: focus stays on the tab.
+  const message = page.locator('#photo .form-message.is-error[role="alert"]');
   await page.goto('/');
   await page.locator('#tab-photo').click();
   await expect(message).toHaveText('This page is out of date. Reload it.');
@@ -732,4 +733,18 @@ test('a photo reader of another deploy than the page, as a host that keeps only 
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await page.locator('#tab-photo').click();
   await expect(message).toHaveText('此页面已过时。请刷新。');
+});
+
+test('a photo reader that could not be loaded says so, and choosing "Read a photo" again loads it', async ({ page }) => {
+  let fail = true;
+  await page.route('**/js/dx-image.js*', (route) => (fail ? route.abort() : route.continue()));
+  await page.goto('/');
+  await page.locator('#tab-photo').click();
+  const message = page.locator('#photo .form-message.is-error[role="alert"]');
+  await expect(message).toHaveText('The photo reader could not be loaded. Choose “Read a photo” to try again.');
+  fail = false;
+  await page.locator('#tab-copy').click();
+  await page.locator('#tab-photo').click();
+  await expect(page.locator('#photo .photo__drop')).toBeVisible();
+  await expect(message).toHaveCount(0);
 });

@@ -44,15 +44,24 @@ export function parseCsv(text, delimiter = ',') {
   return rows;
 }
 
+/**
+ * Stops on the first of `rows` with more or fewer fields than `header`, as a
+ * blank line or a stray quote leaves one. The error names its row (the header
+ * is row 1) and, if given, the file.
+ */
+export function checkFieldCounts(header, rows, file) {
+  for (const [n, r] of rows.entries()) {
+    if (r.length !== header.length) {
+      throw new Error(`${file ? `${file}: ` : ''}CSV row ${n + 2} has ${r.length} ${r.length === 1 ? 'field' : 'fields'}, expected ${header.length}`);
+    }
+  }
+}
+
 /** Parse CSV text with a header row into objects keyed by column name. */
 export function readCsvObjects(text, delimiter = ',') {
   const [header, ...rows] = parseCsv(text, delimiter);
-  return rows.map((r, n) => {
-    if (r.length !== header.length) {
-      throw new Error(`CSV row ${n + 2} has ${r.length} fields, expected ${header.length}`);
-    }
-    return Object.fromEntries(header.map((h, i) => [h, r[i]]));
-  });
+  checkFieldCounts(header, rows);
+  return rows.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i]])));
 }
 
 export function formatCsv(rows, delimiter = ',') {

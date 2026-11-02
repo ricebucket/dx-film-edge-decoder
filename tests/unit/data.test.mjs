@@ -12,7 +12,7 @@ import { SHOTS } from '../../scripts/screenshots.mjs';
 import { DEMO } from '../../scripts/demo-video.mjs';
 import { filesStarting, videosDue } from '../../scripts/media.mjs';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtempSync, symlinkSync, rmSync, cpSync, mkdirSync, writeFileSync, readFileSync, readdirSync, appendFileSync } from 'node:fs';
+import { mkdtempSync, symlinkSync, rmSync, cpSync, mkdirSync, writeFileSync, readFileSync, readdirSync, appendFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const require = createRequire(import.meta.url);
@@ -62,14 +62,15 @@ describe('generated data files', () => {
       'film_database_dx.csv has no column "reliability"');
     // A blank line at the end of a file: the row after its last, whatever a correction made of its rows.
     const [head, ...body] = parseCsv(readFileSync(join(ROOT, 'data', 'i3a-2008', 'products.csv'), 'utf8'));
-    assert.equal(stops((dir) => appendFileSync(join(dir, 'i3a-2008', 'products.csv'), '\n')), `products.csv: CSV row ${body.length + 2} has 1 fields, expected ${head.length}`);
+    assert.equal(stops((dir) => appendFileSync(join(dir, 'i3a-2008', 'products.csv'), '\n')), `products.csv: CSV row ${body.length + 2} has 1 field, expected ${head.length}`);
     // An ID given twice, as after an edit by hand: the error names the row.
     assert.match(stops(snapshot(([header, first, second, ...rows]) => [header, first, [first[0], ...second.slice(1)], ...rows])),
       /^film_database_dx\.csv: CSV row 3: ID "\d+" is missing, repeated or not a whole number$/);
     // source.json, which records the database's commit: broken, or without it.
     const record = (text) => (dir) => writeFileSync(join(dir, 'big-film-database', 'source.json'), text);
     assert.match(stops(record('{ "commit": "abc", }')), /^source\.json: /);
-    assert.equal(stops(record('{}')), 'source.json has no "commit"');
+    // … or with any other text than a full hash, which would go into the files' attribution.
+    for (const text of ['{}', '{ "commit": "" }', '{ "commit": "main" }']) assert.equal(stops(record(text)), 'source.json has no full commit hash in "commit"', text);
   });
 
   test('every column the build reads, renamed in its file, stops it with the file and the column named; a column it does not read changes nothing', async () => {
@@ -347,6 +348,26 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     await assert.rejects(resolveCommit(['--commit', full.slice(0, 7)], null), /full 40-character/);
     await assert.rejects(resolveCommit(['--commit'], null), /full 40-character/);
     assert.equal(await resolveCommit([], community.source), full);
+    // The commit source.json records, downloaded again, is checked the same way: a branch name would be downloaded as it is today.
+    for (const recorded of [{ commit: 'main' }, { commit: '' }, { commit: full.slice(0, 7) }, {}, null]) {
+      await assert.rejects(resolveCommit([], recorded), /^Error: source\.json has no full commit hash in "commit": give one with --commit$/, JSON.stringify(recorded));
+    }
+  });
+
+  test('an option the update does not know stops it before it downloads anything', async () => {
+    const full = community.source.commit;
+    const fetch = globalThis.fetch;
+    let asked = 0;
+    globalThis.fetch = async () => { asked++; throw new Error('no request expected'); };
+    try {
+      // Mistyped; one more; and the hash alone, as npm passes `npm run update:community-data --commit <hash>`, without its "--".
+      for (const [args, unknown] of [[['--lastest'], '--lastest'], [['--comit', full], '--comit'], [['--commit', full, 'extra'], 'extra'], [['--latest', '--force'], '--force'], [[full], full]]) {
+        await assert.rejects(resolveCommit(args, community.source), { message: `Unknown option ${unknown}: the options are --latest and --commit <full 40-character hash>.` }, args.join(' '));
+      }
+    } finally {
+      globalThis.fetch = fetch;
+    }
+    assert.equal(asked, 0);
   });
 
   test('--latest takes the newest commit only as a full commit hash too', async () => {
@@ -393,6 +414,7 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
 
   // The update run offline, in a copy of its scripts, on a snapshot (by
   // default two rows with IDs 3 and 7) and a download given in place of GitHub's.
+  // The snapshot and source.json can also be given as text, as edited by hand.
   const columns = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country', 'Beginning year', 'End year', 'Distributor', 'Ava'];
   const rows = [['0291', '002910', 'A 200', '', 'Maker A', '', 'Japan', '', '', '', '0'], ['0293', '002930', 'B 400', '', 'Maker B', '3', 'Italy', '', '', '', '1']];
   const update = (header, upstream, snapshotRows = [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]], recorded = { commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2, lastId: 7 }) => {
@@ -401,15 +423,15 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
       for (const file of ['update-community-data.mjs', 'lib/csv.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
       const out = join(dir, 'data', 'big-film-database');
       mkdirSync(out, { recursive: true });
-      writeFileSync(join(out, 'source.json'), JSON.stringify(recorded));
-      const snapshot = formatCsv(snapshotRows, ';');
+      writeFileSync(join(out, 'source.json'), typeof recorded === 'string' ? recorded : JSON.stringify(recorded));
+      const snapshot = typeof snapshotRows === 'string' ? snapshotRows : formatCsv(snapshotRows, ';');
       writeFileSync(join(out, 'film_database_dx.csv'), snapshot);
       const text = formatCsv([header, ...upstream], ';');
       writeFileSync(join(dir, 'fetch.mjs'), `globalThis.fetch = async () => ({ ok: true, text: async () => ${JSON.stringify(text)} });\n`);
       const run = spawnSync(process.execPath, ['--import', pathToFileURL(join(dir, 'fetch.mjs')).href, join(dir, 'scripts', 'update-community-data.mjs')], { encoding: 'utf8' });
       const written = readFileSync(join(out, 'film_database_dx.csv'), 'utf8');
       // `said`: its first two lines, what it kept and what it did to the IDs.
-      return { status: run.status, error: run.stderr, said: run.stdout.split('\n').slice(0, 2), unchanged: written === snapshot, ids: parseCsv(written, ';').slice(1).map((r) => r[0]) };
+      return { status: run.status, error: run.stderr, said: run.stdout.split('\n').slice(0, 2), unchanged: written === snapshot, get ids() { return parseCsv(written, ';').slice(1).map((r) => r[0]); } };
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -460,6 +482,14 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     // So are those of rows taken out of the snapshot by hand: all of them, or one.
     assert.equal(update(header, upstream, [['ID', ...columns]]).said[1], 'No row kept its ID; 2 got new ones (8–9); 2 IDs were retired.');
     assert.equal(update(header, upstream, [['ID', ...columns], ['3', ...rows[0]]]).said[1], '1 row kept its ID; 1 got a new one (8); 1 ID was retired.');
+    // A row added by hand, which upstream lacks, retires its own ID and no other: one above
+    // the last ID given (8), or one given before (5).
+    const added = ['0295', '002950', 'C 100', '', 'Maker C', '', 'Japan', '', '', '', '0'];
+    assert.equal(update(header, upstream, [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]], ['8', ...added]]).said[1], '2 rows kept their IDs; none got a new one; 1 ID was retired.');
+    assert.equal(update(header, upstream, [['ID', ...columns], ['3', ...rows[0]], ['5', ...added], ['7', ...rows[1]]]).said[1], '2 rows kept their IDs; none got a new one; 1 ID was retired.');
+    // A row taken out and another put in its place, or a row given another ID: the ID it had is retired all the same.
+    assert.equal(update(header, upstream, [['ID', ...columns], ['3', ...rows[0]], ['8', ...added]]).said[1], '1 row kept its ID; 1 got a new one (9); 2 IDs were retired.');
+    assert.equal(update(header, upstream, [['ID', ...columns], ['3', ...rows[0]], ['8', ...rows[1]]]).said[1], '2 rows kept their IDs; none got a new one; 1 ID was retired.');
     // None was in use before the first update that gave IDs: its source.json has no lastId.
     assert.equal(update(header, upstream, [columns, ...rows], { commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2 }).said[1],
       'No row kept its ID; 2 got new ones (1–2); no ID was retired.');
@@ -483,6 +513,38 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
       assert.match(run.error, error);
       assert.ok(run.unchanged, String(error));
     }
+  });
+
+  test('a snapshot or source.json that the build would refuse, or a broken download, stops the update before it writes anything, with an error that names the file', () => {
+    const snapshot = formatCsv([['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]], ';');
+    for (const [text, error] of [
+      // A quote typed at the start of a field takes in everything up to the next quote (here, in a name):
+      // matched as they are, the rows would get new IDs.
+      [snapshot.replace('3;0291', '3;"0291').replace('B 400', 'B" 400'), 'film_database_dx.csv: CSV row 2 has 10 fields, expected 12'],
+      // … or, with none after it, every row to the end.
+      [snapshot.replace('3;0291', '3;"0291'), 'film_database_dx.csv: CSV ends inside a quoted field: a quote is not closed'],
+      // A blank line at the end.
+      [`${snapshot}\n`, 'film_database_dx.csv: CSV row 4 has 1 field, expected 12'],
+    ]) {
+      const run = update(header, upstream, text);
+      assert.equal(run.status, 1, error);
+      assert.equal(run.error.trim(), error);
+      assert.ok(run.unchanged, error);
+    }
+    // A row of the download with a field too few: the error names the download, not the snapshot.
+    const short = update(header, [upstream[0], upstream[1].slice(1), upstream[2]]);
+    assert.equal(short.status, 1);
+    assert.equal(short.error.trim(), `https://raw.githubusercontent.com/dxdatabase/Open-source-film-database/${'a'.repeat(40)}/film_database.csv: CSV row 3 has 11 fields, expected 12`);
+    assert.ok(short.unchanged);
+    // source.json broken, or not a record.
+    const broken = update(header, upstream, undefined, `{ "commit": "${'a'.repeat(40)}", }`);
+    assert.equal(broken.status, 1);
+    assert.match(broken.error, /^source\.json: /);
+    assert.ok(broken.unchanged);
+    const none = update(header, upstream, undefined, 'null');
+    assert.equal(none.status, 1);
+    assert.equal(none.error.trim(), 'source.json is not a JSON object');
+    assert.ok(none.unchanged);
   });
 
   test('downloading the recorded commit again leaves source.json as it is', async () => {
@@ -544,6 +606,71 @@ describe('documentation screenshots', () => {
     assert.equal(run.status, 1);
     assert.equal(run.stderr.trim(), 'Unknown option --forced: the only one is --force.');
     assert.equal(run.stdout, '');
+  });
+
+  test('`npm run media` itself: which runs record the videos, in a project with git and in one without', () => {
+    // media.mjs in a throwaway project whose three steps are stand-ins: the
+    // screenshots step writes $SHOT into the English screenshot, if given, and
+    // the demo step only notes that it ran. Git there leaves out this
+    // computer's settings, but for those a case sets.
+    const root = mkdtempSync(join(tmpdir(), 'dx-media-'));
+    try {
+      const settings = join(root, 'gitconfig');
+      writeFileSync(settings, '');
+      const env = { ...process.env, GIT_CONFIG_GLOBAL: settings, GIT_CONFIG_NOSYSTEM: '1', GIT_CEILING_DIRECTORIES: root };
+      const project = (name) => {
+        const dir = join(root, name);
+        for (const file of ['media.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
+        const stub = (file, exported, body) => writeFileSync(join(dir, 'scripts', file),
+          `import { appendFileSync, writeFileSync } from 'node:fs';\nimport { isMain } from './lib/main.mjs';\n${exported}\nif (isMain(import.meta)) { ${body} }\n`);
+        stub('make-figures.mjs', '', '');
+        stub('screenshots.mjs', "export const SHOTS = [{ file: '.github/screenshot' }];",
+          "if (process.env.SHOT) writeFileSync(new URL('../.github/screenshot.png', import.meta.url), process.env.SHOT);");
+        stub('demo-video.mjs', "export const DEMO = { file: '.github/demo' };", "appendFileSync(new URL('../demo-ran', import.meta.url), 'x');");
+        mkdirSync(join(dir, '.github'));
+        for (const file of ['screenshot.png', 'screenshot.zh-CN.png']) writeFileSync(join(dir, '.github', file), 'a');
+        writeFileSync(join(dir, '.github', 'demo.webm'), 'v');
+        // Whether a run records the videos: `shot` for the screenshots step, `more` for git's settings.
+        return (args = [], shot = '', more = {}) => {
+          rmSync(join(dir, 'demo-ran'), { force: true });
+          const run = spawnSync(process.execPath, [join(dir, 'scripts', 'media.mjs'), ...args], { cwd: dir, encoding: 'utf8', env: { ...env, SHOT: shot, ...more } });
+          assert.equal(run.status, 0, run.stderr);
+          return existsSync(join(dir, 'demo-ran'));
+        };
+      };
+      const media = project('git');
+      const dir = join(root, 'git');
+      const git = (...args) => assert.equal(spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: dir, env }).status, 0, args.join(' '));
+      git('init', '-q');
+      git('add', '.');
+      git('commit', '-qm', 'start');
+      // As committed, and nothing changes: no videos; with --force, videos.
+      assert.equal(media(), false);
+      assert.equal(media(['--force']), true);
+      // A new language's screenshot taken on its own, which git does not have yet: videos, even
+      // where git is set to leave untracked files, or pictures, out of what it lists.
+      writeFileSync(join(dir, '.github', 'screenshot.fr.png'), 'a');
+      writeFileSync(join(root, 'ignore'), '*.png\n');
+      assert.equal(media([], '', { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'status.showUntrackedFiles', GIT_CONFIG_VALUE_0: 'no' }), true);
+      assert.equal(media([], '', { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'core.excludesFile', GIT_CONFIG_VALUE_0: join(root, 'ignore') }), true);
+      rmSync(join(dir, '.github', 'screenshot.fr.png'));
+      // A screenshot that changes in the run: videos.
+      assert.equal(media([], 'b'), true);
+      // The same again: it differs from the commit, and the videos are still the commit's: videos.
+      assert.equal(media([], 'b'), true);
+      // Once the videos have been recorded since (here, changed), no more …
+      writeFileSync(join(dir, '.github', 'demo.webm'), 'w');
+      assert.equal(media([], 'b'), false);
+      // … unless the screenshots change in the run again.
+      assert.equal(media([], 'c'), true);
+      // Where git can't tell, as outside a git project: only a change in the run.
+      const alone = project('no-git');
+      assert.equal(alone(), false);
+      assert.equal(alone([], 'b'), true);
+      assert.equal(alone([], 'b'), false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
 

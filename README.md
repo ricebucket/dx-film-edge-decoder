@@ -17,7 +17,7 @@ know what a strip of film is.
 Everything runs in your browser. Photos you open in it are not uploaded to any
 server. It also works when `site/index.html` is opened straight from disk.
 
-[Watch the demo video](.github/demo.webm) (about 35 seconds)
+[Watch the demo video](.github/demo.webm) (about 40 seconds)
 
 ## What it does
 
@@ -117,7 +117,7 @@ research/             research reports on the format and the data
   img/                their diagrams
 scripts/              data extraction and build, diagrams, screenshots,
                       demo videos, language check, local server, test runners,
-                      the deploy's stamp
+                      deploy stamp
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
 .github/workflows/    tests, license check and GitHub Pages deployment
@@ -240,14 +240,14 @@ To make them all again after a visible change, in every language, run:
 npm run media
 ```
 
-It runs the three commands below in turn, in about a minute. It records the
-videos only when the screenshots changed, since each recording comes out a
-little different and adds about 27 MB to the repository's history. To record
-them anyway, for a change that only the videos show (the photo reader, for
-example), run `npm run media -- --force`. It needs Playwright (see *Tests*).
-The screenshots and videos use the fonts installed on your machine, so the
-Chinese ones need a Chinese font (on Ubuntu, the `fonts-noto-cjk` package).
-Look at the results before committing them.
+It runs the commands below in turn, in a few seconds, or about a minute with
+the videos. It records the videos only when the screenshots changed, since each
+recording comes out a little different and adds about 27 MB to the repository's
+history. To record them anyway, for a change that only the videos show (the
+photo reader, for example), run `npm run media -- --force`. It needs Playwright
+(see *Tests*). The screenshots and videos use the fonts installed on your
+machine, so the Chinese ones need a Chinese font (on Ubuntu, the
+`fonts-noto-cjk` package). Look at the results before committing them.
 
 - The diagrams in `research/img/*.svg` are drawn from the decoder's own code
   by `npm run figures`, in every language. `npm test` fails if they are out of
@@ -258,7 +258,8 @@ Look at the results before committing them.
   (`.github/demo-vertical*.mp4`, 1120 × 1680) are recorded by `npm run demo`:
   about half a minute each, in each language. It uses the page as a visitor
   would, copying a black-and-white film's code with one bar missed, taking the
-  correction, and reading the sample photo of a color negative.
+  correction, then switching to the dark theme and reading the sample photo of
+  a color negative.
 
 ## License and sources
 

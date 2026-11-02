@@ -150,11 +150,12 @@
   }
 
   /**
-   * A row's short pieces (its name, DX number, tags and status), each one
-   * followed by a separator that is read out but not shown, unless nothing
-   * follows it: on screen, tint and spacing set them apart. Between two of
-   * them, a middle dot that is not read out, shown only where Windows
-   * contrast themes take the tint away. Then the rest of the row (`rest`).
+   * A row's short pieces (its name, DX number, "Fuzzy match", status and
+   * source tag), each one followed by a separator that is read out but not
+   * shown, unless nothing follows it: on screen, tint and spacing set them
+   * apart. Between two of them, a middle dot that is not read out, shown
+   * only where Windows contrast themes take the tint away. Then the rest of
+   * the row (`rest`).
    */
   function separated(short, rest) {
     const pieces = short.filter(Boolean);

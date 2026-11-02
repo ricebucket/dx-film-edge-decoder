@@ -44,12 +44,32 @@
     let focusCell = null;
     let stroke = null;
     let hovered = null; // the cell under the mouse, for the ruler
+    // The latest input wins on the ruler: the mouse moving gives it to the
+    // mouse; any key in the strip, Tab into it or a finger, to the cell they
+    // are on. A scroll or a new layout under a resting mouse changes only
+    // `hovered`.
+    let mouseLeads = true;
+    let mouseX = null; // where the mouse last was in the window
+    let mouseY = null;
     let resizeObserver = null;
     // Fingers on the screen, anywhere: a second one makes a pinch or a
     // two-finger scroll, not a tap, so the first one's press is dropped and
     // neither changes a cell. The first finger of each new touch starts afresh.
     const touches = new Set();
     if (opts.interactive) {
+      // Anywhere on the page, since a scroll can bring the strip under a
+      // mouse resting elsewhere. Only a new place in the window is a move:
+      // WebKit also reports a resting mouse as moving after a scroll.
+      document.addEventListener('pointermove', (e) => {
+        if (e.pointerType === 'touch') return;
+        const moved = mouseX !== null && (e.clientX !== mouseX || e.clientY !== mouseY);
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (moved && !mouseLeads) {
+          mouseLeads = true;
+          showHere();
+        }
+      }, { capture: true, passive: true });
       document.addEventListener('pointerdown', (e) => {
         if (e.pointerType !== 'touch') return;
         if (e.isPrimary) touches.clear();
@@ -172,7 +192,7 @@
       return el && refs.data.contains(el) ? el : null;
     }
 
-    /** The mouse is over `target`: the ruler names its cell, if it is one of the data track's. */
+    /** The mouse is over `target`: the cell under it, for the ruler, if it is one of the data track's. */
     function point(target) {
       const el = target && target.closest ? target.closest('[data-cell]') : null;
       const cell = el && refs.data.contains(el) ? Number(el.dataset.cell) : null;
@@ -207,7 +227,7 @@
           // will do, as hovering does with a mouse.
           btn.classList.add('is-pressing');
           stroke = { touch: true, id: e.pointerId, x: e.clientX, y: e.clientY, cellNo, btn };
-          hovered = null; // a finger takes the ruler from a resting mouse
+          mouseLeads = false; // a finger takes the ruler from a resting mouse
           showHere();
           return;
         }
@@ -225,7 +245,6 @@
       });
 
       track.addEventListener('pointermove', (e) => {
-        // The mouse moving again takes the ruler back from the keys (keydown).
         if (!stroke && e.pointerType === 'mouse') {
           point(e.target);
           return;
@@ -280,7 +299,7 @@
       });
       track.addEventListener('focusin', (e) => {
         // Focus the keyboard brought in (Tab) takes the ruler, as keys do.
-        if (e.target.matches(':focus-visible')) hovered = null;
+        if (e.target.matches(':focus-visible')) mouseLeads = false;
         showHere();
       });
       track.addEventListener('focusout', () => setTimeout(showHere));
@@ -297,11 +316,12 @@
 
       track.addEventListener('keydown', (e) => {
         const btn = cellButton(e.target);
-        if (!btn || e.altKey || e.ctrlKey || e.metaKey) return;
-        // The latest input wins: any key in the strip takes the ruler to the
-        // cell with focus, until the mouse moves again.
-        hovered = null;
+        if (!btn) return;
+        // Any key in the strip, Ctrl+Z too, takes the ruler to the cell with
+        // focus, until the mouse moves again.
+        mouseLeads = false;
         showHere();
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
         const cellNo = Number(btn.dataset.cell);
         const editable = refs.layout.filter((c) => c.editable).map((c) => c.cell);
         const pos = editable.indexOf(cellNo);
@@ -336,17 +356,18 @@
     }
 
     /**
-     * The ruler names the cell pointed at: the one under the mouse, else the
-     * one a finger presses, else the one with focus.
+     * The ruler names the cell pointed at: the one under the mouse, unless a
+     * later input took the ruler from it (mouseLeads), else the one a finger
+     * presses, else the one with focus.
      */
     function showHere() {
       if (!refs || !opts.interactive) return;
       const active = document.activeElement;
       const focused = active && refs.data.contains(active) ? Number(active.dataset.cell) : null;
       const pressed = stroke && stroke.touch && stroke.btn.classList.contains('is-pressing') ? stroke.cellNo : null;
-      const here = refs.ruler[(hovered || pressed || focused) - 1] || null;
+      const here = refs.ruler[((mouseLeads && hovered) || pressed || focused) - 1] || null;
       // Only the cell that stops being marked and the one that starts: the
-      // mouse calls this on every move.
+      // mouse calls this for each cell it crosses.
       if (here === refs.here) return;
       if (refs.here) refs.here.classList.remove('is-here');
       if (here) here.classList.add('is-here');
@@ -398,6 +419,7 @@
       state = Object.assign({}, next);
       const rebuilt = !refs || refs.format !== state.format;
       if (rebuilt) {
+        hovered = null; // its cells are gone: the browser names the new one under the mouse, if any
         refs = build(state.format);
         const first = refs.layout.find((c) => c.editable);
         if (opts.interactive) setFocusCell(focusCell && refs.layout[focusCell - 1] && refs.layout[focusCell - 1].editable ? focusCell : first.cell);

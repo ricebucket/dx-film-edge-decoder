@@ -95,6 +95,11 @@ describe('publishing (scripts/stamp-build.mjs)', () => {
       assert.equal(run.status, 1);
       assert.match(run.stderr, /^Usage: node scripts\/stamp-build\.mjs <commit hash> <site directory>/);
       assert.equal(readFileSync(join(dir, 'project', 'site', 'index.html'), 'utf8'), index);
+      // Nor one more argument, which would be left out: nothing is stamped.
+      const more = spawnSync(process.execPath, [join(dir, 'project', 'scripts', 'stamp-build.mjs'), 'a1b2c3d4e5f6', 'site', 'other'], { cwd: join(dir, 'project'), encoding: 'utf8' });
+      assert.equal(more.status, 1);
+      assert.match(more.stderr, /^Usage: /);
+      assert.equal(readFileSync(join(dir, 'project', 'site', 'index.html'), 'utf8'), index);
     });
   });
 
@@ -127,12 +132,27 @@ describe('publishing (scripts/stamp-build.mjs)', () => {
     });
   });
 
-  test('the stamp checks the copy it stamped: code and data that do not go together stop it', async () => {
+  test('the stamp checks the copy it stamped before writing it: code and data that do not go together stop it, and leave the copy as it was', async () => {
     await withCopy(async (dir) => {
+      const all = () => Object.fromEntries(readdirSync(dir, { recursive: true }).filter((name) => /\.(?:js|html)$/.test(name)).map((name) => [name, readFileSync(join(dir, name), 'utf8')]));
       // dx-index.js of another build: its version is another.
       const file = join(dir, 'js', 'dx-index.js');
-      writeFileSync(file, readFileSync(file, 'utf8').replace(/"version":"[0-9a-f]{16}"/, '"version":"0000000000000000"'));
+      const text = readFileSync(file, 'utf8');
+      writeFileSync(file, text.replace(/"version":"[0-9a-f]{16}"/, '"version":"0000000000000000"'));
+      let before = all();
       await assert.rejects(stampBuild(dir, 'a1b2c3d4e5f6'), /different builds/);
+      assert.deepEqual(all(), before);
+      writeFileSync(file, text);
+      // A slot the code does not use (here, only in a comment): the build would not reach the page.
+      for (const name of ['dx-lookup.js', 'dx-image.js']) {
+        const script = join(dir, 'js', name);
+        const code = readFileSync(script, 'utf8');
+        writeFileSync(script, code.replace("const BUILD = '';", "const BUILD = '' || ''; // const BUILD = '';"));
+        before = all();
+        await assert.rejects(stampBuild(dir, 'a1b2c3d4e5f6'), { message: `js/${name}: the build did not take` });
+        assert.deepEqual(all(), before);
+        writeFileSync(script, code);
+      }
     });
   });
 

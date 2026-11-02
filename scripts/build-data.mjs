@@ -48,7 +48,8 @@ async function source(path) {
   } catch (err) {
     throw new Error(`${file}: ${err.message}`);
   }
-  if (typeof record?.commit !== 'string') throw new Error(`${file} has no "commit"`);
+  // The full hash, as the update records it: it goes into the files' attribution.
+  if (typeof record?.commit !== 'string' || !/^[0-9a-f]{40}$/.test(record.commit)) throw new Error(`${file} has no full commit hash in "commit"`);
   return record;
 }
 

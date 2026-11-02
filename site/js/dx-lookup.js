@@ -45,6 +45,7 @@
     return out;
   }
 
+  const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const AVAILABILITY = { 0: 'discontinued', 1: 'possibly discontinued', 2: 'on the market' };
 
@@ -298,7 +299,8 @@
         };
       };
       names = [
-        ...[...products, ...augmented].map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.aka])),
+        // A registry film's maker by its short name and by the full one its row shows ("Eastman Kodak Company").
+        ...[...products, ...augmented].map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.name, p.sensitizer && p.sensitizer.aka])),
         ...community.map((c) => haystack(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor])),
       ];
       return names;
@@ -326,13 +328,18 @@
       const MATCH = { words: 9, starts: 8.5, inName: 8, pieces: 4, elsewhere: 3 };
       // A token matches the text as typed, part of one word, or the start of
       // neighboring words written together ("tmax" or "tmax400" for "T-MAX 400").
-      const tokens = q.split(/\s+/).filter(Boolean).map((t) => ({ t, c: compact(t) || t }));
-      const matches = (h, { t, c }) => h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c));
+      // Digits joined by marks match as typed, not run into other digits:
+      // "20-0" is no "200" (a film speed), nor part of "120-0"; "100-2" finds
+      // "OPTIMA 100-2", where it counts as a whole word.
+      const tokens = q.split(/\s+/).filter(Boolean).map((t) => (/^\d+(?:[^a-z0-9]+\d+)+$/.test(t)
+        ? { t, typed: new RegExp(`(^|[^0-9])${escapeRegExp(t)}($|[^0-9])`) }
+        : { t, c: compact(t) || t }));
+      const matches = (h, { t, c, typed }) => (typed ? typed.test(h.text) : h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c)));
       for (const h of nameIndex()) {
         if (!tokens.every((k) => matches(h, k))) continue;
         let match = MATCH.elsewhere;
-        if (tokens.every(({ c }) => h.nameJoins.includes(c))) match = MATCH.words;
-        else if (tokens.every(({ c }) => h.nameRuns.some((r) => r.startsWith(c)))) match = MATCH.starts;
+        if (tokens.every(({ c, typed }) => (typed ? typed.test(h.name) : h.nameJoins.includes(c)))) match = MATCH.words;
+        else if (tokens.every(({ c, typed }) => (typed ? typed.test(h.name) : h.nameRuns.some((r) => r.startsWith(c))))) match = MATCH.starts;
         else if (h.name.includes(q)) match = MATCH.inName;
         else if (tokens.every(({ t }) => h.name.includes(t))) match = MATCH.pieces;
         add(h.entry, scoreOf(h.entry, match));

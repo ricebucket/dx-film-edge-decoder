@@ -19,6 +19,8 @@
       "{film}，画幅 {frame}",
     "{film}, older 7-bar code":
       "{film}，旧式 7 根细条编码",
+    "{name}, frame {frame}":
+      "{name}，画幅 {frame}",
     "Start at cell 7, right after the fixed start pattern.":
       "从第 7 位开始，就在固定的输入模式后面。",
     "Cell {cell} should always be empty.":
@@ -39,44 +41,26 @@
       "无法加载照片读取功能。再次选择“读取照片”即可重试。",
     "This page is out of date. Reload it.":
       "此页面已过时。请刷新。",
+    "Hide the introduction":
+      "收起简介",
+    "Show the introduction":
+      "展开简介",
 
     // site/js/ui-finder.js
     "e.g. Portra 400, HP5, Fujicolor 200":
       "例如 Portra 400、HP5、Fujicolor 200",
-    "Type at least two letters.":
-      "至少输入两个字母。",
+    "Type at least two characters.":
+      "至少输入两个字符。",
     "Show more":
       "显示更多",
-    "Show examples":
-      "显示示例",
-    "Hide examples":
-      "隐藏示例",
-    "Made by {maker}":
-      "由 {maker} 生产",
-    "The Big Film Database records no DX number for this film":
-      "The Big Film Database 没有记录这种胶片的 DX 码",
-    "This cassette number is outside the range a film edge code can hold":
-      "这个暗盒条码超出了潜影条码能表示的范围",
-    "No film edge code can hold this number":
-      "潜影条码无法表示这个 DX 码",
     "Most likely a filler number: no maker held Part 1 = 0 in 2008, so DX {dx} is not a maker’s code":
       "很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂，所以 DX {dx} 不是任何感光厂的编码",
-    "Most likely a filler number: no maker held Part 1 = 0 in 2008":
-      "很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂",
-    "No maker held Part 1 = 0 in 2008":
-      "2008 年时第 1 部分 = 0 没有分配给任何感光厂",
-    "Show barcode of {name}":
-      "显示条码：{name}",
     "Show barcode":
       "显示条码",
-    "No full code":
-      "无完整编码",
-    "I3A":
-      "I3A",
-    "Community":
-      "社区",
     "Show {n} more":
       "再显示 {n} 条",
+    "Nothing matches “{q}”.":
+      "没有与“{q}”匹配的结果。",
     "Nothing matches “{q}”. Try fewer words, or part of the name.":
       "没有与“{q}”匹配的结果。试试少输入几个词，或只输入名称的一部分。",
     "DX number as 79-15, or the 4-digit form 1279. Frame as printed: 23, 23A, X, 00 …":
@@ -133,8 +117,6 @@
       "第 1 部分 {cassette} 是 {part1} + {added}。在 2008 年年度报告中，第 1 部分 = {part1} 分配给了 {maker}；按照标准，感光厂只在自己的第 1 部分编号上加 128、256 或 384。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
     "Part 1 {cassette} is {part1} + {added}; Part 1 = {part1} was not assigned in the 2008 registry. The standard does not say which DX number the film carries.":
       "第 1 部分 {cassette} 是 {part1} + {added}；在 2008 年年度报告中，第 1 部分 = {part1} 没有分配。标准没有规定这种暗盒里的胶片带哪个 DX 码。",
-    "Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
-      "柯达的“augmented”（增补）暗盒条码（ISO 1007，附录 A.4），在常规 DX 范围之外。",
     "Part 1 = {part1} is assigned to {maker}.":
       "第 1 部分 = {part1} 分配给了 {maker}。",
     "Part 1 = {part1} was not assigned in the 2008 registry.":
@@ -183,38 +165,6 @@
       "照片中的编码已显示在下方的片条上。",
     "Open the photo":
       "打开照片",
-    "From your photo":
-      "来自你的照片",
-    "{name}, frame {frame}":
-      "{name}，画幅 {frame}",
-    "From Find a film":
-      "来自“查找胶片”",
-    "Back to the search":
-      "回到搜索",
-    "From a cassette number":
-      "来自暗盒条码",
-    "Back to the cassette number":
-      "回到暗盒条码",
-    "From the code list":
-      "来自 DX 码列表",
-    "Back to the code list":
-      "回到 DX 码列表",
-    "Example":
-      "示例",
-    "Look up DX {dx} on The Big Film Database":
-      "在 The Big Film Database 上查看 DX {dx}",
-    "The site has pictures of the films":
-      "该网站有这些胶卷的图片",
-    "(opens in a new tab)":
-      "（在新标签页中打开）",
-    "Hide where this code came from":
-      "隐藏编码来源",
-    "edited since":
-      "之后已修改",
-    "Your photo":
-      "你的照片",
-    "Remove the photo":
-      "移除照片",
     "Drop an image here, paste one, or":
       "把图片拖到这里、粘贴图片，或者",
     "A close-up of the film edge works best. The image stays on your device and is never transmitted to the server.":
@@ -225,8 +175,6 @@
       "向右旋转 90 度",
     "Flip":
       "翻转",
-    "Find the barcode":
-      "查找条码",
     "Clear selection":
       "清除选区",
     "Turn":
@@ -283,6 +231,8 @@
       "不在列表中",
     "Outlined in the photo: the cells that were read, top row in blue, lower row in yellow (bold outline = bar).":
       "照片中框出了读取的单元：时钟道为蓝色，数据道为黄色（粗框 = 条）。",
+    "Auto":
+      "自动识别",
 
     // site/js/ui-reference.js
     "Filter products":
@@ -527,6 +477,64 @@
       "另有 {n} 个修正能得到有效但未列出的编码",
     "{n} problems to check":
       "有 {n} 个问题需要检查",
+    "Show examples":
+      "显示示例",
+    "Hide examples":
+      "隐藏示例",
+    "Made by {maker}":
+      "由 {maker} 生产",
+    "The Big Film Database records no DX number for this film":
+      "The Big Film Database 没有记录这种胶片的 DX 码",
+    "This cassette number is outside the range a film edge code can hold":
+      "这个暗盒条码超出了潜影条码能表示的范围",
+    "No film edge code can hold this number":
+      "潜影条码无法表示这个 DX 码",
+    "Most likely a filler number: no maker held Part 1 = 0 in 2008":
+      "很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂",
+    "No maker held Part 1 = 0 in 2008":
+      "2008 年时第 1 部分 = 0 没有分配给任何感光厂",
+    "Show barcode of {name}":
+      "显示条码：{name}",
+    "No full code":
+      "无完整编码",
+    "I3A":
+      "I3A",
+    "Community":
+      "社区",
+    "Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
+      "柯达的“augmented”（增补）暗盒条码（ISO 1007，附录 A.4），在常规 DX 范围之外。",
+    "Look up DX {dx} on The Big Film Database":
+      "在 The Big Film Database 上查看 DX {dx}",
+    "The site has pictures of the films":
+      "该网站有这些胶卷的图片",
+    "(opens in a new tab)":
+      "（在新标签页中打开）",
+
+    // site/js/ui-source.js
+    "From your photo":
+      "来自你的照片",
+    "From Find a film":
+      "来自“查找胶片”",
+    "Back to the search":
+      "回到搜索",
+    "From a cassette number":
+      "来自暗盒条码",
+    "Back to the cassette number":
+      "回到暗盒条码",
+    "From the code list":
+      "来自 DX 码列表",
+    "Back to the code list":
+      "回到 DX 码列表",
+    "Example":
+      "示例",
+    "Hide where this code came from":
+      "隐藏编码来源",
+    "edited since":
+      "之后已修改",
+    "Your photo":
+      "你的照片",
+    "Remove the photo":
+      "移除照片",
 
     // site/js/ui-strip.js
     "start pattern":
@@ -591,12 +599,10 @@
       "手动抄写",
     "Read a photo":
       "读取照片",
-    "Hide the introduction":
-      "收起简介",
-    "Show the introduction":
-      "展开简介",
     "How to copy the bars":
       "如何抄写条码",
+    "Find the barcode":
+      "查找条码",
     "Two touching rows of small bars between the sprocket holes and the film edge, twice per frame. A loupe helps.":
       "片孔和片边之间两道紧挨着的小条，每个画幅出现两次。用放大镜看更清楚。",
     "Turn the film the right way around":
@@ -613,8 +619,6 @@
       "11 根细条",
     "7 thin bars":
       "7 根细条",
-    "Auto":
-      "自动识别",
     "Which layout do I have?":
       "我的胶片是哪种条码？",
     "Film look":

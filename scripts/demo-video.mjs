@@ -232,12 +232,14 @@ async function play(page, { scrollPhoto = true } = {}) {
   await wait(page, HOLD.film);
 
   // The other way in, on a fresh page (so the strip is color negative film
-  // again): a photo of the film edge, here the sample, a color negative.
+  // again), switched to the dark theme first: a photo of the film edge, here
+  // the sample, a color negative.
   await page.evaluate(() => localStorage.removeItem('dx-prefs'));
   await page.goto(PAGE);
   await page.locator('#strip .track--data .cell').first().waitFor();
   await me.appear();
   await wait(page, 1000);
+  await me.click(page.locator('#theme-toggle'), { ms: 600, after: 900 });
   if (scrollPhoto) await me.scrollTo(page.locator('#tab-photo'), 70);
   await me.click(page.locator('#tab-photo'), { ms: 600, after: 900 });
   await me.click(page.locator('#photo .photo__drop .tool:not(.tool--primary)'), { ms: 600 });

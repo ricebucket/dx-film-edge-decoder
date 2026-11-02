@@ -442,7 +442,8 @@
         if (way === 'photo') reader.open(options);
       }, (err) => {
         $('photo').removeAttribute('aria-busy');
-        if (way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error' }, err.outdated ? t('This page is out of date. Reload it.') : t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
+        // An alert, which screen readers read out as it comes: focus stays on the tab.
+        if (way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error', role: 'alert' }, err.outdated ? t('This page is out of date. Reload it.') : t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
       });
     } else if (photo) {
       photo.close();

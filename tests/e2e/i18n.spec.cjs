@@ -337,9 +337,26 @@ test('a link can name the language: it stays in the URL as the code changes, wit
 test('in Chinese, searches, the cassette helper and the photo reader speak Chinese', async ({ page }) => {
   await page.goto('/');
   await chooseLanguage(page, '简体中文');
+  // Find a film's own texts.
+  await expect(page.locator('#finder .section-lead')).toHaveText('按胶片名称或制造厂搜索，再把它的条码显示在片条上，和你的胶片对照。');
+  await expect(page.locator('label[for="finder-q"]')).toHaveText('胶片名称或制造厂');
+  await expect(page.locator('#finder-q')).toHaveAttribute('placeholder', '例如 Portra 400、HP5、Fujicolor 200');
+  await expect(page.locator('#finder-help')).toHaveText('至少输入两个字符。');
+  // A number gets no advice: it has a lookup of its own.
+  await page.locator('#finder-q').fill('79-15');
+  await expect(page.locator('#finder-help')).toHaveText('没有与“79-15”匹配的结果。');
   await page.locator('#finder-q').fill('hp5 plus');
   await expect(page.locator('#finder-help')).toContainText('找到');
   await expect(page.locator('.finder__item').first().locator('.match__name')).toHaveText('HP5 PLUS');
+  // Why a row has no code to show.
+  for (const [q, why] of [
+    ['klick extra definition', '潜影条码无法表示这个 DX 码。'],
+    ['neopan 400ug', '2008 年时第 1 部分 = 0 没有分配给任何感光厂。'],
+    ['orwopan 25', '很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂。'],
+  ]) {
+    await page.locator('#finder-q').fill(q);
+    await expect(page.locator('.finder__item').first().locator('.match__why')).toHaveText(why);
+  }
 
   await page.locator('#cassette-code').fill('017563');
   await page.getByRole('button', { name: '查询' }).click();

@@ -46,7 +46,8 @@ function hashes(files) {
 /** Whether `files` are as the last commit has them; null where git can't tell (no checkout, no files). */
 function asCommitted(files) {
   if (!files.length) return null;
-  const run = spawnSync('git', ['status', '--porcelain', '--', ...files], { cwd: ROOT, encoding: 'utf8' });
+  // New files count, also where git is set to leave untracked or ignored files out.
+  const run = spawnSync('git', ['status', '--porcelain', '--untracked-files=all', '--ignored', '--', ...files], { cwd: ROOT, encoding: 'utf8' });
   return run.status === 0 ? run.stdout.trim() === '' : null;
 }
 
