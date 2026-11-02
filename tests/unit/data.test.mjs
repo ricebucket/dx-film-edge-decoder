@@ -35,10 +35,13 @@ describe('generated data files', () => {
   });
 
   test('a file the build cannot read stops it, with an error that names the file, and the column if one is missing', () => {
-    // The build run on a copy of the scripts and the data, with the data changed by `edit`.
+    // The build run on a copy of the scripts and the data, with the data changed by `edit`, under the
+    // project's package.json: Node loads the page's scripts as in the repository, whatever one above
+    // the temporary folder says.
     const stops = (edit) => {
       const dir = mkdtempSync(join(tmpdir(), 'dx-build-'));
       try {
+        cpSync(join(ROOT, 'package.json'), join(dir, 'package.json'));
         for (const file of ['build-data.mjs', 'lib/csv.mjs', 'lib/dx-index.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
         for (const file of ['dx-codec.js', 'dx-lookup.js']) cpSync(join(ROOT, 'site', 'js', file), join(dir, 'site', 'js', file));
         cpSync(join(ROOT, 'data'), join(dir, 'data'), { recursive: true });
@@ -69,16 +72,23 @@ describe('generated data files', () => {
     // source.json, which records the database's commit: broken, or without it.
     const record = (text) => (dir) => writeFileSync(join(dir, 'big-film-database', 'source.json'), text);
     assert.match(stops(record('{ "commit": "abc", }')), /^source\.json: /);
-    // … or with any other text than a full hash, which would go into the files' attribution.
-    for (const text of ['{}', '{ "commit": "" }', '{ "commit": "main" }']) assert.equal(stops(record(text)), 'source.json has no full commit hash in "commit"', text);
+    // … or with any other text than a full hash, which would go into the files' attribution: a short
+    // one, or one with more around it, too.
+    const recorded = JSON.parse(readFileSync(join(ROOT, 'data', 'big-film-database', 'source.json'), 'utf8'));
+    const hashes = [recorded.commit.slice(0, 7), recorded.commit.slice(0, 12), `${recorded.commit}0`, ` ${recorded.commit}`, `${recorded.commit}\n`];
+    for (const text of ['{}', '{ "commit": "" }', '{ "commit": "main" }', ...hashes.map((commit) => JSON.stringify({ ...recorded, commit }))]) {
+      assert.equal(stops(record(text)), 'source.json has no full commit hash in "commit"', text);
+    }
   });
 
   test('every column the build reads, renamed in its file, stops it with the file and the column named; a column it does not read changes nothing', async () => {
     const delimiters = { 'i3a-2008/part1-assignments.csv': ',', 'i3a-2008/products.csv': ',', 'i3a-2008/augmented-cassette-codes.csv': ',', 'big-film-database/film_database_dx.csv': ';' };
-    // The build, with --check, on a copy of the scripts, the generated files and the data, with one column renamed.
+    // The build, with --check, on a copy of the scripts, the generated files and the data (under the
+    // project's package.json, as above), with one column renamed.
     const renamed = async (file, column) => {
       const dir = mkdtempSync(join(tmpdir(), 'dx-build-'));
       try {
+        cpSync(join(ROOT, 'package.json'), join(dir, 'package.json'));
         for (const f of ['build-data.mjs', 'lib/csv.mjs', 'lib/dx-index.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', f), join(dir, 'scripts', f));
         for (const f of ['dx-codec.js', 'dx-lookup.js', 'dx-data.js', 'dx-data-community.js', 'dx-index.js']) cpSync(join(ROOT, 'site', 'js', f), join(dir, 'site', 'js', f));
         cpSync(join(ROOT, 'data'), join(dir, 'data'), { recursive: true });
@@ -345,16 +355,18 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
   test('--commit takes only a full commit hash, as source.json records it', async () => {
     const full = community.source.commit;
     assert.equal(await resolveCommit(['--commit', full], null), full);
-    await assert.rejects(resolveCommit(['--commit', full.slice(0, 7)], null), /full 40-character/);
-    await assert.rejects(resolveCommit(['--commit'], null), /full 40-character/);
+    // Short, with a character more after or before it, in capitals, or none.
+    for (const hash of [full.slice(0, 7), `${full}0`, ` ${full}`, full.toUpperCase(), undefined]) {
+      await assert.rejects(resolveCommit(['--commit', hash].filter(Boolean), null), { message: '--commit needs the full 40-character commit hash, in lowercase' }, String(hash));
+    }
     assert.equal(await resolveCommit([], community.source), full);
     // The commit source.json records, downloaded again, is checked the same way: a branch name would be downloaded as it is today.
-    for (const recorded of [{ commit: 'main' }, { commit: '' }, { commit: full.slice(0, 7) }, {}, null]) {
+    for (const recorded of [{ commit: 'main' }, { commit: '' }, { commit: full.slice(0, 7) }, { commit: `${full}0` }, {}, null]) {
       await assert.rejects(resolveCommit([], recorded), /^Error: source\.json has no full commit hash in "commit": give one with --commit$/, JSON.stringify(recorded));
     }
   });
 
-  test('an option the update does not know stops it before it downloads anything', async () => {
+  test('an option the update does not know, or two that conflict, stop it before it downloads anything', async () => {
     const full = community.source.commit;
     const fetch = globalThis.fetch;
     let asked = 0;
@@ -363,6 +375,14 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
       // Mistyped; one more; and the hash alone, as npm passes `npm run update:community-data --commit <hash>`, without its "--".
       for (const [args, unknown] of [[['--lastest'], '--lastest'], [['--comit', full], '--comit'], [['--commit', full, 'extra'], 'extra'], [['--latest', '--force'], '--force'], [[full], full]]) {
         await assert.rejects(resolveCommit(args, community.source), { message: `Unknown option ${unknown}: the options are --latest and --commit <full 40-character hash>.` }, args.join(' '));
+      }
+      // --latest beside a commit, or two commits: one of them would be left out without a word.
+      for (const [args, message] of [
+        [['--latest', '--commit', full], 'Give --latest or --commit, not both.'],
+        [['--commit', full, '--latest'], 'Give --latest or --commit, not both.'],
+        [['--commit', full, '--commit', 'b'.repeat(40)], '--commit is given twice: give one commit.'],
+      ]) {
+        await assert.rejects(resolveCommit(args, community.source), { message }, args.join(' '));
       }
     } finally {
       globalThis.fetch = fetch;
@@ -414,10 +434,11 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
 
   // The update run offline, in a copy of its scripts, on a snapshot (by
   // default two rows with IDs 3 and 7) and a download given in place of GitHub's.
-  // The snapshot and source.json can also be given as text, as edited by hand.
+  // The snapshot and source.json can also be given as text, as edited by hand,
+  // and fetch itself as code, for a download that fails.
   const columns = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country', 'Beginning year', 'End year', 'Distributor', 'Ava'];
   const rows = [['0291', '002910', 'A 200', '', 'Maker A', '', 'Japan', '', '', '', '0'], ['0293', '002930', 'B 400', '', 'Maker B', '3', 'Italy', '', '', '', '1']];
-  const update = (header, upstream, snapshotRows = [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]], recorded = { commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2, lastId: 7 }) => {
+  const update = (header, upstream, snapshotRows = [['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]], recorded = { commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2, lastId: 7 }, fetchCode) => {
     const dir = mkdtempSync(join(tmpdir(), 'dx-update-'));
     try {
       for (const file of ['update-community-data.mjs', 'lib/csv.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
@@ -427,7 +448,7 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
       const snapshot = typeof snapshotRows === 'string' ? snapshotRows : formatCsv(snapshotRows, ';');
       writeFileSync(join(out, 'film_database_dx.csv'), snapshot);
       const text = formatCsv([header, ...upstream], ';');
-      writeFileSync(join(dir, 'fetch.mjs'), `globalThis.fetch = async () => ({ ok: true, text: async () => ${JSON.stringify(text)} });\n`);
+      writeFileSync(join(dir, 'fetch.mjs'), `globalThis.fetch = ${fetchCode ?? `async () => ({ ok: true, text: async () => ${JSON.stringify(text)} })`};\n`);
       const run = spawnSync(process.execPath, ['--import', pathToFileURL(join(dir, 'fetch.mjs')).href, join(dir, 'scripts', 'update-community-data.mjs')], { encoding: 'utf8' });
       const written = readFileSync(join(out, 'film_database_dx.csv'), 'utf8');
       // `said`: its first two lines, what it kept and what it did to the IDs.
@@ -515,7 +536,7 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     }
   });
 
-  test('a snapshot or source.json that the build would refuse, or a broken download, stops the update before it writes anything, with an error that names the file', () => {
+  test('a snapshot or source.json that the build would refuse, or a broken download, stops the update before it writes anything, with an error that names the file; a blank line in the download is skipped', () => {
     const snapshot = formatCsv([['ID', ...columns], ['3', ...rows[0]], ['7', ...rows[1]]], ';');
     for (const [text, error] of [
       // A quote typed at the start of a field takes in everything up to the next quote (here, in a name):
@@ -536,6 +557,15 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     assert.equal(short.status, 1);
     assert.equal(short.error.trim(), `https://raw.githubusercontent.com/dxdatabase/Open-source-film-database/${'a'.repeat(40)}/film_database.csv: CSV row 3 has 11 fields, expected 12`);
     assert.ok(short.unchanged);
+    // A blank line in the download holds no row: skipped, and the rows after it keep their numbers in errors.
+    const plain = update(header, upstream);
+    const blank = update(header, [upstream[0], [''], upstream[1], upstream[2]]);
+    assert.equal(blank.status, 0, blank.error);
+    assert.deepEqual(blank.said, plain.said);
+    assert.deepEqual(blank.ids, plain.ids);
+    const blankThenShort = update(header, [upstream[0], [''], upstream[1].slice(1), upstream[2]]);
+    assert.equal(blankThenShort.error.trim(), `https://raw.githubusercontent.com/dxdatabase/Open-source-film-database/${'a'.repeat(40)}/film_database.csv: CSV row 4 has 11 fields, expected 12`);
+    assert.ok(blankThenShort.unchanged);
     // source.json broken, or not a record.
     const broken = update(header, upstream, undefined, `{ "commit": "${'a'.repeat(40)}", }`);
     assert.equal(broken.status, 1);
@@ -545,6 +575,39 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     assert.equal(none.status, 1);
     assert.equal(none.error.trim(), 'source.json is not a JSON object');
     assert.ok(none.unchanged);
+    // Its numbers, edited by hand into ones that are not whole: a changed row would get the ID "NaN" or 8.5.
+    const changed = [upstream[0], upstream[1], [...rows[1].slice(0, 2), 'B 400 Pro', ...rows[1].slice(3), '']];
+    for (const [key, value] of [['lastId', 'x'], ['lastId', 7.5], ['lastId', -1], ['rowsKept', 'x']]) {
+      const run = update(header, changed, undefined, { commit: 'a'.repeat(40), retrieved: '2030-01-01', rowsKept: 2, lastId: 7, [key]: value });
+      assert.equal(run.status, 1, `${key}: ${value}`);
+      assert.equal(run.error.trim(), `source.json: "${key}" is not a whole number`);
+      assert.ok(run.unchanged);
+    }
+  });
+
+  test('a download that fails or comes back empty stops the update, with an error that names the address and what went wrong', async () => {
+    const url = `https://raw.githubusercontent.com/dxdatabase/Open-source-film-database/${'a'.repeat(40)}/film_database.csv`;
+    for (const [fetchCode, error] of [
+      // Offline: fetch itself says only "fetch failed", and gives the cause apart.
+      ["async () => { throw new TypeError('fetch failed', { cause: new Error('getaddrinfo ENOTFOUND raw.githubusercontent.com') }); }", `${url}: getaddrinfo ENOTFOUND raw.githubusercontent.com`],
+      ['async () => ({ ok: false, status: 404 })', `${url}: HTTP 404`],
+      ["async () => ({ ok: true, text: async () => '' })", `${url}: the file is empty`],
+    ]) {
+      const run = update(header, upstream, undefined, undefined, fetchCode);
+      assert.equal(run.status, 1, error);
+      assert.equal(run.error.trim(), error);
+      assert.ok(run.unchanged, error);
+    }
+    // GitHub's answer to --latest: offline, or a page that is not JSON.
+    const fetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async () => { throw new TypeError('fetch failed', { cause: new Error('getaddrinfo ENOTFOUND api.github.com') }); };
+      await assert.rejects(resolveCommit(['--latest'], community.source), { message: 'GitHub API: getaddrinfo ENOTFOUND api.github.com' });
+      globalThis.fetch = async () => ({ ok: true, json: async () => JSON.parse('<html>') });
+      await assert.rejects(resolveCommit(['--latest'], community.source), { message: /^GitHub API: Unexpected token '<'/ });
+    } finally {
+      globalThis.fetch = fetch;
+    }
   });
 
   test('downloading the recorded commit again leaves source.json as it is', async () => {
@@ -608,16 +671,20 @@ describe('documentation screenshots', () => {
     assert.equal(run.stdout, '');
   });
 
+  // The environment without its git variables, such as those a git hook sets (GIT_DIR, GIT_INDEX_FILE …).
+  const withoutGit = (env) => Object.fromEntries(Object.entries(env).filter(([name]) => !name.startsWith('GIT_')));
+
   test('`npm run media` itself: which runs record the videos, in a project with git and in one without', () => {
     // media.mjs in a throwaway project whose three steps are stand-ins: the
     // screenshots step writes $SHOT into the English screenshot, if given, and
     // the demo step only notes that it ran. Git there leaves out this
-    // computer's settings, but for those a case sets.
+    // computer's settings, but for those a case sets, and the git variables
+    // the tests may run with, which would make it work on another repository.
     const root = mkdtempSync(join(tmpdir(), 'dx-media-'));
     try {
       const settings = join(root, 'gitconfig');
       writeFileSync(settings, '');
-      const env = { ...process.env, GIT_CONFIG_GLOBAL: settings, GIT_CONFIG_NOSYSTEM: '1', GIT_CEILING_DIRECTORIES: root };
+      const env = { ...withoutGit(process.env), GIT_CONFIG_GLOBAL: settings, GIT_CONFIG_NOSYSTEM: '1', GIT_CEILING_DIRECTORIES: root };
       const project = (name) => {
         const dir = join(root, name);
         for (const file of ['media.mjs', 'lib/main.mjs']) cpSync(join(ROOT, 'scripts', file), join(dir, 'scripts', file));
@@ -668,6 +735,31 @@ describe('documentation screenshots', () => {
       assert.equal(alone(), false);
       assert.equal(alone([], 'b'), true);
       assert.equal(alone([], 'b'), false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('the test of `npm run media` commits only in its own throwaway project, also when the tests run from a git hook', () => {
+    // A repository standing in for the one a hook runs in, with the variables a hook sets.
+    const root = mkdtempSync(join(tmpdir(), 'dx-hook-'));
+    try {
+      const repo = join(root, 'repo');
+      const settings = join(root, 'gitconfig');
+      writeFileSync(settings, '');
+      const env = { ...withoutGit(process.env), GIT_CONFIG_GLOBAL: settings, GIT_CONFIG_NOSYSTEM: '1', GIT_CEILING_DIRECTORIES: root };
+      const git = (...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: repo, env, encoding: 'utf8' });
+      mkdirSync(repo);
+      assert.equal(git('init', '-q').status, 0);
+      assert.equal(git('commit', '-q', '--allow-empty', '-m', 'outer').status, 0);
+      // That test alone, run as from a shell: not as a test file of this run, which it would report to.
+      const run = spawnSync(process.execPath, ['--test', '--test-reporter=tap', '--test-name-pattern=^`npm run media` itself: ', fileURLToPath(import.meta.url)], {
+        encoding: 'utf8', env: { ...process.env, NODE_TEST_CONTEXT: undefined, GIT_DIR: join(repo, '.git'), GIT_INDEX_FILE: join(repo, '.git', 'index') },
+      });
+      assert.equal(run.status, 0, run.stdout.slice(-2000));
+      assert.match(run.stdout, /^# pass 1$/m);
+      assert.deepEqual(git('log', '--format=%s').stdout.trim().split('\n'), ['outer']);
+      assert.equal(git('ls-files').stdout, '');
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

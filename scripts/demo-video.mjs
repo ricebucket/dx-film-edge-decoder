@@ -3,11 +3,12 @@
 // the screenshots (scripts/screenshots.mjs), run it after visible changes to
 // what they show, and watch the results before committing them.
 //
-// The videos show the page in use, in about half a minute: copying the
-// barcode of a black-and-white film onto the strip, one bar missed, taking
-// the correction offered, then, on a fresh page, reading the sample photo of
-// a color negative and using its code. The corrections and each film found
-// are marked by a red box. They come in two shapes:
+// The videos show the page in use, in under 40 seconds: copying the barcode
+// of a black-and-white film onto the strip, one bar missed, taking the
+// correction offered, then, on a fresh page switched to the dark theme,
+// reading the sample photo of a color negative and using its code. The
+// corrections and each film found are marked by a red box. They come in two
+// shapes:
 //
 // - 1120 × 840 pixels (4:3, wide enough for the whole strip), linked from
 //   the README: English as .github/demo.webm, other languages as
@@ -162,15 +163,28 @@ function hand(page) {
       at = start;
       await page.mouse.move(at.x, at.y);
     },
-    /** Scroll the page smoothly so the element's top is `top` pixels from the window's. */
-    async scrollTo(locator, top = 90, ms = 900) {
+    /**
+     * Scroll the page smoothly so the element's top is `top` pixels from the
+     * window's, and wait until the scroll is over, then `after` milliseconds.
+     */
+    async scrollTo(locator, top = 90, after = 500) {
       const box = await locator.boundingBox();
-      await page.evaluate((by) => window.scrollBy({ top: by, behavior: 'smooth' }), box.y - top);
-      await wait(page, ms);
+      // Over when the page says so, or after 900 ms at most; at once if the
+      // page has nowhere to go, as it then says nothing.
+      await page.evaluate((by) => new Promise((done) => {
+        const end = document.documentElement.scrollHeight - innerHeight;
+        if (Math.abs(Math.min(Math.max(scrollY + by, 0), end) - scrollY) < 1) return done();
+        addEventListener('scrollend', done, { once: true });
+        setTimeout(done, 900);
+        window.scrollBy({ top: by, behavior: 'smooth' });
+      }), box.y - top);
+      await wait(page, after);
     },
     async click(locator, { ms = 380, after = 250 } = {}) {
       let box = await locator.boundingBox();
-      if (box.y < 60 || box.y + box.height > size.height - 10) {
+      // The sticky header's own controls are always in sight.
+      const inHeader = await locator.evaluate((el) => el.closest('header') !== null);
+      if (!inHeader && (box.y < 60 || box.y + box.height > size.height - 10)) {
         // Out of sight: brought into the middle of the window first.
         await page.evaluate((by) => window.scrollBy({ top: by, behavior: 'smooth' }), box.y + box.height / 2 - size.height / 2);
         await wait(page, 900);
@@ -244,7 +258,8 @@ async function play(page, { scrollPhoto = true } = {}) {
   await me.click(page.locator('#tab-photo'), { ms: 600, after: 900 });
   await me.click(page.locator('#photo .photo__drop .tool:not(.tool--primary)'), { ms: 600 });
   await page.locator('#photo .photo__found').waitFor();
-  if (scrollPhoto) await me.scrollTo(page.locator('#photo .photo__canvas'), 90);
+  // Held from the end of the scroll: the photo stays still for HOLD.photo, no longer.
+  if (scrollPhoto) await me.scrollTo(page.locator('#photo .photo__canvas'), 90, 0);
   await wait(page, HOLD.photo);
 
   // Its code goes onto the strip (the page scrolls to the strip itself) and names the film.

@@ -435,8 +435,12 @@
     $('way-copy').hidden = way !== 'copy';
     $('photo').hidden = way !== 'photo';
     if (way === 'photo') {
-      // Busy (a spinner) until the reader has loaded the first time.
-      if (!photo) $('photo').setAttribute('aria-busy', 'true');
+      // Busy (a spinner) until the reader has loaded the first time; a message
+      // that it failed before goes while it tries again.
+      if (!photo) {
+        $('photo').replaceChildren();
+        $('photo').setAttribute('aria-busy', 'true');
+      }
       photoReader().then((reader) => {
         $('photo').removeAttribute('aria-busy');
         if (way === 'photo') reader.open(options);

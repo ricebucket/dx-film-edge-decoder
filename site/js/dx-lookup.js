@@ -18,6 +18,10 @@
     return String(text || '')
       .normalize('NFKD')
       .replace(/[̀-ͯ]/g, '')
+      // A dash between digits however typed, as the codec reads one (an en or
+      // em dash, a minus sign, a Chinese input method's "——"), is the data's
+      // hyphen; NFKD has made a full-width one a hyphen already.
+      .replace(/(\d)[-\u2010-\u2015\u2212]+(?=\d)/g, '$1-')
       .toLowerCase();
   }
 
@@ -294,6 +298,8 @@
           text: normal.join(' '),
           words: words.flat(),
           runs: words.flatMap(runsFrom),
+          fieldWords: words,
+          joins: null, // made when a search first needs them (whole words outside the name)
           nameRuns: runsFrom(nameWords),
           nameJoins: joinsOf(nameWords),
         };
@@ -301,7 +307,8 @@
       names = [
         // A registry film's maker by its short name and by the full one its row shows ("Eastman Kodak Company").
         ...[...products, ...augmented].map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.name, p.sensitizer && p.sensitizer.aka])),
-        ...community.map((c) => haystack(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor])),
+        // Every field the row shows but its numbers, which have lookups of their own.
+        ...community.map((c) => haystack(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor, c.country, c.from, c.to])),
       ];
       return names;
     }
@@ -310,9 +317,12 @@
      * Search by film name or maker, as [{ entry }]: names that have every
      * word typed as a whole word, as the start of one, or as typed, then
      * names that only contain each word somewhere, then matches in other
-     * fields (tags, notes, maker, distributor). Numbers are words like any
-     * others here: a DX number and a cassette number have lookups of their
-     * own (byDx, byCassette), which the page offers apart.
+     * fields (tags, notes, makers, distributor, country, years): there too a
+     * whole word comes first, then the start of one, then a match inside one
+     * ("pan" in "Company"), and nothing found is left out. Numbers are words too, never
+     * read as a DX or cassette number, which have lookups of their own
+     * (byDx, byCassette) that the page offers apart; but digits joined by
+     * marks match only as typed (below).
      *
      * Each result's score is scoreOf, with how well it matches (MATCH, below);
      * a film found in more than one way keeps its best score.
@@ -325,23 +335,28 @@
         const known = found.get(entry.id);
         if (!known || score > known.score) found.set(entry.id, { entry, score });
       };
-      const MATCH = { words: 9, starts: 8.5, inName: 8, pieces: 4, elsewhere: 3 };
+      const MATCH = { words: 9, starts: 8.5, inName: 8, pieces: 4, elsewhere: 3, elsewhereStarts: 2.5, elsewhereInside: 2 };
       // A token matches the text as typed, part of one word, or the start of
       // neighboring words written together ("tmax" or "tmax400" for "T-MAX 400").
       // Digits joined by marks match as typed, not run into other digits:
-      // "20-0" is no "200" (a film speed), nor part of "120-0"; "100-2" finds
-      // "OPTIMA 100-2", where it counts as a whole word.
+      // "20-0" is no "200" (a film speed), nor part of "120-0". In a name they
+      // are a whole word where no letter or digit touches them ("OPTIMA
+      // 100-2"), and the start of one where none comes before; "XRG200-2" has
+      // "200-2" inside, as "X400" has "400".
+      const asTyped = (t, before, after) => new RegExp(`(^|[^${before}])${escapeRegExp(t)}($|[^${after}])`);
       const tokens = q.split(/\s+/).filter(Boolean).map((t) => (/^\d+(?:[^a-z0-9]+\d+)+$/.test(t)
-        ? { t, typed: new RegExp(`(^|[^0-9])${escapeRegExp(t)}($|[^0-9])`) }
+        ? { t, typed: asTyped(t, '0-9', '0-9'), word: asTyped(t, 'a-z0-9', 'a-z0-9'), start: asTyped(t, 'a-z0-9', '0-9') }
         : { t, c: compact(t) || t }));
       const matches = (h, { t, c, typed }) => (typed ? typed.test(h.text) : h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c)));
       for (const h of nameIndex()) {
         if (!tokens.every((k) => matches(h, k))) continue;
-        let match = MATCH.elsewhere;
-        if (tokens.every(({ c, typed }) => (typed ? typed.test(h.name) : h.nameJoins.includes(c)))) match = MATCH.words;
-        else if (tokens.every(({ c, typed }) => (typed ? typed.test(h.name) : h.nameRuns.some((r) => r.startsWith(c))))) match = MATCH.starts;
+        let match = MATCH.elsewhereInside;
+        if (tokens.every(({ c, word }) => (word ? word.test(h.name) : h.nameJoins.includes(c)))) match = MATCH.words;
+        else if (tokens.every(({ c, start }) => (start ? start.test(h.name) : h.nameRuns.some((r) => r.startsWith(c))))) match = MATCH.starts;
         else if (h.name.includes(q)) match = MATCH.inName;
         else if (tokens.every(({ t }) => h.name.includes(t))) match = MATCH.pieces;
+        else if (tokens.every(({ c, word }) => (word ? word.test(h.text) : (h.joins || (h.joins = h.fieldWords.flatMap(joinsOf))).includes(c)))) match = MATCH.elsewhere;
+        else if (tokens.every(({ c, start }) => (start ? start.test(h.text) : h.runs.some((r) => r.startsWith(c))))) match = MATCH.elsewhereStarts;
         add(h.entry, scoreOf(h.entry, match));
       }
       const out = ranked([...found.values()], (r) => r.score, (r) => r.entry).map((r) => ({ entry: r.entry }));

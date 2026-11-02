@@ -441,15 +441,61 @@ describe('search, by how well each film matches', () => {
     assert.deepEqual(names(search('25-0')), ['Acme 25-0', 'Aaa Note Only']);
   });
 
-  test('digits joined by a mark stay apart: "25-0" is no film speed 250, nor part of "125-0"', () => {
-    const marks = { source: {}, rows: [row(1, 81, '', 'Acme 25-0'), row(2, 81, '', 'Acme 250'), row(3, 81, '', 'Acme 1250'), row(4, 81, '', 'Acme 125-0'), row(5, 81, '', 'Acme 100 (24+3)'), row(6, 81, '', 'Acme Gold 100-2')] };
+  test('every field a row shows is searched, and outside the name a whole word ranks first, then the start of one, then a match inside one', () => {
+    const r = (id, name, { note = '', maker = '', country = '', from = '', to = '' } = {}) => [id, 81, '', name, '', note, maker, -1, country, from, to, '', 0];
+    const fields = {
+      source: {},
+      rows: [
+        r(1, 'Acme Inside', { maker: 'Acme Company' }), // "pan" inside a word
+        r(2, 'Acme Start', { note: 'Panchromatic' }), // the start of a word
+        r(3, 'Acme Whole', { note: 'A pan film' }), // a whole word
+        r(4, 'Pan F'), // in the name: names come first
+        r(5, 'Acme Made', { country: 'Made in Japan', from: '~1991', to: '2004' }), // inside "Japan"
+      ],
+    };
+    const search = createLookup(...built(data, fields)).search;
+    const found = (q) => names(search(q));
+    // Nothing found is left out: the weaker matches rank lower.
+    assert.deepEqual(found('pan'), ['Registry Pan', 'Pan F', 'Acme Whole', 'Acme Start', 'Acme Inside', 'Acme Made']);
+    // The country and the years too.
+    assert.deepEqual(found('japan'), ['Acme Made']);
+    assert.deepEqual(found('1991'), ['Acme Made']);
+    assert.deepEqual(found('2004'), ['Acme Made']);
+  });
+
+  test('digits joined by a mark stay apart, whatever the mark: "25-0" is no film speed 250, nor part of "125-0" or "25-05"', () => {
+    const marks = {
+      source: {},
+      rows: [
+        row(1, 81, '', 'Acme 25-0'), row(2, 81, '', 'Acme 250'), row(3, 81, '', 'Acme 1250'), row(4, 81, '', 'Acme 125-0'), row(5, 81, '', 'Acme 25-05'),
+        row(6, 81, '', 'Acme 100 (24+3)'), row(7, 81, '', 'Acme 100 243'), row(8, 81, '', 'Acme 1/125'), row(9, 81, '', 'Acme 1125'), row(10, 81, '', 'Acme Gold 100-2'),
+      ],
+    };
     const search = createLookup(...built(data, marks)).search;
     const found = (q) => names(search(q));
     assert.deepEqual(found('25-0'), ['Acme 25-0']);
     assert.deepEqual(found('5-0'), []);
     assert.deepEqual(found('100-2'), ['Acme Gold 100-2']);
+    // Other marks, one a regular expression reads as more than a mark too.
+    assert.deepEqual(found('24+3'), ['Acme 100 (24+3)']);
+    assert.deepEqual(found('1/125'), ['Acme 1/125']);
     // Words with letters keep their marks optional, as before.
     assert.deepEqual(found('gold 100'), ['Acme Gold 100-2']);
+  });
+
+  test('with other words, digits joined by a mark count as a whole word of the name, or the start of one, as words do', () => {
+    const rows = { source: {}, rows: [row(1, 81, '', 'Zed Gold 100-2'), row(2, 81, '', 'Acme Golden 100-2'), row(3, 81, '', 'Acme Gold Pack 100-2')] };
+    const search = createLookup(...built(data, rows)).search;
+    // Every word whole, by name; then "gold" only as the start of a word.
+    assert.deepEqual(names(search('gold 100-2')), ['Acme Gold Pack 100-2', 'Zed Gold 100-2', 'Acme Golden 100-2']);
+  });
+
+  test('a dash between digits finds the same films however it is typed, and digits joined by one inside a word are no whole word, nor its start', () => {
+    const rows = { source: {}, rows: [row(1, 81, '', 'Aaa XRG200-2'), row(2, 81, '', 'Acme XRG 200-2'), row(3, 81, '', 'Acme 200-2N'), row(4, 81, '', 'Acme 2002')] };
+    const search = createLookup(...built(data, rows)).search;
+    // A whole word, the start of one, then inside one; with an en or em dash,
+    // a minus sign, a Chinese input method's "——", or full-width signs.
+    for (const q of ['200-2', '200–2', '200—2', '200−2', '200——2', '２００－２']) assert.deepEqual(names(search(q)), ['Acme XRG 200-2', 'Acme 200-2N', 'Aaa XRG200-2'], q);
   });
 
   test('words that start with "DX" but give no number are searched as words, however "DX" is joined to them', () => {

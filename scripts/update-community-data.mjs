@@ -28,23 +28,45 @@ const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'big
 // become ambiguous as the repository grows.
 const fullHash = (sha) => typeof sha === 'string' && /^[0-9a-f]{40}$/.test(sha);
 
+/**
+ * The answer at `url`, as text or JSON (`as`). Its errors name `name`, the
+ * address unless given, and for a network failure the cause: fetch itself
+ * says only "fetch failed".
+ */
+async function download(url, as, name = url) {
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    throw new Error(`${name}: ${err.cause?.message || err.message}`);
+  }
+  if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
+  try {
+    return await res[as]();
+  } catch (err) {
+    throw new Error(`${name}: ${err.cause?.message || err.message}`);
+  }
+}
+
 /** The commit to download: the one named, the newest (--latest) or the one recorded. */
 export async function resolveCommit(args, recorded) {
   const i = args.indexOf('--commit');
   // An option it does not know, such as a typo, would download the recorded commit again.
   const unknown = args.find((arg, n) => arg !== '--commit' && arg !== '--latest' && !(i !== -1 && n === i + 1));
+  // Nor is one of two commits, or --latest beside one, left out without a word.
+  if (args.lastIndexOf('--commit') !== i) throw new Error('--commit is given twice: give one commit.');
   if (unknown !== undefined) throw new Error(`Unknown option ${unknown}: the options are --latest and --commit <full 40-character hash>.`);
+  if (i !== -1 && args.includes('--latest')) throw new Error('Give --latest or --commit, not both.');
   if (i !== -1) {
-    if (!fullHash(args[i + 1])) throw new Error('--commit needs the full 40-character commit hash');
+    if (!fullHash(args[i + 1])) throw new Error('--commit needs the full 40-character commit hash, in lowercase');
     return args[i + 1];
   }
   if (!args.includes('--latest')) {
     if (!fullHash(recorded?.commit)) throw new Error('source.json has no full commit hash in "commit": give one with --commit');
     return recorded.commit;
   }
-  const res = await fetch(`https://api.github.com/repos/${REPO}/commits?path=film_database.csv&per_page=1`);
-  if (!res.ok) throw new Error(`GitHub API: HTTP ${res.status}`);
-  const sha = (await res.json())?.[0]?.sha;
+  const answer = await download(`https://api.github.com/repos/${REPO}/commits?path=film_database.csv&per_page=1`, 'json', 'GitHub API');
+  const sha = answer?.[0]?.sha;
   if (!fullHash(sha)) throw new Error('GitHub API: no full commit hash of film_database.csv in its answer');
   return sha;
 }
@@ -153,6 +175,11 @@ async function readRecord() {
     throw new Error(`source.json: ${err.message}`);
   }
   if (recorded === null || typeof recorded !== 'object') throw new Error('source.json is not a JSON object');
+  // Whole numbers, as the update writes them, or missing, as before IDs: new
+  // IDs follow lastId, and rowsKept gives how many IDs were in use.
+  for (const key of ['lastId', 'rowsKept']) {
+    if (key in recorded && !(Number.isSafeInteger(recorded[key]) && recorded[key] >= 0)) throw new Error(`source.json: "${key}" is not a whole number`);
+  }
   return recorded;
 }
 
@@ -160,9 +187,8 @@ async function main() {
   const recorded = await readRecord();
   const commit = await resolveCommit(process.argv.slice(2), recorded);
   const url = `https://raw.githubusercontent.com/${REPO}/${commit}/film_database.csv`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-  const [header, ...rows] = readCsv(await res.text(), url);
+  const [header, ...lines] = readCsv(await download(url, 'text'), url);
+  if (!header) throw new Error(`${url}: the file is empty`);
 
   const col = (name) => {
     const i = header.indexOf(name);
@@ -182,7 +208,12 @@ async function main() {
   const read = ['DX extract', 'DX full', 'Name', 'Original Film or informations', 'Manufacturer', 'reliability', 'Country',
     'Beginning year', 'End year', 'Distributor', 'Ava'];
   read.forEach(col);
-  checkFieldCounts(header, rows, url);
+  // A blank line in the download holds no row: it is skipped, as only
+  // upstream could remove it (the snapshot and the build still stop on one).
+  // Rows keep their numbers in the errors.
+  const blank = (r) => r.length === 1 && r[0].trim() === '';
+  checkFieldCounts(header, lines.map((r) => (blank(r) ? header : r)), url);
+  const rows = lines.filter((r) => !blank(r));
 
   const keep = rows.filter((r) => r[extract].trim() !== '' || r[full].trim() !== '');
   const dropPic = (r) => r.filter((_, i) => i !== pic);

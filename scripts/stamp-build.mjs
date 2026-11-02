@@ -56,6 +56,10 @@ export async function stampBuild(dir, build) {
   const check = await mkdtemp(join(tmpdir(), 'dx-stamp-check-'));
   try {
     await mkdir(join(check, 'js'));
+    // Loaded as CommonJS, like the repository's, whatever a package.json in a
+    // folder above the temporary one says ("type": "module" would make them
+    // ES modules, which take the browser's way and export nothing).
+    await writeFile(join(check, 'package.json'), '{ "type": "commonjs" }\n');
     await writeFile(join(check, 'js', 'dx-codec.js'), await readFile(join(site, 'js', 'dx-codec.js')));
     for (const [file, text] of stamped) if (file.startsWith('js/')) await writeFile(join(check, file), text);
     const load = createRequire(join(check, 'js', 'stamp.cjs'));

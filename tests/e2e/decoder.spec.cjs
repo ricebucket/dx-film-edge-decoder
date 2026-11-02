@@ -727,6 +727,27 @@ test('the ruler follows the latest input: keys take it to the cell with focus, t
   await expect(here).toHaveText(focused);
 });
 
+test('a modifier key on its own leaves the ruler with the mouse; with another key it takes it', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'phones have no mouse to rest on the strip');
+  await page.goto('/?dx=79-15/23');
+  const here = page.locator('#strip .ruler__cell.is-here');
+  await dataCell(page, 9).click();
+  await dataCell(page, 14).hover();
+  await expect(here).toHaveText('14');
+  // Shift, as for scrolling the strip sideways with the wheel; Ctrl, Alt or Cmd, as for switching windows.
+  for (const key of ['Shift', 'Control', 'Alt', 'Meta']) {
+    await page.keyboard.press(key);
+    await expect(here, key).toHaveText('14');
+  }
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(here).toHaveText('9');
+  // Shift+Tab takes it too, out of the strip with focus: then it names no cell.
+  await dataCell(page, 14).hover({ position: { x: 3, y: 3 } });
+  await expect(here).toHaveText('14');
+  await page.keyboard.press('Shift+Tab');
+  await expect(here).toHaveCount(0);
+});
+
 test('only the mouse moving takes the ruler from the keys: not a scroll or a new layout under a resting mouse', async ({ page, isMobile }) => {
   test.skip(isMobile, 'phones have no mouse to rest on the strip');
   const here = page.locator('#strip .ruler__cell.is-here');
@@ -742,6 +763,8 @@ test('only the mouse moving takes the ruler from the keys: not a scroll or a new
   await page.locator('#lighttable').evaluate((el) => el.scrollIntoView({ block: 'center' }));
   let box = await dataCell(page, 12).boundingBox();
   let [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  // Where the page last saw the mouse, as the browser gives it (WebKit in whole pixels).
+  await page.evaluate(() => document.addEventListener('pointermove', (e) => { window.lastMove = [e.clientX, e.clientY]; }, true));
   await page.mouse.move(x, y);
   await expect(here).toHaveText('12');
   await dataCell(page, 11).focus();
@@ -750,20 +773,32 @@ test('only the mouse moving takes the ruler from the keys: not a scroll or a new
   const under = await hovered(x, y);
   expect(under).not.toBe('26');
   await expect(here).toHaveText('26');
+  // WebKit on a computer also reports the resting mouse as moving after a
+  // scroll, at the same place, which is no move. Chromium sends none, so it is
+  // sent directly.
+  await page.evaluate(() => {
+    const [x, y] = window.lastMove;
+    document.elementFromPoint(x, y).dispatchEvent(new PointerEvent('pointermove', {
+      pointerId: 1, pointerType: 'mouse', isPrimary: true, bubbles: true, clientX: x, clientY: y,
+    }));
+  });
+  await expect(here).toHaveText('26');
   await page.mouse.move(x + 1, y);
   await expect(here).toHaveText(under);
 
-  // A mouse resting off the strip, which a scroll of the page brings under it.
+  // A mouse resting off the strip, which a scroll of the page brings under it:
+  // above the strip's own ruler too, where only a listener on the page sees it.
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/?dx=79-15/23');
   await page.locator('#lighttable').evaluate((el) => el.scrollIntoView({ block: 'center' }));
   box = await dataCell(page, 12).boundingBox();
-  [x, y] = [box.x + box.width / 2, box.y + box.height / 2 - 150];
+  [x, y] = [box.x + box.width / 2, box.y + box.height / 2 - 300];
   await page.mouse.move(x, y);
+  expect(await page.evaluate(([x, y]) => document.getElementById('strip').contains(document.elementFromPoint(x, y)), [x, y])).toBe(false);
   await dataCell(page, 9).focus();
   await page.keyboard.press('ArrowRight');
   await expect(here).toHaveText('10');
-  await page.evaluate(() => window.scrollBy({ top: 150, behavior: 'instant' }));
+  await page.evaluate(() => window.scrollBy({ top: 300, behavior: 'instant' }));
   expect(await hovered(x, y)).toBe('12');
   await expect(here).toHaveText('10');
   await page.mouse.move(x + 1, y);
@@ -784,22 +819,73 @@ test('only the mouse moving takes the ruler from the keys: not a scroll or a new
   await expect(here).toHaveCount(0);
 });
 
+test('a cell selected with the mouse has no keyboard ring until a key is used, and the ruler stays with the mouse', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'phones have no mouse to rest on the strip');
+  const here = page.locator('#strip .ruler__cell.is-here');
+  // The ring, in the accent color.
+  const ringed = (n) => dataCell(page, n).evaluate((el) => {
+    const probe = document.body.appendChild(document.createElement('span'));
+    probe.style.color = 'var(--accent-strong)';
+    const accent = getComputedStyle(probe).color;
+    probe.remove();
+    return getComputedStyle(el).boxShadow.includes(accent);
+  });
+  // A window too narrow for the whole strip, on a page where nothing was
+  // selected before: browsers ring focus a script gives then.
+  await page.setViewportSize({ width: 700, height: 900 });
+  await page.goto('/?dx=79-15/23');
+  await page.locator('#lighttable').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  const box = await dataCell(page, 12).boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(dataCell(page, 12)).toBeFocused();
+  expect(await ringed(12)).toBe(false);
+  await expect(here).toHaveText('12');
+  // A trackpad scrolls the strip sideways under the resting mouse: the ruler
+  // names the cell that comes under it, as its hover shows.
+  await page.mouse.wheel(150, 0);
+  await expect.poll(() => page.evaluate(() => {
+    const hovered = [...document.querySelectorAll('#strip .track--data [data-cell]')].find((el) => el.matches(':hover'));
+    const marked = document.querySelector('#strip .ruler__cell.is-here');
+    return Boolean(hovered && hovered.dataset.cell !== '12' && marked && marked.dataset.cell === hovered.dataset.cell);
+  })).toBe(true);
+  // A key: the keyboard's focus now, with its ring, and the ruler's.
+  await page.keyboard.press(' ');
+  await expect.poll(() => ringed(12)).toBe(true);
+  await expect(here).toHaveText('12');
+  // Selected with the mouse again, then left: focus that Tab brings back is the keyboard's.
+  await dataCell(page, 12).click();
+  expect(await ringed(12)).toBe(false);
+  await dataCell(page, 14).hover();
+  await expect(here).toHaveText('14');
+  await page.locator('#clear').focus();
+  await page.keyboard.press('Tab');
+  await expect(dataCell(page, 12)).toBeFocused();
+  await expect(here).toHaveText('12');
+  expect(await ringed(12)).toBe(true);
+});
+
 test('a finger takes the ruler from a resting mouse, as keys do', async ({ page, isMobile }) => {
   test.skip(isMobile, 'a mouse resting on the strip, as on a computer with a touch screen');
   await page.goto('/?dx=79-15/23');
   const here = page.locator('#strip .ruler__cell.is-here');
   await dataCell(page, 7).hover();
   await expect(here).toHaveText('7');
-  // Playwright cannot hold a touch down, so the pointer event is sent directly.
-  await dataCell(page, 12).evaluate((el) => {
+  // Playwright cannot hold a touch down, so the pointer events are sent directly.
+  const touch = (type, dx) => dataCell(page, 12).evaluate((el, [type, dx]) => {
     const r = el.getBoundingClientRect();
-    el.dispatchEvent(new PointerEvent('pointerdown', {
+    el.dispatchEvent(new PointerEvent(type, {
       pointerId: 9, pointerType: 'touch', isPrimary: true, bubbles: true,
-      clientX: r.x + r.width / 2, clientY: r.y + r.height / 2,
+      clientX: r.x + r.width / 2 + dx, clientY: r.y + r.height / 2,
     }));
-  });
+  }, [type, dx]);
+  await touch('pointerdown', 0);
   await expect(dataCell(page, 12)).toHaveClass(/\bis-pressing\b/);
   await expect(here).toHaveText('12');
+  // A finger that moves a little, less than a scroll, is no mouse moving.
+  await touch('pointermove', 3);
+  await expect(dataCell(page, 12)).toHaveClass(/\bis-pressing\b/);
+  await expect(here).toHaveText('12');
+  await touch('pointercancel', 3);
 });
 
 test('pointing at a cell changes only colors and visibility: the mouse crossing the strip lays nothing out again', async ({ page, browserName, isMobile }) => {
@@ -884,6 +970,18 @@ test('in Windows contrast themes, the ruler marks the cell pointed at in the col
   expect(minor).toEqual([[text, none], [none, none]]);
   expect(major).toEqual([[text, none], [text, none]]);
   expect(here).toEqual([[highlight, highlight], [highlight, highlight]]);
+});
+
+test('in Windows contrast themes too, a cell selected with the mouse has no outline of focus until a key is used', async ({ page, browserName, isMobile }) => {
+  test.skip(browserName !== 'chromium' || isMobile, 'contrast themes are a Windows desktop feature');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.goto('/?dx=79-15/23');
+  const outline = () => dataCell(page, 12).evaluate((el) => getComputedStyle(el).outlineStyle);
+  await dataCell(page, 12).click();
+  await expect(dataCell(page, 12)).toBeFocused();
+  expect(await outline()).toBe('none');
+  await page.keyboard.press(' ');
+  await expect.poll(outline).toBe('solid');
 });
 
 test('after a tap, the ruler names no cell once focus is elsewhere', { tag: '@phone' }, async ({ page, hasTouch }) => {

@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
@@ -12,12 +12,17 @@ const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const SITE = join(ROOT, 'site');
 const DATA = ['dx-data.js', 'dx-data-community.js', 'dx-index.js'];
 
-/** A copy of site/ in a temporary folder, removed after `use`. */
+/**
+ * A copy of site/ in a temporary folder, removed after `use`. The project's
+ * package.json goes above it, so that Node loads its scripts as in the
+ * repository, whatever one above the temporary folder says.
+ */
 async function withCopy(use) {
   const dir = mkdtempSync(join(tmpdir(), 'dx-stamp-'));
   try {
-    cpSync(SITE, dir, { recursive: true });
-    return await use(dir);
+    cpSync(join(ROOT, 'package.json'), join(dir, 'package.json'));
+    cpSync(SITE, join(dir, 'site'), { recursive: true });
+    return await use(join(dir, 'site'));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -153,6 +158,30 @@ describe('publishing (scripts/stamp-build.mjs)', () => {
         assert.deepEqual(all(), before);
         writeFileSync(script, code);
       }
+    });
+  });
+
+  test('the command checks the copy in any temporary folder, also one inside an ES-module project, and leaves nothing there, whether the stamp passes or stops', async () => {
+    await withCopy(async (dir) => {
+      // A temporary folder of its own, under a package.json that makes .js files ES modules.
+      const scope = join(dirname(dir), 'module');
+      const own = join(scope, 'tmp');
+      mkdirSync(own, { recursive: true });
+      writeFileSync(join(scope, 'package.json'), '{ "type": "module" }\n');
+      const stamp = (site) => spawnSync(process.execPath, [join(ROOT, 'scripts', 'stamp-build.mjs'), 'a1b2c3d4e5f6', site], { encoding: 'utf8', env: { ...process.env, TMPDIR: own, TMP: own, TEMP: own } });
+      const other = join(dirname(dir), 'other');
+      cpSync(dir, other, { recursive: true });
+      const run = stamp(dir);
+      assert.equal(run.status, 0, run.stderr);
+      assert.equal(files(dir).createLookup.BUILD, 'a1b2c3d4e5f6');
+      assert.deepEqual(readdirSync(own), []);
+      // dx-index.js of another build: the check stops the stamp.
+      const index = join(other, 'js', 'dx-index.js');
+      writeFileSync(index, readFileSync(index, 'utf8').replace(/"version":"[0-9a-f]{16}"/, '"version":"0000000000000000"'));
+      const stopped = stamp(other);
+      assert.equal(stopped.status, 1);
+      assert.match(stopped.stderr, /different builds/);
+      assert.deepEqual(readdirSync(own), []);
     });
   });
 

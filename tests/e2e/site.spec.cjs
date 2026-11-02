@@ -444,9 +444,13 @@ test('printed, the strip keeps its film and bars, fits the page, and the colors 
   const cells = await centers('#strip .track--data .cell');
   expect(ticks).toHaveLength(31);
   ticks.forEach((x, i) => expect(Math.abs(x - cells[i]), `cell ${i + 1}`).toBeLessThan(0.6));
-  const marked = await page.locator('#strip .ruler__cell[data-cell="18"]').evaluate((el) => [getComputedStyle(el, '::after').borderLeftColor, getComputedStyle(el.querySelector('.ruler__num')).visibility]);
-  const plain = await page.locator('#strip .ruler__cell[data-cell="17"]').evaluate((el) => getComputedStyle(el, '::after').borderLeftColor);
-  expect(marked).toEqual([plain, 'hidden']);
+  // Both halves of its tick, and both borders of each, as its neighbor's; its number hidden.
+  const tick = (n) => page.locator(`#strip .ruler__cell[data-cell="${n}"]`).evaluate((el) => ['::before', '::after'].map((half) => {
+    const style = getComputedStyle(el, half);
+    return [style.borderLeftColor, style.borderRightColor];
+  }));
+  expect(await tick(18)).toEqual(await tick(17));
+  expect(await page.locator('#strip .ruler__cell[data-cell="18"] .ruler__num').evaluate((el) => getComputedStyle(el).visibility)).toBe('hidden');
 });
 
 test('printed, a cell with focus looks like any other, with a bar or without', { tag: '@phone' }, async ({ page }) => {
@@ -737,7 +741,13 @@ test('a photo reader of another deploy than the page, as a host that keeps only 
 
 test('a photo reader that could not be loaded says so, and choosing "Read a photo" again loads it', async ({ page }) => {
   let fail = true;
-  await page.route('**/js/dx-image.js*', (route) => (fail ? route.abort() : route.continue()));
+  let release = null;
+  await page.route('**/js/dx-image.js*', async (route) => {
+    if (fail) return route.abort();
+    // Held, to see what shows while it loads again.
+    await new Promise((resolve) => { release = resolve; });
+    return route.continue();
+  });
   await page.goto('/');
   await page.locator('#tab-photo').click();
   const message = page.locator('#photo .form-message.is-error[role="alert"]');
@@ -745,6 +755,11 @@ test('a photo reader that could not be loaded says so, and choosing "Read a phot
   fail = false;
   await page.locator('#tab-copy').click();
   await page.locator('#tab-photo').click();
+  // Loading again, it shows its loading line, not the old message.
+  await expect.poll(() => release !== null).toBe(true);
+  await expect(page.locator('#photo')).toHaveAttribute('aria-busy', 'true');
+  await expect(page.locator('#photo')).toBeEmpty();
+  release();
   await expect(page.locator('#photo .photo__drop')).toBeVisible();
   await expect(message).toHaveCount(0);
 });

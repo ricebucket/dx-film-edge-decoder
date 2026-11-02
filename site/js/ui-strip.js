@@ -232,6 +232,9 @@
           return;
         }
         e.preventDefault();
+        // The mouse's focus, ringed only once a key is used (style.css):
+        // browsers ring focus a script gives when nothing was clicked before.
+        track.classList.add('is-clicked');
         btn.focus({ preventScroll: true });
         setFocusCell(cellNo);
         const value = state.cells[cellNo - 1] !== '1';
@@ -299,10 +302,15 @@
       });
       track.addEventListener('focusin', (e) => {
         // Focus the keyboard brought in (Tab) takes the ruler, as keys do.
-        if (e.target.matches(':focus-visible')) mouseLeads = false;
+        if (!track.classList.contains('is-clicked') && e.target.matches(':focus-visible')) mouseLeads = false;
         showHere();
       });
-      track.addEventListener('focusout', () => setTimeout(showHere));
+      track.addEventListener('focusout', (e) => {
+        // Focus gone elsewhere on the page ends the mouse's; gone with the
+        // window, it comes back as it was.
+        if (!track.contains(e.relatedTarget) && document.hasFocus()) track.classList.remove('is-clicked');
+        setTimeout(showHere);
+      });
 
       // Keyboard activation arrives as a click with detail 0.
       track.addEventListener('click', (e) => {
@@ -316,12 +324,15 @@
 
       track.addEventListener('keydown', (e) => {
         const btn = cellButton(e.target);
-        if (!btn) return;
+        // A modifier pressed on its own is not input to the strip: Shift for
+        // scrolling it sideways with the wheel, Cmd or Alt for switching windows.
+        if (!btn || ['Shift', 'Control', 'Alt', 'AltGraph', 'Meta'].includes(e.key)) return;
         // Any key in the strip, Ctrl+Z too, takes the ruler to the cell with
         // focus, until the mouse moves again.
         mouseLeads = false;
         showHere();
         if (e.altKey || e.ctrlKey || e.metaKey) return;
+        track.classList.remove('is-clicked'); // the keyboard's focus now, with its ring
         const cellNo = Number(btn.dataset.cell);
         const editable = refs.layout.filter((c) => c.editable).map((c) => c.cell);
         const pos = editable.indexOf(cellNo);

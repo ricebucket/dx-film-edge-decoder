@@ -166,14 +166,16 @@ test('under a DX number, the rows whose cassette number gives it but that record
 test('Find a film searches names and makers, not codes: a DX number or a cassette number has a lookup of its own', async ({ page }) => {
   const status = page.locator('#finder-help');
   // Digits joined by marks are not run together: 40-0 and 20-0 are not the film speeds 400 and 200.
-  for (const q of ['79-15', 'DX 1279', '002720', '017765', '40-0', '20-0']) {
+  // 832973 is an "augmented" cassette number, which gives no DX number.
+  for (const q of ['79-15', 'DX 1279', '002720', '017765', '832973', '40-0', '20-0']) {
     await page.locator('#finder-q').fill(q);
     // No advice for a number: fewer words won't find it.
     await expect(status).toHaveText(`Nothing matches “${q}”.`);
   }
-  // A name that has them as typed is found, as a whole word.
+  // A name that has them as typed is found, as a whole word, and counted as any search is.
   await page.locator('#finder-q').fill('100-2');
   await expect(page.locator('.finder__item').first().locator('.match__name')).toHaveText('AGFACOLOR OPTIMA 100-2');
+  await expect(status).toHaveText(/^\d+ films found\.$/);
   await expect(page.locator('#finder .section-lead')).toHaveText('Search by film name or maker, then show its barcode on the strip to compare with your film.');
   await expect(page.locator('#finder-q')).toHaveAttribute('placeholder', 'e.g. Portra 400, HP5, Fujicolor 200');
   await expect(page.locator('label[for="finder-q"]')).toHaveText('Film name or maker');
@@ -908,7 +910,7 @@ test('a cassette number can be typed with spaces between its digits', async ({ p
   await expect(page.locator('.cassette__result')).toContainText('79-15');
 });
 
-test('Find a film lists each film once, and asks for two letters', async ({ page }) => {
+test('Find a film lists each film once, and asks for two characters', async ({ page }) => {
   const status = page.locator('#finder-help');
   // Copies that differ only by cassette number are one row, with the cassette numbers of all, as in the other lists.
   await page.locator('#finder-q').fill('bw400cn');
@@ -923,11 +925,13 @@ test('Find a film lists each film once, and asks for two letters', async ({ page
   await page.locator('#finder-q').fill('agfacolor 100-n');
   const agfa = page.locator('.finder__item', { has: page.locator('.match__name', { hasText: /^AGFA Agfacolor 100-N$/ }) });
   await expect(agfa.locator('.match__dx')).toHaveText(['DX 31-2', 'DX 47-3']);
-  // Two rows that differ only by record ID are one film, with their one cassette number once.
-  // (The data has two such rows of SCOTCH COLOR 400AT; without them this checks nothing.)
+  // Two rows that differ only by record ID are one film, with their one cassette number once,
+  // whose button picks both. (The data has two such rows of SCOTCH COLOR 400AT.)
   await page.locator('#finder-q').fill('scotch color 400at');
   const scotch = page.locator('.finder__item', { has: page.locator('.match__name', { hasText: /^SCOTCH COLOR 400AT scotchcolor$/ }) });
   await expect(scotch.locator('.match__cassette')).toHaveText(['Cassette number 002980', 'Cassette number 002990']);
+  await scotch.filter({ has: page.locator('.match__cassette', { hasText: /^Cassette number 002990$/ }) }).getByRole('button', { name: /^Show barcode of / }).click();
+  await expect(page).toHaveURL(/&film=bfd-\d+,bfd-\d+$/);
   // One letter or digit is not enough to search: each typed over a search that found films.
   for (const q of ['a', '4']) {
     await page.locator('#finder-q').fill('scotch color 400at');
@@ -936,6 +940,10 @@ test('Find a film lists each film once, and asks for two letters', async ({ page
     await expect(status).toHaveText('Type at least two characters.');
     await expect(page.locator('.finder__item')).toHaveCount(0);
   }
+  // Two are.
+  await page.locator('#finder-q').fill('hp');
+  await expect(status).toHaveText(/^\d+ films found\.$/);
+  await expect(page.locator('.finder__item').first()).toBeVisible();
 });
 
 test('Find a film finds a registry film by its maker\'s full name, as its row shows it', async ({ page }) => {
