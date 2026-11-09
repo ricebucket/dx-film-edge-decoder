@@ -1,6 +1,6 @@
 # 数据
 
-解码器背后的胶片数据表，编译进网页加载的其中两个文件：来自 I3A 列表的 `site/js/dx-data.js` 和来自 The Big Film Database 的 `site/js/dx-data-community.js`。两者分开存放，因为这两个数据集的许可证不同。网页还会加载由这两者生成的 `site/js/dx-index.js`，用于按 DX 码和按暗盒条码查找。
+解码器背后的胶片数据表，编译进网页加载的其中两个文件：来自 I3A 列表的 `site/js/dx-data.js` 和来自 The Big Film Database 的 `site/js/dx-data-community.js`。两者分开存放，因为这两个数据集的许可证不同。网页还会加载由这两者生成的 `site/js/dx-index.js`，用于按DX码和按暗盒编号查找。
 
 | 命令 | 作用 |
 |---|---|
@@ -11,7 +11,7 @@
 
 来源变化时如何使用这些命令，在[更新数据](#更新数据)中说明。
 
-## `i3a-2008/` – 2008 年 DX 码年度报告
+## `i3a-2008/` – 2008 年DX码登记表
 
 国际影像行业协会（I3A）的 *DX Codes for 135-Size Film*（2008 年 2 月）中事实内容的转录。转录和核对的方法，以及列表包含的内容，在 [research/03](../research/03-dx-numbers-and-registry.zh-CN.md) 中说明。
 
@@ -39,7 +39,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
 |---|---|
 | `ID` | 我们为这一行编的记录编号（见上文） |
 | `DX extract` | 16 × 第 1 部分 + 第 2 部分（四位数字） |
-| `DX full` | 六位数的暗盒条码 |
+| `DX full` | 六位数的暗盒编号 |
 | `Name` | 产品名称，可以带有 `#` 搜索标签 |
 | `Original Film or informations` | 备注，常常是贴牌胶片背后的原厂乳剂 |
 | `Manufacturer`、`Country`、`Distributor` | 自由文本 |
@@ -63,7 +63,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
    npm run update:community-data -- --latest
    ```
 
-   这会从 GitHub 获取 `film_database.csv`，保留带有 DX extract 或暗盒条码的行，并在 `big-film-database/source.json` 中记录该提交。要获取某个特定的提交，使用 `-- --commit` 加上它完整的 40 位哈希值。不加选项时，会重新下载已记录的那个提交，文件因此保持不变。
+   这会从 GitHub 获取 `film_database.csv`，保留带有 DX extract 或暗盒编号的行，并在 `big-film-database/source.json` 中记录该提交。要获取某个特定的提交，使用 `-- --commit` 加上它完整的 40 位哈希值。不加选项时，会重新下载已记录的那个提交，文件因此保持不变。
 2. 重新生成页面的数据文件并运行测试：
 
    ```sh
@@ -72,7 +72,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
    npm run test:e2e
    ```
 
-   除了数据的结构，有些测试还检查快照本身：检查 research/04 所引用数字的那项测试，在完成第 3 步之前会失败；还有几项测试指名检查特定的行，例如 DX extract 与暗盒条码不一致的那些行。改变了的行会得到新的 `bfd-` 编号；`npm test` 会指出 `site/js/app.js` 中哪个示例的编号需要更新。如果上游重命名或删除了某一列，更新或构建会报错停止，并在错误信息中指出该列；请相应修改 `scripts/update-community-data.mjs` 或 `scripts/build-data.mjs`。如果测试“is a cleaned subset of the rows with a DX extract or a cassette number”（是带有 DX extract 或暗盒条码的行的已清理子集）失败，说明某一行包含构建步骤还不会清理的内容，例如一种新的标记。
+   除了数据的结构，有些测试还检查快照本身：检查 research/04 所引用数字的那项测试，在完成第 3 步之前会失败；还有几项测试指名检查特定的行，例如 DX extract 与暗盒编号不一致的那些行。改变了的行会得到新的 `bfd-` 编号；`npm test` 会指出 `site/js/app.js` 中哪个示例的编号需要更新。如果上游重命名或删除了某一列，更新或构建会报错停止，并在错误信息中指出该列；请相应修改 `scripts/update-community-data.mjs` 或 `scripts/build-data.mjs`。如果测试“is a cleaned subset of the rows with a DX extract or a cassette number”（是带有 DX extract 或暗盒编号的行的已清理子集）失败，说明某一行包含构建步骤还不会清理的内容，例如一种新的标记。
 3. 更新 [research/04](../research/04-community-database.zh-CN.md) 及其英文版。`npm run stats:community-data` 会打印该报告在摘要、“所用快照”、“数据质量方面的发现”和“现代胶片的覆盖情况”中引用的数字；提交的日期可以在 GitHub 上看到。
 
 ### I3A 列表需要更正时

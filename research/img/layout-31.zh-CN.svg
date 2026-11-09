@@ -90,7 +90,7 @@
 <text x="132" y="103" font-size="11" font-weight="400" fill="#59636e" text-anchor="end">所有胶片都相同</text>
 <text x="132" y="124" font-size="13" font-weight="600" fill="#1f2328" text-anchor="end">数据道</text>
 <text x="132" y="139" font-size="11" font-weight="400" fill="#59636e" text-anchor="end">1 = 条，0 = 空</text>
-<text x="138" y="166" font-size="10" font-weight="400" fill="#59636e" text-anchor="end">对应数字</text>
+<text x="138" y="166" font-size="10" font-weight="400" fill="#59636e" text-anchor="end">位权</text>
 <text x="293" y="166" font-size="10" font-weight="400" fill="#2c66cf" text-anchor="middle">64</text>
 <text x="315" y="166" font-size="10" font-weight="400" fill="#2c66cf" text-anchor="middle">32</text>
 <text x="337" y="166" font-size="10" font-weight="400" fill="#2c66cf" text-anchor="middle">16</text>

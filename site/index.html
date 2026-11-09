@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n>DX Film Edge Decoder</title>
-  <meta name="description" content="Identify 35 mm film from the DX barcode on the edge of your negatives and slides: the film, its maker and the frame number." data-i18n-attr="content">
+  <meta name="description" content="Identify 35 mm film from the DX barcode on the edge of negatives and slides: the film, its maker and the frame number." data-i18n-attr="content">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#eef3f6" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151c23" media="(prefers-color-scheme: dark)">
@@ -59,8 +59,8 @@
            language files cannot supply this text, so it comes in every language
            of the page; npm run check:languages checks that none is missing. -->
       <div class="noscript">
-        <p lang="en">This decoder needs JavaScript. It runs entirely in your browser, and photos never leave your device.</p>
-        <p lang="zh-CN">这个解码器需要 JavaScript。它完全在你的浏览器中运行，照片永远不会离开你的设备。</p>
+        <p lang="en">This decoder needs JavaScript. It runs entirely in the browser, and photos never leave this device.</p>
+        <p lang="zh-CN">这个解码器需要 JavaScript。它完全在浏览器中运行，照片永远不会离开本机。</p>
       </div>
     </noscript>
     <section class="decoder" id="decoder" aria-labelledby="decoder-title">
@@ -71,7 +71,7 @@
             <!-- Phones only: folds the introduction away (app.js). -->
             <button type="button" class="icon-button intro__toggle" id="intro-toggle" aria-expanded="true" aria-controls="intro-lead" aria-label="Hide the introduction" data-i18n-attr="aria-label"></button>
           </div>
-          <p class="lead" id="intro-lead" data-i18n>Not sure which film your negatives or slides are? They can tell you themselves. Most 35&nbsp;mm film made since 1983 has a DX barcode along one edge. Copy its bars, or read them from a photo, to find the film, its maker and the frame number.</p>
+          <p class="lead" id="intro-lead" data-i18n>Not sure which film a negative or slide is? The answer is on the film itself. Most 35&nbsp;mm film made since 1983 has a DX barcode along one edge. Copy its bars, or read them from a photo, to find the film, its maker and the frame number.</p>
         </div>
 
         <div class="ways" role="tablist" aria-label="How to enter the code" data-i18n-attr="aria-label">
@@ -92,7 +92,7 @@
             </li>
             <li>
               <h2 class="steps__title" data-i18n>Copy the lower row</h2>
-              <p data-i18n>Select each cell of the lower row where your film has a bar. The rest is the same on every film and already drawn. If your top row has only 7 thin bars, choose <button type="button" class="inline-button" data-for="format-short">7 thin bars</button>.</p>
+              <p data-i18n>Select each cell of the lower row where the film has a bar. The rest is the same on every film and already drawn. If the film’s top row has only 7 thin bars, choose <button type="button" class="inline-button" data-for="format-short">7 thin bars</button>.</p>
             </li>
           </ol>
           <!-- Phones only: the steps show their titles until this opens them (app.js). -->
@@ -143,7 +143,7 @@
     <section class="band" id="finder" aria-labelledby="finder-title">
       <div class="wrap">
         <h2 id="finder-title" data-i18n>Find a film’s code</h2>
-        <p class="section-lead" data-i18n>Search by film name or maker, then show its barcode on the strip to compare with your film.</p>
+        <p class="section-lead" data-i18n>Search by film name or maker, then show its barcode on the strip to compare with actual film.</p>
         <div class="finder" id="finder-ui"></div>
       </div>
     </section>
@@ -204,18 +204,18 @@
               </tbody>
             </table>
           </div>
-          <p data-i18n>Edge numbers are exposed at the factory, so they rarely line up exactly with your pictures or your camera’s counter.</p>
+          <p data-i18n>Edge numbers are exposed at the factory, so they rarely line up exactly with the pictures or a camera’s counter.</p>
 
           <h3 data-i18n>Older film</h3>
-          <p data-i18n>The original code is shorter: 23 cells, with 7 thin bars in the top row instead of 11, and no frame number. Choose <button type="button" class="inline-button" data-for="format-short">7 thin bars</button> before copying one; if you forget, the decoder points this out and offers to switch.</p>
+          <p data-i18n>The original code is shorter: 23 cells, with 7 thin bars in the top row instead of 11, and no frame number. Choose <button type="button" class="inline-button" data-for="format-short">7 thin bars</button> before copying one; otherwise the decoder points this out and offers to switch.</p>
 
           <h3 data-i18n>The parity check</h3>
-          <p data-i18n>The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When your copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.</p>
+          <p data-i18n>The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When a copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.</p>
 
           <h3 data-i18n>Reading direction and film type</h3>
-          <p data-i18n>Read the code from the wide clock mark. With the film the right way around, usually shiny base side toward you, the printed numbers read normally and the wide mark is on the left; from the other side, everything is mirrored. On slide film the bars show clear on a black edge. The code repeats every half frame, so if a bar is unclear, check the next one.</p>
+          <p data-i18n>Read the code from the wide clock mark. With the film the right way around, usually viewed from the shiny base side, the printed numbers read normally and the wide mark is on the left; from the other side, everything is mirrored. On slide film the bars show clear on a black edge. The code repeats every half frame, so if a bar is unclear, check the next one.</p>
 
-          <h3 data-i18n>What the code cannot tell you</h3>
+          <h3 data-i18n>What the code does not say</h3>
           <p data-i18n>The DX number names a product. The product name usually includes the speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.</p>
         </div>
       </div>

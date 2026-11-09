@@ -406,9 +406,8 @@
 
   function emptyState(ctx) {
     return [
-      h('div', { class: 'status status--idle' }, h('span', null, t('Waiting for bars'))),
-      h('h2', { id: 'result-title', class: 'result__title', tabindex: '-1' },
-        ctx.way === 'photo' ? t('Read a photo of your barcode') : t('Copy the lower row of your barcode')),
+      // No heading until there is a code: this names the section and takes the focus.
+      h('div', { class: 'status status--idle' }, h('span', { id: 'result-title', tabindex: '-1' }, t('Waiting for bars'))),
       h('p', { class: 'result__lead' }, t('Not sure what a barcode looks like? Try an example:')),
       h('div', { class: 'examples' }, exampleChips(ctx)),
     ];
@@ -446,7 +445,7 @@
     // The copy also reads as a valid 31-cell code of the same film (frame 10
     // or 42), so only the clock row can settle it: ask the user to look.
     return h('div', { class: 'problems' }, h('div', { class: 'problem problem--suggest' },
-      h('p', { class: 'problem__title' }, t('Only 7 thin bars in your top row?')),
+      h('p', { class: 'problem__title' }, t('Only 7 thin bars in the film’s top row?')),
       h('p', null, t('Then it is an older code without a frame number: the film is still DX {dx}, but ignore the frame below. With 11 thin bars, the reading is right.', { dx: s.dxNumber })),
       h('button', { type: 'button', class: 'tool tool--primary', onClick: () => ctx.onUseShort(head) }, t('Switch to 7 thin bars'))));
   }
@@ -567,7 +566,7 @@
   /**
    * ctx: { decoded, empty (nothing entered yet), lookup, pickedAt(part1, part2) (the record IDs of the films picked to show
    *        the code that have this DX number, listed first),
-   *        examples, shareUrl, way ('copy' or 'photo'), onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
+   *        examples, shareUrl, onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
    */
   function renderResult(container, ctx) {
     const d = ctx.decoded;

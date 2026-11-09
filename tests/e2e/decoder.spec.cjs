@@ -19,6 +19,9 @@ test('starts empty, with examples to try', async ({ page }) => {
   await expect(page.locator('#strip .track--data button.cell')).toHaveCount(21);
   await expect(page.locator('#result')).toContainText('Waiting for bars');
   await expect(page.locator('#result .chip')).toHaveCount(5);
+  // No heading until there is a code; the status still names the section.
+  await expect(page.locator('#result h2')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Waiting for bars' })).toBeVisible();
 });
 
 test('clicking the bars of a real code identifies the film', async ({ page }) => {
@@ -373,20 +376,20 @@ test('undo brings back where a code came from, but not a source that was removed
   await page.getByRole('tab', { name: 'Read a photo' }).click();
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await page.getByRole('button', { name: 'Use this code' }).click();
-  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  await expect(bar).toContainText('From the photo: DX 96-12, frame 14A');
   await page.locator('#undo').click();
   await expect(title).toHaveText('KODAK Professional BW400CN Film');
   await expect(bar).toContainText('Example: Kodak BW400CN, frame 23');
   await expect(bar).not.toContainText('edited since');
   await expect(page.locator('#strip .strip__photo canvas')).toHaveCount(0);
   await page.locator('#redo').click();
-  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  await expect(bar).toContainText('From the photo: DX 96-12, frame 14A');
   await expect(page.locator('#strip .strip__photo canvas')).toBeVisible();
   // Clear, undone, brings the photo back with its code...
   await page.locator('#clear').click();
   await expect(bar).toBeHidden();
   await page.locator('#undo').click();
-  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  await expect(bar).toContainText('From the photo: DX 96-12, frame 14A');
   // ...but a photo removed with × stays removed.
   await bar.getByRole('button', { name: 'Remove the photo' }).click();
   await page.locator('#undo').click();
@@ -480,7 +483,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
     // so the page asks about the top row instead of reporting an error.
     await expect(page.locator('#result-title')).toHaveText('KODACOLOR VR200 Film');
     const hint = page.locator('.problem--suggest');
-    await expect(hint).toContainText('Only 7 thin bars in your top row?');
+    await expect(hint).toContainText('Only 7 thin bars in the film’s top row?');
     await expect(hint).toContainText('DX 79-7');
     await hint.getByRole('button', { name: 'Switch to 7 thin bars' }).click();
     await expect(page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' })).toHaveAttribute('aria-pressed', 'true');

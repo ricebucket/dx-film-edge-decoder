@@ -203,7 +203,7 @@
     if (problem) return t('Not a valid code yet: see below.');
     if (d.part1 === 0) return t('Part 1 is 0. This is unlikely.');
     if (d.frame === null) return t('Valid code. No frame number present.');
-    if (codec.shortCodeInLong(state.cells)) return t('Valid code, unless your top row has only 7 thin bars: see below.');
+    if (codec.shortCodeInLong(state.cells)) return t('Valid code, unless the film’s top row has only 7 thin bars: see below.');
     return t('Valid code. Frame {frame}.', { frame: d.frameLabel });
   }
 
@@ -211,9 +211,8 @@
     for (const b of group.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.value === value));
   }
 
-  // What the result shows: the code, and the way in while the strip is empty.
-  // The film look and Mirror change neither, so the result stays as it is,
-  // with any list opened in it.
+  // What the result shows: the code. The film look and Mirror don't change it,
+  // so the result stays as it is, with any list opened in it.
   let resultShown = '';
 
   function update(options) {
@@ -243,7 +242,8 @@
     // The films picked to show this code, while their DX number is on the
     // strip (another frame too): the result lists them first, so that it
     // names them, as its one-bar corrections do for theirs (pickedAt).
-    const shown = `${state.format}:${state.cells}:${isEmpty() ? way : ''}:${pickKey(state.picked)}`;
+    // An empty strip and the all-zero code have the same cells.
+    const shown = `${state.format}:${state.cells}:${isEmpty()}:${pickKey(state.picked)}`;
     if (shown !== resultShown) {
       resultShown = shown;
       const result = $('result');
@@ -255,7 +255,6 @@
         pickedAt,
         examples: examples(),
         shareUrl: shareUrl(decoded),
-        way,
         onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label, ids: ex.ids } }),
         onApplyCells(cells) {
           record();
@@ -379,7 +378,6 @@
   let photo = null;
   let photoLoading = null;
   let way = 'copy';
-  let ready = false; // set once start() has drawn the page
 
   /**
    * Classic scripts, run in the order given as if they had been in the page
@@ -452,7 +450,6 @@
     } else if (photo) {
       photo.close();
     }
-    if (ready) update(); // the empty result's heading follows the way in
   }
 
   function bindWays() {
@@ -651,7 +648,6 @@
     });
 
     update({ develop: Boolean(fromUrl && fromUrl.loaded) });
-    ready = true;
     if (place) goToPlace(place);
   }
 

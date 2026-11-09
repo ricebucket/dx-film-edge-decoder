@@ -176,7 +176,7 @@ test('Find a film searches names and makers, not codes: a DX number or a cassett
   await page.locator('#finder-q').fill('100-2');
   await expect(page.locator('.finder__item').first().locator('.match__name')).toHaveText('AGFACOLOR OPTIMA 100-2');
   await expect(status).toHaveText(/^\d+ films found\.$/);
-  await expect(page.locator('#finder .section-lead')).toHaveText('Search by film name or maker, then show its barcode on the strip to compare with your film.');
+  await expect(page.locator('#finder .section-lead')).toHaveText('Search by film name or maker, then show its barcode on the strip to compare with actual film.');
   await expect(page.locator('#finder-q')).toHaveAttribute('placeholder', 'e.g. Portra 400, HP5, Fujicolor 200');
   await expect(page.locator('label[for="finder-q"]')).toHaveText('Film name or maker');
   // It looks up no number, so it marks none in its rows.

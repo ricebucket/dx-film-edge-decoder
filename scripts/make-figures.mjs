@@ -62,7 +62,7 @@ const LABELS = {
     dataTrack: '数据道',
     dataNote: '1 = 条，0 = 空',
     cellNumbers: '相应位分配号',
-    weights: '对应数字',
+    weights: '位权',
     start: '输入模式',
     part1: '第 1 部分',
     part2: '第 2 部分',
@@ -84,7 +84,7 @@ const LABELS = {
     painted: '绝缘区（涂漆）= 0',
     cassetteTitle: '暗盒条码的六位数字：{digits}',
     prefixNote: '首位数字，由制造厂自行安排',
-    extractNote: '16 × {part1} + {part2} = {extract}，即 DX {dx}',
+    extractNote: '16 × {part1} + {part2} = {extract}，即DX {dx}',
     exposureNote: '{digit} = {n} 张',
   },
 };

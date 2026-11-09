@@ -1392,7 +1392,7 @@ h1 {
   text-align: left;
 }
 
-/* With no room before a 23-cell code, "Your photo" goes above the photo. */
+/* With no room before a 23-cell code, "Photo detail" goes above the photo. */
 .strip[data-format="short"] .strip__photo {
   flex-wrap: wrap;
   padding-inline: var(--label-w);
@@ -1643,7 +1643,7 @@ h1 {
   border-radius: 22px;
 }
 
-/* A label keeps to one line ("拉直" would break between its characters). */
+/* A label keeps to one line ("摆正" would break between its characters). */
 .photo__control > .toolbar__label {
   flex-shrink: 0;
 }

@@ -1,8 +1,8 @@
 # DX Film Edge Decoder
 
-Identify a 35 mm film from the barcode along the edge of your negatives and
-slides: copy the bars you see, and the decoder tells you the film, its maker
-and the frame number.
+Identify a 35 mm film from the barcode along the edge of negatives and
+slides: copy the bars, and the decoder shows the film, its maker and the
+frame number.
 
 **[Open the decoder → ricebucket.github.io/dx-film-edge-decoder](https://ricebucket.github.io/dx-film-edge-decoder/)**
 
@@ -14,7 +14,7 @@ there on negatives and slides long after the cassette has been thrown away.
 This tool is for film photographers, collectors and archivists who want to
 know what a strip of film is.
 
-Everything runs in your browser. Photos you open in it are not uploaded to any
+Everything runs in the browser. Photos opened in it are not uploaded to any
 server. It also works when `site/index.html` is opened straight from disk.
 
 [Watch the demo video](.github/demo.webm) (about 40 seconds)
@@ -22,7 +22,7 @@ server. It also works when `site/index.html` is opened straight from disk.
 ## What it does
 
 - **An interactive copy of the film edge**, drawn like real film, that decodes
-  as you go: the film and its manufacturer, the DX number, the frame number
+  live: the film and its manufacturer, the DX number, the frame number
   as printed (`23`, `23A`, `X`, `00` …) and the matching cassette number.
 - **Checks with explanations**, and when a bar was misread, the one-bar
   corrections that give a valid code, known films first.
@@ -48,22 +48,22 @@ server. It also works when `site/index.html` is opened straight from disk.
    frame. Use a loupe, a light table or a zoomed-in scan.
 2. **Turn the film the right way around**, so the barcode is *below* the
    sprocket holes and the small printed numbers read normally. The top row then
-   starts with a wide mark on the left. If the wide mark is on the right, you are
-   looking at the back of the film: turn it over or switch on **Mirror**.
+   starts with a wide mark on the left. If the wide mark is on the right, that is
+   the back of the film: turn it over or switch on **Mirror**.
 3. **Count the thin bars in the top row** between the wide marks: 11, or 7 for
    the original layout, found on older film and on some later film. Choose the
    matching **Layout**.
-4. **Copy the lower row.** Select every cell where your film has a bar. With a
+4. **Copy the lower row.** Select every cell where the film has a bar. With a
    mouse, drag to fill several; with a keyboard, select the first cell and type
    `1` and `0`.
    On slide film the bars are clear marks on a black edge; pick the black piece
    of film under the strip to draw them that way.
-5. **Read the result.** The number printed just before the barcode on your film
+5. **Read the result.** The number printed just before the barcode on the film
    should match the decoded frame label. If the code fails its checks, look
    again at faint bars, compare with the next code along the film, or pick a
    suggested correction.
 
-Instead of copying by hand, you can choose **Read a photo** at the top and
+Instead of copying by hand, choose **Read a photo** at the top and
 follow its three steps: choose a photo, check the barcode, use the code. The
 photo then stays above the strip, with its barcode lined up over the strip's
 cells.
@@ -140,21 +140,21 @@ and AA rules) in every language, in light and dark mode.
 On GitHub, to save time, the browser tests run in four jobs at once: every
 test on the desktop, split three ways, and on the two phones only the tests
 tagged `@phone`, those that work differently on a phone or run only there. A
-unit test checks those tags. On your own machine, `npm run test:e2e` runs
+unit test checks those tags. On a local machine, `npm run test:e2e` runs
 every test on all three.
 
 The unit tests need nothing beyond Node. The browser tests use
 [Playwright](https://playwright.dev/) and axe-core, which are deliberately
-**not** dependencies of this project. Install them once on your machine,
-outside this folder, either globally (with `sudo` if your global npm folder
-needs it) or in a parent folder such as your home directory:
+**not** dependencies of this project. Install them once, outside this folder,
+either globally (with `sudo` if the global npm folder needs it) or in a parent
+folder such as the home directory:
 
 ```sh
 # globally
 npm install -g @playwright/test @axe-core/playwright
 playwright install --with-deps chromium webkit
 
-# or in your home directory
+# or in the home directory
 cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright install --with-deps chromium webkit
 ```
 
@@ -216,9 +216,9 @@ To add a language:
    the new language.
 
 `npm run check:languages -- --template` prints every English text of the
-page, as a starting point. When you change or add English text in `site/`,
-update every language file in the same change: the tests fail until you do.
-When you change the sources page, make the same change in each of its
+page, as a starting point. When changing or adding English text in `site/`,
+update every language file in the same change: the tests fail until then.
+When changing the sources page, make the same change in each of its
 versions, as for the documentation. The check notices a source added or
 removed and a changed link, but not changed wording.
 
@@ -230,7 +230,7 @@ test holds the file back and fails on any text looked up too early.
 The documentation comes in two parallel versions, English and Simplified
 Chinese: `README.zh-CN.md` sits next to `README.md`, and so on. Both versions
 say the same things, and the links in each lead to the other files in the same
-language. When you change one version, make the same change in the other.
+language. When changing one version, make the same change in the other.
 
 ### Diagrams, screenshots and videos
 
@@ -245,7 +245,7 @@ the videos. It records the videos only when the screenshots changed, since each
 recording comes out a little different and adds about 27 MB to the repository's
 history. To record them anyway, for a change that only the videos show (the
 photo reader, for example), run `npm run media -- --force`. It needs Playwright
-(see *Tests*). The screenshots and videos use the fonts installed on your
+(see *Tests*). The screenshots and videos use the fonts installed on the
 machine, so the Chinese ones need a Chinese font (on Ubuntu, the
 `fonts-noto-cjk` package). Look at the results before committing them.
 
@@ -276,7 +276,7 @@ in [research/06](research/06-sources-and-licensing.md).
 
 The license of every file is also recorded in [`REUSE.toml`](REUSE.toml), in
 the [REUSE](https://reuse.software/) format, and the tests on GitHub check it.
-To check it yourself, install the REUSE tool (for example with
+To check it locally, install the REUSE tool (for example with
 `pipx install reuse`) and run `reuse lint`. Every file has one license, so
 material added from elsewhere needs an entry there, and a file of its own if its
 license differs.

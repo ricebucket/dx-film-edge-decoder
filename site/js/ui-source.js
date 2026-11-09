@@ -12,7 +12,7 @@
   // Looked up when the bar is drawn, not when this script loads: the page's
   // language file may come in after it (js/prepaint.js).
   const kinds = () => ({
-    photo: { from: t('From your photo'), back: t('Open the photo'), remove: t('Remove the photo') },
+    photo: { from: t('From the photo'), back: t('Open the photo'), remove: t('Remove the photo') },
     finder: { icon: 'search', from: t('From Find a film'), back: t('Back to the search') },
     cassette: { icon: 'cassette', from: t('From a cassette number'), back: t('Back to the cassette number') },
     list: { icon: 'list', from: t('From the code list'), back: t('Back to the code list') },
@@ -32,7 +32,7 @@
     const kind = kinds()[origin.kind];
     if (origin.photo) {
       origin.photo.setAttribute('role', 'img');
-      origin.photo.setAttribute('aria-label', t('Your photo'));
+      origin.photo.setAttribute('aria-label', t('Photo'));
     }
     host.replaceChildren(
       origin.photo || h('span', { class: 'source__icon' }, icon(kind.icon)),

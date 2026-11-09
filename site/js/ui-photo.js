@@ -104,7 +104,7 @@
     const steps = h('ol', { class: 'photo__steps' },
       step(1, t('Choose a photo'),
         h('p', { class: 'photo__drop' }, t('Drop an image here, paste one, or'), ' ', chooseBtn, ' ', sampleBtn),
-        h('p', { class: 'fineprint' }, t('A close-up of the film edge works best. The image stays on your device and is never transmitted to the server.')),
+        h('p', { class: 'fineprint' }, t('A close-up of the film edge works best. The image stays on this device and is never transmitted to the server.')),
         sourceNote),
       step(2, t('Check the barcode'),
         h('p', { class: 'fineprint photo__tip' }, t('Turn the image so the film edge runs left to right, then select one barcode (both rows). Without a selection, the whole image is searched.')),
@@ -119,7 +119,7 @@
         keysHint),
       step(3, t('Use the code'), out));
     // Shown instead of the steps' contents once the code has been used.
-    const folded = h('p', { class: 'photo__folded' }, t('The code from your photo is on the strip below.'), ' ', unfoldBtn);
+    const folded = h('p', { class: 'photo__folded' }, t('The code from the photo is on the strip below.'), ' ', unfoldBtn);
 
     section.replaceChildren(steps, folded, fileInput);
 
@@ -230,7 +230,7 @@
           return;
         }
         opening = null;
-        setSource(p, image, w, hgt, [t('Your photo, {width} × {height} pixels.', { width, height })], kept);
+        setSource(p, image, w, hgt, [t('Selected photo, {width} × {height} pixels.', { width, height })], kept);
         if (image.close) image.close();
       } catch (e) {
         if (ticket === loads) {
@@ -796,9 +796,9 @@
       if (r.reversed) notes.push(t('The film is mirrored or upside down in this photo; the code was read in the right direction anyway.'));
       if (r.polarity === 'light') notes.push(t('Clear bars on a dark edge: read as slide film.'));
       if (r.format === 'short') notes.push(t('An older 7-bar code, without a frame number.'));
-      if (r.confidence < 0.3) notes.push(t('Some cells were hard to tell apart; compare the result with your film.'));
-      if (r.weak) notes.push(t('The bars are faint or damaged in this photo; compare the result with your film.'));
-      if (r.elevenBars && r.layout !== 'short') notes.push(t('If the top row of your film has 11 thin bars, not 7, this reading is incomplete: read it again with the whole barcode visible.'));
+      if (r.confidence < 0.3) notes.push(t('Some cells were hard to tell apart; compare the result with the actual film.'));
+      if (r.weak) notes.push(t('The bars are faint or damaged in this photo; compare the result with the actual film.'));
+      if (r.elevenBars && r.layout !== 'short') notes.push(t('If the film’s top row has 11 thin bars, not 7, this reading is incomplete: read it again with the whole barcode visible.'));
       // The strip makes the start and stop cells standard (app.js) and offers
       // the one-bar corrections there are for the code then: promised only
       // if there are some.
@@ -806,7 +806,7 @@
       if (!d.valid) {
         notes.push(codec.nearMisses(onStrip, r.format).length
           ? t('The code as read does not pass all checks. Use it, then look at the suggested corrections.')
-          : t('The code as read does not pass all checks; compare the result with your film.'));
+          : t('The code as read does not pass all checks; compare the result with the actual film.'));
       }
       const apply = h('button', { type: 'button', class: 'tool tool--primary' }, t('Use this code'));
       apply.addEventListener('click', () => onApply(r.bits, r.format, r.polarity, {

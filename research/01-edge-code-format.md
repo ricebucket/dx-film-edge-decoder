@@ -204,9 +204,9 @@ bit cannot say which.
 |---|---|---|---|---|
 | Clock track, data track | clock track, data track | 时钟道、数据道 | — | — |
 | Start, stop | — | 输入模式、输出模式 | entry code, exit code | — |
-| Part 1 | product code; "film product class" in FIG. 5 | DX 码第 1 部分 | film product class identification | ProdCode (Pakon scanners), DXN1 |
-| Part 2 | generation number; "film specifier" in FIG. 5 | DX 码第 2 部分 | film specifier | GenCode, DXN2 |
-| Part 1-Part 2 | NAPM number | DX 码 | DX number | DX number |
+| Part 1 | product code; "film product class" in FIG. 5 | DX码第 1 部分 | film product class identification | ProdCode (Pakon scanners), DXN1 |
+| Part 2 | generation number; "film specifier" in FIG. 5 | DX码第 2 部分 | film specifier | GenCode, DXN2 |
+| Part 1-Part 2 | NAPM number | DX码 | DX number | DX number |
 | 31-cell code with frame number | multi-field bar code | 带任选画幅号的潜影双道条码 | — | "DXN code" (Kodak's EP 0838718) |
 | Frame field + half-frame flag | frame number in half-frame intervals | 画幅号识别行 | frame number and half-frame indicator | "DXN" number (Wikipedia, *DX encoding*) |
 

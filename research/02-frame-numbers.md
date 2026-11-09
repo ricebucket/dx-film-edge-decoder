@@ -93,7 +93,7 @@ documented only by Zint; which films print them was not found.
 The edge code is exposed at the factory at a fixed pitch; pictures are
 exposed later wherever the camera puts them. alibosworth points out that the
 two are not phase-locked: a picture may sit on an `N`/`NA` pair, straddle `5A`
-and `6`, or anything in between. The edge number therefore tells you roughly
+and `6`, or anything in between. The edge number therefore shows roughly
 where along the roll a picture is, which is enough to put frames in order, but
 it need not equal the camera's frame counter.
 

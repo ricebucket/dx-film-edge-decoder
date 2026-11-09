@@ -26,15 +26,15 @@ test('choosing Chinese shows the page in Chinese, keeps the code, and is remembe
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
-  await expect(page).toHaveTitle('DX 潜影条码解码器');
+  await expect(page).toHaveTitle('DX潜影条码解码器');
   await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await expect(page.getByRole('button', { name: '11 根细条' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('navigation', { name: '页面各部分' }).getByRole('link', { name: '原理' })).toBeVisible();
   // The code survived the reload, and the generated text is Chinese too.
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
-  await expect(page.locator('#result .status')).toHaveText('有效的 DX 编码');
+  await expect(page.locator('#result .status')).toHaveText('有效的DX编码');
   await expect(page.locator('#hint')).toHaveText('有效编码。画幅号 23。');
-  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，对应数字 64');
+  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，位权 64');
   await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^切换到/);
 
   await page.goto('/');
@@ -74,7 +74,7 @@ test('where the browser blocks storage, the language goes along to the sources p
   await page.goto('/?lang=zh-CN');
   await page.locator('.site-footer').getByRole('link', { name: '来源与致谢' }).click();
   await expect(page).toHaveURL(/\/sources\.zh-CN\.html$/);
-  await expect(page).toHaveTitle('来源与致谢 – DX 潜影条码解码器');
+  await expect(page).toHaveTitle('来源与致谢 – DX潜影条码解码器');
   await expect(page.locator('h1')).toHaveText('来源与致谢');
   await page.getByRole('navigation', { name: '页面各部分' }).getByRole('link', { name: '原理' }).click();
   await expect(page).toHaveURL(/\/index\.html\?lang=zh-CN#how$/);
@@ -209,7 +209,7 @@ test('every text is looked up as it is drawn, never as a script loads, so a page
   await page.waitForTimeout(500);
   release();
   await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
-  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，对应数字 64');
+  await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，位权 64');
   await page.getByRole('button', { name: 'Kodak BW400CN，画幅 23' }).click();
   await expect(page.locator('#source')).toContainText('示例');
   await page.getByRole('tab', { name: '读取照片' }).click();
@@ -285,7 +285,7 @@ test('a page whose language layer cannot load offers itself in English after 3 s
 test('in Chinese, the cassette numbers of a film are listed the Chinese way', async ({ page }) => {
   await page.goto('/?dx=12-3/1&lang=zh-CN');
   const numbers = page.locator('#result .match__cassette', { hasText: '001950' });
-  await expect(numbers).toHaveText('暗盒条码 001950、701950');
+  await expect(numbers).toHaveText('暗盒编号 001950、701950');
 });
 
 test('a language in the URL that the page does not have is ignored', async ({ page }) => {
@@ -338,7 +338,7 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   await page.goto('/');
   await chooseLanguage(page, '简体中文');
   // Find a film's own texts.
-  await expect(page.locator('#finder .section-lead')).toHaveText('按胶片名称或制造厂搜索，再把它的条码显示在片条上，和你的胶片对照。');
+  await expect(page.locator('#finder .section-lead')).toHaveText('按胶片名称或制造厂搜索，再把它的条码显示在片条上，与胶片实物对照。');
   await expect(page.locator('label[for="finder-q"]')).toHaveText('胶片名称或制造厂');
   await expect(page.locator('#finder-q')).toHaveAttribute('placeholder', '例如 Portra 400、HP5、Fujicolor 200');
   await expect(page.locator('#finder-help')).toHaveText('至少输入两个字符。');
@@ -350,9 +350,9 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   await expect(page.locator('.finder__item').first().locator('.match__name')).toHaveText('HP5 PLUS');
   // Why a row has no code to show.
   for (const [q, why] of [
-    ['klick extra definition', '潜影条码无法表示这个 DX 码。'],
-    ['neopan 400ug', '2008 年时第 1 部分 = 0 没有分配给任何感光厂。'],
-    ['orwopan 25', '很可能只是填充数字：2008 年时第 1 部分 = 0 没有分配给任何感光厂。'],
+    ['klick extra definition', '潜影条码无法表示这个DX码。'],
+    ['neopan 400ug', '2008 年时第 1 部分 = 0 未分配给任何感光厂。'],
+    ['orwopan 25', '很可能只是填充数字：2008 年时第 1 部分 = 0 未分配给任何感光厂。'],
   ]) {
     await page.locator('#finder-q').fill(q);
     await expect(page.locator('.finder__item').first().locator('.match__why')).toHaveText(why);
@@ -376,7 +376,7 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   // A recorded number no film edge can carry, as recorded, marked where it is why the film is listed.
   await page.locator('#cassette-code').fill('037840');
   await page.getByRole('button', { name: '查询' }).click();
-  await expect(page.locator('.cassette__result .match__recorded')).toHaveText('记录的 DX 码：3784');
+  await expect(page.locator('.cassette__result .match__recorded')).toHaveText('记录的DX码：3784');
   await expect(page.locator('.cassette__result .match__recorded mark')).toHaveText('3784');
   // A row only related by digits says so.
   await page.locator('#cassette-code').fill('001742');

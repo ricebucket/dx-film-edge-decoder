@@ -64,7 +64,7 @@ test('the sample photo is read and can be used', async ({ page }) => {
   await expect(found).toContainText('KODAK GOLD 200 Film');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await expect(page.locator('#photo')).toHaveClass(/\bis-folded\b/);
-  await expect(page.locator('#source')).toContainText('From your photo: DX 96-12, frame 14A');
+  await expect(page.locator('#source')).toContainText('From the photo: DX 96-12, frame 14A');
   await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
 });
 
@@ -169,7 +169,7 @@ test('a scratched stop bar does not stick to the strip', async ({ page }, testIn
   await page.locator('#photo-file').setInputFiles(file);
   await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
   // It fails a check, but the strip makes the stop pattern standard: no corrections are promised.
-  await expect(page.locator('.photo__notes')).toContainText('does not pass all checks; compare the result with your film');
+  await expect(page.locator('.photo__notes')).toContainText('does not pass all checks; compare the result with the actual film');
   await expect(page.locator('.photo__notes')).not.toContainText('suggested corrections');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await expect(page.locator('#result .status')).toHaveText('Valid DX code');
@@ -194,7 +194,7 @@ test('a reading that no single bar can correct promises no corrections', async (
   await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
   await page.locator('#photo-file').setInputFiles(file);
   await expect(page.locator('.photo__found')).toContainText('DX 39-1, frame 1');
-  await expect(page.locator('.photo__notes')).toContainText('does not pass all checks; compare the result with your film');
+  await expect(page.locator('.photo__notes')).toContainText('does not pass all checks; compare the result with the actual film');
   await expect(page.locator('.photo__notes')).not.toContainText('suggested corrections');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await expect(page.locator('#result .status')).toHaveText('2 problems to check');
@@ -750,8 +750,6 @@ test('the two ways in are tabs, and the reader marks the step to do next', async
   await expect(steps.nth(2)).toHaveAttribute('aria-current', 'step');
   await expect(steps.nth(0)).toHaveClass(/\bis-done\b/);
   await expect(steps.nth(1)).toHaveClass(/\bis-done\b/);
-  // The empty result below says what to do in this way in.
-  await expect(page.locator('#result-title')).toHaveText('Read a photo of your barcode');
   // Arrow keys move between the tabs, as in any tab list.
   await page.getByRole('tab', { name: 'Read a photo' }).focus();
   await page.keyboard.press('ArrowLeft');
@@ -759,7 +757,6 @@ test('the two ways in are tabs, and the reader marks the step to do next', async
   await expect(page.getByRole('tab', { name: 'Copy the bars' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#way-copy')).toBeVisible();
   await expect(page.locator('#photo')).toBeHidden();
-  await expect(page.locator('#result-title')).toHaveText('Copy the lower row of your barcode');
 });
 
 test('after "Use this code" the photo stays above the strip until another code replaces it', async ({ page }) => {
@@ -767,8 +764,8 @@ test('after "Use this code" the photo stays above the strip until another code r
   await expect(bar).toBeHidden();
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await page.getByRole('button', { name: 'Use this code' }).click();
-  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
-  await expect(bar.getByRole('img', { name: 'Your photo', exact: true })).toBeVisible();
+  await expect(bar).toContainText('From the photo: DX 96-12, frame 14A');
+  await expect(bar.getByRole('img', { name: 'Photo', exact: true })).toBeVisible();
   await expect(page.locator('#strip .strip__photo canvas')).toBeVisible();
   // The reader has folded up into its three steps, all checked off.
   await expect(page.locator('#photo .photo__step.is-done')).toHaveCount(3);
@@ -808,15 +805,15 @@ test('"Open the photo" shows the photo the code came from, also when Undo brings
   await expect(found).toContainText('DX 96-12, frame 14A');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await page.locator('#undo').click();
-  await expect(bar).toContainText('From your photo: DX 79-15, frame 23');
+  await expect(bar).toContainText('From the photo: DX 79-15, frame 23');
   // The folded reader's button brings back that photo, flipped as it was.
   await page.locator('#photo .photo__folded').getByRole('button', { name: 'Open the photo' }).click();
-  await expect(page.locator('.photo__source')).toContainText('Your photo');
+  await expect(page.locator('.photo__source')).toContainText('Selected photo');
   await expect(found).toContainText('DX 79-15, frame 23');
   await expect(page.getByRole('button', { name: 'Flip' })).toHaveAttribute('aria-pressed', 'true');
   // And after Redo, the one above the strip brings back the sample.
   await page.locator('#redo').click();
-  await expect(bar).toContainText('From your photo: DX 96-12, frame 14A');
+  await expect(bar).toContainText('From the photo: DX 96-12, frame 14A');
   await bar.getByRole('button', { name: 'Open the photo' }).click();
   await expect(page.locator('.photo__source')).toContainText('Sample');
   await expect(found).toContainText('DX 96-12, frame 14A');
@@ -845,7 +842,7 @@ test('"Open the photo" brings back the reading on the strip, also from the same 
   await expect(found).toContainText('DX 96-12, frame 14:');
   await use.click();
   await page.locator('#undo').click();
-  await expect(bar).toContainText('From your photo: DX 96-12, frame 15');
+  await expect(bar).toContainText('From the photo: DX 96-12, frame 15');
   await bar.getByRole('button', { name: 'Open the photo' }).click();
   await expect(found).toContainText('DX 96-12, frame 15');
   // Flipped and used again, then undone: the photo opens unflipped, as it was read.
@@ -903,7 +900,7 @@ test('the folded reader shows its steps again once another code, or none, is on 
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await use.click();
   await expect(reader).toHaveClass(/\bis-folded\b/);
-  await expect(reader).toContainText('The code from your photo is on the strip below.');
+  await expect(reader).toContainText('The code from the photo is on the strip below.');
   // Undo takes the photo's code off the strip...
   await page.locator('#undo').click();
   await expect(reader).not.toHaveClass(/\bis-folded\b/);
