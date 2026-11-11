@@ -7,6 +7,23 @@ test.beforeEach(({ page }) => {
 });
 test.afterEach(() => checkConsole());
 
+test('a name that ends in a period closes the sentence, in Chinese as in English', async ({ page }) => {
+  await page.goto('/?dx=2-1/1&lang=zh-CN');
+  await expect(page.locator('#result .result__lead').first()).toHaveText('第 1 部分 = 2 分配给了 KONICA MINOLTA PHOTO IMAGING, INC.');
+  // In a row, where a seller's name comes last.
+  await page.goto('/?dx=8-2/1&lang=zh-CN');
+  await expect(page.locator('#result .match__facts').filter({ hasText: 'Walgreens Co.' }).first()).toHaveText(/Walgreens Co\.$/);
+  await expect(page.locator('#result')).not.toContainText('.。');
+  // A name without one still gets its “。”, and in English nothing changes.
+  await page.goto('/?dx=79-15/23&lang=zh-CN');
+  await expect(page.locator('#result .result__lead').first()).toHaveText(/。$/);
+  await page.goto('/?dx=2-1/1&lang=en');
+  await expect(page.locator('#result .result__lead').first()).toHaveText('Part 1 = 2 is assigned to KONICA MINOLTA PHOTO IMAGING, INC.');
+  // The text in pieces (i18n.parts) goes by the same rule as the text whole (i18n.t).
+  expect(await page.evaluate(() => DX.i18n.parts('{name}。', { name: 'Walgreens Co.' }))).toEqual(['Walgreens Co.']);
+  expect(await page.evaluate(() => DX.i18n.parts('{name}。', { name: 'Fuji' }))).toEqual(['Fuji', '。']);
+});
+
 const chooseLanguage = async (page, name) => {
   await Promise.all([page.waitForEvent('load'), page.getByLabel(/^(Language|语言)$/).selectOption({ label: name })]);
 };
@@ -286,6 +303,32 @@ test('in Chinese, the cassette numbers of a film are listed the Chinese way', as
   await page.goto('/?dx=12-3/1&lang=zh-CN');
   const numbers = page.locator('#result .match__cassette', { hasText: '001950' });
   await expect(numbers).toHaveText('暗盒编号 001950、701950');
+});
+
+test('in Chinese, the code list counts its products in Chinese, and its count takes the same room whether it speaks or not', async ({ page }) => {
+  await page.goto('/?lang=zh-CN');
+  const rows = page.locator('.products-table tbody tr');
+  const count = page.locator('#codes p[aria-live]');
+  await expect(rows).toHaveCount(386);
+  await expect(page.locator('#reference-ui .ref-head > p')).toHaveText('登记产品共 386 个。');
+  await expect(page.locator('#reference-ui .ref-filters label')).toHaveText(['感光厂', '第 1 部分', '2008 年的状态']);
+  await expect(page.locator('#ref-part1 option').first()).toHaveText('全部');
+  await expect(count).toBeEmpty();
+  // A line of Chinese is taller than one of English: the empty line has room for it, so the list below does not move.
+  const room = () => count.evaluate((line) => line.getBoundingClientRect().height);
+  const before = await room();
+  await page.locator('#ref-part1').selectOption('79');
+  await expect(count).toHaveText('显示 8 个登记产品。');
+  expect(await room()).toBe(before);
+  await page.locator('#ref-part1').selectOption('');
+  await page.locator('#ref-status').selectOption('gone');
+  await expect(count).toHaveText('显示 55 个登记产品。');
+  expect(await room()).toBe(before);
+  await page.locator('#ref-maker').selectOption({ label: 'Harman Technologies' });
+  await expect(count).toHaveText('没有符合这些筛选条件的登记产品。');
+  await page.locator('#ref-status').selectOption('');
+  await page.locator('#ref-part1').selectOption('105');
+  await expect(count).toHaveText('没有符合这些筛选条件的登记产品。');
 });
 
 test('a language in the URL that the page does not have is ignored', async ({ page }) => {

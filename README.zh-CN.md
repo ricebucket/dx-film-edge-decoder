@@ -59,7 +59,7 @@ site/                 网页（部署时写入提交编号）
   js/dx-index.js      它们的查找顺序，由 data/ 生成
   js/ui-*.js, app.js  界面
   js/i18n.js, i18n/   界面语言（见下文“语言”）
-data/                 CSV 格式的胶片数据表，见 data/README.md
+data/                 CSV 格式的胶片数据表，见 data/README.zh-CN.md
 research/             关于格式和数据的研究报告
   img/                报告中的图示
 scripts/              数据提取与构建、图示、截图、
@@ -74,7 +74,7 @@ LICENSES/, REUSE.toml 许可证全文，以及每种许可证适用于哪些文�
 ### 测试
 
 ```sh
-npm test            # 单元测试：编解码器、数据、查询、照片读取、语言、图示、视频写入、@phone 标记、链接、部署标记
+npm test            # 单元测试：编解码器、数据、查询、照片读取、语言、图示、视频写入、@phone 标记、链接、部署标记、样式表
 npm run test:e2e    # 浏览器测试：桌面、Android 手机、iPhone
 ```
 

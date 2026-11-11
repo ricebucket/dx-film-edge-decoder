@@ -127,7 +127,7 @@ LICENSES/, REUSE.toml license texts, and which files each one covers
 ### Tests
 
 ```sh
-npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags, links, deploy stamp
+npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags, links, deploy stamp, stylesheet
 npm run test:e2e    # browser tests: desktop, Android phone, iPhone
 ```
 

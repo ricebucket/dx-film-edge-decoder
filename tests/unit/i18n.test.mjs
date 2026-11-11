@@ -189,6 +189,36 @@ describe('interface languages', () => {
   });
 });
 
+describe('the check of the languages itself', () => {
+  const used = new Map([['Hello {name}', { where: 'a.js:1' }], ['{n} films', { where: 'a.js:2' }]]);
+  const check = (strings, more = {}) => checkLanguage({ code: 'de', name: 'Deutsch', strings, ...more }, used, null);
+  const good = { 'Hello {name}': 'Hallo {name}', '{n} films': { one: '{n} Film', other: '{n} Filme' } };
+
+  test('a dictionary in step with the English has no problem', () => {
+    assert.deepEqual(check(good), []);
+  });
+
+  test('it names an English text the language lacks, and a text whose English is gone', () => {
+    const { 'Hello {name}': gone, ...without } = good;
+    assert.equal(gone, 'Hallo {name}');
+    assert.deepEqual(check(without), ['missing: "Hello {name}" (a.js:1)']);
+    assert.deepEqual(check({ ...good, 'Old English': 'Altes Englisch' }), ['not used any more: "Old English"']);
+    // An English text reworded in the code, and its entry left under the old one: both.
+    assert.deepEqual(check({ 'Hi {name}': 'Hallo {name}', '{n} films': good['{n} films'] }), ['missing: "Hello {name}" (a.js:1)', 'not used any more: "Hi {name}"']);
+  });
+
+  test('it names placeholders that differ, an empty text, and plural forms it cannot use', () => {
+    assert.deepEqual(check({ ...good, 'Hello {name}': 'Hallo {who}' }), ['placeholders differ: "Hello {name}" → "Hallo {who}"']);
+    assert.deepEqual(check({ ...good, 'Hello {name}': '  ' }), ['empty text for "Hello {name}"']);
+    assert.deepEqual(check({ ...good, '{n} films': { one: '{n} Film' } }), ['plural forms without "other" for "{n} films"']);
+    assert.deepEqual(check({ ...good, '{n} films': { uno: '{n} Film', other: '{n} Filme' } }), ['unknown plural form "uno" for "{n} films"']);
+  });
+
+  test('a language file must set its code and name', () => {
+    assert.deepEqual(check(good, { name: '' }), ['the file must set code and name']);
+  });
+});
+
 describe('the sources page, written once per language', () => {
   test('every language has its version, in step with the English one', async () => {
     const languages = await loadLanguages();

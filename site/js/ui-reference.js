@@ -1,22 +1,25 @@
 /*
  * The I3A 2008 reference: Part 1 assignments by manufacturer and the full
- * product list, filterable.
+ * product list, filtered by manufacturer, Part 1 number and status.
  */
 (function (root) {
   'use strict';
   const { h } = root.DX.dom;
   const codec = root.DX.codec;
   const ui = root.DX.ui;
-  const t = root.DX.i18n.t;
+  const i18n = root.DX.i18n;
+  const t = i18n.t;
 
   function createReference(host, { lookup, onShow }) {
     const bySensitizer = new Map();
+    const assigned = [];
     const unassigned = [];
     const history = [];
     for (let n = 0; n < 128; n++) {
       const info = lookup.part1Info(n);
       if (info.previously) history.push(info);
       if (info.assigned) {
+        assigned.push(info);
         const list = bySensitizer.get(info.sensitizer) || [];
         list.push(info);
         bySensitizer.set(info.sensitizer, list);
@@ -25,21 +28,41 @@
       }
     }
 
-    const text = h('input', { type: 'search', id: 'ref-q', class: 'input', placeholder: t('Filter products'), autocomplete: 'off' });
-    // autocomplete off, as for the text: a browser that puts back the old
-    // choices when Back loads the page again would not draw the list for them.
+    // autocomplete off: a browser that puts back the old choices when Back
+    // loads the page again would not draw the list for them.
     const maker = h('select', { id: 'ref-maker', class: 'input', autocomplete: 'off' },
       h('option', { value: '' }, t('All manufacturers')),
       lookup.sensitizers.map((s, i) => h('option', { value: String(i) }, s.label)));
+    const part1 = h('select', { id: 'ref-part1', class: 'input', autocomplete: 'off' });
     const status = h('select', { id: 'ref-status', class: 'input', autocomplete: 'off' },
       h('option', { value: '' }, t('Any status')),
       h('option', { value: 'live' }, t('In production in 2008')),
       h('option', { value: 'gone' }, t('Discontinued by 2008')));
-    const part1Filter = { value: null };
-    const count = h('p', { class: 'fineprint', 'aria-live': 'polite', tabindex: '-1' });
-    /** Keyboard focus to the count of the list as filtered, from a control that scrolls there or goes. */
+    /** The manufacturer chosen, or null for all. */
+    const chosenMaker = () => (maker.value === '' ? null : lookup.sensitizers[Number(maker.value)]);
+    /**
+     * The Part 1 numbers to choose from: the chosen manufacturer's, or every
+     * assigned one, as each belongs to one manufacturer. The number chosen
+     * stays while it is among them; another manufacturer's goes.
+     */
+    function listPart1() {
+      const m = chosenMaker();
+      const numbers = assigned.filter((info) => !m || info.sensitizer === m).map((info) => String(info.part1));
+      const kept = numbers.includes(part1.value) ? part1.value : '';
+      part1.replaceChildren(h('option', { value: '' }, t('All')), ...numbers.map((n) => h('option', { value: n }, n)));
+      part1.value = kept;
+    }
+    /** A Part 1 number chosen in the table: of another manufacturer than the one chosen, it sets that choice back to all. */
+    function choosePart1(info) {
+      if (chosenMaker() && chosenMaker() !== info.sensitizer) maker.value = '';
+      listPart1();
+      part1.value = String(info.part1);
+      render();
+    }
+    // The count of the list as filtered; the whole list's is said once, above the filters.
+    const count = h('p', { class: 'fineprint ref-count', 'aria-live': 'polite', tabindex: '-1' });
+    /** Keyboard focus to the count of the list as filtered, from a control that scrolls there. */
     const focusCount = () => count.focus({ preventScroll: true });
-    const clearPart1 = h('button', { type: 'button', class: 'text-button', hidden: true }, t('Show all Part 1 numbers'));
     const tbody = h('tbody');
 
     const numberChip = (info) =>
@@ -50,8 +73,7 @@
           ? t('Part 1 number {n}, APS film: show its products', { n: info.part1 })
           : t('Part 1 number {n}: show its products', { n: info.part1 }),
         onClick: () => {
-          part1Filter.value = info.part1;
-          render();
+          choosePart1(info);
           const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
           document.getElementById('ref-table').scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
           focusCount();
@@ -92,59 +114,42 @@
     }
 
     function render() {
-      // As "Know the number already?" reads it (codec.parseDxNumber):
-      // full-width characters, "DX" in front, any dash, and a DX number in
-      // any form ("79 15", "1279", "012794").
-      const q = text.value.normalize('NFKC').trim().toLowerCase();
-      const typed = q.replace(/^dx[\s\-\u2010-\u2015\u2212]*/, '').replace(/\s*[-\u2010-\u2015\u2212]+\s*/g, '-');
-      // A bare number such as "200" is more likely a film speed than a DX
-      // extract: only "DX 200" or four digits ("1279") are read as one.
-      const read = q ? codec.parseDxNumber(q) : null;
-      const dx = read && (read.kind !== 'extract' || /^dx/.test(q) || /^\d{4}$/.test(q)) ? read : null;
-      // "DX 12" alone means Part 1 = 12, not every number starting with 12.
-      const lone = /^dx[\s\-\u2010-\u2015\u2212]*(\d{1,3})$/.exec(q);
-      const part1Alone = lone && Number(lone[1]) <= 127 ? Number(lone[1]) : null;
-      const m = maker.value === '' ? null : lookup.sensitizers[Number(maker.value)];
+      const m = chosenMaker();
+      const number = part1.value === '' ? null : Number(part1.value);
       const st = status.value;
       const rows = lookup.products
-        .filter((p) => part1Filter.value === null || p.part1 === part1Filter.value)
+        .filter((p) => number === null || p.part1 === number)
         .filter((p) => !m || p.sensitizer === m)
-        .filter((p) => !st || p.status === (st === 'live' ? 'in-use' : 'discontinued'))
-        .filter((p) => !q || (part1Alone !== null ? p.part1 === part1Alone
-          : p.name.toLowerCase().includes(q) || label(p).startsWith(typed)
-            || (dx !== null && p.part1 === dx.part1 && (p.wildcard || p.part2 === dx.part2))));
+        .filter((p) => !st || p.status === (st === 'live' ? 'in-use' : 'discontinued'));
       // In code order, ranked as every list of films is (the lookup's
       // `ranked`): those listed without a Part 2 first under their Part 1,
       // then by name.
       const codeOrder = (p) => -(p.part1 * 17 + (p.part2 === null ? 0 : p.part2 + 1));
       tbody.replaceChildren(...root.DX.createLookup.ranked(rows, codeOrder).map(rowFor));
-      clearPart1.hidden = part1Filter.value === null;
-      const n = { n: rows.length, total: lookup.products.length, part1: part1Filter.value };
-      if (part1Filter.value === null) {
+      // Nothing chosen: the whole list, whose count stands above the filters.
+      // Otherwise how many they leave; the menus themselves say what was chosen.
+      if (number === null && !m && !st) count.textContent = '';
+      else {
         count.textContent = rows.length
-          ? t('{n} of {total} registered products.', n)
+          ? i18n.plural(rows.length, '{n} registered product.', '{n} registered products.')
           : t('No registered products match these filters.');
-      } else {
-        count.textContent = rows.length
-          ? t('{n} of {total} registered products with Part 1 = {part1}.', n)
-          : t('No registered products with Part 1 = {part1} match these filters.', n);
       }
     }
 
-    for (const el of [text, maker, status]) el.addEventListener('input', render);
-    clearPart1.addEventListener('click', () => {
-      part1Filter.value = null;
+    maker.addEventListener('input', () => {
+      listPart1();
       render();
-      focusCount(); // the button is gone
     });
+    for (const el of [part1, status]) el.addEventListener('input', render);
 
     host.replaceChildren(
       h('div', { class: 'table-scroll' }, assignments),
-      h('div', { class: 'ref-filters', id: 'ref-table' },
-        h('div', { class: 'field' }, h('label', { for: 'ref-q' }, t('Product or DX number')), text),
-        h('div', { class: 'field' }, h('label', { for: 'ref-maker' }, t('Manufacturer')), maker),
-        h('div', { class: 'field' }, h('label', { for: 'ref-status' }, t('Status in 2008')), status),
-        clearPart1),
+      h('div', { class: 'ref-head', id: 'ref-table' },
+        h('p', { class: 'fineprint' }, t('{total} registered products in all.', { total: lookup.products.length })),
+        h('div', { class: 'ref-filters' },
+          h('div', { class: 'field' }, h('label', { for: 'ref-maker' }, t('Manufacturer')), maker),
+          h('div', { class: 'field' }, h('label', { for: 'ref-part1' }, t('Part 1')), part1),
+          h('div', { class: 'field' }, h('label', { for: 'ref-status' }, t('Status in 2008')), status))),
       count,
       h('div', { class: 'table-scroll table-scroll--tall' },
         h('table', { class: 'products-table' },
@@ -152,6 +157,7 @@
             h('th', { scope: 'col' }, 'DX'), h('th', { scope: 'col' }, t('Product')), h('th', { scope: 'col' }, t('Manufacturer')),
             h('th', { scope: 'col' }, t('Status')), h('th', { scope: 'col' }, h('span', { class: 'visually-hidden' }, t('Barcode'))))),
           tbody)));
+    listPart1();
     render();
   }
 

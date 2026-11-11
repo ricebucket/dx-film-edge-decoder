@@ -254,9 +254,11 @@
      * (about 0.1 s for 48 megapixels), and other browsers may do both on it,
      * so the page gets a moment between the long steps. A photo replaced
      * meanwhile (`stale`) goes no further. For files that way can't open, an
-     * <img> does it.
+     * <img> does it. An SVG is a drawing, never a photo of film, and one can
+     * be written to take all the memory there is: none is opened.
      */
     async function decode(blob, stale) {
+      if (/^image\/svg/.test(blob.type)) throw new Error('not a photo');
       let full = null;
       try {
         full = await createImageBitmap(blob, { imageOrientation: 'from-image' });
@@ -842,8 +844,9 @@
         find();
       });
     }
-    rotateLeft.addEventListener('click', () => { turns = (turns + 3) % 4; result = null; rebuildView(); find(); });
-    rotateRight.addEventListener('click', () => { turns = (turns + 1) % 4; result = null; rebuildView(); find(); });
+    // The flip comes after the turn (rebuildView): on a flipped photo, the turn the other way is the one that shows as this way.
+    rotateLeft.addEventListener('click', () => { turns = (turns + (flip ? 1 : 3)) % 4; result = null; rebuildView(); find(); });
+    rotateRight.addEventListener('click', () => { turns = (turns + (flip ? 3 : 1)) % 4; result = null; rebuildView(); find(); });
     flipBtn.addEventListener('click', () => {
       flip = !flip;
       flipBtn.setAttribute('aria-pressed', String(flip));
@@ -894,7 +897,10 @@
       || (el.tagName === 'INPUT' && /^(text|search|url|tel|email|password|number)$/.test(el.type)));
     document.addEventListener('paste', (e) => {
       if (section.hidden || typing(e.target)) return;
-      const item = [...(e.clipboardData ? e.clipboardData.items : [])].find((i) => i.type.startsWith('image/'));
+      // The first image that is a file: a drawing program lists a picture's
+      // SVG text, no file, ahead of the picture itself.
+      const images = [...(e.clipboardData ? e.clipboardData.items : [])].filter((i) => i.type.startsWith('image/'));
+      const item = images.find((i) => i.kind === 'file') || images[0];
       if (item) {
         e.preventDefault();
         load({ blob: item.getAsFile() });

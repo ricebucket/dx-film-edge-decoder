@@ -79,8 +79,8 @@ describe('lookup with a fixture', () => {
 
   test('unassigned numbers report their history', () => {
     assert.deepEqual(lookup.part1Info(7), { part1: 7, assigned: false, sensitizer: null, aps: false, previously: 'Old.' });
-    assert.equal(lookup.isKnown(7, 0), false);
-    assert.equal(lookup.isKnown(5, 2), true);
+    assert.deepEqual(lookup.byDx(7, 0).products, []);
+    assert.ok(lookup.byDx(5, 2).products.length > 0);
   });
 
   test('community availability and reliability are decoded, and nothing is added to the rows', () => {
@@ -111,7 +111,6 @@ describe('lookup with a fixture', () => {
     const low = lookup.community.find((c) => c.name === 'Low Number Pan');
     assert.equal(low.part1, null);
     assert.deepEqual(lookup.byDx(0, 5).community, []);
-    assert.equal(lookup.isKnown(0, 5), false);
     assert.deepEqual(lookup.search('0-5'), []);
     assert.deepEqual(lookup.byCassette('000054').exact, [low]);
     assert.equal(lookup.search('low number')[0].entry, low, 'still searchable by name');
@@ -123,7 +122,6 @@ describe('lookup with a fixture', () => {
     assert.ok(found.includes('Shop Brand 200 #cheap'), 'matches the "original film" field');
     assert.deepEqual(names(lookup.search('zed photo')), ['Zed Pan']);
     assert.deepEqual(lookup.search('   '), []);
-    assert.equal(lookup.search('acme', 1).length, 1);
   });
 
   test('byCassette separates exact cassette matches from those where only the roll length differs, those with the same DX digits, and those recorded with them but no cassette number that carries them', () => {
@@ -481,6 +479,39 @@ describe('search, by how well each film matches', () => {
     assert.deepEqual(found('1/125'), ['Acme 1/125']);
     // Words with letters keep their marks optional, as before.
     assert.deepEqual(found('gold 100'), ['Acme Gold 100-2']);
+    // Marks around them are no part of them, as in a sentence: "25-0." is 25-0, not 250.
+    for (const q of ['25-0.', '(25-0)', '“25-0”', '25-0，', '25-0。', '「25-0」']) assert.deepEqual(found(q), ['Acme 25-0'], q);
+    assert.deepEqual(found('100-2,'), ['Acme Gold 100-2']);
+    assert.deepEqual(found('(gold 100-2)'), ['Acme Gold 100-2']);
+    // Letters of another script are no marks.
+    assert.notDeepEqual(found('甲25-0'), found('25-0'));
+  });
+
+  test('digits joined by a mark, outside the name: a whole word first, then the start of one, then inside one', () => {
+    const rows = { source: {}, rows: [row(1, 81, '', 'Aaa Inside', 'XRG200-2'), row(2, 81, '', 'Bbb Start', 'box 200-2N'), row(3, 81, '', 'Ccc Whole', 'sold as 200-2 here')] };
+    const search = createLookup(...built(data, rows)).search;
+    assert.deepEqual(names(search('200-2')), ['Ccc Whole', 'Bbb Start', 'Aaa Inside']);
+  });
+
+  test('a whole word in other fields is one field\'s: words of neighboring fields written together are none', () => {
+    // "foo" ends the name and "bar" starts the note, and the note has "foobar" inside a word: only inside.
+    const rows = { source: {}, rows: [row(1, 81, '', 'Aaa Foo', 'bar xfoobarx'), row(2, 81, '', 'Bbb Start', 'foobarish')] };
+    const search = createLookup(...built(data, rows)).search;
+    assert.deepEqual(names(search('foobar')), ['Bbb Start', 'Aaa Foo']);
+  });
+
+  test('every word somewhere in the name comes before a match in other fields; those typed side by side, before those apart', () => {
+    // All with a note and no certainty, so that only how they match tells them apart; by name alone, they would come in the opposite order.
+    const rows = {
+      source: {},
+      rows: [
+        row(1, 81, '', 'Zzz xquill glossy', 'A note'), // the words as typed, inside the name
+        row(2, 81, '', 'Mmm gloss xquillx', 'A note'), // each word somewhere in the name
+        row(3, 81, '', 'Aaa Other', 'quill gloss'), // only in the note
+      ],
+    };
+    const search = createLookup(...built(data, rows)).search;
+    assert.deepEqual(names(search('quill gloss')), ['Zzz xquill glossy', 'Mmm gloss xquillx', 'Aaa Other']);
   });
 
   test('with other words, digits joined by a mark count as a whole word of the name, or the start of one, as words do', () => {
@@ -496,6 +527,41 @@ describe('search, by how well each film matches', () => {
     // A whole word, the start of one, then inside one; with an en or em dash,
     // a minus sign, a Chinese input method's "——", or full-width signs.
     for (const q of ['200-2', '200–2', '200—2', '200−2', '200——2', '２００－２']) assert.deepEqual(names(search(q)), ['Acme XRG 200-2', 'Acme 200-2N', 'Aaa XRG200-2'], q);
+  });
+
+  test('letters of another script typed against Latin letters or digits are a word of their own, and a word with such letters is matched as typed', () => {
+    // Made-up rows: a name that is also given in Chinese, others with the same number, and a name in Cyrillic.
+    const rows = { source: {}, rows: [row(1, 81, '', 'Acme Color 200 (彩韵200)'), row(2, 81, '', 'Acme 200'), row(3, 81, '', 'Zed Gold 200'), row(4, 81, '', 'Свема 64'), row(5, 81, '', 'Acme 64')] };
+    const search = createLookup(...built(data, rows)).search;
+    const found = (q) => names(search(q));
+    // Not every film with 200: the letters count, before or after the digits or Latin letters they are typed against.
+    for (const q of ['彩韵200', '200彩韵', '彩韵 200', '彩韵acme', 'acme彩韵', '彩韵']) assert.deepEqual(found(q), ['Acme Color 200 (彩韵200)'], q);
+    // Letters that no film has find nothing, as they do typed apart.
+    for (const q of ['柯达200', '柯达 200', '200柯达']) assert.deepEqual(found(q), [], q);
+    // Another alphabet, in either case.
+    for (const q of ['свема64', 'Свема64', '64свема']) assert.deepEqual(found(q), ['Свема 64'], q);
+    // What the split leaves joined to such letters is matched as typed: found as the name has it, not otherwise.
+    assert.deepEqual(found('(彩韵200)'), ['Acme Color 200 (彩韵200)']);
+    assert.deepEqual(found('彩韵-200'), []);
+    // Words of Latin letters and digits are read as before, full-width ones too.
+    assert.deepEqual(found('200').sort(), ['Acme 200', 'Acme Color 200 (彩韵200)', 'Zed Gold 200']);
+    assert.deepEqual(found('acme200'), ['Acme 200']);
+    assert.deepEqual(found('ａｃｍｅ２００'), ['Acme 200']);
+    assert.deepEqual(found('zedgold200'), ['Zed Gold 200']);
+  });
+
+  test('a letter of another script written with a mark of its own (a voiced kana, a vowel sign) is split from what is typed after it, as any other letter is', () => {
+    // Made-up rows: names also given in kana or Devanagari that end in such a letter (ジ is シ and a voicing mark, once taken apart), and others with the same number.
+    const rows = { source: {}, rows: [row(1, 81, '', 'Acme Color 400 (フジ 400)'), row(2, 81, '', 'Acme 400'), row(3, 81, '', 'Zed 400 (コダック 400)'), row(4, 81, '', 'Zed हिंदी 800'), row(5, 81, '', 'Zed 800')] };
+    const search = createLookup(...built(data, rows)).search;
+    const found = (q) => names(search(q));
+    // Together or apart, in either order; half-width, or with its mark typed apart; against Latin letters too.
+    for (const q of ['フジ400', '400フジ', 'フジ 400', 'ﾌｼﾞ400', 'フシ\u3099400', 'フジacme', 'acmeフジ']) assert.deepEqual(found(q), ['Acme Color 400 (フジ 400)'], q);
+    for (const q of ['हिंदी800', '800हिंदी', 'हिंदी 800']) assert.deepEqual(found(q), ['Zed हिंदी 800'], q);
+    // A mark inside the word was never in the way.
+    assert.deepEqual(found('コダック400'), ['Zed 400 (コダック 400)']);
+    // Letters that no film has still find nothing.
+    assert.deepEqual(found('ゴジ400'), []);
   });
 
   test('words that start with "DX" but give no number are searched as words, however "DX" is joined to them', () => {
@@ -563,7 +629,6 @@ describe('the indexes, swept', () => {
       inOrder(hit.community);
       sameRows(hit.related, lookup.community.filter((e) => edge && middleOf(e.full) === n && e.extract !== n));
       inOrder(hit.related);
-      assert.equal(lookup.isKnown(part1, part2), hit.products.length + hit.community.length > 0);
     }
   });
 

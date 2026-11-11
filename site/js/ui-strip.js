@@ -165,7 +165,9 @@
       // The read-only diagram's scroller is no tab stop (Chromium makes scrolling boxes ones).
       const scroller = h('div', { class: 'strip__scroller', tabindex: opts.interactive ? null : '-1' }, h('div', { class: 'strip__canvas' }, photoRow, rulerRow, film, annot));
       const swipe = h('p', { class: 'strip__swipe' }, t('Scroll sideways to see the whole strip.'));
-      const strip = h('div', { class: 'strip', 'data-format': format, style: { '--cells': n } }, h('div', { class: 'strip__viewport' }, scroller), swipe);
+      // As wide as the scroller, and of no height: watched in its place (below).
+      const width = h('div');
+      const strip = h('div', { class: 'strip', 'data-format': format, style: { '--cells': n } }, h('div', { class: 'strip__viewport' }, scroller), width, swipe);
       host.replaceChildren(strip);
 
       // Fade the edges that hide more of the strip on narrow screens.
@@ -178,7 +180,10 @@
       scroller.addEventListener('scroll', overflow, { passive: true });
       if (resizeObserver) resizeObserver.disconnect(); // from the previous layout's strip
       resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(overflow) : null;
-      if (resizeObserver) resizeObserver.observe(scroller);
+      // Not the scroller itself: `is-overflowing` changes its height (a
+      // photo's label goes above the photo), and an observer that resizes
+      // what it watches is reported as an error, a loop.
+      if (resizeObserver) resizeObserver.observe(width);
       requestAnimationFrame(overflow);
 
       if (opts.interactive) bindEvents(data);

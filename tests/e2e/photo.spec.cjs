@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { writeFile, unlink } = require('node:fs/promises');
-const { watchConsole, encodePng } = require('./helpers.cjs');
+const { watchConsole, encodePng, sideOverflow } = require('./helpers.cjs');
 const image = require('../../site/js/dx-image.js');
 
 let checkConsole;
@@ -115,6 +115,20 @@ test('a non-image file is refused politely', async ({ page }, testInfo) => {
   await page.locator('#photo-file').setInputFiles(file);
   await expect(page.locator('.photo__drop')).toBeVisible();
   await expect(page.getByText('That file is not an image.')).toBeVisible();
+});
+
+test('an SVG file is not opened, and a photo chosen after it is read', async ({ page }, testInfo) => {
+  // A drawing of the code that an <img> would show, and the reader would read.
+  const bars = [0, 2, 4, 9, 11, 14, 17].map((x) => `<rect x="${40 + x * 8}" y="60" width="8" height="20"/>`).join('');
+  const buffer = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="150"><rect width="640" height="150" fill="#fff"/>${bars}</svg>`);
+  for (const mimeType of ['image/svg+xml', 'image/svg+xml;charset=utf-8']) {
+    await page.locator('#photo-file').setInputFiles({ name: 'edge.svg', mimeType, buffer });
+    await expect(page.locator('.photo__result'), mimeType).toHaveText('This image could not be opened. Try a JPEG, PNG or WebP file.');
+    await expect(page.locator('.photo__drop')).toBeVisible();
+    await expect(page.locator('.photo__source')).toBeEmpty();
+  }
+  await upload(page, testInfo, { part1: 79, part2: 15, frame: 23, module: 6 }, {});
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
 });
 
 test('a photo of an older 7-bar code switches the strip to that layout', async ({ page }, testInfo) => {
@@ -598,6 +612,24 @@ test('a picture pasted while the Straighten slider has focus is opened', async (
   await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
 });
 
+test('a picture pasted with its SVG text listed before it is opened: the first image that is a file', async ({ page }) => {
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 6 });
+  const png = encodePng(image.compose(syn, {}), syn.width, syn.height);
+  // As a drawing program copies a picture: its SVG text, which is no file, then the picture as a PNG file.
+  const paste = (withFile) => page.evaluate(([bytes, file]) => {
+    const data = new DataTransfer();
+    data.items.add('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="150"/>', 'image/svg+xml');
+    if (file) data.items.add(new File([new Uint8Array(bytes)], 'edge.png', { type: 'image/png' }));
+    document.body.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+    return [...data.items].map((item) => `${item.kind} ${item.type}`);
+  }, [[...png], withFile]);
+  // The text alone gives no file to open.
+  expect(await paste(false)).toEqual(['string image/svg+xml']);
+  await expect(page.locator('.photo__result')).toHaveText('That file is not an image.');
+  expect(await paste(true)).toEqual(['string image/svg+xml', 'file image/png']);
+  await expect(page.locator('.photo__found')).toContainText('DX 79-15, frame 23');
+});
+
 test('a whole photo whose code is cut off says what to look for, as it would for a box', async ({ page }, testInfo) => {
   // 79-15 with a speck in clock gap 22, cut off 3 cells after cell 23: it reads neither way.
   const M = 8;
@@ -925,13 +957,243 @@ test("the photo's barcode lines up over the strip's cells, also mirrored, while 
   const [p, c] = [await photo.boundingBox(), await code.boundingBox()];
   expect(Math.abs(p.x - c.x)).toBeLessThan(1);
   expect(Math.abs(p.width - c.width)).toBeLessThan(1);
-  // Mirrored, the photo turns with the strip, so each cell stays over its own.
+  // Mirrored, which only the Copy tab offers, the photo turns with the strip, so each cell stays over its own.
+  await page.locator('#tab-copy').click();
   await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
   await expect(photo).toHaveCSS('transform', 'matrix(-1, 0, 0, 1, 0, 0)');
+  const [pm, cm] = [await photo.boundingBox(), await code.boundingBox()];
+  expect(Math.abs(pm.x - cm.x)).toBeLessThan(1);
+  expect(Math.abs(pm.width - cm.width)).toBeLessThan(1);
+  // "Photo detail" stays at the left: above the photo, as the room beside it is now at its right.
+  const words = await page.evaluate(() => {
+    const range = document.createRange();
+    range.selectNodeContents(document.querySelector('#strip .strip__photo-label'));
+    return range.getBoundingClientRect().toJSON();
+  });
+  expect(words.bottom).toBeLessThanOrEqual(pm.y + 0.5);
+  expect(Math.abs(words.left - pm.x)).toBeLessThan(1);
   // In the other layout the cells no longer match: the photo goes, the bar stays.
   await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await expect(photo).toBeHidden();
   await expect(page.locator('#source')).toContainText('edited since');
+});
+
+test('Mirror is for copying by hand: with the photo reader open it is hidden and the strip is not mirrored', async ({ page }) => {
+  const mirror = page.locator('#mirror-toggle');
+  const strip = page.locator('#strip .strip');
+  const photo = page.locator('#strip .strip__photo canvas');
+  const copying = page.locator('#tab-copy');
+  const reading = page.locator('#tab-photo');
+  // The reader's tab is open: its photo is turned with Flip, so there is no Mirror.
+  await expect(mirror).toBeHidden();
+  // Chosen for copying, it shows in that tab...
+  await copying.click();
+  await expect(mirror).toBeVisible();
+  await mirror.click();
+  await expect(mirror).toHaveAttribute('aria-pressed', 'true');
+  await expect(strip).toHaveClass(/\bis-mirrored\b/);
+  // ...not with the reader...
+  await reading.click();
+  await expect(mirror).toBeHidden();
+  await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
+  // ...and again back at copying, while no photo is on the strip; over a reload too.
+  await copying.click();
+  await expect(mirror).toHaveAttribute('aria-pressed', 'true');
+  await expect(strip).toHaveClass(/\bis-mirrored\b/);
+  await page.reload();
+  await expect(mirror).toHaveAttribute('aria-pressed', 'true');
+  await expect(strip).toHaveClass(/\bis-mirrored\b/);
+  // A photo's code goes on the strip as it was read.
+  await reading.click();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(photo).toBeVisible();
+  await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
+  await expect(photo).toHaveCSS('transform', 'none');
+  // Back at copying it stays so: with a photo on the strip, Mirror has gone off, for good.
+  await copying.click();
+  await expect(mirror).toBeVisible();
+  await expect(mirror).toHaveAttribute('aria-pressed', 'false');
+  await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
+  await expect(photo).toHaveCSS('transform', 'none');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('dx-prefs')).mirrored)).toBe(false);
+  // Chosen again there, it turns the strip and the photo with it; the reader's tab and back takes it off again.
+  await mirror.click();
+  await expect(strip).toHaveClass(/\bis-mirrored\b/);
+  await expect(photo).toHaveCSS('transform', 'matrix(-1, 0, 0, 1, 0, 0)');
+  await reading.click();
+  await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
+  await copying.click();
+  await expect(mirror).toHaveAttribute('aria-pressed', 'false');
+  await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
+});
+
+test("a 7-bar photo's row lines up over the strip too, mirrored or not, and does not widen the strip", async ({ page }, testInfo) => {
+  await upload(page, testInfo, { part1: 79, part2: 7, format: 'short', module: 8, angle: 1 }, { look: 'negative' });
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  const photo = page.locator('#strip .strip__photo canvas');
+  const code = page.locator('#strip .film__code');
+  await expect(photo).toBeVisible();
+  for (const mirrored of [false, true]) {
+    if (mirrored) {
+      await page.locator('#tab-copy').click(); // Mirror is for copying by hand
+      await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
+    }
+    const [p, c] = [await photo.boundingBox(), await code.boundingBox()];
+    expect(Math.abs(p.x - c.x), `mirrored: ${mirrored}`).toBeLessThan(1);
+    expect(Math.abs(p.width - c.width), `mirrored: ${mirrored}`).toBeLessThan(1);
+    const [canvas, film] = await page.evaluate(() => ['.strip__canvas', '.film'].map((s) => document.querySelector(`#strip ${s}`).getBoundingClientRect().width));
+    expect(Math.abs(canvas - film), `mirrored: ${mirrored}`).toBeLessThan(1);
+  }
+});
+
+test('on a strip that scrolls sideways, "Photo detail" stands above the photo, at its left, where it shows whole', { tag: '@phone' }, async ({ page, isMobile }) => {
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  const strip = page.locator('#strip .strip');
+  await expect(page.locator('#strip .strip__photo canvas')).toBeVisible();
+  const measure = () => page.evaluate(() => {
+    const words = document.createRange();
+    words.selectNodeContents(document.querySelector('#strip .strip__photo-label'));
+    const box = (sel) => document.querySelector(`#strip ${sel}`).getBoundingClientRect().toJSON();
+    return { words: words.getBoundingClientRect().toJSON(), photo: box('.strip__photo canvas'), code: box('.film__code'), view: box('.strip__scroller') };
+  });
+  if (!isMobile) {
+    // A strip that shows whole has room before the code: the label beside the photo.
+    await expect(strip).not.toHaveClass(/\bis-overflowing\b/);
+    const wide = await measure();
+    expect(wide.words.right).toBeLessThanOrEqual(wide.photo.left);
+    expect(wide.words.top).toBeGreaterThan(wide.photo.top);
+    expect(wide.words.bottom).toBeLessThan(wide.photo.bottom);
+    await page.setViewportSize({ width: 390, height: 844 });
+  }
+  await expect(strip).toHaveClass(/\bis-overflowing\b/);
+  for (const mirrored of [false, true]) {
+    if (mirrored) {
+      await page.locator('#tab-copy').click(); // Mirror is for copying by hand
+      await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
+      await expect(strip).toHaveClass(/\bis-mirrored\b/);
+    }
+    const where = `mirrored: ${mirrored}`;
+    // A phone shows the code's start, and all of the label with it. Mirrored,
+    // the code starts at the right and the label stays at the left.
+    if (isMobile && !mirrored) {
+      await expect.poll(async () => {
+        const { words, view } = await measure();
+        return words.left >= view.left && words.right <= view.right;
+      }, where).toBe(true);
+    }
+    const at = await measure();
+    // Above the photo, at its left edge, mirrored or not.
+    expect(at.words.bottom, where).toBeLessThanOrEqual(at.photo.top + 0.5);
+    expect(Math.abs(at.words.left - at.photo.left), where).toBeLessThan(1);
+    // The photo still over its cells.
+    expect(Math.abs(at.photo.x - at.code.x), where).toBeLessThan(1);
+    expect(Math.abs(at.photo.width - at.code.width), where).toBeLessThan(1);
+  }
+  expect(await sideOverflow(page)).toEqual([]);
+});
+
+test('a strip that starts and stops scrolling with a photo\'s row on it raises no error', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'a phone\'s strip always scrolls');
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  const strip = page.locator('#strip .strip');
+  await expect(page.locator('#strip .strip__photo canvas')).toBeVisible();
+  // "Photo detail" goes above the photo and back beside it, which changes the
+  // strip's height: an observer that watched it would loop. Chromium tells
+  // only the window of that, WebKit the console too.
+  await page.evaluate(() => {
+    window.errors = [];
+    addEventListener('error', (e) => window.errors.push(e.message));
+  });
+  for (const width of [900, 1280, 900, 1280]) {
+    await page.setViewportSize({ width, height: 800 });
+    if (width < 1000) await expect(strip).toHaveClass(/\bis-overflowing\b/);
+    else await expect(strip).not.toHaveClass(/\bis-overflowing\b/);
+    // The error would come with the frame that changes the class.
+    await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+  }
+  expect(await page.evaluate(() => window.errors)).toEqual([]);
+});
+
+test('on a flipped photo, Rotate right and Rotate left still turn it that way on screen', async ({ page }, testInfo) => {
+  // A picture with each corner its own color: red, green over blue, yellow.
+  const [w, h] = [300, 200];
+  const corners = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const [r, g, b] = y < h / 2 ? (x < w / 2 ? [255, 0, 0] : [0, 255, 0]) : (x < w / 2 ? [0, 0, 255] : [255, 255, 0]);
+      corners.set([r, g, b, 255], (y * w + x) * 4);
+    }
+  }
+  const file = testInfo.outputPath('corners.png');
+  await writeFile(file, encodePng(corners, w, h));
+  await page.locator('#photo-file').setInputFiles(file);
+  const shown = () => page.locator('.photo__canvas').evaluate((c) => {
+    const g = c.getContext('2d');
+    const name = { '255,0,0': 'R', '0,255,0': 'G', '0,0,255': 'B', '255,255,0': 'Y' };
+    const at = (x, y) => name[[...g.getImageData(x, y, 1, 1).data].slice(0, 3)];
+    return `${at(5, 5)}${at(c.width - 6, 5)} ${at(5, c.height - 6)}${at(c.width - 6, c.height - 6)}`;
+  });
+  await expect.poll(shown).toBe('RG BY');
+  const right = page.getByRole('button', { name: 'Rotate right 90 degrees' });
+  const left = page.getByRole('button', { name: 'Rotate left 90 degrees' });
+  await right.click();
+  await expect.poll(shown).toBe('BR YG');
+  await left.click();
+  await expect.poll(shown).toBe('RG BY');
+  await page.getByRole('button', { name: 'Flip' }).click();
+  await expect.poll(shown).toBe('GR YB');
+  // A quarter turn to the right of what is shown, and back; then one to the left.
+  await right.click();
+  await expect.poll(shown).toBe('YG BR');
+  await left.click();
+  await expect.poll(shown).toBe('GR YB');
+  await left.click();
+  await expect.poll(shown).toBe('RB GY');
+});
+
+test("in Windows contrast themes, the label beside the photo takes the theme's color, and the photo is left as it is", async ({ page, browserName, isMobile }) => {
+  test.skip(browserName !== 'chromium' || isMobile, 'contrast themes are a Windows desktop feature');
+  await page.emulateMedia({ forcedColors: 'active', colorScheme: 'dark' });
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#strip .strip__photo canvas')).toBeVisible();
+  const color = (sel) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).color);
+  expect(await color('#strip .strip__photo-label')).toBe(await color('#strip .bracket__name'));
+});
+
+test('a photo stays in the page: no request carries it, and nothing of it is stored', async ({ page }, testInfo) => {
+  await expect(page.getByRole('button', { name: 'Choose a photo' })).toBeVisible(); // the reader has loaded
+  // With the reader loaded, the page asks for nothing more: any request
+  // counts, the site's own files too, whose address or headers could carry
+  // the photo. (Not what stays in the page: WebKit lists an <img>'s blob:.)
+  const sent = [];
+  page.on('websocket', (socket) => sent.push(`WebSocket ${socket.url()}`));
+  page.on('request', (req) => {
+    const url = new URL(req.url());
+    if (url.protocol === 'blob:' || url.protocol === 'data:') return;
+    sent.push(`${req.method()} ${req.url()}`);
+  });
+  const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 8 });
+  const file = testInfo.outputPath('private-photo-name.png');
+  await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
+  await page.locator('#photo-file').setInputFiles(file);
+  await expect(page.locator('.photo__found')).toBeVisible();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await page.getByRole('button', { name: 'Remove the photo' }).click();
+  await expect(page.locator('#source')).toBeHidden();
+  expect(sent).toEqual([]);
+  const kept = await page.evaluate(async () => ({
+    stored: JSON.stringify([{ ...localStorage }, { ...sessionStorage }, document.cookie]),
+    databases: (await indexedDB.databases()).length,
+    caches: (await caches.keys()).length,
+  }));
+  expect(kept.stored).not.toContain('private-photo-name');
+  // Preferences are a few words; a picture would be far longer.
+  expect(kept.stored.length).toBeLessThan(2000);
+  expect([kept.databases, kept.caches]).toEqual([0, 0]);
 });
 
 test('the reader loads only when wanted: its two scripts come with its tab', async ({ page }) => {
@@ -1102,5 +1364,24 @@ test('while the reader loads the first time, its panel says it is busy', async (
   release();
   await expect(fresh.getByRole('button', { name: 'Try a sample' })).toBeVisible();
   await expect(fresh.locator('#photo')).not.toHaveAttribute('aria-busy', /.*/);
+  await fresh.close();
+});
+
+test('with reduced motion, the line that runs while the reader loads goes slowly', async ({ page }) => {
+  const fresh = await page.context().newPage();
+  await fresh.emulateMedia({ reducedMotion: 'reduce' });
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
+  await fresh.route('**/js/ui-photo.js', async (route) => {
+    await held;
+    await route.continue();
+  });
+  await fresh.goto('/');
+  await fresh.getByRole('tab', { name: 'Read a photo' }).click();
+  await expect(fresh.locator('#photo')).toHaveAttribute('aria-busy', 'true');
+  // It repeats: at the 1 ms that other animations get there, its shade would jump about.
+  expect(await fresh.locator('#photo').evaluate((el) => getComputedStyle(el, '::before').animationDuration)).toBe('3s');
+  release();
+  await expect(fresh.getByRole('button', { name: 'Try a sample' })).toBeVisible();
   await fresh.close();
 });

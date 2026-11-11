@@ -589,6 +589,16 @@ test('focus follows the content it was on: Show barcode, Show all, Undo to anoth
   await expect(dataCell(page, 9)).toBeFocused();
 });
 
+test('focus in the result goes to the status when the result empties, as the status names the section', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Kodak BW400CN, frame 23' }).click();
+  // A button of the result, which goes with the old result; Undo empties the strip.
+  await page.getByRole('button', { name: 'Copy link' }).focus();
+  await page.keyboard.press('Control+z');
+  await expect(page.locator('#result .status')).toHaveText('Waiting for bars');
+  await expect(page.locator('#result-title')).toBeFocused();
+});
+
 test('Undo to the 7-bar layout keeps focus on the strip, also from a cell it does not have', async ({ page }) => {
   await page.goto('/?layout=23');
   await page.locator('[data-control="format"]').getByRole('button', { name: '11 thin bars' }).click();
@@ -738,7 +748,7 @@ test('a modifier key on its own leaves the ruler with the mouse; with another ke
   await dataCell(page, 14).hover();
   await expect(here).toHaveText('14');
   // Shift, as for scrolling the strip sideways with the wheel; Ctrl, Alt or Cmd, as for switching windows.
-  for (const key of ['Shift', 'Control', 'Alt', 'Meta']) {
+  for (const key of ['Shift', 'Control', 'Alt', 'AltGraph', 'Meta']) {
     await page.keyboard.press(key);
     await expect(here, key).toHaveText('14');
   }
@@ -865,6 +875,61 @@ test('a cell selected with the mouse has no keyboard ring until a key is used, a
   await expect(dataCell(page, 12)).toBeFocused();
   await expect(here).toHaveText('12');
   expect(await ringed(12)).toBe(true);
+});
+
+test('selecting one cell after another with the mouse rings none of them, a gap that becomes a bar too, until a key is used', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'phones have no mouse to rest on the strip');
+  // The ring, in the accent color.
+  const ringed = (n) => dataCell(page, n).evaluate((el) => {
+    const probe = document.body.appendChild(document.createElement('span'));
+    probe.style.color = 'var(--accent-strong)';
+    const accent = getComputedStyle(probe).color;
+    probe.remove();
+    return getComputedStyle(el).boxShadow.includes(accent);
+  });
+  const click = async (n) => {
+    const box = await dataCell(page, n).boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  };
+  // A window too narrow for the whole strip, on a page where nothing was
+  // selected before: browsers ring focus a script gives then.
+  await page.setViewportSize({ width: 700, height: 900 });
+  await page.goto('/?dx=79-15/23');
+  await page.locator('#lighttable').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await click(12);
+  await expect(dataCell(page, 12)).toBeFocused();
+  // Another cell, a gap in this code, which the click makes a bar.
+  await expect(dataCell(page, 9)).toHaveAttribute('aria-pressed', 'false');
+  await click(9);
+  await expect(dataCell(page, 9)).toHaveAttribute('aria-pressed', 'true');
+  await expect(dataCell(page, 9)).toBeFocused();
+  expect(await ringed(9)).toBe(false);
+  // It looks like any other bar (cell 10 is one), with the mouse gone from it.
+  await page.mouse.move(5, 5);
+  const shadow = (n) => dataCell(page, n).evaluate((el) => getComputedStyle(el).boxShadow);
+  expect(await shadow(9)).toBe(await shadow(10));
+  await page.keyboard.press(' ');
+  await expect(dataCell(page, 9)).toHaveAttribute('aria-pressed', 'false');
+  await expect.poll(() => ringed(9)).toBe(true);
+});
+
+test("focus that goes with the window comes back as it was: the mouse's, with no ring", async ({ page, isMobile }) => {
+  test.skip(isMobile, 'phones have no mouse to rest on the strip');
+  await page.goto('/?dx=79-15/23');
+  const track = page.locator('#strip .track--data');
+  await dataCell(page, 12).click();
+  await expect(track).toHaveClass(/\bis-clicked\b/);
+  // The window loses focus, as when switching windows: the browser blurs the cell, and the document no longer has focus.
+  await page.evaluate(() => {
+    document.hasFocus = () => false;
+    document.activeElement.blur();
+    delete document.hasFocus;
+  });
+  await expect(track).toHaveClass(/\bis-clicked\b/);
+  // Focus gone elsewhere on the page ends the mouse's.
+  await dataCell(page, 12).focus();
+  await page.locator('#clear').focus();
+  await expect(track).not.toHaveClass(/\bis-clicked\b/);
 });
 
 test('a finger takes the ruler from a resting mouse, as keys do', async ({ page, isMobile }) => {

@@ -108,15 +108,14 @@ function drawPointer() {
 /**
  * Given to the page: a red box around a part of the result, to show where to
  * look, gone at the next click. The parts are the corrections offered, and
- * the film found (its name, the list of films under it, and its DX number and
- * frame).
+ * the film found (its name, DX number and frame). The box is approximate: it
+ * runs through the list of films beside them where that list is longer.
  */
 function defineMarks() {
   const parts = {
     fixes: () => [document.querySelector('#result .fixes')],
     film: () => [
       document.getElementById('result-title'),
-      document.querySelector('#result .result__main .source-block'),
       ...document.querySelectorAll('#result .readouts .readout:nth-child(-n+2)'),
     ],
   };
@@ -127,6 +126,9 @@ function defineMarks() {
     const left = Math.min(...rects.map((r) => r.left)) - pad;
     const right = Math.max(...rects.map((r) => r.right)) + pad;
     const top = Math.min(...rects.map((r) => r.top)) - pad;
+    // A box that starts under the sticky header hides what it marks, such as the film's name: the recording stops.
+    const header = document.querySelector('header');
+    if (header && top < header.getBoundingClientRect().bottom) throw new Error(`the red box around "${name}" starts under the header`);
     const bottom = Math.min(Math.max(...rects.map((r) => r.bottom)) + pad, innerHeight - 6);
     const box = document.createElement('div');
     box.setAttribute('aria-hidden', 'true');

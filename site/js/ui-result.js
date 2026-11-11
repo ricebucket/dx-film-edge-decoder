@@ -138,15 +138,16 @@
     return h('span', { class: `source-tag source-tag--${source}` }, source === 'i3a' ? t('I3A') : t('Community'));
   }
 
-  /** Text and its closing period, unless it ends in one already ("sold by Walgreens Co."), as in i18n's fill(). */
-  const period = (text, mark) => (mark === '.' && text.endsWith('.') ? text : text + mark);
-
-  /** Pieces of text and elements (i18n.parts), joined by `between` and closed by `mark` as period() does. */
+  /**
+   * Pieces of text and elements (i18n.parts), joined by `between` and closed
+   * by `mark`, unless they end in a period already ("sold by Walgreens Co."),
+   * as in i18n's fill().
+   */
   function joined(items, between, mark) {
     const pieces = items.flatMap((item, i) => (i ? [between] : []).concat(item));
     const last = pieces[pieces.length - 1];
     const words = typeof last === 'string' ? last : last.textContent;
-    return mark === '.' && words.endsWith('.') ? pieces : pieces.concat(mark);
+    return words.endsWith('.') ? pieces : pieces.concat(mark);
   }
 
   /**

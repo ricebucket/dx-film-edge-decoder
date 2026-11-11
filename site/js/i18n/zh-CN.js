@@ -114,7 +114,7 @@
     "{extract} = 16 × {cassette} + {part2}: an augmented number, which only cassettes carry.":
       "{extract} = 16 × {cassette} + {part2}：这是只用在暗盒上的增补编号。",
     "Part 1 {cassette} is {part1} + {added}. Part 1 = {part1} is assigned to {maker} in the 2008 registry; under the standard, a maker adds 128, 256 or 384 only to its own Part 1 number. The standard does not say which DX number the film carries.":
-      "第 1 部分 {cassette} 是 {part1} + {added}。在 2008 年登记表中，第 1 部分 = {part1} 分配给了 {maker}；按照标准，感光厂只在自己的第 1 部分编号上加 128、256 或 384。标准没有规定这种暗盒里的胶片带哪个DX码。",
+      "第 1 部分 {cassette} 是 {part1} + {added}。在 2008 年登记表中，第 1 部分 = {part1} 分配给了 {maker}；按照标准，感光厂只在自己的第 1 部分数上加 128、256 或 384。标准没有规定这种暗盒里的胶片带哪个DX码。",
     "Part 1 {cassette} is {part1} + {added}; Part 1 = {part1} was not assigned in the 2008 registry. The standard does not say which DX number the film carries.":
       "第 1 部分 {cassette} 即 {part1} + {added}；在 2008 年登记表中，第 1 部分 = {part1} 未分配。标准没有规定这种暗盒里的胶片带哪个DX码。",
     "Part 1 = {part1} is assigned to {maker}.":
@@ -235,18 +235,16 @@
       "自动识别",
 
     // site/js/ui-reference.js
-    "Filter products":
-      "筛选产品",
     "All manufacturers":
       "所有感光厂",
+    "All":
+      "全部",
     "Any status":
       "任何状态",
     "In production in 2008":
       "2008 年仍在生产",
     "Discontinued by 2008":
       "截至 2008 年已停产",
-    "Show all Part 1 numbers":
-      "显示所有第 1 部分编号",
     "Assigned for APS film":
       "分配给 APS 胶片",
     "Part 1 number {n}, APS film: show its products":
@@ -273,16 +271,12 @@
       "在产",
     "discontinued":
       "停产",
-    "{n} of {total} registered products.":
-      "显示 {n} 个登记产品，共 {total} 个。",
+    "{total} registered products in all.":
+      "登记产品共 {total} 个。",
+    "{n} registered products.":
+      "显示 {n} 个登记产品。",
     "No registered products match these filters.":
-      "没有符合这些筛选条件的产品。",
-    "{n} of {total} registered products with Part 1 = {part1}.":
-      "显示第 1 部分 = {part1} 的登记产品 {n} 个，共 {total} 个。",
-    "No registered products with Part 1 = {part1} match these filters.":
-      "在第 1 部分 = {part1} 的登记产品中，没有符合当前筛选条件的结果。",
-    "Product or DX number":
-      "产品或DX码",
+      "没有符合这些筛选条件的登记产品。",
     "Status in 2008":
       "2008 年的状态",
     "Product":
@@ -386,7 +380,7 @@
     "Copy failed: copy the link below":
       "复制失败：请复制下方的链接",
     "Waiting for bars":
-      "等待填写",
+      "等待填写或读取",
     "Not sure what a barcode looks like? Try an example:":
       "不知道条码长什么样？试试示例：",
     "Only 7 thin bars in the film’s top row?":

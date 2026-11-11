@@ -22,6 +22,7 @@
     "update:community-data": "node scripts/update-community-data.mjs",
     "stats:community-data": "node scripts/community-stats.mjs",
     "check:languages": "node scripts/check-languages.mjs",
+    "check:regressions": "node scripts/check-regressions.mjs",
     "figures": "node scripts/make-figures.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "demo": "node scripts/demo-video.mjs",

@@ -216,6 +216,8 @@ async function main() {
   const rows = lines.filter((r) => !blank(r));
 
   const keep = rows.filter((r) => r[extract].trim() !== '' || r[full].trim() !== '');
+  // A header with no rows under it, or only rows without a number: the snapshot would be replaced with nothing.
+  if (!keep.length) throw new Error(`${url}: no row has a "DX extract" or "DX full" number`);
   const dropPic = (r) => r.filter((_, i) => i !== pic);
   // The rows of the snapshot this replaces, with their IDs, if it has them.
   const path = join(OUT_DIR, 'film_database_dx.csv');

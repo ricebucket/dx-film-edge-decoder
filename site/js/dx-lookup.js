@@ -251,11 +251,6 @@
       };
     }
 
-    function isKnown(part1, part2) {
-      const hit = byDx(part1, part2);
-      return hit.products.length > 0 || hit.community.length > 0;
-    }
-
     /**
      * What a six-digit cassette number matches (see codec.parseCassette): the
      * registry's augmented record of it, and of others with the same middle
@@ -307,7 +302,7 @@
       names = [
         // A registry film's maker by its short name and by the full one its row shows ("Eastman Kodak Company").
         ...[...products, ...augmented].map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.name, p.sensitizer && p.sensitizer.aka])),
-        // Every field the row shows but its numbers, which have lookups of their own.
+        // Its words and years: not its numbers, which have lookups of their own, nor its certainty or availability.
         ...community.map((c) => haystack(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor, c.country, c.from, c.to])),
       ];
       return names;
@@ -324,17 +319,17 @@
      * (byDx, byCassette) that the page offers apart; but digits joined by
      * marks match only as typed (below).
      *
-     * Each result's score is scoreOf, with how well it matches (MATCH, below);
-     * a film found in more than one way keeps its best score.
+     * Each result's score is scoreOf, with how well it matches (MATCH, below).
      */
-    function search(query, limit) {
-      const q = normalize(query).trim();
+    function search(query) {
+      // Digits joined by marks, as in the tokens below, without any marks around them: "(20-0)." is 20-0.
+      const joined = /^\d+(?:[^a-z0-9]+\d+)+$/;
+      const q = normalize(query).trim().replace(/\S+/g, (t) => {
+        const core = t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+        return joined.test(core) ? core : t;
+      });
       if (!q) return [];
-      const found = new Map();
-      const add = (entry, score) => {
-        const known = found.get(entry.id);
-        if (!known || score > known.score) found.set(entry.id, { entry, score });
-      };
+      const found = [];
       const MATCH = { words: 9, starts: 8.5, inName: 8, pieces: 4, elsewhere: 3, elsewhereStarts: 2.5, elsewhereInside: 2 };
       // A token matches the text as typed, part of one word, or the start of
       // neighboring words written together ("tmax" or "tmax400" for "T-MAX 400").
@@ -344,9 +339,15 @@
       // 100-2"), and the start of one where none comes before; "XRG200-2" has
       // "200-2" inside, as "X400" has "400".
       const asTyped = (t, before, after) => new RegExp(`(^|[^${before}])${escapeRegExp(t)}($|[^${after}])`);
-      const tokens = q.split(/\s+/).filter(Boolean).map((t) => (/^\d+(?:[^a-z0-9]+\d+)+$/.test(t)
-        ? { t, typed: asTyped(t, '0-9', '0-9'), word: asTyped(t, 'a-z0-9', 'a-z0-9'), start: asTyped(t, 'a-z0-9', '0-9') }
-        : { t, c: compact(t) || t }));
+      // Letters of another script against Latin letters or digits are two words
+      // ("彩韵200" is 彩韵 and 200), and a word with such letters is matched as
+      // typed: its letters are never dropped, which would leave only "200".
+      // Such a letter's own marks go with it: `normalize` writes ジ as シ and a mark.
+      const other = /[^\P{L}a-z]/u;
+      const tokens = q.replace(/([a-z0-9])([^\P{L}a-z])/gu, '$1 $2').replace(/([^\P{L}a-z]\p{M}*)([a-z0-9])/gu, '$1 $2')
+        .split(/\s+/).filter(Boolean).map((t) => (joined.test(t)
+          ? { t, typed: asTyped(t, '0-9', '0-9'), word: asTyped(t, 'a-z0-9', 'a-z0-9'), start: asTyped(t, 'a-z0-9', '0-9') }
+          : { t, c: other.test(t) ? t : compact(t) || t }));
       const matches = (h, { t, c, typed }) => (typed ? typed.test(h.text) : h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c)));
       for (const h of nameIndex()) {
         if (!tokens.every((k) => matches(h, k))) continue;
@@ -357,10 +358,9 @@
         else if (tokens.every(({ t }) => h.name.includes(t))) match = MATCH.pieces;
         else if (tokens.every(({ c, word }) => (word ? word.test(h.text) : (h.joins || (h.joins = h.fieldWords.flatMap(joinsOf))).includes(c)))) match = MATCH.elsewhere;
         else if (tokens.every(({ c, start }) => (start ? start.test(h.text) : h.runs.some((r) => r.startsWith(c))))) match = MATCH.elsewhereStarts;
-        add(h.entry, scoreOf(h.entry, match));
+        found.push({ entry: h.entry, score: scoreOf(h.entry, match) });
       }
-      const out = ranked([...found.values()], (r) => r.score, (r) => r.entry).map((r) => ({ entry: r.entry }));
-      return limit ? out.slice(0, limit) : out;
+      return ranked(found, (r) => r.score, (r) => r.entry).map((r) => ({ entry: r.entry }));
     }
 
     function stats() {
@@ -395,7 +395,6 @@
       },
       part1Info,
       byDx,
-      isKnown,
       byCassette,
       search,
       stats,

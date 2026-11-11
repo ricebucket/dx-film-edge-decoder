@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { watchConsole, dataCell, setCells } = require('./helpers.cjs');
+const { watchConsole, dataCell, setCells, sideOverflow } = require('./helpers.cjs');
 
 let checkConsole;
 test.beforeEach(async ({ page }) => {
@@ -167,7 +167,7 @@ test('Find a film searches names and makers, not codes: a DX number or a cassett
   const status = page.locator('#finder-help');
   // Digits joined by marks are not run together: 40-0 and 20-0 are not the film speeds 400 and 200.
   // 832973 is an "augmented" cassette number, which gives no DX number.
-  for (const q of ['79-15', 'DX 1279', '002720', '017765', '832973', '40-0', '20-0']) {
+  for (const q of ['79-15', 'DX 1279', '002720', '017765', '832973', '40-0', '20-0', '40-0.', '(20-0)']) {
     await page.locator('#finder-q').fill(q);
     // No advice for a number: fewer words won't find it.
     await expect(status).toHaveText(`Nothing matches “${q}”.`);
@@ -250,6 +250,22 @@ test('search explains when nothing matches', async ({ page }) => {
   await expect(page.locator('#finder-help')).toHaveText('Nothing matches “zzzz not a film”. Try fewer words, or part of the name.');
 });
 
+test('a long word typed in Find a film wraps in the status line, which repeats it, rather than widen a phone\'s page', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.locator('#finder-q').fill('kodak_portra_400_36exp_expired_2004_roll_07_scan_0001_final');
+  await expect(page.locator('#finder-help')).toContainText('Nothing matches');
+  expect(await sideOverflow(page)).toEqual([]);
+});
+
+test('a very long paste is cut short in Find a film, and shows no error', async ({ page }) => {
+  // Digits joined by marks are one word; thousands of them are more than a regular expression can take.
+  const paste = `${'1-'.repeat(20000)}1`;
+  const search = page.locator('#finder-q');
+  await search.fill(paste);
+  await expect(page.locator('#finder-help')).toContainText('Nothing matches');
+  expect((await search.inputValue()).length).toBe(200);
+});
+
 test('a DX number and frame can be entered directly', async ({ page }) => {
   await page.locator('#direct-dx').fill('47-1');
   await page.locator('#direct-frame').fill('22A');
@@ -301,6 +317,9 @@ test('the cassette drawing shows a real cassette: its contact areas, then its ba
   await expect(figure.locator('.cassette-figure__digits')).toHaveText('105514');
   await expect(page.locator('#cassette-code')).toHaveAttribute('placeholder', '105514');
   const drawn = await page.evaluate(() => {
+    const svg = document.querySelector('#cassette .cassette-figure');
+    // As drawn: the page turns the whole drawing, which would tilt what is level here.
+    svg.style.transform = 'none';
     const all = (cls) => [...document.querySelectorAll(`#cassette .cassette-figure__${cls}`)];
     // On screen, as the digits are laid on the cassette's side by a transform.
     const box = (els) => {
@@ -316,7 +335,6 @@ test('the cassette drawing shows a real cassette: its contact areas, then its ba
     };
     const widths = all('bar').map(width);
     const narrow = Math.min(...widths);
-    const svg = document.querySelector('#cassette .cassette-figure');
     const film = all('film')[0];
     return {
       mm: svg.getBoundingClientRect().width / svg.viewBox.baseVal.width,
@@ -343,6 +361,66 @@ test('the cassette drawing shows a real cassette: its contact areas, then its ba
   // The film's perforations are holes, cut out of it: two on each side at least.
   expect(drawn.film.rule).toBe('evenodd');
   expect(drawn.film.rings).toBeGreaterThanOrEqual(5);
+});
+
+test('the cassette drawing lies turned 10° clockwise, its shadow straight below it, and stays inside the page', { tag: '@phone' }, async ({ page, isMobile }) => {
+  const figure = page.locator('#cassette .cassette-figure');
+  await expect(figure).toBeVisible();
+  const measure = () => figure.evaluate((svg) => {
+    const turn = new DOMMatrixReadOnly(getComputedStyle(svg).transform);
+    const box = svg.getBoundingClientRect();
+    const wrap = svg.closest('.wrap');
+    const pad = parseFloat(getComputedStyle(wrap).paddingLeft);
+    const inside = wrap.getBoundingClientRect();
+    const lead = document.querySelector('#cassette .section-lead').getBoundingClientRect();
+    return {
+      degrees: (Math.atan2(turn.b, turn.a) * 180) / Math.PI,
+      scale: Math.hypot(turn.a, turn.b),
+      moved: [turn.e, turn.f],
+      onDrawing: getComputedStyle(svg).filter,
+      onBox: getComputedStyle(svg.parentElement).filter,
+      // The turned drawing's corners, from the edges of the page's text.
+      left: box.left - (inside.left + pad),
+      right: inside.right - pad - box.right,
+      screen: document.documentElement.clientWidth - box.right,
+      underLead: box.top - lead.bottom,
+      aboveForm: document.querySelector('.cassette__form').getBoundingClientRect().top - box.bottom,
+    };
+  });
+  const drawn = await measure();
+  // To three decimal places: the browser gives the turn's sine and cosine to six.
+  expect(drawn.degrees).toBeCloseTo(10, 3);
+  expect(drawn.scale).toBeCloseTo(1, 3);
+  expect(drawn.moved).toEqual([0, 0]);
+  // The shadow is cast by the box around the drawing, which is not turned.
+  expect(drawn.onDrawing).toBe('none');
+  expect(drawn.onBox).toMatch(/^drop-shadow\(.*\b0px 3px 4px\)$/);
+  expect(await sideOverflow(page)).toEqual([]);
+  if (isMobile) {
+    // On its own row: inside the page's side margins, below the lead and above the form.
+    expect(drawn.left).toBeGreaterThanOrEqual(-0.5);
+    expect(drawn.right).toBeGreaterThanOrEqual(-0.5);
+    expect(drawn.underLead).toBeGreaterThan(0);
+    expect(drawn.aboveForm).toBeGreaterThanOrEqual(-0.5);
+  } else {
+    // Beside the text: a corner may reach into the page's margin, never off the screen, also where two columns barely fit.
+    expect(drawn.screen).toBeGreaterThan(0);
+    for (const width of [701, 760, 900]) {
+      await page.setViewportSize({ width, height: 800 });
+      expect((await measure()).screen, `${width} px`).toBeGreaterThan(0);
+      expect(await sideOverflow(page), `${width} px`).toEqual([]);
+    }
+    // On the narrowest phone screens too.
+    for (const width of [320, 360]) {
+      await page.setViewportSize({ width, height: 800 });
+      const narrow = await measure();
+      expect(narrow.left, `${width} px`).toBeGreaterThanOrEqual(-0.5);
+      expect(narrow.right, `${width} px`).toBeGreaterThanOrEqual(-0.5);
+      expect(narrow.underLead, `${width} px`).toBeGreaterThan(0);
+      expect(narrow.aboveForm, `${width} px`).toBeGreaterThanOrEqual(-0.5);
+      expect(await sideOverflow(page), `${width} px`).toEqual([]);
+    }
+  }
 });
 
 test('the cassette drawing sits to the right of the heading, the lead and the form, or between the lead and the form on phones; the results come below', { tag: '@phone' }, async ({ page, isMobile }) => {
@@ -560,7 +638,7 @@ test('a film picked to show its barcode comes first in the result, which names i
   // Typed in, DX 3-9 names its five registry films, which have the same score, by name; picked in the code list, one of them comes first.
   await page.goto('/?dx=3-9/1');
   await expect(title).toHaveText('AGFACHROME CT precisa 100 / AGFACHROME CTX 100 / AGFACHROME RSX 100 Professional / AGFACHROME RSX II 100 Professional / Perutz CR 100 Chrome');
-  await page.locator('#ref-q').fill('Perutz CR 100');
+  await page.locator('#ref-part1').selectOption('3');
   await page.getByRole('button', { name: 'Show the barcode of Perutz CR 100 Chrome' }).click();
   await expect(title).toHaveText('Perutz CR 100 Chrome');
   await expect(rows.first().locator('.match__name')).toHaveText('Perutz CR 100 Chrome');
@@ -967,54 +1045,201 @@ test('Find a film lists every cassette number of films without a DX number, and 
   await expect(page.locator('.finder__item').first()).toContainText('KODAK T-MAX 400 Professional Film');
 });
 
+test('Find a film reads letters of another script typed against digits as a word of their own', async ({ page }) => {
+  const status = page.locator('#finder-help');
+  // What a search says and lists: the box is emptied first, as the reply to one search may read like the last one's.
+  const search = async (q) => {
+    await page.locator('#finder-q').fill('');
+    await expect(status).toHaveText('Type at least two characters.');
+    await page.locator('#finder-q').fill(q);
+    await expect(status).not.toHaveText('Type at least two characters.');
+    return { said: await status.textContent(), films: await page.locator('.finder__item .match__name').allTextContents() };
+  };
+  // A name the database also gives in such letters, with a number right after them: whichever row has one now.
+  const name = await page.evaluate(() => {
+    const { createLookup, data, communityData, index } = window.DX;
+    for (const film of createLookup(data, communityData, index).community) {
+      const m = /([^\P{L}a-zA-Z\u00c0-\u024f]{2,})(\d{2,})/u.exec(film.name);
+      if (m) return { letters: m[1], digits: m[2] };
+    }
+    return null;
+  });
+  expect(name, 'no row has such a name any more: use made-up rows here').not.toBeNull();
+  // The digits alone find many films; with the letters typed apart, only the films that have both.
+  const digits = await search(name.digits);
+  const apart = await search(`${name.letters} ${name.digits}`);
+  expect(apart.said).toMatch(/^\d+ films? found\.$/);
+  expect(apart.films.length).toBeGreaterThan(0);
+  expect(parseInt(apart.said, 10)).toBeLessThan(parseInt(digits.said, 10));
+  // Typed together, in either order, they find the same films. Which comes first is another matter:
+  // a name that has them written together comes before one that has them apart.
+  const films = ({ said, films: names }) => ({ said, films: [...names].sort() });
+  expect(apart.films.length).toBeLessThan(25); // all of them on the first page
+  for (const q of [name.letters + name.digits, name.digits + name.letters]) expect(films(await search(q)), q).toEqual(films(apart));
+  // Letters that no film has find nothing, rather than every film with the number.
+  expect((await search('㐀㐁400')).said).toBe('Nothing matches “㐀㐁400”. Try fewer words, or part of the name.');
+});
+
+test('Find a film\'s box stands under its label, also where the two would fit on one line', async ({ page }) => {
+  // One column from 900 px down: from 780 px up, wider than the label and the box together.
+  for (const width of [390, 780, 820, 900, 1280]) {
+    await page.setViewportSize({ width, height: 800 });
+    const [label, box] = await page.evaluate(() => ['label[for="finder-q"]', '#finder-q'].map((sel) => document.querySelector(sel).getBoundingClientRect().toJSON()));
+    expect(box.top, `${width} px`).toBeGreaterThanOrEqual(label.bottom);
+    expect(Math.abs(box.left - label.left), `${width} px`).toBeLessThan(1);
+  }
+});
+
 test('after Back loads the page again, the code list\'s filters are the ones its list shows', async ({ page }) => {
+  const rows = page.locator('.products-table tbody tr');
+  const count = page.locator('#codes p[aria-live]');
   await page.locator('#ref-maker').selectOption({ label: 'Eastman Kodak' });
+  await page.locator('#ref-part1').selectOption('79');
   await page.locator('#ref-status').selectOption('gone');
-  await expect(page.locator('#codes').getByText(/registered products\.$/)).toHaveText(/^\d+ of 386 registered products\.$/);
-  await expect(page.locator('#codes').getByText(/registered products\.$/)).not.toHaveText('386 of 386 registered products.');
+  await expect(count).toHaveText(/^\d+ registered products\.$/);
+  await expect(rows).not.toHaveCount(386);
   await page.goto('/sources.html');
   await page.goBack();
   await expect(page.locator('#ref-maker')).toHaveValue('');
+  await expect(page.locator('#ref-part1')).toHaveValue('');
   await expect(page.locator('#ref-status')).toHaveValue('');
-  await expect(page.locator('#codes').getByText(/registered products\.$/)).toHaveText('386 of 386 registered products.');
+  // Every Part 1 number is offered again, not Kodak's alone.
+  await expect(page.locator('#ref-part1 option')).toHaveCount(92);
+  await expect(rows).toHaveCount(386);
+  await expect(count).toBeEmpty();
 });
 
 test('the code list names every "Show" with its film, also those of films without a code to show', async ({ page }) => {
-  await page.locator('#ref-q').fill('88-?');
-  await expect(page.locator('.products-table tbody tr')).toHaveCount(4);
+  // Shanghai's four brands, listed without a Part 2, which their rows say.
+  await page.locator('#ref-part1').selectOption('88');
+  const rows = page.locator('.products-table tbody tr');
+  await expect(rows).toHaveCount(4);
+  await expect(rows.locator('td.num')).toHaveText(['88-?', '88-?', '88-?', '88-?']);
+  await expect(rows.first().locator('.products-table__why')).toHaveText('Part 2 not identified in the registry');
   for (const name of ['RAINBOW', 'SEAGULL', 'SHANGHAI', 'SHENGUANG']) {
     await expect(page.getByRole('button', { name: `Show the barcode of ${name}`, exact: true })).toBeDisabled();
   }
 });
 
-test('the code list takes a bare film speed as part of a name, not as a DX number', async ({ page }) => {
-  await page.locator('#ref-q').fill('200');
-  const rows = page.locator('.products-table tbody tr');
-  await expect(rows.first()).toBeVisible();
-  expect(await rows.locator('td:nth-child(2)').allTextContents()).toEqual(expect.arrayContaining([expect.stringContaining('200')]));
-  expect((await rows.locator('td:first-child').allTextContents()).includes('12-8')).toBe(false);
+test('the code list has no text box: films are searched in Find a film, and the list is filtered by its three menus', async ({ page }) => {
+  await expect(page.locator('#reference-ui .assign-table')).toBeVisible();
+  await expect(page.locator('#reference-ui input')).toHaveCount(0);
+  await expect(page.locator('#reference-ui .ref-filters label')).toHaveText(['Manufacturer', 'Part 1', 'Status in 2008']);
+  await expect(page.locator('#reference-ui .ref-filters select')).toHaveCount(3);
+  // No button of its own shows every Part 1 number again: the menu's first choice does.
+  await expect(page.locator('#reference-ui .ref-filters button')).toHaveCount(0);
+  await expect(page.locator('#ref-part1 option').first()).toHaveText('All');
 });
 
-test('the code list reads a DX number however it is written, and a Part 1 alone', async ({ page }) => {
+test('the code list\'s Part 1 menu and its manufacturer menu always go together', async ({ page }) => {
   const rows = page.locator('.products-table tbody tr');
-  for (const q of ['７９－１５', '79–15', '79 15', '1279', 'DX 79-15', 'DX-79-15']) {
-    await page.locator('#ref-q').fill(q);
-    await expect(rows.first().locator('td').first(), q).toHaveText('79-15');
+  const count = page.locator('#codes p[aria-live]');
+  const maker = page.locator('#ref-maker');
+  const part1 = page.locator('#ref-part1');
+  const numbers = () => part1.locator('option').evaluateAll((options) => options.slice(1).map((o) => Number(o.value)));
+  // Every assigned number at first, in order, each one a button in the table of manufacturers.
+  await expect(page.locator('.assign-table .num-chip')).toHaveCount(91); // the list is built once the page is drawn
+  const chips = await page.locator('.assign-table .num-chip').evaluateAll((buttons) => buttons.map((b) => Number(b.dataset.part1)).sort((a, b) => a - b));
+  expect(await numbers()).toEqual(chips);
+  // A manufacturer chosen: its own numbers only, those of its row in the table.
+  const rowOf = (name) => page.locator('.assign-table tbody tr').filter({ has: page.locator('th', { hasText: name }) }).locator('.num-chip').evaluateAll((buttons) => buttons.map((b) => Number(b.dataset.part1)));
+  await maker.selectOption({ label: 'Harman Technologies' });
+  expect(await numbers()).toEqual(await rowOf('Harman Technologies'));
+  expect(await numbers()).toEqual([105, 106, 107, 108, 109, 110]);
+  await expect(part1).toHaveValue('');
+  await expect(rows).toHaveCount(29);
+  await expect(count).toHaveText('29 registered products.');
+  // One of them chosen stays when its manufacturer is chosen again, or all of them.
+  await part1.selectOption('109');
+  await expect(rows).toHaveCount(15);
+  await maker.selectOption('');
+  await expect(part1).toHaveValue('109');
+  expect(await numbers()).toEqual(chips);
+  await expect(rows).toHaveCount(15);
+  await maker.selectOption({ label: 'Harman Technologies' });
+  await expect(part1).toHaveValue('109');
+  await expect(rows).toHaveCount(15);
+  // Another manufacturer: the number goes, as it is not one of its own, and the menu shows its first choice again.
+  await maker.selectOption({ label: 'Eastman Kodak' });
+  await expect(part1).toHaveValue('');
+  await expect(part1.locator('option:checked')).toHaveText('All');
+  expect(await numbers()).toEqual(await rowOf('Eastman Kodak'));
+  await expect(rows).toHaveCount(91);
+  await expect(count).toHaveText('91 registered products.');
+  // A number of another manufacturer chosen in the table: the manufacturer goes back to all.
+  await page.getByRole('button', { name: 'Part 1 number 109: show its products' }).click();
+  await expect(maker).toHaveValue('');
+  await expect(part1).toHaveValue('109');
+  expect(await numbers()).toEqual(chips);
+  await expect(rows).toHaveCount(15);
+  // One of the manufacturer chosen: it stays.
+  await maker.selectOption({ label: 'Harman Technologies' });
+  await page.getByRole('button', { name: 'Part 1 number 108: show its products' }).click();
+  await expect(maker).toHaveValue(await maker.locator('option', { hasText: 'Harman Technologies' }).getAttribute('value'));
+  await expect(part1).toHaveValue('108');
+  await expect(rows).toHaveCount(10);
+  // Whatever the two menus say, every row listed is of that manufacturer and has that number.
+  // (Numbers with products: one without lists no row to look at.)
+  for (const [label, n] of [['FUJIFILM Corporation', '12'], ['KONICA MINOLTA', '50'], ['Agfa-Gevaert', '45']]) {
+    await maker.selectOption({ label });
+    await part1.selectOption(n);
+    const listed = await rows.evaluateAll((trs) => trs.map((tr) => [tr.children[0].textContent.split('-')[0], tr.children[2].textContent]));
+    expect(listed.length, `${label}, ${n}`).toBeGreaterThan(0);
+    expect(listed.every(([number, name]) => number === n && name === label), `${label}, ${n}`).toBe(true);
   }
-  // Shanghai's four brands, listed without a Part 2, which their rows say.
-  await page.locator('#ref-q').fill('88-?');
-  await expect(rows).toHaveCount(4);
-  await expect(rows.first().locator('.products-table__why')).toHaveText('Part 2 not identified in the registry');
-  // A Part 1 alone is that Part 1, not every number starting with it.
-  await page.locator('#ref-q').fill('DX 12');
-  await expect(rows.first().locator('td.num')).toHaveText(/^12-/);
-  expect(new Set(await rows.locator('td.num').evaluateAll((cells) => cells.map((c) => c.textContent.split('-')[0])))).toEqual(new Set(['12']));
-  // With or without a dash after "DX".
-  await page.locator('#ref-q').fill('DX 79');
-  const all79 = await rows.count();
-  expect(all79).toBeGreaterThan(1);
-  await page.locator('#ref-q').fill('DX-79');
-  await expect(rows).toHaveCount(all79);
+});
+
+test('with the text half as large again, the code list\'s menus are no wider than a 320 px screen', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await expect(page.locator('.products-table tbody tr')).toHaveCount(386); // the list is built once the page is drawn
+  // As with a browser set to a 24 px default font size: a menu is as wide as its longest choice, unless that is wider than its row.
+  await page.evaluate(() => { document.documentElement.style.fontSize = '24px'; });
+  const past = await page.locator('#reference-ui .ref-filters').evaluate((row) => [...row.querySelectorAll('select')]
+    .map((menu) => Math.round(menu.getBoundingClientRect().right - row.getBoundingClientRect().right)).filter((by) => by > 0));
+  expect(past).toEqual([]);
+  // … and with them the page.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
+});
+
+test('the code list counts what its filters leave, and the whole list once, above them', async ({ page }) => {
+  const rows = page.locator('.products-table tbody tr');
+  const count = page.locator('#codes p[aria-live]');
+  const total = page.locator('#reference-ui .ref-head > p');
+  // Nothing chosen: the whole list, counted once.
+  await expect(rows).toHaveCount(386);
+  await expect(total).toHaveText('386 registered products in all.');
+  await expect(count).toBeEmpty();
+  expect(await page.locator('#codes').getByText('386').count()).toBe(1);
+  // The count of the list as filtered keeps its line, so the list does not move when it speaks.
+  const top = () => page.locator('.products-table').evaluate((table) => table.getBoundingClientRect().top + scrollY);
+  const before = await top();
+  await page.locator('#ref-part1').selectOption('79');
+  await expect(count).toHaveText('8 registered products.');
+  expect(await top()).toBe(before);
+  // The line names no Part 1 number or manufacturer: the menus above it show them.
+  await expect(count).not.toContainText('79');
+  await expect(page.locator('#ref-part1 option:checked')).toHaveText('79');
+  // One film is one product, whichever menu leaves it.
+  await page.locator('#ref-part1').selectOption('9');
+  await expect(count).toHaveText('1 registered product.');
+  await page.locator('#ref-part1').selectOption('');
+  await page.locator('#ref-maker').selectOption({ label: 'ERA Photo' });
+  await expect(count).toHaveText('1 registered product.');
+  // A number assigned with no product listed, and a status no product of a manufacturer has.
+  await page.locator('#ref-maker').selectOption({ label: 'Eastman Kodak' });
+  await page.locator('#ref-part1').selectOption('13');
+  await expect(rows).toHaveCount(0);
+  await expect(count).toHaveText('No registered products match these filters.');
+  await page.locator('#ref-maker').selectOption({ label: 'Harman Technologies' });
+  await page.locator('#ref-status').selectOption('live');
+  await expect(rows).toHaveCount(0);
+  await expect(count).toHaveText('No registered products match these filters.');
+  // The whole list's count stays as it is throughout.
+  await expect(total).toHaveText('386 registered products in all.');
+  await page.locator('#ref-maker').selectOption('');
+  await page.locator('#ref-status').selectOption('');
+  await expect(rows).toHaveCount(386);
+  await expect(count).toBeEmpty();
 });
 
 test('the cassette helper shows whose Part 1 an augmented number adds to, without claiming the cassette for that maker', async ({ page }) => {
@@ -1104,19 +1329,49 @@ test('the code list filters by Part 1 number, and keyboard focus goes to what it
   await expect(rows).toHaveCount(386);
   await page.getByRole('button', { name: 'Part 1 number 109: show its products' }).click();
   await expect(rows).toHaveCount(15);
-  await expect(count).toHaveText('15 of 386 registered products with Part 1 = 109.');
+  await expect(count).toHaveText('15 registered products.');
   await expect(count).toBeFocused();
-  await page.getByRole('button', { name: 'Show all Part 1 numbers' }).click();
-  await expect(count).toBeFocused(); // the button is gone
+  // The menu above the list shows the number chosen in the table, and shows every number again.
+  const menu = page.locator('#ref-part1');
+  await expect(menu).toHaveValue('109');
+  await expect(menu.locator('option:checked')).toHaveText('109');
+  await menu.selectOption({ label: 'All' });
+  await expect(rows).toHaveCount(386);
+  await expect(count).toBeEmpty();
   // The status the registry states: Harman's section and Agfa's first list state none.
   await page.locator('#ref-status').selectOption('live');
   await expect(rows).toHaveCount(163);
+  await expect(count).toHaveText('163 registered products.');
   await page.locator('#ref-status').selectOption('gone');
   await expect(rows).toHaveCount(55);
   await page.locator('#ref-status').selectOption('');
-  await page.locator('#ref-q').fill('109-7');
-  await expect(rows).toHaveCount(1);
-  await expect(rows.first().locator('.pill')).toHaveCount(0);
+  await menu.selectOption('109');
+  const hp5 = rows.filter({ has: page.locator('td.num', { hasText: /^109-7$/ }) });
+  await expect(hp5).toHaveCount(1);
+  await expect(hp5.locator('.pill')).toHaveCount(0);
+});
+
+test('a Part 1 number chosen in the table of manufacturers brings the head of the list into view, clear of the header, at once under reduced motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const total = page.locator('#reference-ui .ref-head > p');
+  const count = page.locator('#codes p[aria-live]');
+  // The table's first number, the farthest from the list.
+  const chip = page.locator('.assign-table .num-chip').first();
+  await chip.scrollIntoViewIfNeeded();
+  await expect(page.locator('#ref-maker')).not.toBeInViewport();
+  // No smooth scrolling to wait for: the page has moved by the time the click is over.
+  const moved = await chip.evaluate((button) => {
+    const from = scrollY;
+    button.click();
+    return scrollY - from;
+  });
+  expect(moved).toBeGreaterThan(0);
+  await expect(count).toBeFocused();
+  await expect(page.locator('#ref-part1')).toHaveValue(await chip.getAttribute('data-part1'));
+  // The whole count, the three menus and the count of what is listed, below the header.
+  for (const part of [total, page.locator('#ref-maker'), page.locator('#ref-part1'), page.locator('#ref-status'), count]) await expect(part).toBeInViewport({ ratio: 1 });
+  const [top, headerBottom] = await total.evaluate((line) => [line.getBoundingClientRect().top, document.querySelector('.site-header').getBoundingClientRect().bottom]);
+  expect(top).toBeGreaterThanOrEqual(headerBottom);
 });
 
 test('a registry film is said to be in production in 2008, or discontinued, only where the registry says so', async ({ page }) => {
@@ -1206,7 +1461,7 @@ test('a shown code says where it came from, with a way back there', async ({ pag
   await expect(bar).toContainText('From the code list:');
   await bar.getByRole('button', { name: 'Back to the code list' }).click();
   await expect(listed).toBeFocused();
-  await page.locator('#ref-q').fill('fp4');
+  await page.locator('#ref-maker').selectOption({ label: 'Harman Technologies' });
   await bar.getByRole('button', { name: 'Back to the code list' }).click();
   await expect(page.locator('#codes-title')).toBeFocused();
 
@@ -1252,9 +1507,11 @@ test('Back comes to the button used last, also when it showed the same code agai
   await expect(row).toBeFocused();
   // The code list: the same film's "Show" after another filter.
   const listed = page.locator('.products-table tbody tr').first().getByRole('button');
-  await page.locator('#ref-q').fill('fp4');
+  await page.locator('#ref-maker').selectOption({ label: 'Harman Technologies' });
+  await expect(listed).toHaveAccessibleName('Show the barcode of H 125');
   await listed.click();
-  await page.locator('#ref-q').fill('fp4 plus');
+  await page.locator('#ref-part1').selectOption('108');
+  await expect(listed).toHaveAccessibleName('Show the barcode of H 125');
   await listed.click();
   await back('Back to the code list');
   await expect(listed).toBeFocused();

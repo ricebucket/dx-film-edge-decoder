@@ -40,6 +40,12 @@
   // the strip; kept in the URL (&film=) and by Undo.
   const state = { format: 'long', cells: emptyCells('long'), loaded: false, mirrored: false, look: 'negative', picked: [] };
   const isEmpty = () => !state.loaded && state.cells === emptyCells(state.format);
+  // Mirror is for copying by hand. The photo reader turns the photo itself
+  // (Flip), so while its tab is open the strip is not mirrored and the button
+  // is hidden; the choice made for copying shows again in that tab (setWay).
+  const mirrored = () => state.mirrored && way !== 'photo';
+  // A photo's barcode lines up over the strip only in the layout it was read in.
+  const photoOnStrip = () => Boolean(origin && origin.lined && origin.format === state.format);
   const past = [];
   const future = [];
 
@@ -221,13 +227,12 @@
     const focusedCell = $('strip').contains(focused) ? focused.dataset.cell : undefined;
     const focusedBar = $('source').contains(focused);
     const decoded = codec.decode(state.cells, state.format);
-    // A photo's barcode lines up over the strip only in the layout it was read in.
-    const lined = origin && origin.lined && origin.format === state.format ? origin.lined : null;
-    strip.render(Object.assign({}, state, { decoded, empty: isEmpty(), photo: lined }));
+    const lined = photoOnStrip() ? origin.lined : null;
+    strip.render(Object.assign({}, state, { mirrored: mirrored(), decoded, empty: isEmpty(), photo: lined }));
     if (options && options.develop) strip.develop();
     setPressed(document.querySelector('[data-control="format"]'), state.format);
     setPressed(document.querySelector('[data-control="look"]'), state.look);
-    $('mirror-toggle').setAttribute('aria-pressed', String(state.mirrored));
+    $('mirror-toggle').setAttribute('aria-pressed', String(mirrored()));
     for (const b of document.querySelectorAll('.inline-button')) b.setAttribute('aria-pressed', $(b.dataset.for).getAttribute('aria-pressed'));
     // aria-disabled rather than disabled, so keyboard focus stays on the button.
     $('undo').setAttribute('aria-disabled', String(past.length === 0));
@@ -424,7 +429,19 @@
 
   /** Show the steps for copying by hand, or the photo reader, above the strip. */
   function setWay(next, options) {
+    const was = way;
     way = next;
+    $('mirror-toggle').hidden = way === 'photo';
+    // A mirrored strip turns as the reader's tab opens or closes (`mirrored`).
+    if (state.mirrored && (was === 'photo') !== (way === 'photo')) {
+      // Back at copying, a strip that carries a photo stays as the reader
+      // showed it: Mirror goes off, until it is chosen again.
+      if (way !== 'photo' && photoOnStrip()) {
+        state.mirrored = false;
+        savePrefs();
+      }
+      update();
+    }
     for (const tab of document.querySelectorAll('.ways [role="tab"]')) {
       const on = tab.id === `tab-${way}`;
       tab.setAttribute('aria-selected', String(on));

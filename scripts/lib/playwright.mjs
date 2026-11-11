@@ -35,7 +35,7 @@ export function findPlaywright() {
   const nodeModules = candidates().find((dir) => existsSync(join(dir, '@playwright', 'test', 'cli.js')));
   if (!nodeModules) {
     console.error([
-      'Playwright was not found. It is not a dependency of this project; install it once on your machine:',
+      'Playwright was not found. It is not a dependency of this project; install it once:',
       '  npm install -g @playwright/test @axe-core/playwright',
       '  npx playwright install --with-deps chromium webkit',
       'or set PLAYWRIGHT_DIR to a node_modules folder that contains @playwright/test.',

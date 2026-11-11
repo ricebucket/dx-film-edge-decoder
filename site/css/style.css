@@ -1382,14 +1382,25 @@ h1 {
   padding-right: var(--label-w);
 }
 
+/* Mirrored, the room beside the photo is at its right. "Photo detail" stays
+   at the left all the same: above the photo. */
 .strip.is-mirrored .strip__photo {
-  flex-direction: row-reverse;
+  flex-wrap: wrap;
+  padding-left: var(--tail-w);
+  padding-right: var(--label-w);
 }
 
 .strip.is-mirrored .strip__photo-label {
-  padding-right: 0;
-  padding-left: 10px;
+  width: 0;
+  min-width: 100%;
+  padding: 0 0 4px;
   text-align: left;
+}
+
+/* The 23-cell photo is wider than the room between its row's paddings (below):
+   mirrored, it starts from the right, to stay over its cells. */
+.strip[data-format="short"].is-mirrored .strip__photo {
+  flex-direction: row-reverse;
 }
 
 /* With no room before a 23-cell code, "Photo detail" goes above the photo. */
@@ -1399,7 +1410,29 @@ h1 {
 }
 
 .strip[data-format="short"] .strip__photo-label {
-  width: 100%;
+  /* As wide as the row, but its text doesn't count toward the row's width:
+     that would widen the strip and, mirrored, move the photo off its cells. */
+  width: 0;
+  min-width: 100%;
+  padding: 0 0 4px;
+  text-align: left;
+}
+
+/* A strip that scrolls sideways: "Photo detail" above the photo, at its left. */
+.strip.is-overflowing .strip__photo {
+  flex-wrap: wrap;
+  padding-left: var(--label-w);
+  padding-right: var(--tail-w);
+}
+
+.strip.is-overflowing.is-mirrored .strip__photo {
+  padding-left: var(--tail-w);
+  padding-right: var(--label-w);
+}
+
+.strip.is-overflowing .strip__photo-label {
+  width: 0;
+  min-width: 100%;
   padding: 0 0 4px;
   text-align: left;
 }
@@ -1521,8 +1554,10 @@ h1 {
   to { background-position: 160% 0, 0 0; }
 }
 
+/* Slower under reduced motion, and not the 1 ms that every other animation
+   gets there (below): at that pace one that repeats flickers. */
 @media (prefers-reduced-motion: reduce) {
-  .photo[aria-busy="true"]:empty::before { animation-duration: 3s; }
+  .photo[aria-busy="true"]:empty::before { animation-duration: 3s !important; }
 }
 
 .photo.is-dragging {
@@ -2342,6 +2377,7 @@ thead th {
 }
 
 .input--search {
+  display: block; /* under its label, also where the two would fit on one line */
   width: 100%;
   max-width: 34rem;
   font-size: 1.05rem;
@@ -2399,6 +2435,7 @@ thead th {
   margin-top: 12px;
   font-size: 0.9rem;
   color: var(--ink-2);
+  overflow-wrap: anywhere; /* it repeats what was typed */
 }
 
 .finder__results {
@@ -2460,15 +2497,22 @@ thead th {
 .cassette > h2 { grid-area: title; }
 .cassette > .section-lead { grid-area: lead; }
 .cassette__form { grid-area: form; }
-.cassette__figure { grid-area: figure; }
 .cassette__result { grid-area: result; }
+
+/* The drawing lies turned 10° clockwise, as a cassette set down does. Its
+   shadow still falls straight down: it is cast by this box, not by the
+   drawing, which would turn it too. */
+.cassette__figure {
+  grid-area: figure;
+  filter: drop-shadow(0 3px 4px var(--cassette-drop));
+}
 
 .cassette-figure {
   display: block;
   width: 100%;
   height: auto;
   forced-color-adjust: none;
-  filter: drop-shadow(0 3px 4px var(--cassette-drop));
+  transform: rotate(10deg);
 }
 
 .cassette-figure__paint { fill: var(--cassette-paint); }
@@ -2520,9 +2564,13 @@ thead th {
       "result";
   }
 
+  /* Turned, the drawing reaches 11 px past its box on the left, 15 px above
+     it and 2 px below (6 px with its shadow), and stays inside it on the
+     right. These margins keep it inside the page's side margin and clear of
+     the lead and the form. */
   .cassette__figure {
     max-width: 260px;
-    margin-bottom: 18px;
+    margin: 17px 0 22px 12px;
   }
 }
 
@@ -2578,13 +2626,34 @@ thead th {
   color: var(--ink-2);
 }
 
+/* Above the product list: the count of the whole list, then the filters. A
+   Part 1 number chosen in the table of manufacturers scrolls here. */
+.ref-head {
+  margin: 36px 0 10px;
+  scroll-margin-top: 80px;
+}
+
 .ref-filters {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 12px 16px;
-  margin: 36px 0 10px;
-  scroll-margin-top: 80px;
+  margin-top: 10px;
+}
+
+/* A menu is as wide as its longest choice, but no wider than its row: with
+   the visitor's text enlarged, it would be wider than a phone's screen. */
+.ref-filters .field,
+.ref-filters .input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* The count of the list as filtered keeps its line while nothing is chosen
+   and it is empty, so that the list below stays where it is: a line is
+   1.55em tall, and 1.7em in Chinese (the page's line heights). */
+.ref-count {
+  min-height: 1.8em;
 }
 
 /* ---- explainer prose --------------------------------------------------------------------- */
@@ -2829,7 +2898,7 @@ thead th {
   *::after {
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
-    transition-duration: 1ms !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }
@@ -2868,6 +2937,13 @@ thead th {
     overflow: visible;
   }
 
+  /* The edge fades are the screen's: a strip that scrolled there prints
+     whole, and they would print as white bands over its film. */
+  .strip__viewport::before,
+  .strip__viewport::after {
+    display: none;
+  }
+
   /* Focus is the screen's: on paper, no cell is selected. */
   .cell--edit:focus-visible {
     box-shadow: inset 0 0 0 1px var(--film-guide);
@@ -2887,7 +2963,6 @@ thead th {
    open controls in the theme's highlight color. */
 @media (forced-colors: active) {
   .film,
-  .strip__photo,
   .looks__film {
     forced-color-adjust: none;
   }

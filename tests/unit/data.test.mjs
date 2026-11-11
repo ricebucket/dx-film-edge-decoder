@@ -451,8 +451,9 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
       writeFileSync(join(dir, 'fetch.mjs'), `globalThis.fetch = ${fetchCode ?? `async () => ({ ok: true, text: async () => ${JSON.stringify(text)} })`};\n`);
       const run = spawnSync(process.execPath, ['--import', pathToFileURL(join(dir, 'fetch.mjs')).href, join(dir, 'scripts', 'update-community-data.mjs')], { encoding: 'utf8' });
       const written = readFileSync(join(out, 'film_database_dx.csv'), 'utf8');
+      const source = readFileSync(join(out, 'source.json'), 'utf8');
       // `said`: its first two lines, what it kept and what it did to the IDs.
-      return { status: run.status, error: run.stderr, said: run.stdout.split('\n').slice(0, 2), unchanged: written === snapshot, get ids() { return parseCsv(written, ';').slice(1).map((r) => r[0]); } };
+      return { status: run.status, error: run.stderr, said: run.stdout.split('\n').slice(0, 2), unchanged: written === snapshot, get rowsUpstream() { return JSON.parse(source).rowsUpstream; }, get ids() { return parseCsv(written, ';').slice(1).map((r) => r[0]); } };
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -559,10 +560,11 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
     assert.ok(short.unchanged);
     // A blank line in the download holds no row: skipped, and the rows after it keep their numbers in errors.
     const plain = update(header, upstream);
-    const blank = update(header, [upstream[0], [''], upstream[1], upstream[2]]);
+    const blank = update(header, [upstream[0], [''], upstream[1], ['  \t'], upstream[2]]);
     assert.equal(blank.status, 0, blank.error);
     assert.deepEqual(blank.said, plain.said);
     assert.deepEqual(blank.ids, plain.ids);
+    assert.equal(blank.rowsUpstream, plain.rowsUpstream);
     const blankThenShort = update(header, [upstream[0], [''], upstream[1].slice(1), upstream[2]]);
     assert.equal(blankThenShort.error.trim(), `https://raw.githubusercontent.com/dxdatabase/Open-source-film-database/${'a'.repeat(40)}/film_database.csv: CSV row 4 has 11 fields, expected 12`);
     assert.ok(blankThenShort.unchanged);
@@ -597,6 +599,13 @@ describe('updating the community data (scripts/update-community-data.mjs)', () =
       assert.equal(run.status, 1, error);
       assert.equal(run.error.trim(), error);
       assert.ok(run.unchanged, error);
+    }
+    // A header with no rows under it, or only blank lines, or only a row without a number: nothing to replace the snapshot with.
+    for (const lines of [[], [[''], ['']], [upstream[1]]]) {
+      const run = update(header, lines);
+      assert.equal(run.status, 1, JSON.stringify(lines));
+      assert.equal(run.error.trim(), `${url}: no row has a "DX extract" or "DX full" number`);
+      assert.ok(run.unchanged, JSON.stringify(lines));
     }
     // GitHub's answer to --latest: offline, or a page that is not JSON.
     const fetch = globalThis.fetch;

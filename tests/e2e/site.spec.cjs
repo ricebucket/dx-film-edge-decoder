@@ -50,6 +50,16 @@ test('in Windows contrast themes the labels around the strip take the theme\'s c
   expect(await mirror.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(before);
 });
 
+test('with reduced motion nothing transitions, not even for an instant', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/?dx=79-15/23');
+  const transition = (sel, pseudo) => page.locator(sel).first().evaluate((el, p) => getComputedStyle(el, p).transitionProperty, pseudo);
+  // Those of the elements that have a transition of their own, and the others'.
+  expect(await transition('.intro__toggle .icon')).toBe('none');
+  expect(await transition('#strip .strip__viewport', '::before')).toBe('none');
+  expect(await transition('#strip .track--data button')).toBe('none');
+});
+
 test('without JavaScript the notice comes first, before the decoder that needs it', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
@@ -219,7 +229,7 @@ test('basic accessibility hooks are in place', async ({ page }) => {
   await expect(page.locator('#strip .track--data')).toHaveAttribute('role', 'group');
   // Exactly one cell is in the tab order (roving tabindex).
   await expect(page.locator('#strip .track--data button[tabindex="0"]')).toHaveCount(1);
-  for (const id of ['finder-q', 'direct-dx', 'direct-frame', 'cassette-code', 'ref-q', 'ref-maker', 'ref-status']) {
+  for (const id of ['finder-q', 'direct-dx', 'direct-frame', 'cassette-code', 'ref-maker', 'ref-part1', 'ref-status']) {
     await expect(page.locator(`label[for="${id}"]`)).toHaveCount(1);
   }
 });
@@ -464,6 +474,24 @@ test('printed, a cell with focus looks like any other, with a bar or without', {
     await page.emulateMedia({ media: 'print' });
     expect(await shadow(focused), `cell ${focused} printed`).toBe(await shadow(like));
   }
+});
+
+test('printed from a window where the strip scrolls sideways, the film shows whole: the edge fades are the screen\'s', { tag: '@phone' }, async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' }); // the fades come and go at once
+  if (!isMobile) await page.setViewportSize({ width: 800, height: 900 });
+  await page.goto('/?dx=79-15/23');
+  const strip = page.locator('#strip .strip');
+  await expect(strip).toHaveClass(/\bmore-(left|right)\b/);
+  // A fade at each end of the strip: whether it shows.
+  const shown = () => page.locator('#strip .strip__viewport').evaluate((el) => ['::before', '::after'].map((end) => {
+    const style = getComputedStyle(el, end);
+    return style.display !== 'none' && Number(style.opacity) > 0;
+  }));
+  expect(await shown()).toContain(true);
+  await page.emulateMedia({ media: 'print' });
+  // A print keeps the classes the screen had: nothing measures the strip again for it. Set here, in case this page did.
+  await strip.evaluate((el) => el.classList.add('is-overflowing', 'more-left', 'more-right'));
+  expect(await shown()).toEqual([false, false]);
 });
 
 test('printed, the result lists every film it has, and none of its buttons', async ({ page }) => {

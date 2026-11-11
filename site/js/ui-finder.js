@@ -54,6 +54,7 @@
   function createFinder(host, { lookup, onShow }) {
     const input = h('input', {
       type: 'search', id: 'finder-q', class: 'input input--search', autocomplete: 'off', spellcheck: 'false',
+      maxlength: '200', // more than any film's name needs: a long paste, cut here, can't hold up the page
       placeholder: t('e.g. Portra 400, HP5, Fujicolor 200'),
       'aria-describedby': 'finder-help',
     });
@@ -100,15 +101,16 @@
     let timer = null;
     function run() {
       const q = input.value.trim();
+      const bare = q.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''); // marks around a number are no part of it
       list.replaceChildren();
       shown = 0;
-      // The rows' words (names, makers, notes, tags), never their DX or cassette numbers: each has a lookup of its own.
+      // The rows' words (names, makers, notes, tags, distributors, countries, years), never their DX or cassette numbers: each has a lookup of its own.
       const tooShort = q.length < 2;
       results = q && !tooShort ? distinct(lookup.search(q)) : [];
       if (!q || tooShort) status.textContent = t('Type at least two characters.');
       else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
       // A DX number or a cassette number has a lookup of its own, which fewer words won't reach.
-      else if (codec.parseDxNumber(q) || codec.parseCassette(q)) status.textContent = t('Nothing matches “{q}”.', { q });
+      else if (codec.parseDxNumber(bare) || codec.parseCassette(bare)) status.textContent = t('Nothing matches “{q}”.', { q });
       else status.textContent = t('Nothing matches “{q}”. Try fewer words, or part of the name.', { q });
       showPage();
     }
@@ -164,8 +166,6 @@
       h('div', { class: 'finder__direct' },
         h('h3', null, t('Know the number already?')),
         directForm));
-
-    return { search(q) { input.value = q; run(); } };
   }
 
   // The cassette in the drawing: the one in the Wikimedia Commons photo
@@ -289,7 +289,7 @@
       for (const left of [fl + 2, fr - 2 - 2.8]) holes.push(rounded(left, left + 2.8, s, s + 1.98, 0.5));
     }
     const filmPath = [[[fl, 0], [fr, 0], [fr, FILM.length], [fl, FILM.length]], ...holes].map((ring) => path(ring.map(on))).join('');
-    // Its shading runs along it: lines across the film stay level on the page.
+    // Its shading runs along it: lines across the film are level in the drawing.
     const along = (s0, s1) => {
       const [x1, y1] = on([L / 2, s0]);
       const [, y2] = on([L / 2, s1]);
@@ -324,7 +324,7 @@
           [[0.2, 0.3], [0.9, 0.15], [1.5, 0.55], [0.55, 0.9], [1.25, 1.05], [1.9, 0.95], [0.1, 1.15], [1.7, 0.2]].map(([cx, cy], i) =>
             svg('circle', { class: 'cassette-figure__velvet-fiber', cx, cy, r: 0.07 + (i % 3) * 0.02 }))),
         svg('clipPath', { id: 'cassette-side' }, svg('path', { d: band(0, L, top, bottom, RC) }))),
-      svg('g', { class: 'cassette-figure__drop' },
+      svg('g', null,
         shape('paint', band(0, L, top, lipFrom, R)),
         shape('label', band(RIM, L - RIM, 246, lipFrom)),
         areas,

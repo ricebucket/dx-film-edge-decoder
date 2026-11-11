@@ -1,0 +1,5093 @@
+What the lookups find: written by `npm run check:regressions -- --update`, never by hand.
+Each line: what is looked up, how many films it finds, and a mark that changes when the films or their order change.
+
+search	(20-0).	0	-
+search	0 0	1983	39efa42c
+search	01	260	fc89829a
+search	012794	0	-
+search	0626	1	33210cd2
+search	10	643	5650ba98
+search	100	613	620f8917
+search	100 DELTA	5	96ce3172
+search	100 DELTA PRO	3	04cddfce
+search	100-2	13	1f940ef1
+search	1000	19	4d44088b
+search	100at	4	c492489c
+search	100c	42	f66fc821
+search	100ch	3	4fa0f8c5
+search	100cn	2	99577724
+search	100d	13	04fc5509
+search	100f	44	2f0a9831
+search	100hc	6	cb0e7893
+search	100i	25	4157ed24
+search	100rd	4	0479525d
+search	100s	22	db40ae88
+search	100t	9	0bbf31ab
+search	100tmax	2	0b289bdb
+search	100tmx	1	617268ec
+search	100uc	2	2c085bea
+search	100x	6	87c8fb4f
+search	101	6	97921460
+search	1046	1	50eab562
+search	1048	1	c59fcb2b
+search	1056	1	31919a25
+search	1066	1	7fab9a15
+search	1067	1	91c7a99f
+search	1123	2	50dfcd2a
+search	12	87	db1f4aba
+search	120	30	d1eb1019
+search	1200	1	bd072d24
+search	125	17	0ba7a258
+search	125px	1	15dd4e89
+search	135	38	617170ff
+search	135 PAN	7	826a0825
+search	14	48	94911570
+search	145th	2	c7460c1e
+search	16	105	6258084a
+search	160	84	bc72de15
+search	1600	39	3c7f1ae0
+search	160c	5	9176d9e1
+search	160gpx	1	c0276611
+search	160nc	4	ba814ddc
+search	160ns	4	e63682fa
+search	160s	4	453dfea2
+search	160t	5	abdfb5bd
+search	160vc	3	c6d556b8
+search	162	1	24f9c021
+search	164	1	bef9251f
+search	16mm	1	021178e9
+search	19555	1	19bef5a8
+search	1986	50	69ded830
+search	1991	36	daf080e5
+search	1998	82	423478be
+search	20-0	0	-
+search	200	852	aa5c72f0
+search	200-2	12	d847e8a1
+search	2001	47	e226e717
+search	2002	95	0c015a69
+search	2008	18	10614101
+search	200at	6	5b805448
+search	200p	44	85431360
+search	200qr	1	3a91b96d
+search	200s	20	2a42c5b4
+search	200snc	1	8cbc8df6
+search	200uc	2	71cce58e
+search	200x	6	3180f526
+search	200–2	12	d847e8a1
+search	200彩韵	1	fabd5453
+search	2011	8	e1dc0147
+search	2012	31	822bbe04
+search	2018	39	d0c2111f
+search	2023	8	6f48573f
+search	2025	7	d3a76df6
+search	2064	2	dd9eef2a
+search	2147	1	15dd4e89
+search	2236	2	fd0c7677
+search	2323	1	30b48012
+search	24	36	f0b716e3
+search	2415	2	60396382
+search	2475	1	bd072d24
+search	2481	4	8a90b7a1
+search	2483	1	c7214a55
+search	2486	1	e97a551a
+search	25	48	0c8b3b5c
+search	27	18	4061baee
+search	2755	1	17b6b804
+search	279	1	635b20f6
+search	27exp	8	1c304931
+search	2d	5	7da90dae
+search	2h	2	60e0351b
+search	3101	2	c4ffbdad
+search	32	29	ec390237
+search	320	18	4ba9319c
+search	3200	13	6f2d3be1
+search	320t	2	7eeb93f3
+search	35mm	10	7636c4bb
+search	36	15	3e906da9
+search	366	1	134102f5
+search	36c	4	197a945f
+search	370	1	19bef5a8
+search	380	1	1e746499
+search	39	7	714b5ad5
+search	3992	2	e64db66f
+search	3M Scotch ColorPrint HR200 Gen 2	1	0ab013e1
+search	3M Scotch ColorPrint HR400 Gen 2	1	5a5bf069
+search	3M ScotchChrome 400	3	eed1e0ef
+search	3M ScotchChrome 400 (Improved)	2	d80dbcdf
+search	3M ScotchChrome 800/3200	3	f2ceff18
+search	3M ScotchChrome 800/3200 (Improved)	2	7b28054c
+search	3M ScotchColor AT100	1	e081d617
+search	3M ScotchColor AT200	4	f3bfda6e
+search	3M ScotchColor AT400	1	a4f35672
+search	3M ScotchColor HR2 400	1	299b9de2
+search	3d	4	36b4d645
+search	3m	50	e43a9c0b
+search	40	565	d440d585
+search	40-0.	0	-
+search	400	552	34d0623e
+search	400 DELTA	6	50c70872
+search	400at	6	0cec190b
+search	400cn	8	52d86eaf
+search	400f	57	6094358f
+search	400ft	2	2607a717
+search	400gpy	2	575f8549
+search	400h	15	99c8a245
+search	400mc	2	4b82c621
+search	400n	29	59e17897
+search	400nc	3	bbc10014
+search	400rh	5	443f7e01
+search	400s	20	5dd31cb9
+search	400tmy	2	4156792e
+search	400tx	7	4c7c61af
+search	400uc	5	3b4c27bb
+search	400ug	1	a6fe4411
+search	400vc	4	09bc7112
+search	400x	7	3d75b973
+search	4013	1	a2950a46
+search	4028	1	8f0c1381
+search	4052	1	b2ff85d6
+search	4053	1	57aeccb4
+search	41	78	6a1bfbbf
+search	4106	1	425ed75e
+search	4143	1	680bdc64
+search	4147	1	94aa3217
+search	4329	1	359ded45
+search	446	1	e7e6a0da
+search	45Color Iso 400	1	75be7b8d
+search	45color	1	75be7b8d
+search	4719	2	14e501dd
+search	4755	1	17b6b804
+search	4756	1	1645bc5d
+search	4955	1	f11d51a5
+search	4c	6	62aca335
+search	4th	2	f936ba25
+search	50	162	9c45722a
+search	5000	1	5892efab
+search	5001	3	4f7b8ac4
+search	5002	2	0f08ccbf
+search	5003	2	632bff76
+search	5005	3	be5ed91a
+search	5009	1	ebd6fcb1
+search	5010	2	112c32a7
+search	5012	1	623c982d
+search	5014	3	d427e48e
+search	5015	1	d2762127
+search	5017	3	fe09040b
+search	5018	2	9739fab0
+search	5019	1	b62025f8
+search	5020	2	c9a5252b
+search	5021	2	7c73a207
+search	5024	1	47cec453
+search	5025	1	954114b8
+search	5026	1	67a34010
+search	5027	2	f4c7547d
+search	5028	1	8f0c1381
+search	5030	1	a5bd5d1a
+search	5031	1	b2c52c3d
+search	5032	3	70279938
+search	5033	1	7f79bf2a
+search	5034	1	0c14ce47
+search	5035	2	27e9c16a
+search	5036	1	1439b4c5
+search	5037	2	2c5c539d
+search	5039	1	157af839
+search	5040	1	3ff9888d
+search	5042	3	1c43426d
+search	5045	1	19c93c3c
+search	5046	1	f417b634
+search	5047	1	0a5250b4
+search	5048	1	e37286a1
+search	5052	1	b2ff85d6
+search	5054	1	7b95fc4f
+search	5056	1	2d855dd6
+search	5058	1	ad3cfaea
+search	5060	2	ef059c1e
+search	5061	1	2764cda2
+search	5062	1	09271faf
+search	5062px	1	09271faf
+search	5063	3	846ba3a3
+search	5065	1	74e41826
+search	5066	1	8b2fb07f
+search	5067	1	c8a8b31a
+search	5069	1	93ec1096
+search	5070	1	004e98be
+search	5071	2	4d1153e5
+search	5073	2	6ef44f4d
+search	5074	5	790819e9
+search	5075	1	5f5c33c9
+search	5076	2	cd8faa50
+search	5077	2	40167b1d
+search	5079	1	78606317
+search	5080	1	06df9458
+search	5084	2	51bd134d
+search	5085	1	f972dd39
+search	5087	2	aca3abb6
+search	5089	1	5cbfed18
+search	5090	2	155fc331
+search	5091	3	f054239f
+search	5092	1	06fd1a3b
+search	5093	4	1aac2c1c
+search	5094	4	99cc02fa
+search	5095	7	e5039aa4
+search	5096	4	8d94e6f0
+search	5097	9	08ce9c4d
+search	50d	1	8f51d10c
+search	50daylight	1	8f51d10c
+search	50hc	1	d2762127
+search	50x	4	28379b08
+search	5100	3	8cc973c5
+search	5101	2	a160014f
+search	511	8	1df5356f
+search	5110	1	a6fb2cf3
+search	5113	5	2c89e592
+search	5115	1	8efcfa26
+search	5124	2	24b6fbb1
+search	517	1	cb1da91a
+search	5214	1	be70c3fc
+search	5216	2	62263983
+search	5218	3	f3825b0a
+search	5226	1	aa9ade81
+search	5241	1	d9c724d1
+search	5254	2	eea94886
+search	5299	1	97ac623b
+search	5301	1	bcdf0eba
+search	5327	2	3ef7cec7
+search	5354	1	5b089151
+search	5394	1	4f98bb73
+search	5396	1	fcc64788
+search	5397	1	3639d5f0
+search	5719	2	14e501dd
+search	5926	1	e694c75c
+search	5992	1	f7fc1208
+search	6005	1	f8c695ea
+search	6009	1	ebd6fcb1
+search	6010	2	112c32a7
+search	6012	1	623c982d
+search	6013	1	371b9f3f
+search	6014	1	acd5739c
+search	6017	1	ccc99915
+search	6018	1	8960bc92
+search	6021	2	7c73a207
+search	6024	1	47cec453
+search	6025	1	954114b8
+search	6031	1	b2c52c3d
+search	6036	1	1439b4c5
+search	6037	2	930e2443
+search	604	3	cae808a1
+search	6046	1	24607487
+search	6048	1	e37286a1
+search	6052	1	b2ff85d6
+search	6057	1	950ac581
+search	6062	1	9122b410
+search	6066	1	8b2fb07f
+search	6067	1	c8a8b31a
+search	6074	1	1c02b372
+search	6105	1	5190afab
+search	610nm	1	1e746499
+search	6117	1	80b9546e
+search	6118	2	a8c1fee7
+search	6122	1	39ac7a95
+search	6146	1	ec92d918
+search	6148	1	71044be0
+search	6166	1	fe604fe3
+search	6167	1	5aa935c5
+search	6176	2	885c31ed
+search	6327	1	ea4ec2c1
+search	6329	1	d2d1277b
+search	64	37	a59824ce
+search	640	4	1e4c9bd8
+search	640t	2	a970d8ea
+search	64t	7	50ba78c3
+search	64x	1	954114b8
+search	6522	1	48ffecda
+search	6552	1	11d671ca
+search	694	1	53f3d8b4
+search	7024	1	47cec453
+search	7058	1	ad3cfaea
+search	706	1	340e3a9a
+search	707	1	92e7a190
+search	7096	1	7673f590
+search	7124	1	a2a09d48
+search	7190	2	d6eda0de
+search	72	6	1ffcaf9a
+search	7267	1	021178e9
+search	79-15	0	-
+search	80	153	02d3e7ec
+search	800	98	5780ee06
+search	800t	3	8b854de4
+search	800tungsten	1	287599cd
+search	800z	4	58b31abe
+search	8046	1	c6056bea
+search	8048	1	cedfccac
+search	8066	1	655dccdf
+search	8067	1	64a5ffab
+search	8071	1	e13c4015
+search	8091	1	b5485b9f
+search	8095	1	1cc3f944
+search	80s	40	17f2ca85
+search	820c	1	3f9eb5c8
+search	820nm	1	3f9eb5c8
+search	88	43	cd4b2209
+search	9100	1	d9e3bfe5
+search	936	1	2764cda2
+search	A 125	17	9368c020
+search	A 400	549	d07d31de
+search	ACME Film for true colour prints SUPER VX 100	1	8696bdf7
+search	ACME Film for true colour prints SUPER VX 400	1	5450cd37
+search	AGFA AGFACHROME CT Precisa 100 Ctprecisa EXCL	1	df90033e
+search	AGFA AGFACHROME CT Precisa 200 Ctprecisa	6	fce1cb0c
+search	AGFA AGFACHROME CT100i	3	7efd64d4
+search	AGFA AGFACHROME CTX100	3	b382fb23
+search	AGFA AGFACHROME CTX200	2	d2d024b7
+search	AGFA AGFACHROME RS 100 Plus Professional	2	de0352d0
+search	AGFA AGFACHROME RS 1000 Professional	2	efff1774
+search	AGFA AGFACHROME RS 1000 Professional (new box, same emulsion)	1	0014f9a7
+search	AGFA AGFACHROME RS 200 Plus	1	b311bf93
+search	AGFA AGFACHROME RS 200 Professional	9	ca420e37
+search	AGFA AGFACHROME RS 200 Professional (improved)	4	605695fb
+search	AGFA AGFACHROME RS 50 Plus Professional	2	8c20ad65
+search	AGFA AGFACHROME RSX II 100 Professional	2	cb8020bf
+search	AGFA AGFACHROME RSX II 200 Professional	4	33ef69d6
+search	AGFA AGFACHROME RSX II 50 Professional	2	00ac2e6a
+search	AGFA AGFACHROME RSX100 Professional	3	0b404423
+search	AGFA AGFACHROME RSX200 Professional	3	2fbae56a
+search	AGFA AGFACHROME RSX50 Professional	3	3796a40d
+search	AGFA AGFACOLOR HDC100	6	ae6947cf
+search	AGFA AGFACOLOR HDC100 Plus	4	8028d856
+search	AGFA AGFACOLOR HDC200	8	528f4258
+search	AGFA AGFACOLOR HDC200 Plus	5	09f0628c
+search	AGFA AGFACOLOR HDC200 Plus-2	3	a7f9acb7
+search	AGFA AGFACOLOR HDC400	4	002f6419
+search	AGFA AGFACOLOR HDC400 Plus (or "2"?)	1	c5fd6dea
+search	AGFA AGFACOLOR OPTIMA 100	9	ca1ec0fa
+search	AGFA AGFACOLOR OPTIMA 100 Professional	5	da42110c
+search	AGFA AGFACOLOR OPTIMA 100-3 Professional	2	2306e4df
+search	AGFA AGFACOLOR OPTIMA 200	20	410cd08e
+search	AGFA AGFACOLOR OPTIMA 200 Professional	14	09825956
+search	AGFA AGFACOLOR OPTIMA 400	10	93398543
+search	AGFA AGFACOLOR OPTIMA 400 Professional	6	3528267f
+search	AGFA AGFACOLOR OPTIMA II 100 Professional	1	db76b679
+search	AGFA AGFACOLOR OPTIMA II 200 Professional	5	04215135
+search	AGFA AGFACOLOR OPTIMA II 400 Professional	1	19db66f3
+search	AGFA AGFACOLOR Optima 125 Professional	2	af382a47
+search	AGFA AGFACOLOR Portrait 160 Professional (Code XPS) Portrait160	1	beef1e23
+search	AGFA AGFACOLOR ULTRA 50 Professional ultracolor	1	ff5b1501
+search	AGFA AGFACOLOR Vista 100	12	882a2ab7
+search	AGFA AGFACOLOR Vista 200	33	0680cf33
+search	AGFA AGFACOLOR Vista 200 Spider Pack	1	cca73af7
+search	AGFA AGFACOLOR Vista 400	9	4e892e05
+search	AGFA AGFACOLOR Vista 400 – Film conditionné pour la gendarmerie nationale	1	54fb2174
+search	AGFA AGFACOLOR Vista 800	4	3c7b0598
+search	AGFA AGFACOLOR XPS160 Portrait Professional	1	81e5bc45
+search	AGFA AGFACOLOR XR100	5	9a5684eb
+search	AGFA AGFACOLOR XR100i	4	c434e3bf
+search	AGFA AGFACOLOR XR100i Maxi	1	e69d3263
+search	AGFA AGFACOLOR XR100i Mini	1	12eb0821
+search	AGFA AGFACOLOR XR200	2	5e6305ed
+search	AGFA AGFACOLOR XRC100	1	c7fba516
+search	AGFA AGFACOLOR XRG100	12	cfe2ad9c
+search	AGFA AGFACOLOR XRG200	12	e8fb16c3
+search	AGFA AGFACOLOR XRG200 (improved)	3	bf9881f9
+search	AGFA AGFACOLOR XRG200-2 XRG2	2	4636108c
+search	AGFA AGFACOLOR XRG400	2	b5fbb36c
+search	AGFA AGFACOLOR XRS1000 Professional Gen. 2 (Improved with XRC emulsion technology) XRS 1000	1	9c5a90cf
+search	AGFA AGFACOLOR XRS1000 Professional XRS 1000	3	cd7a615b
+search	AGFA AGFACOLOR XRS200	3	13b02e08
+search	AGFA AGFAORTHO 25 Professional	4	9d4348fb
+search	AGFA AGFAORTHO 25 Professional (non-DX coded)	1	5c3a76f1
+search	AGFA APX 100 Professional	3	6a623470
+search	AGFA APX 100 Professional AGFAPAN	3	459fa731
+search	AGFA APX 25 Professional	2	8f650716
+search	AGFA APX 400 Professional	3	7e069c60
+search	AGFA APX 400 Professional (New Generation)	1	53146fa6
+search	AGFA AgfaColor 200	106	932a807e
+search	AGFA AgfaColor 200 Wal-mart	2	7d237d1e
+search	AGFA AgfaColor XRG100 Maxi	2	c379e4fb
+search	AGFA Agfachrome CT100 / 100S	3	862e8aaf
+search	AGFA Agfachrome CT100 / 100S (gradation improved) EXCL	1	e6554c24
+search	AGFA Agfachrome CT100 / 100S (shades improved)	1	105bf4e0
+search	AGFA Agfachrome CT100 Professional	1	03ba03ef
+search	AGFA Agfachrome CT200 / 200S	1	442cb2c3
+search	AGFA Agfachrome CT200 improved	2	d2ab19cc
+search	AGFA Agfacolor 100	74	7648cdbe
+search	AGFA Agfacolor 100-N	9	5a8a784d
+search	AGFA Agfacolor 200 (24+3)	1	22ba6071
+search	AGFA Agfacolor 200-N	12	d7d61f12
+search	AGFA Agfacolor 400	40	6f3e8ed5
+search	AGFA Agfacolor 400-N	8	b007a682
+search	AGFA Agfacolor APS star 200	2	e6176e57
+search	AGFA Agfacolor APS star 400	2	4663ccd0
+search	AGFA Agfacolor Futura 100	4	67ff6152
+search	AGFA Agfacolor Futura 200	4	56f11312
+search	AGFA Agfacolor Futura 400	4	a8c47047
+search	AGFA Agfacolor Futura II 100	2	87d40693
+search	AGFA Agfacolor Futura II 200	2	662c959a
+search	AGFA Agfacolor Futura II 400	2	450677c9
+search	AGFA Agfacolor Optima 100-N	2	27c33f0d
+search	AGFA Agfacolor Optima 200-N	2	be0ccc54
+search	AGFA Agfacolor Optima 400-N	2	6eff5ca3
+search	AGFA Agfacolor Ultra 100 ultracolor	1	f4cc0bc9
+search	AGFA Agfacolor Vista 100-N New	2	0ea4d11a
+search	AGFA Agfacolor Vista 200-N New	2	f4261206
+search	AGFA Agfacolor Vista 400-N New	2	e8dc4b76
+search	AGFA Agfacolor Vista 800-N New	1	4434c4c3
+search	AGFA Agfacolor XRS100 Professional	7	6ac15e3d
+search	AGFA Agfacolor XRS100 Professional Gen. 2 (Improved with XRC emulsion technology)	2	aa3ebae6
+search	AGFA Agfacolor XRS100LC Professional	1	e249df48
+search	AGFA Agfacolor XRS200 Professional	2	fabb53f6
+search	AGFA Agfacolor XRS200 Professional Gen. 2 (Improved with XRC emulsion technology)	1	18f8b029
+search	AGFA Agfacolor XRS400	3	b70f62e7
+search	AGFA Agfacolor XRS400 Professional	2	962ec48a
+search	AGFA Agfacolor XRS400 Professional Gen. 2 (Improved with XRC emulsion technology)	1	d4eb4068
+search	AGFA ORTHO 25 Professional	4	c9270033
+search	AGFA SCALA 200 Professional	4	3cb32c44
+search	AGFA SCALA 200 Professional B&W slides	2	fac85bf2
+search	AGFA SCALA 200X Professional B&W slides	1	416c7c03
+search	AGFA SCALA 200x Professional	2	696ccd8d
+search	AGFA cuti cuti malaysia 200 ISO	1	01bb0777
+search	AGFACHROME 200 RS Professional	9	f8e5c68e
+search	AGFACHROME CT 100i	3	3662f4ba
+search	AGFACHROME CT 200	11	6cd9b62e
+search	AGFACHROME CT precisa 100	5	e6475138
+search	AGFACHROME CT precisa 200	6	cd778fe5
+search	AGFACHROME CTX 100	4	fc5bd586
+search	AGFACHROME CTX 200	5	da6a47e1
+search	AGFACHROME RS 100 Plus Professional	2	f3959b2f
+search	AGFACHROME RS 50 Plus Professional	2	a6c22552
+search	AGFACHROME RSX 100 Professional	4	7120c2ff
+search	AGFACHROME RSX 200 Professional	6	e786f480
+search	AGFACHROME RSX 50 Professional	4	13af412a
+search	AGFACHROME RSX II 100 Professional	2	4e567cf5
+search	AGFACHROME RSX II 200 Professional	4	17520ef7
+search	AGFACHROME RSX II 50 Professional	2	868662d9
+search	AGFACOLOR HDC 100	8	eaf6d510
+search	AGFACOLOR HDC 100 Plus	4	e7cd2edf
+search	AGFACOLOR HDC 100 Plus-2	1	b15ec5a5
+search	AGFACOLOR HDC 200	11	87b91645
+search	AGFACOLOR HDC 200 Plus	7	6ad9010e
+search	AGFACOLOR HDC 200 Plus-2	3	f3f547e7
+search	AGFACOLOR HDC 200-2	1	19668044
+search	AGFACOLOR HDC 400	5	e3ec6ae4
+search	AGFACOLOR HDC 400-2	1	4e02cc61
+search	AGFACOLOR OPTIMA 100 Professional	5	c63eae9d
+search	AGFACOLOR OPTIMA 100-2	1	c9cc3436
+search	AGFACOLOR OPTIMA 100-3 Professional	2	1cf9804f
+search	AGFACOLOR OPTIMA 200 Professional	14	80196fe8
+search	AGFACOLOR OPTIMA 200-2 Professional	1	0e29903a
+search	AGFACOLOR OPTIMA 200-3 Professional	1	fbcd4d4b
+search	AGFACOLOR OPTIMA 200-4 Professional	1	af80308a
+search	AGFACOLOR OPTIMA 400 Professional	6	bfb44c05
+search	AGFACOLOR OPTIMA 400-2 Professional	1	f990d0d1
+search	AGFACOLOR Optima 125 Professional	2	bc87f619
+search	AGFACOLOR Portrait 160 Professional	4	4fc4d03e
+search	AGFACOLOR ULTRA 50 Professional	2	eedb77b0
+search	AGFACOLOR Vista 100	12	b7383ddb
+search	AGFACOLOR Vista 200	33	c744a888
+search	AGFACOLOR Vista 400	9	e4ae3516
+search	AGFACOLOR Vista 800	4	1e5e5321
+search	AGFACOLOR XPS 160 Professional	3	a1e49288
+search	AGFACOLOR XRG 100	15	8e668cfc
+search	AGFACOLOR XRG 200	14	cbf65855
+search	AGFACOLOR XRG 200-2	2	83e70164
+search	AGFACOLOR XRG 400	2	e83f0e13
+search	AGFACOLOR XRS 1000 Professional	3	efd71e90
+search	AGFAORTHO 25 Professional	4	7d35230d
+search	AGFAPAN APX 100 Professional	3	827d5ef4
+search	AGFAPAN APX 25 Professional	2	b696ade4
+search	AGFAPAN APX 400 Professional	3	71430f23
+search	AKICA HP 400	1	8bdfc214
+search	ASDA Color Print Film ISO 200	1	e35c13b6
+search	ASDA Color Print Film ISO 400	1	d475f84c
+search	Agfa Optima Prestige 400	1	76658f07
+search	Agfa Pro 200	58	e837af5b
+search	Agfa Replacement Film Colour ISO 100	2	f9b0fff4
+search	AgfaPhoto APX 100 ("New Emulsion" on box)	2	03054c06
+search	AgfaPhoto APX 100 (New)	4	7a9a3718
+search	AgfaPhoto APX 400 ("New Emulsion" on box)	1	2d9f8bdb
+search	AgfaPhoto APX 400 (New)	3	5c74eb80
+search	AgfaPhoto CT Precisa CT100	2	d52f0417
+search	AgfaPhoto CT precisa CT100	2	d52f0417
+search	AgfaPhoto Vista 100	4	2d2266cf
+search	AgfaPhoto Vista 200	15	4ccca9e9
+search	AgfaPhoto Vista 400	5	aac12afb
+search	AgfaPhoto Vista Plus 200	5	884f2f11
+search	AgfaPhoto Vista Plus 400	3	643ac776
+search	AgfaPhoto Vista plus 100	2	92a5848c
+search	Agfacolor 100-N	9	74a43998
+search	Agfacolor 200-N	12	63f3bbe0
+search	Agfacolor 400-N	8	5814e4af
+search	Agfacolor APS star 200	2	035fabb4
+search	Agfacolor APS star 400	2	93eb588b
+search	Agfacolor Futura 100	4	a31ffe31
+search	Agfacolor Futura 200	4	73104738
+search	Agfacolor Futura 400	4	c9712d01
+search	Agfacolor Futura II 100	2	8a4735a0
+search	Agfacolor Futura II 200	2	96214c26
+search	Agfacolor Futura II 400	2	4a5cab58
+search	Agfacolor Optima 100-N	2	ff7e707e
+search	Agfacolor Optima 200-N	2	96833df3
+search	Agfacolor Optima 400-N	2	aa6a1c63
+search	Agfacolor Ultra 100	2	815b7565
+search	Agfacolor Vista 100-N	3	ef10ba59
+search	Agfacolor Vista 200-N	3	66329b4b
+search	Agfacolor Vista 400-N	3	129e1258
+search	Agfacolor Vista 800-N	2	6dbf6920
+search	Agfacolor XRS 100 Professional	7	2e4c86c6
+search	Albert Heijn (AH) Color 24+4 ISO 200	1	61650325
+search	Alfo PR-G 100 BILD	1	6d8d40af
+search	Alfo PR-G 200 BILD	1	b845cb3b
+search	Alfo PR-G 400 BILD	1	8e2a2e4a
+search	Amcolor Colour Print Film ISO 100	4	9fc990d7
+search	Amcolor Colour Print Film ISO 400	1	57430f5e
+search	Amcolor Film for Colour Prints ISO 100	1	09a5775a
+search	Argenti Protopan 400+	1	84aaec68
+search	Arista EDU Ultra 100	1	68937dbe
+search	Arista EDU Ultra 400	1	721686ff
+search	Arista Premium 100	1	c2fddf49
+search	Arista Premium 400	1	28ac4d01
+search	BI LO Film for Color Prints BILO NH400	1	3f1b7da2
+search	BLACK 400	22	5e6367cf
+search	BONUSPRINT Activa Colour Print Film ISO 100	2	fd8a06dc
+search	BONUSPRINT Activa Colour Print Film ISO 100 (VX)	1	4b2bc141
+search	BONUSPRINT Activa Colour Print Film ISO 200	2	cc84f15d
+search	BONUSPRINT Activa Colour Print Film ISO 200 (VX)	1	facca738
+search	BONUSPRINT Activa Colour Print Film ISO 400	2	3307b6d9
+search	BONUSPRINT Activa Colour Print Film ISO 400 (VX)	1	66125c76
+search	Belmont HR Colour Print Film HR100	1	a643aa26
+search	Bergger Pancro 400	1	4a16cc18
+search	Black & Gold Colour Film Print ISO 100	1	2cbae942
+search	Black & white can "High Quality COLOR NEGATIVE FILM" 400	1	a85c39ec
+search	Black can COULOUR NEGATIVE FILM ISO 400	1	782e21f3
+search	Black's Astral 100 ISO	2	485c5385
+search	Black's Astral 100 ISO Premium	1	5ad45e9c
+search	Black's Astral 200 ISO	1	4063f02a
+search	Black's Premium Color Print Film ISO 200 Memories Blacks	1	6a5f2a86
+search	Blue Unknown generic can	1	14dded86
+search	Blue and White can 400 No DX coding, CNK-4 and C-41.	1	8ec52a9a
+search	Boots Colourprint 100	1	de460140
+search	Boots Colourprint 200	4	ec9499f2
+search	Boots Colourslide (ISO 200) Rainbow bird	1	419ddfad
+search	Boots Universal ISO 400	1	f0e46d13
+search	CLIC HP Pelicula Color ISO 200	2	c3c5e255
+search	COLOR NEGATIVE FILM (Generic black cartridge) CN100	1	c94b265d
+search	COLOUR PRINT FILM	31	78a46b92
+search	CVS Color Film 400 All purpose	1	8cda1701
+search	Cannon Power – Film for true colour ISO 100	1	3375ec39
+search	Canopower Film for true colour ISO 100 Super HP 100	1	a5e404d1
+search	Carrefour 200 ISO	2	1529cfc4
+search	Carrefour Film couleur 200 ISO CN 200	1	2e0ddc87
+search	Casino Temps Clair 200 C-41	1	e90658d3
+search	CatLABS X FILM 320 PRO (135 & 120)	1	f507d8cb
+search	Champion 100 ISO	1	b3e4e711
+search	Chemmart VX100 Colour Print Film	1	74411a9d
+search	Chlecker AS photo 200	1	c0fbd930
+search	CineStill 800T Tungsten Xpro (new) 800Tungsten	1	287599cd
+search	Cinestill 50D Daylight C-41 / Xpro (new) 50Daylight	1	8f51d10c
+search	Clear Color 400 DX coding, paper label (all), Made in EU	1	dbbd7748
+search	Club Color 200 Bertelsmann	2	aec2a349
+search	Club Color 200 Bertelsmann NCS	1	7f9d6c2e
+search	Coles Reliance Colour Film ISO 400 (Purple cartridge)	1	d80c6ad5
+search	Color Negative 200 for color prints (white can for disposable camera)	1	c7ce8f9b
+search	Color plus 100 Colorplus	4	29fbaedc
+search	Color print film for single use cameras	1	e9ec6cdc
+search	Colorama PhotoImaging 200	1	6e99526f
+search	Colorama Smart Film 200	1	951b61ad
+search	Continent HR 100 ISO (Continente in Spain)	1	f82c2b27
+search	DELTA 3200 PRO	4	51cc3a8c
+search	DM Paradies 200 C-41	4	91e4e274
+search	DM Paradies 200 Universal C-41	2	cdd48501
+search	DM Paradies 400	3	af378174
+search	DM Paradies 400 "Action"	1	670dd89a
+search	DM Paradies 400 (USA)	2	b219f51c
+search	DX 400	22	f5d5a390
+search	Dale Laboratories “9100” ISO 100 (Blue can, DCN/ECP-2 process)	1	d9e3bfe5
+search	Delta 400 Pro / 400 Delta Pro	1	4ce5f659
+search	Dixons Kleurenfilm 200	2	de3610d9
+search	Dixons Kleurenfilm 200 Foto (Red box)	1	5661654f
+search	Dubblefilm STEREO 200	2	d88170ef
+search	Dustin Adams Photo Dubblefilm Stereo	1	06edbc09
+search	ERA Color ER 100	7	6cc263c7
+search	ERA Color ER100 eracolor	2	22496b1f
+search	EasyClix ASA 200	1	e47a4f43
+search	EasyPix Colour Print Film 200	1	6fa76ea0
+search	Efiniti Uxi Super 200	1	3bcd980b
+search	Efke KB100	3	ab5e2ca2
+search	Efke KB25	1	d15ee003
+search	Escura Dragon Ball Z film ISO 400 Limited Edition	1	5bd65b57
+search	Escura Tester ISO 400	1	81701c48
+search	Escura Vintage Negative Color film ISO 400	2	7dad9702
+search	Euro Print 200 (White box)	1	90b87737
+search	Euro Print 200 (Yellow box)	1	3ee2246f
+search	Extrafilm 200	8	730781b8
+search	Extrafilm 400	2	1216fb19
+search	F8 Photo F400 Color Print Film	1	5670ac8e
+search	FAYS Color Print Film ISO 400	1	27204a1d
+search	FILM (blue can) für Farbdiapositive / for Color Slides – Process E6	1	680d124e
+search	FNAC 100 Film Papier Couleur	1	55a67607
+search	FNAC 200 Film Papier Couleur	1	3fd41b6b
+search	FNAC 400 Film Papier Couleur	1	0da9fcac
+search	FOTOHOME KLEURENFILM ISO 100 Voor Kleurenfoto's	1	4bb07814
+search	FOTOIMPEX CHM 100 Universal	1	49bad3b1
+search	FOTOIMPEX CHM 400 Universal	1	b1d82df1
+search	FP4 PLUS	8	9a0768ef
+search	FP4/O PAN	2	8a2b6d85
+search	FUDA 135 COLOR	2	ac0eb81e
+search	FUDA GA-100	2	a261c594
+search	FUJICHROME 100D Professional	3	36b0a130
+search	FUJICHROME 100D Professional (2d version) RDP	1	99fd60cd
+search	FUJICHROME 100D Professional (3d version) RDP	1	cfa925c8
+search	FUJICHROME 64T, TYPE II PROFESSIONAL	2	608f04d6
+search	FUJICHROME 64T, TYPE II Professional RTPII	1	82bfa2d1
+search	FUJICHROME ASTIA 100 PROFESSIONAL	2	36854a3e
+search	FUJICHROME ASTIA 100 Professional RAP	1	fdcca3c8
+search	FUJICHROME ASTIA 100F	2	b5a288d6
+search	FUJICHROME ASTIA 100F Code RAP F	1	9f06536c
+search	FUJICHROME DIGITAL OUTPUT FILM	2	780de92b
+search	FUJICHROME DUPLICATING FILM CDU	3	96813ece
+search	FUJICHROME DUPLICATING FILM CDU II	2	5e623638
+search	FUJICHROME DUPLICATING FILM CDUII (TypeII)	1	9d316c47
+search	FUJICHROME MS 100-1000	1	10883c49
+search	FUJICHROME PROVIA 100F PROFESSIONAL	5	0c65bfe5
+search	FUJICHROME PROVIA 100F RDP II Professional RDPII	3	ebbaf3df
+search	FUJICHROME PROVIA 100F RDP III Professional RDPIII	1	cb252514
+search	FUJICHROME PROVIA 400	7	11e7775f
+search	FUJICHROME PROVIA 400 RHP	2	c1b3183a
+search	FUJICHROME PROVIA 400F PROFESSIONAL	3	f6315b67
+search	FUJICHROME PROVIA 400F Professional RHPIII	1	0126ead7
+search	FUJICHROME PROVIA 400X PROFESSIONAL	2	dca01357
+search	FUJICHROME PROVIA 400X Professional RXP	1	5500a381
+search	FUJICHROME RH1600	1	e137e7f7
+search	FUJICHROME RSP	4	8a527a71
+search	FUJICHROME SENSIA 100	10	1c998658
+search	FUJICHROME SENSIA 100 RA	5	ffa0d7bd
+search	FUJICHROME SENSIA 100 RD	1	8931a12e
+search	FUJICHROME SENSIA 200	9	7163e9b5
+search	FUJICHROME SENSIA 200 RM	3	6bb35b34
+search	FUJICHROME SENSIA 200 RM Improved	1	196a609a
+search	FUJICHROME SENSIA 400	4	9e639bb4
+search	FUJICHROME SENSIA 400 RH	2	9d1d5a40
+search	FUJICHROME SENSIA 400 RH improved	1	4db9979b
+search	FUJICHROME SENSIA II 100	3	6f15e47d
+search	FUJICHROME T64 PROFESSIONAL	2	3bde72a4
+search	FUJICHROME TREBI 100C	3	3f980048
+search	FUJICHROME VELVIA 100	6	aed8b154
+search	FUJICHROME VELVIA 100F	4	5fe17905
+search	FUJICHROME VELVIA 100F (New version?)	1	7aee6590
+search	FUJICHROME VELVIA 100F RVP F (First version?)	1	929420e5
+search	FUJICHROME VELVIA 50	6	c76388fa
+search	FUJICHROME VELVIA 50 (RVP50)	2	fbcec08b
+search	FUJICHROME VELVIA RVP	5	2b71ccf8
+search	FUJICHROME fortia	5	7dc831c3
+search	FUJICHROME fortia SP	3	f1f90870
+search	FUJICHROME fortia SP ISO 50 – Batch SP-162	1	24f9c021
+search	FUJICHROME fortia SP ISO 50 – Batch SP-164-101	1	bef9251f
+search	FUJICOLOR 100	78	992b313b
+search	FUJICOLOR 100 Japan	56	d31edfe0
+search	FUJICOLOR 160 NS	5	e0cc9463
+search	FUJICOLOR 160NS	4	e63682fa
+search	FUJICOLOR 160S Professional NSP160	1	51232f5f
+search	FUJICOLOR 200	115	79a2eddd
+search	FUJICOLOR 400	79	74b3dee5
+search	FUJICOLOR HG 400 Professional Film NHG	1	0fef4513
+search	FUJICOLOR NPC 160 PROFESSIONAL	2	57469dad
+search	FUJICOLOR NPH 400	5	fcb65a1c
+search	FUJICOLOR NPH 400 Professional	2	8502022f
+search	FUJICOLOR NPS 160 PROFESSIONAL	2	414075c1
+search	FUJICOLOR NPZ 800	3	2bece526
+search	FUJICOLOR NPZ 800 Professional	1	abc481f1
+search	FUJICOLOR PRO 160C	2	b80abeba
+search	FUJICOLOR PRO 160NC	1	d4ebfe20
+search	FUJICOLOR PRO 160NS	2	e0d408d8
+search	FUJICOLOR PRO 160S	4	6c5254a4
+search	FUJICOLOR PRO 400	10	14bfd3da
+search	FUJICOLOR PRO 400 New PN400N	2	eea07541
+search	FUJICOLOR PRO160C	2	b2bc2c4b
+search	FUJICOLOR PRO160S	4	3694e2a8
+search	FUJICOLOR REALA 100 Gen 1	2	5436cb7c
+search	FUJICOLOR REALA 100 Gen 2	1	96820b5b
+search	FUJICOLOR REALA 100 Japan	7	812905ba
+search	FUJICOLOR REALA ACE	4	40379c48
+search	FUJICOLOR REALA ACE 100	2	5458f91d
+search	FUJICOLOR REALA ACE 100 Japan	2	9241c2c3
+search	FUJICOLOR SUPER 100	56	32febd67
+search	FUJICOLOR SUPER 100 SP100	2	591bc3eb
+search	FUJICOLOR SUPER 400	58	63356383
+search	FUJICOLOR SUPER 400 Japan SP400	2	c9863a43
+search	FUJICOLOR SUPER 400FT Fine & Tough	1	9be518a1
+search	FUJICOLOR SUPER G ACE 400	3	3a55d78b
+search	FUJICOLOR SUPER G ACE 400 CH-4 Japan	1	038dc43c
+search	FUJICOLOR SUPER G ACE 800 Japan	1	d6227859
+search	FUJICOLOR SUPER G PLUS 100	2	1895e64a
+search	FUJICOLOR SUPER G PLUS 200	3	261aadba
+search	FUJICOLOR SUPER G PLUS 400	2	6502344f
+search	FUJICOLOR SUPER G PLUS 800	1	240d394b
+search	FUJICOLOR SUPER V 100	10	426286a4
+search	FUJICOLOR SUPER V100	4	af487df3
+search	FUJICOLOR SUPER V100 CN-8	1	fe349162
+search	FUJICOLOR SUPERIA 100	24	e35502bf
+search	FUJICOLOR SUPERIA 100 New	2	79e67a4a
+search	FUJICOLOR SUPERIA 1000	3	dd538d93
+search	FUJICOLOR SUPERIA 1600	15	fbfccf4a
+search	FUJICOLOR SUPERIA 200	43	1cb97410
+search	FUJICOLOR SUPERIA 200 New	2	f96b26e3
+search	FUJICOLOR SUPERIA 400	39	fea322ac
+search	FUJICOLOR SUPERIA 400 New	1	deceb896
+search	FUJICOLOR SUPERIA 800	16	f9398377
+search	FUJICOLOR SUPERIA 800 "Zoom Master"	2	02851965
+search	FUJICOLOR SUPERIA REALA	3	bc740dbc
+search	FUJICOLOR SUPERIA VENUS 1600	2	1ff15cc2
+search	FUJICOLOR SUPERIA VENUS 400	2	fb9b6aa3
+search	FUJICOLOR SUPERIA VENUS 800	4	b1535a2c
+search	FUJICOLOR SUPERIA X-TRA 400	27	a8bdaad8
+search	FUJICOLOR SUPERIA X-TRA 400 CH 4th color layer	1	d98c7b43
+search	FUJICOLOR SUPERIA X-TRA 800 CH 4th color layer	1	d036d367
+search	FUJICOLOR SUPERIA XTRA 800	7	b6f871a5
+search	FUJIFILM 200 made in USA	1	e2d4caf2
+search	Family Dollar	1	50b65a1c
+search	Ferrania Imaging Color FG Plus 100	3	437dd663
+search	Ferrania Imaging Color FG Plus 200	10	7da4e9a3
+search	Ferrania Imaging Color FG Plus 400	4	4c19c92e
+search	Ferrania Imaging Color FG Plus 800	3	d042a82a
+search	Ferrania Imaging Color FG100	3	6f5d4a54
+search	Ferrania Imaging Color FG200	2	526544ef
+search	Ferrania Imaging Color FG400	4	c266e69e
+search	Ferrania Imaging Color FG400i	3	a0b49e88
+search	Ferrania Imaging Color FG800	4	9c12bab4
+search	Ferrania Imaging Color FG800i	3	6fbfc325
+search	Ferrania Imaging Solaris Chrome 100	1	9a15af88
+search	Ferrania Imaging Solaris Color FG Plus 100	2	ee469170
+search	Ferrania Imaging Solaris Color FG Plus 200	8	572a2599
+search	Ferrania Imaging Solaris Color FG Plus 400	2	ba4a1cfc
+search	Ferrania Imaging Solaris Color FG Plus 800	2	c5afaf0e
+search	Ferrania Imaging Solaris Color FG400i	2	b15ca8d2
+search	Ferrania Imaging Solaris Color FG800	2	fcb8cc62
+search	Ferrania Imaging Solaris Color FG800i	2	df8aa7c0
+search	Ferrania Solaris FG200	7	a5859517
+search	Ferrania lmaging Solaris Color FG100	1	ced9d98d
+search	Ferrania lmaging Solaris Color FG200	2	3823458f
+search	Ferrania lmaging Solaris Color FG400	1	e6875628
+search	FilmNeverDie C-41 Color IRO200 色 200	2	22af84bc
+search	FilmNeverDie C-41 Color IRO400 色 400	1	e6642bf1
+search	FilmNeverDie C-41 Color KIRO400	1	93ded72c
+search	FilmNeverDie SHIROKURO B&W C-41 ISO 400	1	7ec971c8
+search	Fletchers Colour Print Film ISO 400	1	c165ed5c
+search	Focal 200 General Purpose by 3M – K-mart brand	1	10eb4d49
+search	Focal Colour Print Film ISO 100	1	c5082fc1
+search	Focal ISO 100	2	0eb98f68
+search	Focal ISO 400	1	4c55ef4b
+search	Foma Equicolor premium 400	1	7a9d7779
+search	Foma Fomapan 100	7	5fc70c64
+search	Foma Fomapan 100 Professional	1	db00e510
+search	Foma Fomapan 100 ProfiLine Classic T100	2	e0b7adc1
+search	Foma Fomapan 100 ProfiLine Classic T100 (2023’s box)	1	c9057fb3
+search	Foma Fomapan 200 Creative	3	ff2540c0
+search	Foma Fomapan 200 ProfiLine Creative T200	2	7a446c08
+search	Foma Fomapan 200 ProfiLine Creative T200 (2023’s box)	1	2948475a
+search	Foma Fomapan 200 Retro Limited	1	74071efc
+search	Foma Fomapan 400	6	79ce54bf
+search	Foma Fomapan 400 ProfiLine Action T400	2	438d17ff
+search	Foma Fomapan 400 ProfiLine Action T400 (2023’s box)	1	2ee5c23e
+search	Forte Fortecolor SP 100	1	b960324d
+search	Forte Fortecolor Super FG100 Plus	1	855a37a8
+search	Foto King HR Colour Print HR100 Fotoking	1	27d91092
+search	FotoStar 200	1	c8cc1655
+search	Fotolabo Club Professional 200 FLC	3	eaf1c49f
+search	Fotolabo Club Professional 400 FLC	1	7992ee69
+search	Fotolabo Club Professional New Vision 200 FLC	1	5db2913f
+search	Fotos Film 400	2	9ed89465
+search	Fotostop VXS200 Colour Print Film	3	a8663788
+search	Fotostop VXS200 Colour Print Film (old style box)	1	24fdba70
+search	Fotostop VXS400 Colour Print Film	1	2cf18cc8
+search	France loisirs 200 iso Papier Couleur ("Smile" box)	1	f9d75edc
+search	France loisirs Color HPX200	1	bad27193
+search	Fuji Film For Color Print black can (Diposable camera?)	2	490fd54e
+search	Fuji Film For Color Print black can (Polaroid Diposable camera)	1	fccd11da
+search	Fuji Fujichrome Sensia II 100	3	fa30d6e8
+search	Fuji Fujichrome Sensia II 400	1	05db37a8
+search	Fuji Fujicolor Panorama ISO 400	1	b9c841dc
+search	Fuji Fujicolor ProPlus 100	2	0d462cd5
+search	Fuji Fujicolor ProPlus II 100	1	ce4df1d0
+search	Fuji Fujicolor ProPlus II 200	1	9173bfc8
+search	Fuji Fujicolor Quicksnap ISO 400	2	885267fd
+search	Fuji Fujicolor Quicksnap ISO 400 No DX coding, white	1	552f9d4e
+search	Fuji Fujicolor YKL 100	2	7907ccba
+search	Fuji Fujifilm Professional ProValue 200 CA200	1	d2391f45
+search	Fuji Super 800 (Japan)	12	868e19ac
+search	Fuji Super HG 1600 EX	1	58188b08
+search	Fuji Superia Premium 400	3	9aa87a88
+search	Fuji YKL Color Bravo 100	1	82b5db23
+search	FujiColor Pro 800Z	2	cab96774
+search	Fujichrome 100RD	4	0479525d
+search	Fujichrome 100RD 2d version	1	1318bd30
+search	Fujichrome 100RD 3d version "New Improved"	1	0627d9c9
+search	Fujichrome 1600 Professional D (RSP)	2	db57b8d8
+search	Fujichrome 1600 Professional D (RSP) "New Improved"	1	370a7a77
+search	Fujichrome 400RH	5	443f7e01
+search	Fujichrome 400RH "New improved"	2	13f22c42
+search	Fujichrome Provia 100 professional RDP II Daylight rdpII	1	f4b09b08
+search	Fujichrome Velvia 50 (RVP50)	2	fbcec08b
+search	Fujicolor 100 (Arabic & emergent market export version)	1	8c1c5314
+search	Fujicolor 1600 写ルンです 27 exp. Green can (Superia?)	1	6e0a9122
+search	Fujicolor 200	115	79a2eddd
+search	Fujicolor 200 Wal-mart branded film	2	ca5cda79
+search	Fujicolor C100	3	95230dcd
+search	Fujicolor C200 135	1	6d29b2eb
+search	Fujicolor F-II 400	1	510c01b9
+search	Fujicolor HR100	11	98091512
+search	Fujicolor HR100 Official Film Soccer World Cup 1986	1	4042843a
+search	Fujicolor HR1600 Color negative	1	dfa6e3a5
+search	Fujicolor HR200	8	c43e1d36
+search	Fujicolor HR200 (Gen 2?)	3	cf4e499f
+search	Fujicolor HR400	7	13797370
+search	Fujicolor HR400 (Gen 2?)	2	ba42f6a3
+search	Fujicolor Industrial 100 業務記錄用 business	2	17ca9106
+search	Fujicolor Industrial 400 業務記錄用 business	1	24310793
+search	Fujicolor NPS 160 Professional	2	414075c1
+search	Fujicolor Natura 1600	4	47ec7dd5
+search	Fujicolor Press 1600	2	1e344437
+search	Fujicolor Press 400	1	b6ce02ee
+search	Fujicolor Press 800 Super G	2	e93fae78
+search	Fujicolor Press 800 Superia	1	af778543
+search	Fujicolor Pro 400H	4	248a1598
+search	Fujicolor QuickSnap 1000	1	13b59dd3
+search	Fujicolor QuickSnap 400 no DX coding, core splined, black	1	991a2359
+search	Fujicolor Reala New	1	d4de2cc0
+search	Fujicolor S400 "industrial ?" S-400	1	04a6554b
+search	Fujicolor Super G 100 Japan SG100	4	4626d655
+search	Fujicolor Super G 100 SG100 CN-4 (gen 1)	1	10feeb24
+search	Fujicolor Super G 200 SG200	3	5987b6f2
+search	Fujicolor Super G 200 Superia SG200	1	640d3d2d
+search	Fujicolor Super G 400 Gen 1 SG400	2	66784337
+search	Fujicolor Super G 400 Gen 2 Japan SG400	1	5527f74a
+search	Fujicolor Super G 800 SG800	3	7ed207cf
+search	Fujicolor Super G Ace 100 Japan	1	88c61f7c
+search	Fujicolor Super HG100 Gen 1	2	fa094538
+search	Fujicolor Super HG100 Gen 2	1	ff854ee1
+search	Fujicolor Super HG1600	1	551370ea
+search	Fujicolor Super HG200	2	0f806f4c
+search	Fujicolor Super HG400	3	d3a13778
+search	Fujicolor Super HGII100	3	7715801b
+search	Fujicolor Super HGII100 US version	1	a705f13c
+search	Fujicolor Super HGII200	2	3d4c5cbd
+search	Fujicolor Super HGII400	1	4cb9fe63
+search	Fujicolor Super HGV100 Asia	1	12dc2e74
+search	Fujicolor Super HGV200 Asia	1	c975b362
+search	Fujicolor Super HGV400 Asia	1	7ec78d8f
+search	Fujicolor Super HQ100 SHQII	3	2eeee3a8
+search	Fujicolor Super HQ200 (Pink) SHQII	1	496c47a9
+search	Fujicolor Super HQ200 SHQII	6	fa4d26cc
+search	Fujicolor Super HQ200 Wal-mart branded film SHQII	1	dd5bf8f7
+search	Fujicolor Super HQII 200	7	c3c3a21c
+search	Fujicolor Super HR100 "Expo 88"	1	90f108f0
+search	Fujicolor Super HR100 "World Cup 1998"	1	d159252b
+search	Fujicolor Super HR100 Gen 1	3	cef44db0
+search	Fujicolor Super HR100 Gen 2	1	269fe2c2
+search	Fujicolor Super HR100 Gen 3	1	23fe21b2
+search	Fujicolor Super HR1600 (Gen 1?)	2	c64c53cc
+search	Fujicolor Super HR1600 (Gen 2?)	1	8a1a0527
+search	Fujicolor Super HR200 Gen 1	1	22063d83
+search	Fujicolor Super HR200 Gen 2	2	7a1a5881
+search	Fujicolor Super HR400 Gen 1	1	440f0cbd
+search	Fujicolor Super HR400 Gen 2	1	14c17190
+search	Fujicolor Super HRII 100	2	ab80e699
+search	Fujicolor Super HRII 1600	1	3f3c21fa
+search	Fujicolor Super HRII 200	1	bc9bad0a
+search	Fujicolor Super HRII 400	1	f855d9e6
+search	Fujicolor Superia 800 CZ	1	0846bd8e
+search	Fujicolor Superia Reala 100	2	3053274a
+search	Fujicolor Superia X-Tra 400	27	a8bdaad8
+search	Fujicolor Superia X-Tra 400 0626	1	33210cd2
+search	Fujicolor Superia X-tra 400	27	a8bdaad8
+search	Fujicolor Superia X-tra 400 Costco branded film	1	77e3f1d3
+search	Fujicolor Superia X-tra 400 Wal-mart branded film	4	7d26f6ff
+search	Fujicolor Superia X-tra 800	7	b6f871a5
+search	Fujicolor TRUE DEFINITION 400 CH11 / TD400	1	dbf7d8b9
+search	Fujicolor Z200	1	ac391d56
+search	Fujifilm 200 China	2	7504b590
+search	Fujifilm 400 China	2	ec7a9b65
+search	Fujifilm 800 Quicksnap	2	3a35f70a
+search	Fujifilm Neopan 400 Presto (Japan market)	1	3ae0659d
+search	Fujifilm Neopan 400 Professional	3	917830cc
+search	Fujifilm Neopan 400 Professional (reintroduced last batch before totaly discontinued)	1	93d52b4e
+search	Fujifilm Neopan 400CN (Professional / C-41)	1	f0745e7d
+search	Fujifilm Neopan 400UG (Uniform grain, first version)	1	a6fe4411
+search	Fujifilm Neopan Acros 100	3	f2f98e2d
+search	Fujifilm Neopan Acros 100 (old package)	1	c591a767
+search	Fujifilm Neopan Acros II 100	1	94163bd0
+search	Fujifilm Neopan SS - 100 ISO –	2	6c4427c2
+search	Fujifilm Neopan SS - 100 ISO – DX coded	1	42bd3227
+search	Generic 27exp Film for color prints ISO 400	1	37366f8a
+search	Generic Blue White Film for color print ISO 400 24+3	1	27cdec5b
+search	Generic film for color print 35mm	1	0a7858b8
+search	Germany Film Inside – black paper ISO 200	1	6e517455
+search	H 125	8	5228902c
+search	H 400	277	82dcc70a
+search	HANALOGITAL Agate ISO 200	1	cf09e6af
+search	HANALOGITAL Bokeh ISO 200	1	f0e1ae50
+search	HANALOGITAL Charoite ISO 200	1	b81022be
+search	HANALOGITAL Confetti ISO 200	1	9906cd66
+search	HANALOGITAL Fluorite ISO 200	1	ca68c705
+search	HANALOGITAL Fox ISO 200	1	d02fb58b
+search	HANALOGITAL Gradient ISO 200	1	801f244f
+search	HANALOGITAL Hohrizon ISO 200	1	94784462
+search	HANALOGITAL Ladybug ISO 200	1	ff7830ef
+search	HANALOGITAL Opal ISO 200	1	49502efe
+search	HANALOGITAL Prism ISO 200	1	ccbca251
+search	HANALOGITAL Spirals ISO 200	1	d46a275a
+search	HANALOGITAL Streamers ISO 200	1	982895b5
+search	HANALOGITAL Stroboscope ISO 200	1	a6d86046
+search	HANALOGITAL Sugulite ISO 200	1	4e94a24b
+search	HANALOGITAL Veins ISO 200	1	88134972
+search	HEMA Zwart-Wit Film 125	1	453be02e
+search	HEMA Zwart-Wit Film 400	1	5b6e9444
+search	HP Color Print Film 200	1	2d020abc
+search	HP5	14	b46613de
+search	HP5 PLUS	7	05c0d7e2
+search	Happy Color negative film ISO 200	1	c9fb8ee0
+search	Harman Phoenix II ISO 200	1	a45a59b7
+search	Harman Phoenix ISO 200	2	bcd1a610
+search	Harman RED ISO 125	1	aef48953
+search	Harman Switch Azure ISO 125	1	b38c4499
+search	Hema Diafilm SR100	1	9b0e9927
+search	Hema Kleurenfilm Super SR100	1	8c7498a9
+search	Hema Kleurenfilm Super SR200	2	7a0d92b5
+search	Hema Kleurenfilm Super SR200 FarbFilm	1	460871cf
+search	Hema Kleurenfilm Super SR400 FarbFilm	2	a5ea8d42
+search	HomeLife 100 Speed	1	eff8278e
+search	HomeLife 200 Speed	1	b5807fdf
+search	HomeLife 400 Speed	1	0d78d86b
+search	IMATION CHROME 100	3	8fb0f8ef
+search	IMATION CHROME 200	1	9392f04f
+search	IMATION CHROME 400	2	ea65c0c3
+search	IMATION CHROME 640T	2	a970d8ea
+search	IMATION COLOR HP100	8	53ff3d49
+search	IMATION COLOR HP200	6	463f18aa
+search	IMATION COLOR HP400	4	3ab2f000
+search	Ilford 400 DELTA	6	0a087188
+search	Ilford A 125	8	095961ba
+search	Ilford A 400	37	627d0f8a
+search	Ilford BLACK 400	5	26938fca
+search	Ilford Colors 100	1	9f690640
+search	Ilford DELTA 100	5	b5cf1fff
+search	Ilford DELTA 100 Professional	2	c59a6c9f
+search	Ilford DELTA 3200 Professional	3	fcf8bf47
+search	Ilford DELTA 3200 Professional (Press or ProPack)	1	f55b73f9
+search	Ilford Delta 400 Pro	3	457519dd
+search	Ilford FP4	16	a87d6b23
+search	Ilford FP4 / O PAN	2	91b65194
+search	Ilford FP4 Negative Cine Film	1	95c9567f
+search	Ilford FP4 PLUS (Black&white box)	1	dc0518fa
+search	Ilford FP4 PLUS (Press or Propack)	1	4ade8a41
+search	Ilford FP4 PLUS (black box)	2	6b773ffb
+search	Ilford FP4 PLUS (white box) FP4+	2	2c612a6e
+search	Ilford FP4 PLUS Surveillance version	1	d3af83cc
+search	Ilford FP4 PLUS limited-edition retro packaging for 145th birthday	1	3e5202a4
+search	Ilford FP4 PLUS motion picture version	1	7cffaab8
+search	Ilford H125	3	6f468272
+search	Ilford H400	2	e5fdde20
+search	Ilford HP5	14	f0000f65
+search	Ilford HP5 Autowinder 72 Exp.	1	f1dce815
+search	Ilford HP5 Improved	1	9a01bd8c
+search	Ilford HP5 PLUS 400 HP5+ (Black&white box)	1	dd0930cc
+search	Ilford HP5 PLUS 400 HP5+ (Press or propack)	1	18f90b4e
+search	Ilford HP5 PLUS 400 HP5+ (black box)	2	e6c0f6c3
+search	Ilford HP5 PLUS 400 HP5+ (white box)	2	3b7f243a
+search	Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday	1	bcc8e24e
+search	Ilford HP5 PLUS 400 motion picture version HP5+	1	cd4fac31
+search	Ilford Ilfocolor 100 plus	2	c7dbe199
+search	Ilford Ilfocolor 400 plus	1	02795ff4
+search	Ilford Ilfocolor Super HR100	1	c3068594
+search	Ilford OPTHALMIC	2	a5d45c06
+search	Ilford Ortho Plus Copy Film – ISO 80 (120 & 135)	1	e027462b
+search	Ilford PAN 100	7	f08d16bc
+search	Ilford PAN 400	7	293c7617
+search	Ilford PAN F (Black box, DX coded)	1	4ae58c1c
+search	Ilford PAN F (Pl) (50 ASA)	3	eebfeeb1
+search	Ilford PAN F PLUS (50 ASA) (Black Box)	1	ef779fd9
+search	Ilford PAN F PLUS (50 ASA) (White Box)	1	a752992e
+search	Ilford PAN F PLUS (Black&White box)	1	eaa6619c
+search	Ilford SFX200	6	cc89cd64
+search	Ilford SP815T	2	272ed38e
+search	Ilford SP816T POLY	2	2b0b2e79
+search	Ilford UNIVERSAL 100	2	7039b3d7
+search	Ilford UNIVERSAL 400	2	748186df
+search	Ilford XP1 400 (P1) Chromogenic (iso 400)	2	a7d91028
+search	Ilford XP1 400 Chromogenic (iso 400)	2	a7d91028
+search	Ilford XP2 400 Chromogenic	2	623d2b74
+search	Ilford XP2 400 Chromogenic (improved)	1	c4e25d01
+search	Ilford XP2 SUPER 400	2	55fcee4e
+search	Infa Infacolor 樱花 (Sakura) SR100 ISO 100	1	61d96e4e
+search	Intercolor Platin 200	1	8d1cb97a
+search	Iris Color ISO 200 MilleniuM	1	c5c9fd60
+search	Isokta Color FCX 100 Papier Couleur	1	ab9fd9b8
+search	Isokta Color FCX 200 Papier Couleur	1	cea0a2b1
+search	Isokta Color FCX 400 Papier Couleur	1	3dbca6a7
+search	Italian Film Inside – blue paper ISO 400	1	8a26fc2f
+search	JCH FuguFilm 400 Positive color film	1	fe830224
+search	JCH StreetPan 400	2	bbd93398
+search	JCH StreetPan 400 (black & red box)	1	2986f4ee
+search	Jessops SHR100	2	e43f0d4c
+search	Jessops SHR100 Improved Emulsion	1	15c3a620
+search	Jessops SHR200	1	aa201447
+search	Jessops SHR400	1	841ab36c
+search	Jessops diamond 2 Everyday ISO 400	1	6cd56d1c
+search	Jessops diamond Everyday ISO 200	2	a65803a8
+search	Jessops diamond Fine ISO 100	1	510a296b
+search	KALT ISO 100 White cartridge	1	130f582e
+search	KALT ISO 400 White cartridge	1	3856cafb
+search	KALT ISO 400 Yellow cartridge	1	de092258
+search	KODACHROME 200 Film	12	304cda2a
+search	KODACHROME 200 Film (PCI)	3	d84d717a
+search	KODACHROME 200 Professional Film	3	f18e73c2
+search	KODACHROME 64 Film (Daylight)	6	9caa2e81
+search	KODACHROME 64 Film (PCI)	2	d162a380
+search	KODACHROME 64 Professional Film (Daylight)	2	4554a755
+search	KODACOLOR VR 100 Film	11	d210337c
+search	KODACOLOR VR 200 Film	12	4d3211f7
+search	KODACOLOR VR100 Film	9	3fcc5a55
+search	KODACOLOR VR200 Film	11	aa86fbef
+search	KODAK Black&White 400 Film	4	52dfa686
+search	KODAK Black-and-White + 400 Film	3	4b1c6d3d
+search	KODAK Color Negative 100 Film	11	98ea74ca
+search	KODAK Color Negative 200 Film	9	8b00d5d1
+search	KODAK Color Negative 400 Film	19	0f9ca52f
+search	KODAK Color Negative 800 Film	6	a800f30a
+search	KODAK Colour Negative 100 Film	2	b93417bf
+search	KODAK EKTACHROME 100 Professional Film (Daylight)	4	3e414e22
+search	KODAK EKTACHROME 160 Film (Tungsten)	4	15dd72a1
+search	KODAK EKTACHROME 160 Professional Film (Tungsten)	2	1afe547f
+search	KODAK EKTACHROME 320 Professional Film	2	04629127
+search	KODAK EKTACHROME 400 Professional Film	2	77f74a12
+search	KODAK EKTACHROME 64 Professional Film (Daylight)	1	671c7e2a
+search	KODAK EKTACHROME 64 Professional Film (Tungsten)	2	e65e6551
+search	KODAK EKTACHROME Elite 400 Slide Film (Daylight)	2	b73d1503
+search	KODAK EKTACHROME P1600 Professional Film	1	5feb680c
+search	KODAK EKTACHROME Professional E100VS Film	2	5874df12
+search	KODAK EKTACHROME Professional Infrared EIR Film	2	76e32954
+search	KODAK Ektachrome 100 Film	16	4d7524b0
+search	KODAK Ektachrome 200 Film	14	64be770b
+search	KODAK Elite CHROME 200 Film	4	3f5b0257
+search	KODAK Elite CHROME Extra Color 100 Film	1	fa45f896
+search	KODAK EliteCHROME 100 Film	9	1dda1b86
+search	KODAK GOLD 100 Film	12	60030dfe
+search	KODAK GOLD 200 Film	11	152f004b
+search	KODAK GOLD 400 Film	14	85277a03
+search	KODAK Gold 100 Film for Jean Coutu Pharmacies in Canada	2	93c1e68a
+search	KODAK Gold 200 Film for Jean Coutu Pharmacies in Canada	2	7d949779
+search	KODAK Hawkeye Traffic Surveillance Color Film	2	ed7d7752
+search	KODAK High Definition 200 Film	3	09b2fc50
+search	KODAK High Definition 400 Film	1	a17dfce5
+search	KODAK High Speed Infrared Film	5	80b76ff0
+search	KODAK ISO 400 Color Negative Film	6	9cd0c88e
+search	KODAK MAX 400 Film	18	a117fc52
+search	KODAK MAX 400 Film – One Time Use Cameras	1	65547255
+search	KODAK MAX 400 film for Jean Coutu Pharmacies in canada	4	4bca5f2f
+search	KODAK MAX 800 Film	6	0cb1d2dc
+search	KODAK MAX 800 Film – One Time Use Cameras	1	aa841fdb
+search	KODAK PLUS-X Pan Film	3	d1c603a5
+search	KODAK PROFESSIONAL EKTACHROME 100 HC Film	2	da28baa0
+search	KODAK PROFESSIONAL EKTACHROME Duplicating Film EDUPE	2	a76d0562
+search	KODAK PROFESSIONAL EKTACHROME E200 Film	3	d1a3a74a
+search	KODAK PROFESSIONAL PORTRA 100T Film	2	0b9c2a5e
+search	KODAK PROFESSIONAL PORTRA 160NC Film	1	42de96d7
+search	KODAK PROFESSIONAL PORTRA 160VC Film	1	a0de8c49
+search	KODAK PROFESSIONAL PORTRA 400NC Film	1	ddf047d8
+search	KODAK PROFESSIONAL PORTRA 400VC Film	1	f162d0ab
+search	KODAK PROFESSIONAL PROFOTO 100 Color Negative Film	3	6d7b81f1
+search	KODAK PROFESSIONAL PROIMAGE 100 Color Negative Film	4	3c7a0eaf
+search	KODAK PROFESSIONAL Portra 800 Film	4	e10984e5
+search	KODAK PROFESSIONAL Supra 800 Film	1	cdda4a54
+search	KODAK Plus Digital 400 Film	2	165f34da
+search	KODAK Plus Digital 800 Film – One Time Use Cameras	1	16b2169b
+search	KODAK Professional 100UC Film	1	99450b67
+search	KODAK Professional 400UC Film	1	c1093e59
+search	KODAK Professional BW400CN Film	6	688b2999
+search	KODAK Professional Color Negative II Film PCN 100 – Code 5003	1	e78a849d
+search	KODAK Professional Color Negative Type S – Code 5003	1	4b4d8b0b
+search	KODAK Professional EKTACHROME E100G Film	3	9bbe5737
+search	KODAK Professional EKTACHROME E100GX Film	1	56c24d38
+search	KODAK Professional ELITE COLOR 200 Film	1	bcf0dc60
+search	KODAK Professional ELITE COLOR 400 Film	1	98fbfac5
+search	KODAK Professional PORTRA 100T Film	2	0b9c2a5e
+search	KODAK Professional PORTRA 160 Film	3	95b471e1
+search	KODAK Professional PORTRA 400 Film	4	cb5433fc
+search	KODAK Professional PROFOTO 100 Color Film	7	ce4b5d05
+search	KODAK Professional Traffic Surveillance Film	2	d9b6c664
+search	KODAK Professional ULTIMA100 Color Film	2	bfedc459
+search	KODAK Professional Ultima 100 Film	4	b2246336
+search	KODAK SUPER GOLD 400 Film	6	df64065c
+search	KODAK Splicer Test Film Kodachrome 200	3	83d582d3
+search	KODAK Splicer Test Film Process K-14	3	5162315f
+search	KODAK T-MAX 100 Professional Film	3	6a245bd6
+search	KODAK T-MAX 3200 Professional Film	3	9dcc7b48
+search	KODAK T-MAX 400 Professional Film	4	39ce8206
+search	KODAK TRI-X Pan Film	1	2b64678d
+search	KODAK Technical Pan Film	2	6475e58d
+search	KONICA Baby Film ISO 200	1	81d13990
+search	KONICA CENTURIA 100	12	246e0f0e
+search	KONICA CENTURIA 200	32	f1c44843
+search	KONICA CENTURIA 400	21	795610fb
+search	KONICA CENTURIA 800 撮りっきりコニカ	1	59e656eb
+search	KONICA CENTURIA PORTRAIT400 "For Portrait" NH	1	50a69b8a
+search	KONICA CENTURIA SUPER 100	2	f4414cff
+search	KONICA CENTURIA SUPER 1600	2	08452549
+search	KONICA CENTURIA SUPER 200	14	d855e60a
+search	KONICA CENTURIA SUPER 400	10	e4b89703
+search	KONICA CENTURIA SUPER 400 Japan	7	c616198a
+search	KONICA CENTURIA SUPER 800	3	79aa596a
+search	KONICA Chrome CENTURIA100	3	8c576e78
+search	KONICA Chrome MC100	2	c15a2d98
+search	KONICA Chrome R-100	3	11df74d6
+search	KONICA Chrome R-200	2	2aa640af
+search	KONICA Chrome SINBI 100 Professional SRP	1	0d5afde5
+search	KONICA Chrome SINBI 100 SRA	1	4e2fca61
+search	KONICA Chrome SINBI 200 SRM	1	9e5d9623
+search	KONICA Chrome SINRA 100	1	d8cc33d8
+search	KONICA FiLM>iN FiLMiN 400	4	98f64dbb
+search	KONICA FiLM>iN FiLMiN 800	2	20ea6048
+search	KONICA GX100	3	5623b0f8
+search	KONICA GX100-M "Mama totte"	1	8a4eb044
+search	KONICA GXII100	1	9e2c7c9e
+search	KONICA IMPRESA 100 For Portrait	1	a3e3e89a
+search	KONICA IMPRESA 200 For Portrait	1	21a72ccf
+search	KONICA IMPRESA 50 Professional	1	3ac993dc
+search	KONICA JX100	2	e59075be
+search	KONICA JX200M "Skin beauty"	1	0e4ecd7d
+search	KONICA JX400	1	be5a4e1f
+search	KONICA LV100	4	9326ee39
+search	KONICA LV200	2	b1ef1710
+search	KONICA LV400	2	0fcc4ed9
+search	KONICA MINI / FiLM>iN FiLMiN 400	1	0271e265
+search	KONICA MINOLTA CENTURIA PORTRAIT400	1	863930f6
+search	KONICA MINOLTA CENTURIA SUPER100	1	79834e55
+search	KONICA MINOLTA CENTURIA SUPER1600	1	34738845
+search	KONICA MINOLTA CENTURIA SUPER200	1	7f609939
+search	KONICA MINOLTA CENTURIA SUPER400	2	d2f42206
+search	KONICA MINOLTA CENTURIA SUPER800	1	30818b1c
+search	KONICA MINOLTA CENTURIA100	3	9c1b3ac8
+search	KONICA MINOLTA CENTURIA200	2	196b4061
+search	KONICA MINOLTA CENTURIA400	3	937adcbe
+search	KONICA MINOLTA CENTURIA800	2	b9d759ca
+search	KONICA MINOLTA Chrome MC100	1	634226b3
+search	KONICA MINOLTA Chrome R100	1	60345eea
+search	KONICA MINOLTA Chrome R200	1	efcab575
+search	KONICA MINOLTA Chrome SHINRA100	1	223f0926
+search	KONICA MINOLTA Chrome SINBI100, KONICA MINOLTA Chrome CENTURIA100	1	54901e37
+search	KONICA MINOLTA Chrome SINBI100, Professional	1	819b3a65
+search	KONICA MINOLTA Chrome SINBI200, KONICA MINOLTA Chrome CENTURIA200	1	fe2d1b8d
+search	KONICA MINOLTA IMPRESA100	1	2655bd0d
+search	KONICA MINOLTA IMPRESA200, JX200M	1	73eb07a2
+search	KONICA MINOLTA IMPRESA50	1	8ed5b11c
+search	KONICA MINOLTA JX100	1	ad3340e1
+search	KONICA MINOLTA LV400	1	b74e5d01
+search	KONICA MINOLTA Monochrome VX400	2	262e8b0a
+search	KONICA MINOLTA Monochrome VX400, SEPIA400	1	104f8d6a
+search	KONICA MINOLTA New CENTURIA400	1	3a2a3bd4
+search	KONICA MINOLTA New CENTURIA800	1	d981e630
+search	KONICA MINOLTA PROFESSIONAL160	1	d28dc8c5
+search	KONICA MINOLTA VX-200	3	1abc6532
+search	KONICA MINOLTA VX100	3	251b9c5c
+search	KONICA MINOLTA VX100 SUPER	1	c507db5b
+search	KONICA MINOLTA VX100, LV100	1	bf5e3e91
+search	KONICA MINOLTA VX200 SUPER	1	d3feb2ec
+search	KONICA MINOLTA VX200, LV200	1	72386b84
+search	KONICA MINOLTA VX400	6	aec18e3c
+search	KONICA MINOLTA VX400 SUPER	2	1eecf157
+search	KONICA MINOLTA XG400	1	f8602827
+search	KONICA Monochrome VX400 C41	3	f1cbd95e
+search	KONICA Monochrome VX400 disposable camera C41	1	e5379ef3
+search	KONICA Monochrome VX400, SEPIA400 C41	1	273c4a70
+search	KONICA New CENTURIA 400	3	43a89fb7
+search	KONICA New CENTURIA 800	3	2dac8a3c
+search	KONICA Professional 160	2	256f1d6f
+search	KONICA VX100	21	2a65d268
+search	KONICA VX100 SUPER	9	6387fbaf
+search	KONICA VX200	15	6fa90fe9
+search	KONICA VX200 SUPER	7	5e0d3a5c
+search	KONICA VX400	22	49e8f578
+search	KONICA VX400 SUPER	10	95c6334f
+search	KONICA XG400	3	d75b19f3
+search	Kentmere 100	8	f86238c9
+search	Kentmere 400	9	d57486be
+search	Kentmere Pan 100	4	3e128b56
+search	Kentmere Pan 400	3	4ad5bb37
+search	Kentmere Pan 400 Candy pack	1	8a456b64
+search	Kirkland 200 Color Print Film	1	8748a75a
+search	Kirkland Signature 200 DX coding, AP70/C-41	1	1fb8e63b
+search	Kirkland Signature 400 Color Print Film	1	e88f338c
+search	Klick Extra Definition Multi purpose film XD 200	1	9cba3afe
+search	Klick Max 200	2	83012e0c
+search	Klick Max 400	1	764fec83
+search	Klick Photopoint 200	4	e48d7f19
+search	Klick Photopoint 400	2	765c7a09
+search	Kodak (Gold?) 200-8	1	aa2018ac
+search	Kodak 100 (Gen 7?)	4	9bbb242a
+search	Kodak 200 (Gen 7?)	9	6132a48d
+search	Kodak 400 35mm color print film GC400	1	1941d283
+search	Kodak 400 Color Negative Film	19	0f9ca52f
+search	Kodak 400 GC White can "for use in Kodak single use cameras"	1	ba24251a
+search	Kodak 400 white can	2	ec098155
+search	Kodak 800 Color Negative Film	6	a800f30a
+search	Kodak 800 GT For Use in Kodak Single Use Camera (Yellow)	1	02ea5741
+search	Kodak 800-4 GT For Use in Kodak Single Use Camera (White)	1	4a3ca4c4
+search	Kodak AUTOCOLOR 100 AC – Code 5095	1	2bf979ef
+search	Kodak AUTOCOLOR 100 AC – Code 5218	1	94b33cfb
+search	Kodak Academy 200 B&W	2	4c812dc6
+search	Kodak Academy Professional 200 B&W	1	d487ba7e
+search	Kodak Black and White 400 BWC C-41	2	9c7e2d2c
+search	Kodak Black and White 400 BWC C-41 (With C-41 warning, first version?)	1	f74f2ed1
+search	Kodak Black&White C41 400 Film	3	24c87117
+search	Kodak Black&White C41 400 ISO Film Select Series	2	06bd3aed
+search	Kodak Black&White C41 400 ISO Film Select Series – Japan version	1	1752deeb
+search	Kodak CE Color film ISO 100	2	295370dc
+search	Kodak CE Color film ISO 100 (US?) - Code 5218	1	0adfa6a6
+search	Kodak Color Negative 100 Film	11	98ea74ca
+search	Kodak Color Negative 200 Film	9	8b00d5d1
+search	Kodak Color Negative 400 Film	19	0f9ca52f
+search	Kodak Color Negative 400 Film 400-3	3	cfb30b5e
+search	Kodak Color Negative 800 Film	6	a800f30a
+search	Kodak Color Plus 200 Colorplus	29	f42c4783
+search	Kodak Color Plus 200 Colorplus (Actual)	2	10b96e5c
+search	Kodak Color Plus 200 Colorplus (Candy pack)	1	431b46fa
+search	Kodak Color Plus 200 Colorplus (First edition)	2	a2a6519c
+search	Kodak Color Plus 200 Colorplus (First edition, French version)	1	28533a5c
+search	Kodak Colour Negative 100 Film	2	b93417bf
+search	Kodak Commercial 200	1	78a4a0d0
+search	Kodak Cosmos 400	2	d5fe58bb
+search	Kodak EKTACHROME 100 EN (Daylight) – Code 5039	1	157af839
+search	Kodak EKTACHROME 100 Film	16	4d7524b0
+search	Kodak EKTACHROME 100 HC - Code : 5009 / 6009 - EC	1	ebd6fcb1
+search	Kodak EKTACHROME 100 PLUS Professional - Code : 6105 - EPP	1	5190afab
+search	Kodak EKTACHROME 100 PLUS Professional, EPPE-6 - Code : 5005	1	3655e78c
+search	Kodak EKTACHROME 100 Plus EPP Press Pack	1	c9a2893e
+search	Kodak EKTACHROME 100 Plus EPP Professional - Code : 5005 / 6005 – EPP	1	f8c695ea
+search	Kodak EKTACHROME 100 Plus – Code 5000 EPW	1	5892efab
+search	Kodak EKTACHROME 100 Professional - Code : 5012 / 6012 - EPN	1	623c982d
+search	Kodak EKTACHROME 100 Professional - Code : 6122 - EPN	1	39ac7a95
+search	Kodak EKTACHROME 100 Professional Film (Daylight)	4	3e414e22
+search	Kodak EKTACHROME 100 Professional Film (Daylight) – Code 5005 EPP	1	6b803b10
+search	Kodak EKTACHROME 100 professional - Code : 5058 / 7058 EPN404	1	ad3cfaea
+search	Kodak EKTACHROME 100HC – Code EC100	1	41177c92
+search	Kodak EKTACHROME 100HC – Code EPC100	1	0a49b852
+search	Kodak EKTACHROME 100X Professional - Code : 5024 / 6024 / 7024 - EPZ	1	47cec453
+search	Kodak EKTACHROME 160T Film (Tungsten) Code : 5077 – ET	2	40167b1d
+search	Kodak EKTACHROME 160T Professional Film (Tungsten) Code : 5077 – ET	1	814d3b0e
+search	Kodak EKTACHROME 160T Professional Film - Code : 5037 / 6037 – EPT	1	9965a294
+search	Kodak EKTACHROME 160T Professional, EPT120, Tungsten, sheets - Code : 6037	1	a082f158
+search	Kodak EKTACHROME 160T Professional, EPT404, Tungsten, PRFD-2 KS U - Code : 5037	1	4012c5a0
+search	Kodak EKTACHROME 200 (Daylight) - Code : 5076 - ED	2	cd8faa50
+search	Kodak EKTACHROME 200 Film	14	64be770b
+search	Kodak EKTACHROME 200 Professional - Code : 6176 - EPD	1	e81d68e7
+search	Kodak EKTACHROME 200 Professional Film (bulk), Daylight, SP952 - Code : 6176	1	2fed2ec8
+search	Kodak EKTACHROME 200 Professional, EPD120, Daylight, sheets	1	96683dc1
+search	Kodak EKTACHROME 200 Professional, EPDE-6 - Code : 5036 / 6036 - EPD	1	1439b4c5
+search	Kodak EKTACHROME 320 Professional Film – Code 5042	1	8a661e57
+search	Kodak EKTACHROME 320T Professional - Code : 5042 - EPJ	2	7eeb93f3
+search	Kodak EKTACHROME 400 (Daylight) - Code : 6074 / 5074 - EL	1	1c02b372
+search	Kodak EKTACHROME 400 Professional Film – Code 5075	1	5f5c33c9
+search	Kodak EKTACHROME 400 – Code 5074	2	42dfe0c0
+search	Kodak EKTACHROME 50 Professional Film (Tungsten) EPY – Code 5018	2	839be662
+search	Kodak EKTACHROME 50HC - Code : 5015 – EM50	1	d2762127
+search	Kodak EKTACHROME 64 (Daylight) - Code : 5031 / 6031 - ER	1	b2c52c3d
+search	Kodak EKTACHROME 64 (Daylight) - Warmer color balanced - Code : 5027 - EPV	1	f5ed208d
+search	Kodak EKTACHROME 64 Professional (daylight), EPR404 (PRFD2 KS U)	1	9816069f
+search	Kodak EKTACHROME 64 Professional - Code : 6017 - EPR	1	ccc99915
+search	Kodak EKTACHROME 64 Professional 5017 - Daylight EPR135-36	1	e29257d3
+search	Kodak EKTACHROME 64 Professional Film (Tungsten) EPY64T – Code 5018	1	1e6fa389
+search	Kodak EKTACHROME 64 Professional, Daylight - Code : EPR653 5017	1	38bb97d4
+search	Kodak EKTACHROME 64 Professional, Daylight, sheets - Code : 6117 - EPR	1	80b9546e
+search	Kodak EKTACHROME 64T Electronic Output - Code : 6118	1	cd65d149
+search	Kodak EKTACHROME 64T Professional (Tungsten) - Code : 6118 - EPY	1	542de224
+search	Kodak EKTACHROME 64T professional, EPY120, tungsten - Code : 6018	1	8960bc92
+search	Kodak EKTACHROME 64X Professional - Code : 5025 / 6025 - EPX	1	954114b8
+search	Kodak EKTACHROME Duplicating Type K - Code : 8071 KC	1	e13c4015
+search	Kodak EKTACHROME Dyna EX200 ED	1	ce7c2239
+search	Kodak EKTACHROME Dyna EX50	1	b95d319e
+search	Kodak EKTACHROME E100G	8	cd6a4eb5
+search	Kodak EKTACHROME E100GP	1	28d792ee
+search	Kodak EKTACHROME E100S - Code : 5069	1	93ec1096
+search	Kodak EKTACHROME E100VS – Code : 5085	1	f972dd39
+search	Kodak EKTACHROME Elite 100 slide film (daylight) - Code : 5045 EB	1	19c93c3c
+search	Kodak EKTACHROME Elite 200 slide film - Code : 5056 - ED	1	2d855dd6
+search	Kodak EKTACHROME Elite 400 Slide Film (Daylight) - Code : 5074 – EL	1	58ec402a
+search	Kodak EKTACHROME Elite 50 - Code : 5065 - EA	1	74e41826
+search	Kodak EKTACHROME Elite II 50 EA	1	91b4f536
+search	Kodak EKTACHROME Elite II 50 EM	1	ccd3fcc3
+search	Kodak EKTACHROME Infrared - Code : 2236 - IE	1	7aca6420
+search	Kodak EKTACHROME LUMIERE 100 Professional - Code : 5046 - LPP	1	f417b634
+search	Kodak EKTACHROME LUMIERE 100 Professional - Code : 6146 - LPP	1	ec92d918
+search	Kodak EKTACHROME LUMIERE 100X Professional - Code : 5048 / 6048 - LPZ	1	e37286a1
+search	Kodak EKTACHROME LUMIERE 100X Professional - Code : 6148 - LPZ	1	71044be0
+search	Kodak EKTACHROME LUMIERE 50 Professional - Code : 5066 / 6066 - LPR	1	8b2fb07f
+search	Kodak EKTACHROME LUMIERE 50 Professional - Code : 6166 - LPX	1	fe604fe3
+search	Kodak EKTACHROME LUMIERE 50X Professional - Code : 5067 / 6067 - LPX	1	c8a8b31a
+search	Kodak EKTACHROME LUMIERE 50X Professional - Code : 6167 - LPX	1	5aa935c5
+search	Kodak EKTACHROME Lumiere 100X Professional, LPP120 - Code : 6046	1	24607487
+search	Kodak EKTACHROME P1600 Professional - Code : 5040 - EPH	1	3ff9888d
+search	Kodak EKTACHROME P800/1600 Professional (yellow/Blue box) - Code : 5020 – EES	1	75eb9c9f
+search	Kodak EKTACHROME P800/1600 Professional (yellow/Gray box) - Code : 5020 – EES	1	b7ea9399
+search	Kodak EKTACHROME Panther 100 PRP – Code 1046	1	50eab562
+search	Kodak EKTACHROME Panther 100X PRZ – Code 1048	1	c59fcb2b
+search	Kodak EKTACHROME Panther 200X PRD – Code 1056	1	31919a25
+search	Kodak EKTACHROME Panther 50 PRS – Code 1066	1	7fab9a15
+search	Kodak EKTACHROME Panther 50X PRX – Code 1067	1	91c7a99f
+search	Kodak EKTACHROME Professional E100VS Film	2	5874df12
+search	Kodak EKTACHROME Professional Infrared EIR Film (Kodak 2236?) TI-2323	1	30b48012
+search	Kodak EKTACHROME QX868 naturalcolor positive ASA 64 - thin b.	1	9035986e
+search	Kodak EKTACHROME Select 100 Film – Code 8046	1	c6056bea
+search	Kodak EKTACHROME Select 100x Film – Code 8048	1	cedfccac
+search	Kodak EKTACHROME Select 50 Film – Code 8066	1	655dccdf
+search	Kodak EKTACHROME Select 50x Film – Code 8067	1	64a5ffab
+search	Kodak EKTACHROME Slide Duplicating Film - Code : 5071 ESD	1	8d4f1821
+search	Kodak EKTACHROME Underwater - Code : 5019 - UW	1	b62025f8
+search	Kodak EKTACOLOR BP 160 - Code : 7124	1	a2a09d48
+search	Kodak EKTACOLOR Gold 160 Professional	4	6b1c8d10
+search	Kodak EKTACOLOR Gold 160 Professional - Code : 5124 GPF	2	24b6fbb1
+search	Kodak EKTACOLOR Gold 400 Professional – Code : 5084 (5097 Europe) EGP	1	a774f28a
+search	Kodak EKTACOLOR Gold 400 Professional – Code : 5087	2	aca3abb6
+search	Kodak EKTACOLOR Gold II 160 Professional - Code : 5124 GPF	1	7ff58d00
+search	Kodak EKTACOLOR Gold II 400-4 Professional – EGP	1	5863a933
+search	Kodak EKTAGRAPHIC - Code : 6522 - HCS	1	48ffecda
+search	Kodak EKTAGRAPHIC 4C Slide Film - Code : 6552 HCS	1	11d671ca
+search	Kodak EKTAPRESS GOLD 1600 Professional (Gen 1) - Code : 5030 PPC 1600-1	1	a5bd5d1a
+search	Kodak EKTAPRESS GOLD 1600 Professional (Gen 2?) - Code : 8091 PBC 1600-2	1	b5485b9f
+search	Kodak EKTAR 100 - Code : 5301 / 3101 – CX	1	bcdf0eba
+search	Kodak EKTAR 100 Gen 1 100-1 – Code CX 3101	1	aa2be977
+search	Kodak EKTAR 100 Gen 2 100-2 – Code 5101	1	27b3102b
+search	Kodak EKTAR 100 Gen 3 – CX / SY 100-3	1	0110e3ec
+search	Kodak EKTAR 200 – SW200	1	1d857a20
+search	Kodak EKTAR 400 – SU400	1	dd45b4ff
+search	Kodak Ektacolor Pro Gold 160GPX	1	c0276611
+search	Kodak Ektacolor Pro Gold 400GPY	2	575f8549
+search	Kodak Ektacolor Pro Gold 400MC GPM	1	f9d2ff26
+search	Kodak Ektacolor gold 160	5	8480c9cc
+search	Kodak Ektacolor gold II 400 EGP-4	1	e3435118
+search	Kodak Ektapress GOLD 100 Professional F - Code : 5115 - PPA	1	8efcfa26
+search	Kodak Ektapress GOLD 400 Professional F - Code : 5113 – PPB-1 (Gen 1?)	1	825ec8f3
+search	Kodak Ektapress GOLD 400 Professional F PPB-2 (Gen 2) – Code 5113	1	4e1cf73e
+search	Kodak Ektapress GOLD 400 Professional PPB-3 (Gen 3?)	2	f491227f
+search	Kodak Ektapress GOLD 400 Professional PPB-3 (Gen 3?) - Code 5113	1	73f76ddf
+search	Kodak Ektapress GOLD II 1600 PJC	1	a57065b3
+search	Kodak Ektapress Gold II 100 Professional	1	d24ef718
+search	Kodak Ektapress Gold II 1600 Professional	1	c2a552a6
+search	Kodak Ektapress Gold II 400 Professional – PJB G5	1	a2c5f6b8
+search	Kodak Ektapress Multispeed Gold II ISO 100-1000 (640) – Code PJM MULTI / Multspd	2	61bedc24
+search	Kodak Ektapress Multispeed Gold II ISO 100-1000 (640) – Code PJM-2 MULTI / Multspd	1	d58255aa
+search	Kodak Ektapress Plus 100 Professional - Code : PJA-1	1	0031121b
+search	Kodak Ektapress Plus 1600 Professional - Code : PJC-1	1	38b27c92
+search	Kodak Ektapress Plus 200 Professional	1	bcd556e2
+search	Kodak Ektapress Plus 400 Professional, 5113 - Code : PJB135	2	1f167b56
+search	Kodak Ektapress Plus 400 Professional, PJB135-36 - Code : 5113 – PJB-2	1	bf533104
+search	Kodak Ektar 100 Professional (last version ?) SX	1	8d489370
+search	Kodak Ektar 100 Professional (new version) SX	1	d0772283
+search	Kodak Ektar 1000 Gen 1 - Code : 5110 – CJ 1000-1	1	a6fb2cf3
+search	Kodak Ektar 1000 Gen 2 – CJ 1000-2	1	28bc4950
+search	Kodak Ektar 125 – Code 5101 CW	1	564a96dd
+search	Kodak Ektar 25 - Code : 5100 – CK	1	42bad17b
+search	Kodak Ektar 25 - Code : CH	1	31e68281
+search	Kodak Ektar 25 Professional - Code : 5327 - PHR	2	3ef7cec7
+search	Kodak Ektar 25 professional film PHR120 (120 roll) - Code : 6327	1	ea4ec2c1
+search	Kodak Elite Chrome 100 E-6 slide film EB	5	80924ec1
+search	Kodak Elite Chrome 100 E-6 slide film EB - Code : 5089	1	5cbfed18
+search	Kodak Elite Chrome 100 E-6 slide film EB – Code 5074	1	9383adef
+search	Kodak Elite Chrome 100D E-6 slide film	1	1385d871
+search	Kodak Elite Chrome 200 – E6 - Code : 5014 – ED	3	d427e48e
+search	Kodak Elite Chrome 400 E-6 slide film EL 5074	1	f5cf3e52
+search	Kodak Elite Chrome 400 EL	6	076032ad
+search	Kodak Elite Chrome Extra Color 100 - Code : 5084 – EBX	1	953c458e
+search	Kodak Elite Chrome Extra Color EBX 100	3	e7f75536
+search	Kodak ExtraColor Elite Chrome 100 EBX	3	e7f75536
+search	Kodak FarbWelt Klassik 200	1	249ca3a3
+search	Kodak Farbwelt 100 FA Sonne Film	1	88dba0da
+search	Kodak Farbwelt 200	10	157de575
+search	Kodak Farbwelt 400 Allround FC400-8	1	24ce0304
+search	Kodak Farbwelt 400 Der Film für alle Fälle	1	c72de6fc
+search	Kodak Funtime 100 Film, FA135-27-2H - Code : 5299	1	97ac623b
+search	Kodak Funtime 200 Film (gen. 2)	1	173ca11b
+search	Kodak Funtime 200 Film, FB135-27-2H - Code : 5214	1	be70c3fc
+search	Kodak GOLD 100 Film	12	60030dfe
+search	Kodak GOLD PLUS 100 Gen 5 - Code : 5095 – GA 5 100-5	2	57c9b930
+search	Kodak GOLD PLUS 200 Gen 3 - Code : 7096 – GB 200-3	1	7673f590
+search	Kodak GOLD Super 200 Gen 5 - Code : 5096 – GB 200-5	1	c52959e7
+search	Kodak GOLD Ultra 400 (Gen 6) - Code : 5097 - GC	1	44e31740
+search	Kodak GOLD Ultra 400 Gen 4 GC 400-4	1	800bea4d
+search	Kodak GOLD Ultra 400 Gen 5 GC 400-5	1	f253586e
+search	Kodak GOLD Ultra 400 Gen 6 GC 400-6	1	ea199713
+search	Kodak GOLD Ultra 400 Gen 7 (?) GC 400-7	1	685a0c2b
+search	Kodak GOLD Ultra 400 Gen 8 GC 400-8	1	517c53d5
+search	Kodak Gold 100	48	906ae9ee
+search	Kodak Gold 100 (Australia) (Gen 6)	1	47c7ced7
+search	Kodak Gold 100 (Gen 6)	9	6811aec6
+search	Kodak Gold 100 (India) (Gen 6)	1	f47af7a4
+search	Kodak Gold 100 Film for Jean Coutu Pharmacies in Canada	2	93c1e68a
+search	Kodak Gold 100 GA	10	dd15fb3f
+search	Kodak Gold 100 GA 100-6 (Gen 6)	1	11c40482
+search	Kodak Gold 100 Gen 2 100-2	2	9f7ef3a7
+search	Kodak Gold 100 Gen 4 100-4	5	bc5ee7f0
+search	Kodak Gold 160	14	5a3ffb82
+search	Kodak Gold 1600-1 Gen. 1 – 5091	2	325459dc
+search	Kodak Gold 200	52	2e0259be
+search	Kodak Gold 200 (First gen ??)	1	5cb18e09
+search	Kodak Gold 200 GB (Gen 6)	4	bd5bb0be
+search	Kodak Gold 200 GB (Gen 6?)	4	bd5bb0be
+search	Kodak Gold 200 GB 200-7	1	c490b371
+search	Kodak Gold 200 Gen 2 GB 200-2	1	f6cf8cd5
+search	Kodak Gold 200 Gen 4 – 200-4	3	b1e90e63
+search	Kodak Gold 200 Gen 6	10	21fb468e
+search	Kodak Gold 200 Gen 6 – 120 format	1	14f5ae2e
+search	Kodak Gold 200 for Jean Coutu Pharmacies in Canada	4	e8acfeef
+search	Kodak Gold 200-3	3	29dec698
+search	Kodak Gold 400 (400-4 – Gen 4?)	1	dd13e630
+search	Kodak Gold 400 (Gen 6)	5	1048a698
+search	Kodak Gold 400 GA 400-6 (Gen 6)	1	bbaa5d97
+search	Kodak Gold 400-2 Gen 2 – Code 5097	1	04aadbcb
+search	Kodak Gold 400-3 Gen 3	1	a608ec2a
+search	Kodak Gold 400-5 Gen 5 GC	3	191cc78f
+search	Kodak Gold 800	8	34e1f065
+search	Kodak Gold 800 GT Disposable camera (Yellow can)	2	bd2ec2e4
+search	Kodak Gold 800-1 Gen 1	2	3dcdeec9
+search	Kodak Gold II 400 ISO CG 400-8	1	10dcfb71
+search	Kodak Gold II GA / GR 100 ISO (gen 3)	1	ad0f38b9
+search	Kodak Gold III 100 Gen 4 – Code GA 100-4	1	dc7c1407
+search	Kodak Gold III 100 – Code GA	4	f5ef4043
+search	Kodak Gold III 200 Gen 4 – Code GB 200-4	1	352f7efe
+search	Kodak Gold III 200 – Code GB (Gen 5?)	1	8b954415
+search	Kodak Gold III 400 Gen 5 – Code GC 400-5	1	c422aa33
+search	Kodak Gold Max 800 Gen 2 – 800-2	1	0152447a
+search	Kodak Gold Plus 100 Gen 3	2	3796962c
+search	Kodak Gold Plus 100 Gen 4 – 100-4	1	fbed5029
+search	Kodak Gold Plus 400 (Gen 4?)	1	9aba1a94
+search	Kodak Gold Super 200-4 Gen 4	2	c357ba5a
+search	Kodak Gold Ultra 400 Film, GC135-36C-5 - Code : 5097 – GC 400-8	1	fa524bb6
+search	Kodak Gold Ultra Zoom 800 – GT	1	6db91864
+search	Kodak HORIZoN ISO 100 Color C-41	1	0c6f71a9
+search	Kodak Hawkeye Traffic Surveillance Color Film – Code 2486	1	e97a551a
+search	Kodak High Definition 200 Film HD2 – Code 3992	2	e64db66f
+search	Kodak High Definition 400 HDC	2	c8a8549c
+search	Kodak High Speed IR Infrared Film (HIE) B&W (HIS on various country) – Code 2481	1	2969f8a5
+search	Kodak High Speed IR Infrared Film, HIE - Code : 2481	3	2b5dabaa
+search	Kodak High Speed IR Infrared Film, HIE417,Estar base - Code : 2481 – HIE417	1	ba808372
+search	Kodak High Speed Infrared IR (Estar Thick Base)- Code : 4143 – (HIS in certain country)	1	680bdc64
+search	Kodak High Speed Infrared IR - Code : 5218	1	8404c592
+search	Kodak ISO 400 Color Negative Film	6	9cd0c88e
+search	Kodak K Colour Print Film 5094 CN	1	30be7045
+search	Kodak KODACHROME 200 Daylight - Code : 5001 - KL	1	d4037f20
+search	Kodak KODACHROME 200 Film (PCI) – Code 5001 KL	1	e2ff7f38
+search	Kodak KODACHROME 200 Film – Code 5001	2	11c67334
+search	Kodak KODACHROME 200 KodakSelect - Code : KL	1	4521ddb1
+search	Kodak KODACHROME 200 Professional Film PKL 5002	1	0bac25b2
+search	Kodak KODACHROME 200 Professional, PKLK-14 - Code : 4955 - PKL	1	f11d51a5
+search	Kodak KODACHROME 25 (Daylight) - Code : 5073 – KM135	2	6ef44f4d
+search	Kodak KODACHROME 25 (Daylight) - Code : 5073 – KM135 (PCI)	1	36f34e75
+search	Kodak KODACHROME 25 Movie (16mm Daylight) - Code : 7267 - KM	1	021178e9
+search	Kodak KODACHROME 40 (Type A) - Code : 5070 KPA-40	1	004e98be
+search	Kodak KODACHROME 64 (Daylight) - Code : 5032 - KR	1	16db206a
+search	Kodak KODACHROME 64 Film (Daylight) KR 5032	2	d4c9ef7e
+search	Kodak KODACHROME 64 Film (Daylight) KR 5032 (PCI)	1	a0afc1c7
+search	Kodak KODACHROME 64 Film (Daylight) PKR	2	3cf1fed5
+search	Kodak KODACHROME 64 Film KodakSelect (KR?)	1	a1e21cf9
+search	Kodak KODACHROME 64 Professional Film (Daylight) PKR 5033	1	7f79bf2a
+search	Kodak KODACOLOR 200 (VR?)	24	7649fe3e
+search	Kodak KODACOLOR VR 200 Plus VR200+	4	5a9e974f
+search	Kodak KODACOLOR VR-G100 Film VRG 100	1	f0d9b9d0
+search	Kodak KODACOLOR VR-G100 Gen 1 – VRG 100-1 5095	1	7de1ed73
+search	Kodak KODACOLOR VR-G100 Gen 2 – VRG 100-2	1	0b944a07
+search	Kodak KODACOLOR VR-G200 Gen 1 – VRG 200-1 – Emulsion 5096	1	b72ca27c
+search	Kodak KODACOLOR VR-G400 Gen 1 – VRG 400-1 – Emulsion 5097	2	79895a39
+search	Kodak KODACOLOR VR-G400 Gen 2 – VRG 400-1 – Emulsion 5097	1	f982cf56
+search	Kodak KODACOLOR VR100	14	21372185
+search	Kodak KODACOLOR VR200 - CM	1	7682f3c8
+search	Kodak KODACOLOR VR200 Gen 1 – Code 5093 CL 200-1	1	8c3dafea
+search	Kodak KODACOLOR VR200 Gen 2 – Code 5093 CL 200-2	1	7970cb68
+search	Kodak KODACOLOR VR200 Gen 3 – Code 5093	4	ee5c221c
+search	Kodak KODACOLOR VR200 Gen 4 – Code 5093	1	c810bd43
+search	Kodak KODACOLOR VR200 Gen 5	5	2db152a8
+search	Kodak Kodachrome 200 Professional PKL - Code : 5002	1	7e85afad
+search	Kodak Kodachrome 25 Professional - Code : 5034 PKM	1	0c14ce47
+search	Kodak Kodacolor (Gold?) 100 China	1	9fbacd8c
+search	Kodak Kodacolor 100	32	af72bfda
+search	Kodak Kodacolor 100 (new, Eastman)	1	d73e0080
+search	Kodak Kodacolor 100 DA	32	e0bd308e
+search	Kodak Kodacolor 200 DB	1	25c61cdc
+search	Kodak Kodacolor CII – Code 5035 ?	1	78874d0e
+search	Kodak Kodacolor DA100 Gen 5	1	0781339b
+search	Kodak Kodacolor Gold 100 (First Kodacolor Gold)	1	82e75047
+search	Kodak Kodacolor Gold 100 (Gen 6)	3	fcd0af26
+search	Kodak Kodacolor Gold 100 GA	3	d282e2bb
+search	Kodak Kodacolor Gold 100 GA – 5095 / 8095 Gen 2	1	1cc3f944
+search	Kodak Kodacolor Gold 100 GA – Emulsion 5095 (Gen 1 outside USA?)	1	4efe680b
+search	Kodak Kodacolor Gold 100 – 5095	4	310c3713
+search	Kodak Kodacolor Gold 1600 Gen 1 – GF 1600-1 5091	1	516d56cc
+search	Kodak Kodacolor Gold 200 Gen 1 (First Kodacolor Gold) – 200-1	1	5502ece0
+search	Kodak Kodacolor Gold 200 Gen 2 – 5096 / 5396	1	fcc64788
+search	Kodak Kodacolor Gold 200 – 5096	3	1a098617
+search	Kodak Kodacolor Gold 400 Gen 1 (First Kodacolor Gold) 400-1 GC	1	054455e2
+search	Kodak Kodacolor Gold 400 Gen 2 – 400-2	1	af270ddf
+search	Kodak Kodacolor Gold 400 Gen 2 – 5097 / 5397	1	3639d5f0
+search	Kodak Kodacolor Gold 400 standard base (Gen 5?) - Code : 5097 – GC	1	1c52e3dd
+search	Kodak Kodacolor Gold 400 – 5097	5	9d2b1029
+search	Kodak Kodacolor II ASA 100 - Code : 5035	1	38e3e657
+search	Kodak Kodacolor II ASA 80 - Code : 6014	1	acd5739c
+search	Kodak Kodacolor Print 100 Gen 4 100-4	1	b6a96245
+search	Kodak Kodacolor Print 200 Gen 4 – 200-4	1	3775558a
+search	Kodak Kodacolor Print 400-5 Gen 5	1	679bfacd
+search	Kodak Kodacolor VR100 Gen 1 – code 5094 CP 100-1	1	9ce5154d
+search	Kodak Kodacolor VR100 Plus DA-5	1	36a01932
+search	Kodak Kodacolor VR100-2 Gen 2 – code 5094 CP 100-2	1	fb6099af
+search	Kodak Kodacolor VR100-3 Gen 3 - Code 5094	1	f3b54ddc
+search	Kodak Kodacolor VR100-4 Gen 4	2	5c5be9f9
+search	Kodak Kodacolor VR1000 Gen 1 - Code : 5090 CF 1000-1	1	f3910538
+search	Kodak Kodacolor VR1000 Gen 2 - Code : 5090 CF 1000-2	1	28b85320
+search	Kodak Kodacolor VR200 Plus (First version?)	1	e7ad1063
+search	Kodak Kodacolor VR400 Gen. 1 – Code 5079 CM	1	78606317
+search	Kodak Kodacolor VR400 Gen. 2	1	2a43f86b
+search	Kodak Kodacolor VR400 Plus	4	da610f01
+search	Kodak Kodacolor VR400 Plus VR400+	4	da610f01
+search	Kodak Kodacolor VR400 Plus VR400+ (First version?)	1	7bc16ff5
+search	Kodak Kodacolor VR400 Plus VR400-3 VR400+	1	9f6b5f23
+search	Kodak MAX 400 Film - One Time Use Cameras	1	169b2e00
+search	Kodak MAX 400 film for Jean Coutu Pharmacies in canada	4	4bca5f2f
+search	Kodak MAX 800 Film	6	0cb1d2dc
+search	Kodak MAX 800 Film - One Time Use Cameras	2	9c46bdef
+search	Kodak MAX 800-4 Film GT	1	d70653e7
+search	Kodak Max 400	28	0ad5ea49
+search	Kodak Max 400 GC	7	1c4da51b
+search	Kodak Max 400-8 GC	1	07e01cd1
+search	Kodak Max Zoom 800	3	9da545e1
+search	Kodak Orizzonti Cento 100 DR 7	1	894c37f5
+search	Kodak Outdoor ISO 100 – Code 5394	1	4f98bb73
+search	Kodak PLUS-X 125 Pro PX (Gray Yellow box) PlusX125pro	1	006f31e9
+search	Kodak PLUS-X Pan (Gray yellow box) PX	1	8182bf36
+search	Kodak PLUS-X Pan - Code : 5061 – SP-936	1	2764cda2
+search	Kodak PLUS-X Pan - Code : 5062 – PX (Yellow purple box) 5062PX	1	09271faf
+search	Kodak PLUS-X Pan - Code : 6062 – PX	1	9122b410
+search	Kodak PLUS-X Pan Professional (Estar Thick Base) - Code : 4147 – PXT	1	94aa3217
+search	Kodak PLUS-X Pan Professional - Code : 6057 – PXP6057	1	950ac581
+search	Kodak PLUS-X Professional 125PX Pan Film (Yellow Box) 2147	1	15dd4e89
+search	Kodak Panatomic-X 32 Professional FX (Iso 32 – Code 5060)	2	ef059c1e
+search	Kodak Panatomic-X 32 Professional FX (Iso 32 – Code 5060) DX coded	2	ef059c1e
+search	Kodak Photomicrography Color film 2483 PCF Daylight	1	c7214a55
+search	Kodak Plus Digital 400 Film PlusDigital CD – Process with Kodak PerfectTouch	1	0468b4ac
+search	Kodak Plus Digital 800 Film - One Time Use Cameras	1	fddbde5b
+search	Kodak Plus-X Panchromatic Film - Code : 5241	1	d9c724d1
+search	Kodak Portra 160 (new)	1	7a10029d
+search	Kodak Portra 400 UC - Code : 400UC	1	cef3a339
+search	Kodak Portra 400 new	1	c4b7f793
+search	Kodak Portra 800	6	f7fffdd8
+search	Kodak Pro 100 Film / PRN	2	6b336d45
+search	Kodak Pro 400 - Code : 5080 – PPF-2	1	06df9458
+search	Kodak Pro 400 MC Film / PMC	1	91761d4d
+search	Kodak ProFoto XL 100	1	f041d5ba
+search	Kodak Professional BW400CN Film	6	688b2999
+search	Kodak Professional EKTACHROME 100 HC Film	2	da28baa0
+search	Kodak Professional EKTACHROME Duplicating Film EDUPE	2	a76d0562
+search	Kodak Professional EKTACHROME E100G – Code 5091	1	f2e65897
+search	Kodak Professional EKTACHROME E100GX – Code 5092	1	06fd1a3b
+search	Kodak Professional EKTACHROME E200 Film – Code 5010 / 6010	2	112c32a7
+search	Kodak Professional EKTACHROME Film E100 (New 2018’s version)	1	6cd5ea9e
+search	Kodak Professional ELITE COLOR 200UC	2	71cce58e
+search	Kodak Professional ELITE COLOR 400UC	3	87449ce5
+search	Kodak Professional Ektapress PJ100	2	4413734b
+search	Kodak Professional Ektapress PJ400 (Gen 1?) – Code : 1123	2	50dfcd2a
+search	Kodak Professional Ektapress PJ400 (Gen 2?) – Code : 1123	2	13c5dc8f
+search	Kodak Professional Ektapress PJ800 – Code : 7190	2	d6eda0de
+search	Kodak Professional Ektapress PJ800-2 – Code : 7190	1	b5721ebd
+search	Kodak Professional PORTRA 100T – Code 4719 / 5719	2	14e501dd
+search	Kodak Professional PORTRA 160	9	2ed6fcea
+search	Kodak Professional PORTRA 160NC	3	921f2697
+search	Kodak Professional PORTRA 160NC – Code 2755 / 4755	1	17b6b804
+search	Kodak Professional PORTRA 160VC	3	c6d556b8
+search	Kodak Professional PORTRA 160VC – Code 4756	1	1645bc5d
+search	Kodak Professional PORTRA 400 Film	4	cb5433fc
+search	Kodak Professional PORTRA 400NC	3	bbc10014
+search	Kodak Professional PORTRA 400VC	4	09bc7112
+search	Kodak Professional PORTRA 800 Film	4	e10984e5
+search	Kodak Professional PROFOTO 100 Color Film	7	ce4b5d05
+search	Kodak Professional PROFOTO 100 Color Film (Gen1?) – Code 5047	1	0a5250b4
+search	Kodak Professional PROFOTO 100 Color Negative Film	3	6d7b81f1
+search	Kodak Professional PROIMAGE 100 Color Negative Film	4	3c7a0eaf
+search	Kodak Professional Portra 400VC	4	09bc7112
+search	Kodak Professional Portra 800-2 Film (Improved)	1	c32b2f14
+search	Kodak Professional Portra 800-3 Film	1	4f6e6f17
+search	Kodak Professional Rapid Process Copy (new DX?) - Code : 2064 - RPC	1	9afbb5fe
+search	Kodak Professional Rapid Process Copy - Code : 2064 - RPC	2	dd9eef2a
+search	Kodak Professional Royal Supra 200 RS200 – Code 5992 200-2	1	f7fc1208
+search	Kodak Professional Royal Supra 400 RS400 – Code 5926 400-2	1	e694c75c
+search	Kodak Professional Royal Supra 800 RS800	1	f6e5b358
+search	Kodak Professional Supra 100	1	1683daf5
+search	Kodak Professional Supra 200	7	c5410c3f
+search	Kodak Professional Supra 400	2	f9c0e81b
+search	Kodak Professional Supra 800	3	b4a45dd0
+search	Kodak Professional T400CN (T-Max B&W C-41) – Code 5021 / 6021	2	7c73a207
+search	Kodak Professional Traffic Surveillance Film	2	d9b6c664
+search	Kodak Professional Tri-X 400 400TX Green Letters	1	d3a02152
+search	Kodak Professional Tri-X 400 400TX green box	1	f41bfcef
+search	Kodak Professional ULTIMA 100 Color Film AC100-3	1	33cc1049
+search	Kodak Professional ULTRA Color 100UC	1	a6cf777f
+search	Kodak Professional ULTRA Color 200UC	2	11449b50
+search	Kodak Professional ULTRA Color 400UC	3	3d68029a
+search	Kodak Professional Ultima 100 Film	4	b2246336
+search	Kodak Recording Film 2475 RE 135 AH-Estar Base - ISO 1000~1200	1	bd072d24
+search	Kodak Retina 100 "Parrot" DR	1	d6e82307
+search	Kodak Retina 100 DR	2	84459df7
+search	Kodak Royal Gold 100 Select Series (Gen 2) – RA	1	f44e159d
+search	Kodak Royal Gold 100 film, RA135-36 - Code : 5226 - RA	1	aa9ade81
+search	Kodak Royal Gold 1000 (improved, Gen 2) RF135 - Code : 5216	1	48e4a001
+search	Kodak Royal Gold 1000, RF135 - Code : 5216	2	3d6cf84c
+search	Kodak Royal Gold 200	9	6b500eb5
+search	Kodak Royal Gold 200 Select Series (Gen 2)	1	fb34ed1d
+search	Kodak Royal Gold 200-3 Select Series	1	4168c662
+search	Kodak Royal Gold 200-6 RB	1	14aa0e4c
+search	Kodak Royal Gold 25 RZ	1	e5e6fae8
+search	Kodak Royal Gold 400 (improved) - Code : 5254	1	1efc7be2
+search	Kodak Royal Gold 400 - Code : 5254	2	eea94886
+search	Kodak Royal Gold 400 RC Select Series	2	304552d1
+search	Kodak Royal Gold 400 Select Series (Gen 2) RC-400-2	1	9413af61
+search	Kodak SAF 400 Sports and Activity Film	1	b876ac01
+search	Kodak SO200 Professional Color Negative Film 400 - Code : SO-200	1	2f676a71
+search	Kodak SO279 VERICOLOR Slide - Code : VS – SO-279	1	635b20f6
+search	Kodak SO366 Ektachrome SE (Short Exposure) Duplicating Film W for E6 to E6 - Code : SO-366 SOW	1	134102f5
+search	Kodak SO370 Traffic Flow Recording Film SO-370 KS-19555 L1 / L2	1	19bef5a8
+search	Kodak SO446 Splicer test film Process K-14 – Code SO-446	1	e7e6a0da
+search	Kodak SO511 Technical Pan (TP 2415) – SO-511	1	525859ca
+search	Kodak SO517 Tri-X 400TX SO-517 TRIX	1	cb1da91a
+search	Kodak SO604 KODACHROME 200 Splicer Test Film SO-604	1	9215d5bc
+search	Kodak SUPER GOLD 100 Gen 4 100-4	1	52ffb484
+search	Kodak SUPER GOLD 1600 GF Gen 1	2	bdbd388e
+search	Kodak SUPER GOLD 1600 GF Gen 2	1	7396bb48
+search	Kodak SUPER GOLD 200 Gen 4 200-4	2	c357ba5a
+search	Kodak SUPER GOLD 400 Film	6	df64065c
+search	Kodak SUPER GOLD 400 Film GC-400	2	602f23aa
+search	Kodak SUPER GOLD 400 Gen 5 400-5	1	a550c6b1
+search	Kodak Select Black and White BWC 400	1	4fb482c1
+search	Kodak Select Elitechrome 100	1	885eb168
+search	Kodak Select Elitechrome 200	1	9f85414a
+search	Kodak Splicer Test Film Kodachrome 200	3	83d582d3
+search	Kodak Splicer Test Film Process K-14	3	5162315f
+search	Kodak T-MAX 100 Pro 100TMX	1	617268ec
+search	Kodak T-MAX 100 Pro Film	4	47971452
+search	Kodak T-MAX 100 Professional (first version) - Code : 5052 / 6052 / 4052 – TMX	1	b2ff85d6
+search	Kodak T-MAX 400 400TMY	2	4156792e
+search	Kodak T-MAX 400 PRO TMY (2d version)	1	e0c61ac2
+search	Kodak T-MAX 400 PRO TMY-2 (3d version, Improved emulsion, 200 lines/mm)	1	8040f165
+search	Kodak T-MAX 400 Professional Film	4	39ce8206
+search	Kodak T-MAX 400 TMY	4	3129141f
+search	Kodak T-MAX P3200 Professional - Code : 5054 – TMZ	1	7b95fc4f
+search	Kodak T-MAX P3200 Professional TMZ (New 2018 version)	1	35d7f08b
+search	Kodak T-max 100 TMY 100 (2d version) - Kodak 100TMAX Professional Film 4053	1	57aeccb4
+search	Kodak T-max 100 TMY 100 (3d version) – Kodak Professional 100TMAX Film (improved emulsion)	1	c2083c2b
+search	Kodak T-max p3200 TMY3200 – Kodak TMAX Professional Film P3200TMY	1	80465c32
+search	Kodak T-max p3200 TMZ3200 – Kodak Professional TMAX Film (improved emulsion) P3200TMZ	1	8430baa4
+search	Kodak TRI-X Pan - Code : 5063 – TX (Yellow gray box)	1	f3a4ea05
+search	Kodak TRI-X Pan - Code : 5063 – TX (Yellow green box)	2	188a25eb
+search	Kodak TRI-X Pan - Code : 5063 – TX (Yellow green logo box)	1	2303e1bf
+search	Kodak Technical Pan TP (Kodak code 2415) Estar AH Base	1	df601899
+search	Kodak Tri-X 400 Pro (TX400)	2	4c5cd2c3
+search	Kodak Tri-X Pan 400TX	3	1606bff9
+search	Kodak Tri-X TX400 black letters	1	3168b392
+search	Kodak ULTRA MAX 400 Film GC400	4	f8158d1a
+search	Kodak Ultra 400 GC-8	1	819e47b1
+search	Kodak Ultra 400 GC-9	1	b20335fc
+search	Kodak VERICOLOR 400 PLUS Professional - Code :- VPH-2	1	36cd1667
+search	Kodak VERICOLOR 400 Professional slide - Code : 4028 / 5028 - VPH	1	8f0c1381
+search	Kodak VERICOLOR 400 Professional – VPH-2	1	8e40ee32
+search	Kodak VERICOLOR HC 100 Professional - Code : 4329 VHC	1	359ded45
+search	Kodak VERICOLOR HC 100 Professional - Code : 6329 VHC	1	d2d1277b
+search	Kodak VERICOLOR HC 100 Professional - Code : VHC-2	1	774f1e65
+search	Kodak VERICOLOR III Professional Type S - Code : 5026 – VPS ASA 160 C-41	1	67a34010
+search	Kodak VERICOLOR L Professional - Code : 4013 – VPL	1	a2950a46
+search	Kodak VERICOLOR L Professional - Code : 6013 - VPL	1	371b9f3f
+search	Kodak Vericolor III Professional Film Type S - Code : 4106 EOF	1	425ed75e
+search	Kodak-Pathé Rayoscope – Code 5354	1	5b089151
+search	Konica Centuria Business "industrial" Color Film 100 業務用カラーフィルム100	2	bf5835db
+search	Konica Centuria Business "industrial" Color Film 400 業務用カラーフィルム400	2	bd31db1b
+search	Konica Centuria DNP 100	1	516947b5
+search	Konica Centuria DNP 200	4	9dddcddc
+search	Konica Centuria DNP 400	1	c63d104f
+search	Konica Centuria HD DNP 200	1	754c03dd
+search	Konica Color Super SR-100	3	1eebe371
+search	Konica Color Super SR-200 (Gen 2)	2	813d3187
+search	Konica Color Super SR-200P (Gen 1)	1	23afa90b
+search	Konica Color Super SR-400	1	6b74e277
+search	Konica Minolta Business "industrial" Color Film CT100 業務用カラーフィルム100	1	22be90b7
+search	Konica Minolta Business "industrial" Color Film CT400N 業務用カラーフィルム400	1	6a14353b
+search	Konica Minolta PAN400 B&W	1	9dd4791a
+search	Konica PAN400 B&W	2	33fddd42
+search	Konica Print Film 100 Color ママ撮って	1	af9e589a
+search	Konica SR 200 Color Print	1	08d8a64d
+search	Konica SXG 100	2	d66bca19
+search	Konica SXG 200	1	66bee5b0
+search	Konica Super DD 100	1	2b1d7064
+search	Konica Super DD 200	1	09cfba6e
+search	Konica Super XG 100 (Extra Grade)	1	70352367
+search	Konica Super XG 200 (Extra Grade)	1	b5ec263d
+search	Konica Super XG 400 (Extra Grade)	1	83e98c97
+search	Konica sr-g 100 Color 100 ISO	1	827c1ce2
+search	Konica sr-g 160 Color 160 ISO	1	622caa38
+search	Konica sr-g 200 Color 200 ISO	2	0dd2bd60
+search	Konica sr-g 3200 Color 3200 ISO	1	9cecb7e0
+search	Konica sr-v 100 Color 100 ISO	1	bd530a1d
+search	Kono! Dubble Bubblegum 200	1	1f117871
+search	Kono! Dubble Monsoon 200 (Pacific)	2	fd2dcc0f
+search	Kono! Dubble Pacific (Monsoon 200)	2	fd2dcc0f
+search	Kono! Dubblefilm Apollo (Moonstruck)	2	a623ac0b
+search	Kono! Dubblefilm Moonstruck (Apollo)	2	a623ac0b
+search	Kono! Dubblefilm Solar (Sunstroke)	2	bca13510
+search	Kono! Dubblefilm Sunstroke (Solar)	2	bca13510
+search	Kono! KATZ	1	072256d5
+search	Kono! LIEBE 200	1	be5e2521
+search	Kono! LUFT 200	1	c6a44693
+search	Kono! Original CANDY	1	dc588d56
+search	Kono! Original GALAXY	1	bc153977
+search	Kono! Original MIRAGE	1	0ec1d03d
+search	Kono! UFO 200	1	33553b03
+search	Kono! WINTERMÄRCHEN 200	2	3afa62f6
+search	Kroger 200 DX coding - paper label-small-just Kroger	1	71b642cd
+search	Kruidvat Color 100 Kleuren 100	1	370ee8c9
+search	Kruidvat Color 200 Kleuren 200	1	7261d9d0
+search	Kruidvat ColorFilm 200	2	d2eec3b5
+search	Kruidvat Kleurenfilm 100	1	b603aec6
+search	LUCKY B/W SHD100 NEW	2	1ff4ea46
+search	LUCKY B/W SHD400 CN	2	3fef248f
+search	LUCKY B/W SHD400 NEW	2	da43e2fb
+search	LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)	1	fabd5453
+search	LUCKY COLOR 200 ISO	5	9a46008a
+search	LUCKY COLOR 200+	16	762620ad
+search	LUCKY COLOR CHROME 100CH	1	7fbf3df4
+search	LUCKY COLOR GBR Plus 100	3	aae712de
+search	LUCKY COLOR GBR Plus 200	3	84c7cee7
+search	LUCKY COLOR LUCKYCHROME 100HC	1	ba129ad1
+search	LUCKY COLOR SUPER 100	6	08f3fabe
+search	LUCKY COLOR SUPER 100 NEW	1	5e6ecf39
+search	LUCKY COLOR SUPER 200	9	40111560
+search	LUCKY COLOR SUPER 200 (2025 edition)	1	a0768113
+search	LUCKY COLOR SUPER 200 NEW	3	34d0a98c
+search	LUCKY COLOR SUPER 400	4	d2453f80
+search	LUCKY COLOR SUPER GBR 200	3	42685073
+search	LUCKY COLOR SUPER GBR Plus 100	2	eeee5812
+search	LUCKY COLOR SUPER GBR Plus 200	2	899ac3a8
+search	LUCKY COLOR SUPER GBR Plus 400	1	a54350e4
+search	LUCKY COLOR SUPER GBR100	2	4c8e6f77
+search	LUCKY COLOR SUPER GBR400	1	5abf681a
+search	LUCKY SHD100 LuckyPan (old)	1	ba1ae97c
+search	LUCKY SHD100 NEW	3	22d9685f
+search	LUCKY SHD100 NEW 120 B&W	1	347dec16
+search	LUCKY SHD400 CN B&W	2	3fef248f
+search	LUCKY SHD400 NEW B&W	2	da43e2fb
+search	Lekium 400 ISO	1	ee5120b8
+search	Life Brand – LifeColor Print Film ISO 100	1	5eaa0c6a
+search	Likon Film Super GBR100	1	3d54e7f2
+search	Likon Film Super GBR200	1	66f80e65
+search	Little Tikes High Quality 35mm Print Film	1	f4a416a9
+search	Lloydspharmacy 200 Colour Film	1	7a1404ab
+search	Lomography Color Negative 100 CN100	1	a9043c23
+search	Lomography Color Negative 100 CP100	1	35b76a2c
+search	Lomography Color Negative 400 (400-3 on film edge)	1	279778f9
+search	Lomography Color Negative 400 CN400	1	de697cd4
+search	Lomography Color Negative 400-3	2	99ab2664
+search	Lomography Color Negative 800 CN800	3	d253cf08
+search	Lomography Color Negative 800 CN800 (cartridge DX barcode)	2	c81202b7
+search	Lomography Color Negative 800 CN800 (film DX barcode)	2	c3e1007b
+search	Lomography Color Negative F²/400 F2	1	c63d9296
+search	Lomography Color Print Film ISO 400	1	ff77a564
+search	Lomography Color Print Film ISO 800	1	d9fb60e8
+search	Lomography Earl Grey 100 ISO EARLGRAY	1	47dea714
+search	Lomography Fine Color ISO 100	1	cecfcf62
+search	Lomography Lady Grey 400 LADYGRAY	1	19b2e5d9
+search	Lomography Redscale XR 100	1	ec9c5ddc
+search	Lomography Silver Tone 100 Silvertone	1	6a8ad391
+search	Lomography Uboot 800 ISO	1	2912f1cb
+search	Lomography X Tungsten 64	1	9311ecd9
+search	Lomography Xpro Chrome 100	1	eef84632
+search	MIRAGE Films Black & White ISO 100	1	31380241
+search	MOTOPHOTO Super Color 100	1	f2176de9
+search	Maco MACOPHOT IR 820c Black & White infrared 820nm IR820c	1	3f9eb5c8
+search	Maco MACOPHOT UP 100 Plus	1	e5f60869
+search	Maco PO100c Negative + Reversal film Orthopan 380-610nm B&W slide	1	1e746499
+search	Market Basket ISO 400 C-41	1	c34d1b39
+search	Max Spielmann Color Print Film MX400 Pro-Zoom Japan	1	b6fe45d3
+search	MaxiColor Film 200 Iso	1	7e404a80
+search	Maxicolor CN200	1	f1cc3852
+search	Memories Color Print Film Indoor & Outdoor 200 ASA	1	38b475f6
+search	Migros Mcolor 200	2	6cdbc9b5
+search	Migros Mcolor 200 Super GX	1	921dfcd8
+search	Mitsubishi Color MX-III 100 mxiii	1	5a57fb5c
+search	Mitsubishi Color MX100	3	464b9d9f
+search	Mitsubishi Color Super MX100	2	981eccb2
+search	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version	4	15b831bb
+search	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Kodak version	4	0d0facdc
+search	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, LuckyColor version	4	e40e1aa1
+search	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, unknow version	1	3a6d9c04
+search	Müller Photo 400 Dynamic Muller foto400	1	2f614c57
+search	NIKA NikaColor 100	1	e3451699
+search	Nation Photo 400 iso B&W	1	18a3f813
+search	No Frills. Colour Print Film Super XG100	1	1e4b5897
+search	No name color negative film	1	6c87ea4e
+search	O.K. Gold Print 100	2	77cb90a2
+search	O.K. Gold Print 100 Super SL100	1	a2dd61d3
+search	O.K. Gold Print 200	1	78dab4c9
+search	OBJECTA Color Negativ 200	1	107f7a4f
+search	OPTHALMIC	2	1d4fc064
+search	ORWO COLOR CNN 100	1	3b0566a5
+search	ORWO COLOR CNN 200	2	9c9b26df
+search	ORWO COLOR CNN 400	2	561567ff
+search	ORWO COLOR CNN200	2	9c9b26df
+search	ORWO COLOR CNN400	2	561567ff
+search	ORWO COLOR CNS 100	4	33efb84f
+search	ORWO COLOR CNS 200	2	2abb4e5b
+search	ORWO COLOR CNS 400	2	68a6f99c
+search	ORWO COLOR CNS100	2	96082d0e
+search	ORWO COLOR CNS200	2	2abb4e5b
+search	ORWO COLOR CNS400	2	68a6f99c
+search	ORWO COLOR OCN 100	2	2472dd10
+search	ORWO COLOR OCN 200	2	6f84d9f8
+search	ORWO COLOR OCN 400	2	282e382a
+search	ORWO COLOR OCN100	2	2472dd10
+search	ORWO COLOR OCN200	2	6f84d9f8
+search	ORWO COLOR OCN400	2	282e382a
+search	ORWO TC-27 Traffic Control	1	c38349f6
+search	ORWOPAN 100	2	dbe4debd
+search	ORWOPAN 125	2	672fb35a
+search	ORWOPAN 400	3	e13ff5a0
+search	One Film 200	3	b04b797d
+search	Oriental G2 100	1	00c0557b
+search	Oriental Seagull "New" 100 - OR NSG 100	1	01c349e4
+search	Oriental Seagull "New" 400 - OR NSG 400	1	c6c5310a
+search	Orwo CNG-200 Orwocolor	1	866b8cdf
+search	Orwo CNG-400 Orwocolor	2	d80b952e
+search	Orwo ORWOPAN 100	2	afec875a
+search	Orwo ORWOPAN 125	2	9792788b
+search	Orwo ORWOPAN 25	3	1129c613
+search	Orwo ORWOPAN 400	3	03dcf515
+search	Orwo Orwochrome RC100	1	6b141651
+search	Orwo QRS-100 Orwocolor	1	fc039c2d
+search	Osco Color Print ISO 200 Sav-On Osco	1	df9487d5
+search	PAN 100	176	a72b5ee9
+search	PAN 400	159	ac11b925
+search	PAN F	492	bea887df
+search	PAN F (P1)	7	29f6716e
+search	PAN F PLUS	22	48fc1dfb
+search	PC Color 100	2	a96903ea
+search	PC President's Choice / Le choix du Président ISO 200	1	a75ced46
+search	PC President's Choice / Le choix du Président ISO 400	1	6fed741b
+search	PC President's Choice / Le choix du Président ISO 800	1	f3e2a1ab
+search	PERUTZ 200 Color	26	4274e283
+search	PERUTZ SC 100 Color	20	0731bd8b
+search	PORTRA	43	0a58e0cf
+search	PacificFilm for color print ISO 100	1	5f37e102
+search	Perfecta Film ISO 200	1	fbdf19a6
+search	Perutz CR 100 Chrome	2	7e2faa49
+search	Perutz Chrome CR100	2	7e2faa49
+search	Perutz Color SC100	20	93b69eac
+search	Perutz Color SC200	13	77bd5bd2
+search	Perutz Color SC400	10	73ef3a04
+search	Perutz PR100 Color	2	b9339b17
+search	Perutz PR100 Color (four squares)	1	3c0c3cb7
+search	Perutz Primera 100	5	6eabea60
+search	Perutz Primera 100-A	2	37245576
+search	Perutz Primera 200	21	f380582f
+search	Perutz Primera 200 (from 01/2002 on)	2	2736b8cb
+search	Perutz Primera 200 (until 12/2001)	2	4807d183
+search	Perutz Primera 200 APS	4	30949e14
+search	Perutz Primera 200 APS-N	2	0a5f143e
+search	Perutz Primera 200-N	4	9903c794
+search	Perutz Primera 400	9	268111ae
+search	Perutz Primera 400-N	3	d09c158c
+search	Perutz Primera 800	6	3d569680
+search	Perutz Primera 800 (from 01/2002 on)	1	6a77afb2
+search	Perutz Primera 800 (until 12/2001)*	1	2f9e1f83
+search	Perutz Primera 800-N	2	93fe4ddf
+search	Perutz SC 100 Color New	1	3bf5f288
+search	Perutz SC 100-2 Color	6	cbf46889
+search	Perutz SC 100-3 Color	6	fac3e846
+search	Perutz SC 200 Color New	3	b0814957
+search	Perutz SC 200-2 Color	5	902d9620
+search	Perutz SC 200-3 Color	2	a62b1b8a
+search	Perutz SC 200-4 Color	2	ef12c148
+search	Perutz SC 400 Color	11	26aba08d
+search	Perutz SC 400 Color New	1	79ba722f
+search	Perutz SC 400-2 Color	4	103d469a
+search	Photo Hall Color Pro ISO 200	1	abc8ac55
+search	Photo Hall Deluxe 100 Photohall	1	e7c3a9ad
+search	Photo Hall Multimedia Color Prints 200 Photohall	1	43dc94c8
+search	Photo Service "copper & rainbow" – Sélection 100 Iso	1	bf54b60e
+search	Photo Service "gold" – Sélection 400 Iso	1	fa2ae398
+search	Photo Service – Sélection 200 Iso	1	4fdca367
+search	Photo Service – Sélection 400 Iso	2	83473319
+search	Photocité couleur 200	1	ab0fe4c4
+search	Photocité couleur 400	1	d27a2df9
+search	Polaroid 100	9	346bd05c
+search	Polaroid 100 Plus	2	76de5c01
+search	Polaroid 200	17	3a24710d
+search	Polaroid 200 Plus	3	90e1a2c3
+search	Polaroid 400	12	d55fd875
+search	Polaroid 400 Plus	3	c46e84b6
+search	Polaroid 400 – Walmart Branded	1	cd9924e3
+search	Polaroid 800 Plus	2	52c68e27
+search	Polaroid CP100	1	8bfec90a
+search	Polaroid CP200	1	a07f61a9
+search	Polaroid CP400	1	22c2ffca
+search	Polaroid HDF-1 C-41 HDF1	1	ca5ec028
+search	Polaroid HDF1 100 HDF-1	1	5844e76b
+search	Polaroid HighDefinition 400	6	271b3a07
+search	Polaroid HighDefinition Color 200 HD200	4	faa1575c
+search	Polaroid HighDefinition Color 400 HD400	4	dca30e69
+search	Polaroid HighDefinition HD2 100 Iso HDII	1	e7964dfc
+search	Polaroid HighDefinition HD2 200 Iso HDII	1	50e897f0
+search	Polaroid HighDefinition HD4 100 HDIV	1	bc1e6592
+search	Polaroid HighDefinition Plus Color 200	1	3557058a
+search	Polaroid HighDefinition Plus Color 400	1	b9ac965f
+search	Polaroid One Film 100 Color print film OF1	1	96441e46
+search	Polaroid One Film 200 Color print film OF1	2	9811d643
+search	Polaroid One Film 200 Color print film OF1 – Improved color stabilty	1	28094392
+search	Polaroid disposable camera film	1	5003a51f
+search	Porst ChromeX 100	1	39e42846
+search	Porst Color CN100 (Super CN on back of the box)	1	f427ddb9
+search	Porst Photo Porst Color X 200	1	c75a6547
+search	Power Geek 35mm Film For Color Prints (ISO 200 – 10 exp)	1	93c4247f
+search	Press Color 100	1	2e17cc9f
+search	Presto Print Kleurenfilm 100	2	fbfe5b24
+search	Profi Color Plus ISO 100	1	35dffbc1
+search	RAINBOW	4	c8e401ef
+search	RAKS Rakscolor 200SNC (Super Natural Colors)	1	8cbc8df6
+search	Revue DIA 100 Sunshine	1	6100c784
+search	Revue Dia 100	2	ff15c29d
+search	Revue TRG100	1	81b08d70
+search	Rite Aid 200 RiteAid	2	05233786
+search	Rite Aid 200 RiteAid Agfa	1	f362495d
+search	Rite Aid 400 RiteAid	1	d468214f
+search	Ritz Big Print II 200QR	1	3a91b96d
+search	Ritz Crystal Big Print 200 QX200	1	5f9318ae
+search	Ritz Crystal Big Print 400 QX400	1	e71f49c7
+search	Rollei CN200 PRO	1	345eeabd
+search	Rollei Crossbird 200 slide Creative Edition	1	1014dce3
+search	Rollei Digibase CR200 PRO	2	94311156
+search	Rollei INFRARED IR400	2	dc84bfc0
+search	Rollei RPX 25	1	84cb7acd
+search	Rollei Retro 100	4	19fca67f
+search	Rollei Retro 100 (Emulsion 694) – exp 2008	1	53f3d8b4
+search	Rollei Retro 100 (Emulsion 707) – exp 2011	1	92e7a190
+search	Rollei Retro 100 (Maco photo emulsion 706 – RR1011) – exp 2012	1	340e3a9a
+search	Rollei Retro 400S	2	d14c3131
+search	Rollei Retro 80S	1	3455f5d0
+search	Rollei R³	1	c3f0afac
+search	Rossmann Farbbilder HR200	3	6eaaeee8
+search	Rossmann Farbbilder HR400	1	0c84900e
+search	SCOTCH 100 ATG1	3	c7eb1062
+search	SCOTCH 100 ATG1/SCOTCH COLOR EXL	1	9d134275
+search	SCOTCH 200 ATG1	4	6bf8fa41
+search	SCOTCH 200 ATG1/SCOTCH COLOR EXL	1	7feb5bb1
+search	SCOTCH 200 ATG2	3	b2146869
+search	SCOTCH 200 ATG2/SCOTCH COLOR EXH	1	dcb48cb0
+search	SCOTCH 400 ATG1	3	120f3a85
+search	SCOTCH 400 ATG1/SCOTCH COLOR EXL	1	a8963ce9
+search	SCOTCH COLOR 100 AT	7	ffeaf4dd
+search	SCOTCH COLOR 100AT scotchcolor	3	bb04a12d
+search	SCOTCH COLOR 200 AT	12	1d07a218
+search	SCOTCH COLOR 200AT scotchcolor	4	ff2efeab
+search	SCOTCH COLOR 400 AT	10	11de5d91
+search	SCOTCH COLOR 400AT scotchcolor	5	6ecbdc9d
+search	SCOTCH COLOR EXH200 scotchcolor	2	50db0bf6
+search	SCOTCH COLOR EXL100 Plus scotchcolor	1	67b2305a
+search	SCOTCH COLOR EXL100 scotchcolor	2	45dd46eb
+search	SCOTCH COLOR EXL200 scotchcolor	1	2b59ab3d
+search	SCOTCH COLOR EXL400 scotchcolor	1	753c97ee
+search	SCOTCH COLOR PRINT HR 100 Gen 2	1	ccdc89d2
+search	SCOTCH COLOR PRINT HR 100 Gen 3	1	c847d78d
+search	SCOTCH COLOR PRINT HR 200 Gen 1	3	05c56e62
+search	SCOTCH COLOR PRINT HR 200 Gen 2	3	b9acb8d0
+search	SCOTCH COLOR PRINT HR 400 Gen 1	3	bc01b721
+search	SCOTCH COLOR PRINT HR 400 Gen 2	2	8f9f26de
+search	SCOTCH COLOR PRINT HR 400 Gen 3	2	1fb2b285
+search	SCOTCH IMATION COLOR EXL100	1	3c0f2771
+search	SEAGULL	4	6d243780
+search	SFX 200	6	5a1b1bf6
+search	SHANGHAI	8	e57e364b
+search	SHANGHAI 100	1	93a3d6d3
+search	SHENGUANG	2	b4c4055d
+search	SHENGUANG (original)	1	bbbe5b61
+search	SOLUTION VX200 Super	1	69e8f048
+search	SP815T	2	db03c3a0
+search	SP816T POLY	2	f875e75c
+search	SVEMA DS-100	3	6a16f7aa
+search	Safeway (Vons) 200 ISO color print film	1	919c2c9a
+search	Sakura International – Film for color print ISO 200	1	8347a377
+search	Sakuracolor R-100	4	ed5b80ac
+search	Sakuracolor SR-100	3	5a6e2977
+search	Sakuracolor SR-100 Dx coded	1	c40d9cde
+search	Samsung Prime Color Film 100 New	1	86079fa8
+search	Samsung Prime Color Film 200	6	537458eb
+search	Samsung Prime Color Film 200 New	3	481e93b9
+search	Samsung Prime Color Film 400	2	8d6a169d
+search	Samsung Prime Color Film 400 New	1	dfb889d9
+search	Schlecker AS Chrome 100	1	c4e991df
+search	Schlecker AS Color 200	3	4e5aa873
+search	Schlecker AS Color 400	2	e9daa243
+search	Schlecker AS Color 400 – 400N	1	a5c55cb3
+search	Seattle PhotoWorks 200 (Process C41)	1	22be5082
+search	Snap Sights (Black can) 200 paper label-small-Snap Sights	1	3a566471
+search	Sooter's 100CN	1	a2fbf27c
+search	Sooter's Color 100	2	eee2beb1
+search	Soul Color Print Film 100 Speed SoulColor	2	52a69b46
+search	Soul Color Print Film ISO 100 SoulColor	2	8e63e0d5
+search	Spector Color ISO 100 (Blue box)	1	1d7ac340
+search	Spector Color ISO 200 (Blue box)	3	3e485daf
+search	Spector Color ISO 200 (gold box)	1	dd97c967
+search	Spector Color ISO 400 (Blue box)	1	8505d77c
+search	Spectra Colour Excel 200	1	2eeda3a2
+search	Sunny color print film ISO 100	1	cf10bfc3
+search	Sunny color print film ISO 200	2	a618b46e
+search	Super G 400 (Fuji?)	31	da955d6c
+search	Svema DS-100 (Свема ДС-100)	2	62a628e8
+search	System 800 Color Print Film	1	2f823d7f
+search	TESCO Colour Print 400	2	502f19cc
+search	TESCO Value Colour 200	1	3186d48f
+search	TRUE DEFINITION400	2	f964fb70
+search	Trekpleister Kleurenfilm ISO 200	1	af704d68
+search	TriFCA Colour Print Film ASA 200 (135)	1	8c37baf5
+search	TruPrint Colour Print Film 200 ASA "Cyan Box"	1	f5be35f8
+search	Tudor Color Print Film ISO 100	1	a17c9e55
+search	Tudor Color Print Film ISO 200	2	4aabf1ce
+search	Tudor TudorColor XLX100	1	45148f92
+search	Tudor TudorColor XLX400	1	0d72718c
+search	Tudor XL 100 Color XL100	2	503a98d7
+search	Tudor XLS 100	1	0c96789d
+search	Tudor XLS 200	1	aba2eab6
+search	TudorColor XDT 200 Colour Print Film XDT200	1	0e62232d
+search	U "les nouveaux commercants" Couleur ISO 100	1	cc403734
+search	UNIVERSAL 100	3	41377cab
+search	UNIVERSAL 400	4	2c9b1a44
+search	Ultrafine Ultramax T-grain 400 Vari-Film	1	847809f2
+search	Ultrafine Xtreme 135 / 400 iso	1	2a5c9819
+search	UniChem High Resolution Colour print film ISO 100	1	6a479e26
+search	UniChem High Resolution Colour print film ISO 200	1	85b3d7ab
+search	United Colors Of Benetton ISO 400	1	279ed41a
+search	Unknown Black can 100 DX coding, C-41	1	8696ace9
+search	Unknown Black can 400 DX coded	1	4f1da2b6
+search	Unknown Black can 400 no DX coding C-41 Film For Color Print	1	cb9eb08a
+search	Unknown Black can 800 DX coding, C-41,	1	754029ea
+search	Unknown Color For Color prints	1	c3d1f5cf
+search	Unknown White can ISO 800 no DX coding, C-41	1	c1a7de8c
+search	Unknown white can 800 no DX coding, has CN-16 and C-41	1	3361a94a
+search	VIBE Photo Quality Film 400 V400	1	b3ccfc2e
+search	Voigtländer V Chrome 100	2	cf68963a
+search	Voigtländer V Chrome 100 Neu	1	894cb062
+search	Voigtländer V200	2	2a3b3427
+search	Voigtländer V200 Neu	1	577d2ea0
+search	Walgreens ISO 200 AP70/C-41 "Studio35"	1	35950be7
+search	Walgreens ISO 200 C-41 "Studio35"	2	1e91c708
+search	Walgreens ISO 200 C-41 wphoto	1	5cd83ba5
+search	Walgreens ISO 400 C-41 "Studio35"	1	4976f253
+search	Walgreens ISO 800 C-41 wphoto	1	cbc9a8a4
+search	Werlisa Sport Color Iso 100	1	888eeacd
+search	Western Family 200 DX coding, paper label-small-just western family	2	953017d3
+search	Western Family 400 DX coding, paper label - large	1	1ac47357
+search	Western Family 400 DX coding, paper label on top of FujiFilm Paper label on top of Fujifilm painted Wal-mart can	1	1ef66617
+search	Western Family HP 200 DX coding, paper label- small-just western family	1	20dd40c6
+search	White / gray label 400 – Color negative Film	1	03bce084
+search	White Label 1000 no DX coding, C-41/CN-16	1	b6eb8bf5
+search	White can 39 exp. (disposable camera?)	1	22631a31
+search	White can 400 no DX coding, C-41/CN-16	1	09d3be59
+search	White paper COLOR NEGATIVE 200 FILM CN200	1	85389ffc
+search	White paper COLOR NEGATIVE 400 Film	1	ba5448cf
+search	Whitelabel CN200 – Color negative Film	1	349cd211
+search	XP1 400	4	02ebd61f
+search	XP1 400 (P1)	4	a6429a8d
+search	XP2	7	b1151aa6
+search	XP2 SUPER	3	509f3ad7
+search	Xiamen FUDA 135 COLOR	2	8f5172ca
+search	Xiamen FUDA 135 PAN 400	1	0821b485
+search	Xiamen FUDA GA-100 Color	1	dec79ac7
+search	Yes!Star Supreme 200	2	5dade881
+search	Yes!Star Supreme 400	2	8f9db63f
+search	York Color ISO 100	1	d91c56d9
+search	York Color ISO 200	1	d4166931
+search	York Color ISO 400	1	8133de80
+search	York Photo 400	2	e01ba2dd
+search	a	2052	7d75a03b
+search	ac	675	b896875b
+search	ac100	1	33cc1049
+search	academy	2	4c812dc6
+search	ace	43	c7399a2c
+search	acme	2	e6f5750b
+search	acros	3	f2f98e2d
+search	action	5	89ed502e
+search	activa	6	a0f10f59
+search	activity	2	44b9fb20
+search	actual	2	10b96e5c
+search	adams	1	06edbc09
+search	agate	1	cf09e6af
+search	agfa	389	465744b9
+search	agfa vista	64	05e76492
+search	agfachrome	43	45f1a597
+search	agfacolor	205	dc8510e4
+search	agfaortho	4	7d35230d
+search	agfapan	8	a39d19cf
+search	agfaphoto	30	0aff421c
+search	ah	21	5ca82208
+search	aid	7	307adf12
+search	akica	1	8bdfc214
+search	albert	2	a7767b72
+search	alfo	3	b3516b33
+search	all	22	11533455
+search	alle	2	65de511f
+search	allround	1	24ce0304
+search	amcolor	5	b415fc0f
+search	and	132	2db0333b
+search	ap70	5	a0e2aef7
+search	apollo	2	a623ac0b
+search	aps	14	3d19b122
+search	apx	24	4739cd7e
+search	arabic	1	8c1c5314
+search	argenti	1	84aaec68
+search	arista	4	5958a989
+search	as	274	0aa677d9
+search	asa	33	08c6e024
+search	asda	2	dfa2e947
+search	asia	26	eed9e608
+search	astia	4	813848aa
+search	astral	3	865bd225
+search	at	418	2eb2776e
+search	at100	1	e081d617
+search	at200	4	f3bfda6e
+search	at400	1	a4f35672
+search	atg1	9	d9fd40d4
+search	atg2	3	b2146869
+search	australia	2	38141e19
+search	autocolor	2	944d884a
+search	autowinder	1	f1dce815
+search	azure	1	b38c4499
+search	baby	2	4cf8e8a2
+search	back	3	1a21204b
+search	balanced	1	f5ed208d
+search	ball	1	5bd65b57
+search	barbie	4	0d0facdc
+search	barcode	4	303d717a
+search	base	18	a4b77a3b
+search	basket	1	c34d1b39
+search	batch	28	7315e340
+search	beauty	1	0e4ecd7d
+search	before	9	7b37a778
+search	belmont	1	a643aa26
+search	benetton	1	279ed41a
+search	bergger	1	4a16cc18
+search	bertelsmann	2	aec2a349
+search	bi	37	5116cb7c
+search	big	6	a82ef975
+search	bild	7	f6781f99
+search	bilo	1	3f1b7da2
+search	bird	2	15332004
+search	birthday	2	c7460c1e
+search	black	43	9366b1e4
+search	blacks	4	e8d23bd2
+search	blue	13	9b75fffa
+search	bokeh	1	f0e1ae50
+search	bonusprint	6	a0f10f59
+search	boots	6	aa5a363b
+search	box	55	28d7db34
+search	bp	1	a2a09d48
+search	brand	34	03ca3621
+search	branded	23	847843e8
+search	bravo	1	82b5db23
+search	bubblegum	1	1f117871
+search	bulk	18	fb16d337
+search	business	7	1b93b6a8
+search	bw400cn	6	688b2999
+search	bwc	6	8cd74bcd
+search	by	65	e426c5f3
+search	c100	18	046a7160
+search	c200	30	cdf6470c
+search	c41	67	66f7397e
+search	ca200	1	d2391f45
+search	café	0	-
+search	camera	54	ead0e9db
+search	cameras	15	bf1419ab
+search	can	61	25c70743
+search	canada	18	a9da58c4
+search	candy	3	eea1e2b2
+search	cannon	1	3375ec39
+search	canopower	1	a5e404d1
+search	carrefour	2	1529cfc4
+search	cartridge	13	94ff12e5
+search	casino	1	e90658d3
+search	catlabs	1	f507d8cb
+search	cd	4	32479012
+search	cdu	3	96813ece
+search	cduii	2	5e623638
+search	ce	242	059c1362
+search	cento	1	894c37f5
+search	centuria	55	bc6220c5
+search	centuria100	9	648e4090
+search	centuria200	5	c3fb0007
+search	centuria400	7	bd9f0eae
+search	centuria800	4	1dda0b3f
+search	certain	16	1c633f0c
+search	cf	4	b62af216
+search	cg	1	10dcfb71
+search	ch	651	b75a1719
+search	ch11	1	dbf7d8b9
+search	champion	1	b3e4e711
+search	charm	1	fabd5453
+search	charoite	1	b81022be
+search	chemmart	1	74411a9d
+search	china	61	63420782
+search	chlecker	5	75479322
+search	chm	2	68496976
+search	choice	3	6decb16c
+search	choix	3	6decb16c
+search	chrome	320	6f4262e3
+search	chromex	1	39e42846
+search	chromogenic	16	b330f8a6
+search	cii	1	78874d0e
+search	cine	3	7246a723
+search	cinestill	2	3fd75ae3
+search	cj	2	67681f0f
+search	ck	141	e3aa9a04
+search	cl	35	e7ecbc0d
+search	clair	1	e90658d3
+search	classic	4	ec40bdbb
+search	clear	1	dbbd7748
+search	clic	2	c3c5e255
+search	club	6	1b9047bb
+search	cm	4	2984666c
+search	cn	56	7f16c223
+search	cn100	4	58337cfd
+search	cn200	8	a1358728
+search	cn400	2	1736bf21
+search	cn800	3	d253cf08
+search	cng	3	3febe17a
+search	cnk	1	8ec52a9a
+search	cnn	5	b3c3f45b
+search	cnn200	2	9c9b26df
+search	cnn400	2	561567ff
+search	cns	6	da1daa2e
+search	cns100	2	96082d0e
+search	cns200	2	2abb4e5b
+search	cns400	2	68a6f99c
+search	code	251	5f3e2641
+search	coded	16	0f003e7c
+search	coding	21	ef6b7050
+search	coles	1	d80c6ad5
+search	color	1014	c379416f
+search	colorama	2	677adfdb
+search	colorfilm	47	1d459c36
+search	colorplus	33	2c4e818d
+search	colorprint	56	45af2eb6
+search	colors	58	3b5debca
+search	colour	49	bc9a2acb
+search	colourprint	37	b53d3f85
+search	colourslide	1	419ddfad
+search	commercants	1	cc403734
+search	commercial	2	49e2621e
+search	conditionné	1	54fb2174
+search	confetti	1	9906cd66
+search	continent	1	f82c2b27
+search	continente	1	f82c2b27
+search	control	1	c38349f6
+search	copper	1	bf54b60e
+search	copy	4	4542045d
+search	core	1	991a2359
+search	cosmos	2	d5fe58bb
+search	costco	1	77e3f1d3
+search	couleur	11	d43cb31f
+search	coulour	1	782e21f3
+search	country	6	bf590ba9
+search	coutu	10	8055554f
+search	cp	7	3f550d14
+search	cp100	4	c943583c
+search	cp200	1	a07f61a9
+search	cp400	1	22c2ffca
+search	cr	30	b2cca20e
+search	cr100	2	7e2faa49
+search	cr200	2	94311156
+search	creative	4	309173f9
+search	crossbird	1	1014dce3
+search	crystal	2	b6177a04
+search	ct	114	78920715
+search	ct100	11	a1389021
+search	ct100i	3	3662f4ba
+search	ct200	3	431fc16e
+search	ct400n	1	6a14353b
+search	ctprecisa	9	c7d232ac
+search	ctx	7	fb483ed3
+search	ctx100	3	fdb6ac19
+search	ctx200	2	b09975aa
+search	cup	2	4ef80f91
+search	cuti	1	01bb0777
+search	cvs	1	8cda1701
+search	cw	4	df4eb5a9
+search	cx	6	c26c979d
+search	cyan	2	9c550587
+search	cz	2	901db132
+search	da	742	c131ac7f
+search	da100	1	0781339b
+search	dale	1	d9e3bfe5
+search	daylight	34	23c5e1a7
+search	db	1	25c61cdc
+search	dcn	1	d9e3bfe5
+search	dd	3	766a6069
+search	definition	28	bbca4a8f
+search	definition400	5	eedb3587
+search	delta	15	b5d880a2
+search	deluxe	1	e7c3a9ad
+search	der	28	625858ca
+search	dia	38	07a09872
+search	diafilm	1	9b0e9927
+search	diamond	3	fef41799
+search	digibase	2	94311156
+search	digital	6	9761cdc1
+search	diposable	2	490fd54e
+search	discontinued	7	dd9ddcc4
+search	disposable	43	4eccfbd4
+search	dixons	2	de3610d9
+search	dm	8	52b1a632
+search	dnp	5	e4c6eddc
+search	dollar	2	4810ee1a
+search	dr	12	9011c1ad
+search	dragon	1	5bd65b57
+search	ds	8	77512fe7
+search	du	86	05ebafe0
+search	dubble	9	e4995e9a
+search	dubblefilm	6	eab2c886
+search	duplicating	8	0de2b982
+search	dustin	1	06edbc09
+search	dx	84	f2785789
+search	dx coded	14	c8037de9
+search	dyna	3	a1ccfc13
+search	dynamic	1	2f614c57
+search	e100	14	d078132b
+search	e100g	8	cd6a4eb5
+search	e100gp	1	28d792ee
+search	e100gx	3	97d1a9d9
+search	e100s	1	93ec1096
+search	e100vs	3	25dcf221
+search	e200	3	d1a3a74a
+search	e6	25	ef153026
+search	ea	222	00eb4e0d
+search	earl	20	6d873041
+search	earlgray	1	47dea714
+search	eastman	107	d92748db
+search	eastman kodak company	101	9ebe1611
+search	easyclix	1	e47a4f43
+search	easypix	1	6fa76ea0
+search	eb	33	a05bdcfd
+search	ebx	3	e7f75536
+search	ec	201	8087c767
+search	ec100	1	41177c92
+search	ecp	1	d9e3bfe5
+search	ed	372	f9c5ff87
+search	edge	4	b6e38e06
+search	edition	11	b561a784
+search	edu	4	acada5a9
+search	edupe	2	a76d0562
+search	ees	2	c9a5252b
+search	efiniti	29	e65a9de8
+search	efke	5	8328335a
+search	egp	3	329e93a8
+search	eir	3	7e9376e1
+search	ektachrome	115	9a555611
+search	ektacolor	14	8230fa4d
+search	ektagraphic	2	cc545399
+search	ektapress	26	c7c5b168
+search	ektar	17	03e36598
+search	el	199	acd574e6
+search	electronic	2	fd67d2f1
+search	elite	37	eba049a0
+search	elitechrome	22	38c96cac
+search	em	122	b640d972
+search	em50	1	d2762127
+search	emergent	5	705174d2
+search	emulsion	41	0d56454f
+search	en	456	5583105c
+search	eof	1	425ed75e
+search	epc100	1	0a49b852
+search	epd	3	f6280185
+search	epd120	1	96683dc1
+search	epde	1	1439b4c5
+search	eph	3	47ab9d72
+search	epj	2	7eeb93f3
+search	epn	3	f3860f9d
+search	epn404	1	ad3cfaea
+search	epp	5	1ea00c77
+search	eppe	1	3655e78c
+search	epr	9	6935f5c8
+search	epr135	1	e29257d3
+search	epr404	1	9816069f
+search	epr653	1	38bb97d4
+search	ept	5	d8803fa4
+search	ept120	1	a082f158
+search	ept404	1	4012c5a0
+search	epv	1	f5ed208d
+search	epw	1	5892efab
+search	epx	1	954114b8
+search	epy	4	f368556d
+search	epy120	1	8960bc92
+search	epy64t	1	1e6fa389
+search	epz	1	47cec453
+search	equicolor	1	7a9d7779
+search	er	1044	6ba3e4cf
+search	er100	4	c2961d33
+search	era	113	818a3c18
+search	eracolor	2	22496b1f
+search	escura	3	4d05bb31
+search	esd	1	8d4f1821
+search	estar	5	02d98a02
+search	et	124	abcedf15
+search	eu	95	4a9f98c8
+search	euro	9	38817068
+search	europe	4	c0902a76
+search	everyday	2	19715ba2
+search	ex	128	a729a679
+search	ex200	1	ce7c2239
+search	ex50	1	b95d319e
+search	excel	1	2eeda3a2
+search	excl	3	abe87647
+search	exh	5	89c1a554
+search	exh200	3	a7ca42d4
+search	exl	17	9f8b0925
+search	exl100	4	e43cdb9f
+search	exl200	3	5ddc6911
+search	exl400	1	753c97ee
+search	exp	68	16f73f55
+search	expert	1	0515ae6e
+search	expert CN 135	1	0515ae6e
+search	expo	43	71de61fc
+search	export	2	3b2fa235
+search	exposure	4	827bf9ac
+search	extra	16	9f563115
+search	extracolor	4	7ce7d0d6
+search	extrafilm	8	a2f031c1
+search	f2	2	fbbb4fe4
+search	f400	2	00ac3a41
+search	f8	1	5670ac8e
+search	fa	451	a14eeec2
+search	fa135	1	97ac623b
+search	family	5	6d247851
+search	farbbilder	4	ba867f61
+search	farbdiapositive	1	680d124e
+search	farbfilm	3	b1149752
+search	farbwelt	14	197df796
+search	fays	1	27204a1d
+search	fb135	1	be70c3fc
+search	fc400	1	24ce0304
+search	fcx	3	6806bb51
+search	ferrania	132	74a6db6b
+search	fg	62	59584ff9
+search	fg100	4	fdec8e0b
+search	fg200	10	9652d9f6
+search	fg400	9	7bed421d
+search	fg400i	4	c78f6913
+search	fg800	6	d23931df
+search	fg800i	3	6fbfc325
+search	film	746	b45a7c44
+search	filmin	11	35cffdb9
+search	filmneverdie	5	125059d3
+search	films	41	8af9fb81
+search	fine	7	b077d555
+search	first	24	b5d3fcd5
+search	flc	4	a71339cf
+search	fletchers	2	d456cd8a
+search	flow	1	19bef5a8
+search	fluorite	1	ca68c705
+search	fnac	3	e5e07fa0
+search	focal	4	e59ee30c
+search	foma	25	d56661e5
+search	fomapan	16	35b5d9cc
+search	for	292	68359809
+search	format	11	88d2ce82
+search	forte	3	1f38e1ab
+search	fortecolor	2	db98e2a2
+search	fortia	5	7dc831c3
+search	foto	66	6847af43
+search	foto400	1	2f614c57
+search	fotohome	1	4bb07814
+search	fotoimpex	2	68496976
+search	fotoking	1	27d91092
+search	fotolabo	7	7e102070
+search	fotos	6	6db046f2
+search	fotostar	1	c8cc1655
+search	fotostop	4	de036cf4
+search	four	3	a266ef22
+search	fox	1	d02fb58b
+search	fp4	16	c18e602e
+search	france	14	87a71fa7
+search	french	13	6789a7d9
+search	frills	1	1e4b5897
+search	from	31	bfd8ad0f
+search	fuda	6	4f2773a3
+search	fugufilm	1	fe830224
+search	fuji	431	94d29f35
+search	fuji 200	169	11ee54a0
+search	fujichrome	74	66b699ab
+search	fujicolor	292	ae438b17
+search	fujicolor 200	115	79a2eddd
+search	fujifilm	139	77036894
+search	funtime	4	45bdf968
+search	futura	12	9d6d6659
+search	fx	8	8bb7b080
+search	f²	2	fbbb4fe4
+search	fälle	1	c72de6fc
+search	für	2	db23b287
+search	g100	28	eeee9c67
+search	g2	37	243202c8
+search	g200	33	0d288b02
+search	g400	27	364e8f02
+search	g5	1	a2c5f6b8
+search	ga	103	28a2d17f
+search	galaxy	1	bc153977
+search	gb	42	dd5afd42
+search	gbr	10	a6af1683
+search	gbr100	3	ac58e223
+search	gbr200	3	df746472
+search	gbr400	1	5abf681a
+search	gc	22	2e346448
+search	gc135	1	fa524bb6
+search	gc400	13	78f6a896
+search	geek	1	93c4247f
+search	gen	178	be9110f2
+search	gen1	32	169b3e09
+search	gendarmerie	1	54fb2174
+search	general	9	26a827a2
+search	generation	1	53146fa6
+search	generic	5	3d63cf3a
+search	germany	133	b478b70a
+search	gf	401	505e581b
+search	gold	176	6688817f
+search	gpf	2	24b6fbb1
+search	gpm	1	f9d2ff26
+search	gr	121	890ff79e
+search	gradation	9	e6f84bd2
+search	grade	5	500d4c0b
+search	gradient	1	801f244f
+search	grain	44	aa344fae
+search	gray	7	1cad6dc0
+search	green	10	89ff1cc5
+search	grey	2	809aa3fb
+search	gt	11	5723538c
+search	gx	14	f328624e
+search	gx100	3	5623b0f8
+search	gxii100	1	9e2c7c9e
+search	h125	3	af3883f0
+search	h400	5	c8e01c0c
+search	hall	3	1663eba0
+search	hanalogital	16	67b7c48d
+search	happy	1	c9fb8ee0
+search	harman	56	b4287c15
+search	has	2	530c4742
+search	hawkeye	2	ed7d7752
+search	hc	36	8b84c570
+search	hcs	2	cc545399
+search	hd	55	675097a4
+search	hd2	9	0f16c7d2
+search	hd200	4	faa1575c
+search	hd4	9	cd5fee1d
+search	hd400	8	95e7ac11
+search	hdc	24	c1ea6794
+search	hdc100	6	55874d69
+search	hdc200	8	419916e4
+search	hdc400	4	2d765cf9
+search	hdf	2	e356e309
+search	hdf1	2	e356e309
+search	hdii	2	537c6952
+search	hdiv	1	bc1e6592
+search	heart	6	91bd4e60
+search	heijn	1	61650325
+search	hema	19	4df66250
+search	hg	22	90f35460
+search	hg100	3	7b4d22a2
+search	hg1600	2	ca6b2d42
+search	hg200	2	0f806f4c
+search	hg400	3	91c43c2d
+search	hgii100	3	7715801b
+search	hgii200	2	3d4c5cbd
+search	hgii400	1	4cb9fe63
+search	hgv100	2	2b498335
+search	hgv200	1	c975b362
+search	hgv400	1	7ec78d8f
+search	hie	4	8a90b7a1
+search	hie417	1	ba808372
+search	high	46	0d10aad0
+search	highdefinition	25	1a5bcd9b
+search	his	8	5c41f734
+search	hohrizon	1	94784462
+search	homelife	3	096f1731
+search	horizon	1	0c6f71a9
+search	hp	39	7271ba18
+search	hp100	9	3981092b
+search	hp200	7	a468c629
+search	hp400	4	d223b250
+search	hp5	14	b46613de
+search	hp5 plus	7	05c0d7e2
+search	hp5+	14	b46613de
+search	hpx200	1	bad27193
+search	hq100	4	f69e843a
+search	hq200	9	9a1733a3
+search	hqii	9	46118857
+search	hr	391	3cb99d29
+search	hr100	19	3c7c8a72
+search	hr1600	4	f7594b75
+search	hr2	18	56255e31
+search	hr200	13	e0b57550
+search	hr400	12	11bafcc9
+search	hrii	5	a294107e
+search	ie	165	cdb9286b
+search	ificolor	1	886b2331
+search	ificolor 200	1	886b2331
+search	ii	105	85eafd1e
+search	iii	25	2c9f43e0
+search	ilfocolor	4	47780cfb
+search	ilford	105	20e6920a
+search	ilford delta	15	7bbb2b18
+search	imaging	93	97a48c61
+search	imation	33	ce5ab90b
+search	impresa	7	0b4eb716
+search	impresa100	2	c6f2d8b0
+search	impresa200	2	98364f2f
+search	impresa50	2	76131d51
+search	improved	64	eca56101
+search	in	1085	5f1d31d3
+search	india	4	c8877d8e
+search	indoor	1	38b475f6
+search	industrial	9	0f96f6c5
+search	infa	2	b878391a
+search	infacolor	1	61d96e4e
+search	infrared	18	603ca30d
+search	inside	2	8071e9d7
+search	intercolor	1	8d1cb97a
+search	international	4	f408eff6
+search	ir	61	fd0727e3
+search	ir400	2	dc84bfc0
+search	ir820c	1	3f9eb5c8
+search	iris	1	c5c9fd60
+search	iro200	2	22af84bc
+search	iro400	2	c14488fa
+search	iso	181	04968ea8
+search	isokta	3	6806bb51
+search	italian	4	9d334d44
+search	japan	352	b4e8437b
+search	jch	3	2c13deb2
+search	jean	10	8055554f
+search	jean coutu	10	8055554f
+search	jessops	7	0e40d4af
+search	just	9	c4e677c5
+search	jx100	2	e59075be
+search	jx200m	2	8d12c724
+search	jx400	1	be5a4e1f
+search	kalt	3	c614da26
+search	katz	1	072256d5
+search	kb100	3	ab5e2ca2
+search	kb25	1	d15ee003
+search	kc	2	f9810f7a
+search	kentmere	15	2a9ab9bb
+search	king	2	5817d358
+search	kirkland	3	243c5813
+search	kiro400	1	93ded72c
+search	kl	34	d25f7811
+search	klassik	1	249ca3a3
+search	kleuren	14	ce470deb
+search	kleurenfilm	12	eed81170
+search	kleurenfoto	1	4bb07814
+search	klick	6	9c1f19c5
+search	km	8	1e5b3765
+search	km135	2	6ef44f4d
+search	kodachrome	28	399dba14
+search	kodacolor	76	31a2cc76
+search	kodak	700	a930c1f5
+search	kodak gold	170	cdd5f1e5
+search	kodakgold200	20	2a65a4a5
+search	kodakselect	5	a1420cdc
+search	konica	182	72d46db7
+search	kono	17	270bb1f9
+search	kpa	1	004e98be
+search	kr	23	69098b16
+search	kroger	1	71b642cd
+search	kruidvat	5	b21f3c6a
+search	ks	19	1874d347
+search	l1	8	86e94245
+search	l2	2	77d04952
+search	la	344	cb700b82
+search	label	10	4f8b3520
+search	laboratories	4	c7712883
+search	lady	2	ce2161ec
+search	ladybug	1	ff7830ef
+search	ladygray	1	19b2e5d9
+search	large	1	1ac47357
+search	last	6	130ad097
+search	layer	4	fa919ac2
+search	le	191	0bac93a5
+search	lekium	1	ee5120b8
+search	les	5	4e9b08ef
+search	letters	2	292625b7
+search	liebe	1	be5e2521
+search	life	4	c8ebe8af
+search	lifecolor	1	5eaa0c6a
+search	likon	2	eb02212b
+search	limited	25	55c9de1e
+search	lines	1	8040f165
+search	little	1	f4a416a9
+search	lloydspharmacy	1	7a1404ab
+search	lmaging	4	5a03b0af
+search	lo	1149	8b707b32
+search	logo	1	2303e1bf
+search	loisirs	2	2a1c73cc
+search	lomography	19	1d6272af
+search	lpp	3	013af9e3
+search	lpp120	1	24607487
+search	lpr	3	7f6d99ff
+search	lpx	3	bd70f48a
+search	lpz	2	94911039
+search	lucky	40	015d3722
+search	luckychrome	1	ba129ad1
+search	luckycolor	30	a90b4349
+search	luckypan	1	ba1ae97c
+search	luft	1	c6a44693
+search	lumiere	9	f7833a1d
+search	lv100	4	9326ee39
+search	lv200	2	b1ef1710
+search	lv400	2	0fcc4ed9
+search	maco	17	a2feb4cf
+search	macophot	4	591f9165
+search	made	724	013e2e9c
+search	made in japan	334	134d639e
+search	malaysia	1	01bb0777
+search	mama	1	8a4eb044
+search	market	73	fe3dbb38
+search	mart	19	be242166
+search	master	2	02851965
+search	max	64	37068a37
+search	maxi	8	7fb3560d
+search	maxicolor	2	d6395c0d
+search	mc	11	86c86848
+search	mc100	2	c15a2d98
+search	mcolor	7	3289288f
+search	memories	2	62410607
+search	migros	2	6cdbc9b5
+search	millenium	1	c5c9fd60
+search	mini	3	46c2986c
+search	minolta	42	278497d3
+search	mirage	2	76f70683
+search	mitsubishi	4	682242fb
+search	mm	17	d3dda38b
+search	monochrome	5	2ca28c86
+search	monsoon	2	fd2dcc0f
+search	moonstruck	2	a623ac0b
+search	motion	4	6689065b
+search	motophoto	1	f2176de9
+search	movie	1	021178e9
+search	ms	36	a2c12142
+search	muller	1	2f614c57
+search	multi	4	63bf2244
+search	multimedia	1	43dc94c8
+search	multispeed	2	61bedc24
+search	multspd	2	61bedc24
+search	mx	8	f670acd8
+search	mx100	3	464b9d9f
+search	mx400	1	b6fe45d3
+search	mxiii	1	5a57fb5c
+search	my	14	90cd807b
+search	müller	1	2f614c57
+search	name	36	7fb62b9d
+search	nation	7	f43b36f8
+search	nationale	1	54fb2174
+search	natura	7	2a2c95ed
+search	natural	3	492414ce
+search	naturalcolor	2	5ccd05ed
+search	ncs	1	7f9d6c2e
+search	negativ	76	d31108ba
+search	negative	75	86209378
+search	neopan	10	933414b2
+search	neu	9	b969d4f1
+search	new	95	cf7b03e9
+search	nh	11	bb1faa20
+search	nh400	1	3f1b7da2
+search	nhg	2	9551bab0
+search	nika	1	e3451699
+search	nikacolor	1	e3451699
+search	no	223	a9742ceb
+search	non	3	fd04bd64
+search	nouveaux	1	cc403734
+search	npc	2	57469dad
+search	nph	6	3e69d19e
+search	nps	2	414075c1
+search	npz	4	9ee2b29b
+search	ns	88	97d9c04c
+search	nsg	2	0c3801df
+search	nsp160	1	51232f5f
+search	objecta	1	107f7a4f
+search	ocn	6	fc2d2774
+search	ocn100	2	2472dd10
+search	ocn200	2	6f84d9f8
+search	ocn400	2	282e382a
+search	of	437	cc40839e
+search	of1	3	c8333b1b
+search	official	3	a5647835
+search	old	189	ec40444f
+search	on	897	e0046e78
+search	one	18	39d412bc
+search	only	49	904c5b99
+search	opal	1	49502efe
+search	opthalmic	2	1d4fc064
+search	optima	36	bc4c6840
+search	or	1340	325fa935
+search	oriental	3	216adfd1
+search	original	11	1a3803e0
+search	orizzonti	1	894c37f5
+search	ortho	7	ad312ddc
+search	orthopan	1	1e746499
+search	orwo	32	ebfd4316
+search	orwochrome	1	6b141651
+search	orwocolor	21	acf935d1
+search	orwopan	8	5bcde15a
+search	osco	3	ae2fadbc
+search	outdoor	2	9872d155
+search	output	3	c228c6a1
+search	outside	1	4efe680b
+search	p1	26	b19f0acf
+search	p1600	3	50a33df9
+search	p3200	4	38a4b20c
+search	p3200tmy	1	80465c32
+search	p3200tmz	2	1b235f7d
+search	p800	2	c9a5252b
+search	pacific	3	53fba3a7
+search	pacificfilm	1	5f37e102
+search	pack	34	24a2e93f
+search	package	9	68b64e6f
+search	packaging	5	cddfc373
+search	painted	1	1ef66617
+search	pan	550	537f9c89
+search	pan400	13	db3118a4
+search	panatomic	2	ef059c1e
+search	panchromatic	1	d9c724d1
+search	pancro	2	c5ba512c
+search	panorama	1	b9c841dc
+search	panther	6	0355c601
+search	paper	16	d460e4cd
+search	papier	7	b6564dcb
+search	paradies	8	52b1a632
+search	parrot	1	d6e82307
+search	pathé	3	c93f8897
+search	pbc	1	b5485b9f
+search	pc	18	cf64cd6b
+search	pcf	1	c7214a55
+search	pci	5	576fda67
+search	pcn	1	e78a849d
+search	pelicula	2	c3c5e255
+search	perfecta	1	fbdf19a6
+search	perfecttouch	1	0468b4ac
+search	perutz	97	de5fbe3b
+search	pharmacies	10	8055554f
+search	phoenix	3	ae133477
+search	photo	194	9bdaea5d
+search	photocité	2	c708b9f2
+search	photohall	3	1663eba0
+search	photoimaging	40	83cc73d4
+search	photomicrography	2	f1108b20
+search	photopoint	7	4e012998
+search	photoworks	1	22be5082
+search	phr	3	f9a00cc0
+search	phr120	1	ea4ec2c1
+search	picture	5	71b624f5
+search	pink	1	496c47a9
+search	pj100	2	4413734b
+search	pj400	2	50dfcd2a
+search	pj800	2	d6eda0de
+search	pja	1	0031121b
+search	pjb	3	b48843eb
+search	pjb135	2	d3dde9af
+search	pjc	2	25dc4487
+search	pjm	4	f1ab09c9
+search	pkl	3	779bb97b
+search	pklk	1	f11d51a5
+search	pkm	1	0c14ce47
+search	pkr	2	3cf1fed5
+search	pl	244	c03d3240
+search	platin	1	8d1cb97a
+search	plus	191	3894502b
+search	plusdigital	4	58c5a40c
+search	plusx125pro	1	006f31e9
+search	pmc	1	91761d4d
+search	pn400n	2	eea07541
+search	po100c	2	bc805c78
+search	polaroid	39	73dcf060
+search	poly	3	bbd2a38f
+search	porst	3	dc4991ed
+search	portra	43	0a58e0cf
+search	portra 400	16	2be866a5
+search	portra400	14	e97e982f
+search	portrait	9	b49ee9b8
+search	portrait160	3	f44862fb
+search	portrait400	2	3370d508
+search	positive	3	af186b86
+search	pour	1	54fb2174
+search	power	3	58e04894
+search	ppa	1	8efcfa26
+search	ppb	4	b73e638f
+search	ppc	1	a5bd5d1a
+search	ppf	1	06df9458
+search	pr	717	f30a8953
+search	pr100	2	b9339b17
+search	prd	1	31919a25
+search	precisa	9	dbad2afa
+search	premium	8	420eb48b
+search	president	3	6decb16c
+search	press	42	a3ed9599
+search	prestige	1	76658f07
+search	presto	3	d1975289
+search	prfd	2	04b7b78b
+search	prfd2	2	04b7b78b
+search	prime	41	b0ef6c37
+search	primera	35	342e4e76
+search	print	115	25f8123b
+search	prints	10	6183c7b7
+search	prism	1	ccbca251
+search	prn	2	6b336d45
+search	pro	510	fb36d3b7
+search	pro160c	2	b2bc2c4b
+search	pro160s	4	3694e2a8
+search	process	58	2b4f2e9e
+search	professional	335	25d44f15
+search	professional160	2	a58e07a4
+search	profi	8	7d982ebd
+search	profiline	6	77d19ab8
+search	profoto	10	02181c6e
+search	proimage	5	4911b6b2
+search	propack	4	a66b0bdf
+search	proplus	3	881cf83a
+search	protopan	1	84aaec68
+search	provalue	5	3151e486
+search	provia	13	43e4630a
+search	prp	1	50eab562
+search	prs	1	7fab9a15
+search	prx	1	91c7a99f
+search	prz	1	c59fcb2b
+search	président	3	6decb16c
+search	purple	2	4ee49840
+search	purpose	3	d94cbfac
+search	px	39	dd7ab98c
+search	pxp6057	1	950ac581
+search	pxt	1	94aa3217
+search	qrs	1	fc039c2d
+search	quality	3	fc3e6c71
+search	quicksnap	6	2acb6c14
+search	qx200	1	5f9318ae
+search	qx400	1	e71f49c7
+search	qx868	1	9035986e
+search	r100	58	2efd0836
+search	r200	42	c4e0ac51
+search	ra	718	501234a2
+search	ra135	1	aa9ade81
+search	rainbow	4	c8e401ef
+search	raks	1	8cbc8df6
+search	rakscolor	1	8cbc8df6
+search	rap	52	5b959205
+search	rapid	2	dd9eef2a
+search	rayoscope	1	5b089151
+search	rb	31	dc476a4a
+search	rc	27	3d159cb3
+search	rc100	2	926d0bcd
+search	rd	133	854fe4d6
+search	rdp	5	8fbe0c8f
+search	rdpii	3	bc144d6a
+search	rdpiii	1	cb252514
+search	re	373	fa8f09d3
+search	reala	16	2fdd199f
+search	recording	2	75e088c8
+search	red	35	1affba69
+search	redscale	2	96a98554
+search	reintroduced	4	f27b55c5
+search	reliance	1	d80c6ad5
+search	replacement	2	f9b0fff4
+search	resolution	2	5091efcd
+search	retina	2	84459df7
+search	retro	10	5d2a101f
+search	reversal	1	1e746499
+search	revue	3	5be451af
+search	rf135	2	62263983
+search	rh	44	9dd39c24
+search	rh1600	1	e137e7f7
+search	rhp	2	c1b3183a
+search	rhpiii	1	0126ead7
+search	rite	4	9b4a73df
+search	riteaid	3	50a10403
+search	ritz	3	d09b5ed1
+search	rm	245	753da489
+search	roll	30	a9e158e6
+search	rollei	14	cc11fd50
+search	rossmann	4	ba867f61
+search	royal	31	7ce9dfe2
+search	rpc	2	dd9eef2a
+search	rpx	1	84cb7acd
+search	rr1011	1	340e3a9a
+search	rs	157	12b8b1eb
+search	rs200	7	71111fd4
+search	rs400	4	10c37aeb
+search	rs800	1	f6e5b358
+search	rsp	5	8880247a
+search	rsx	12	3353c284
+search	rsx100	3	787997b5
+search	rsx200	3	4aad12c4
+search	rsx50	3	87e4cba4
+search	rtpii	1	82bfa2d1
+search	rvp	5	2b71ccf8
+search	rvp50	2	fbcec08b
+search	rxp	1	5500a381
+search	rz	2	02f7ed4e
+search	r³	2	5b46cd8f
+search	s400	9	7312f6ca
+search	saf	3	a9466687
+search	safeway	1	919c2c9a
+search	sakura	6	ab18698e
+search	sakuracolor	4	ed5b80ac
+search	same	54	26619ed3
+search	samsung	6	a078228d
+search	sav	1	df9487d5
+search	sc	159	5e82fd84
+search	sc100	23	e79246c3
+search	sc200	17	05a0771f
+search	sc400	14	4893f6a0
+search	scala	4	75e0a43e
+search	schlecker	4	2cbcba0f
+search	scotch	58	98200da1
+search	scotchchrome	5	cc5ea74f
+search	scotchcolor	48	16c2e64f
+search	se	203	c23aeaa9
+search	seagull	4	6d243780
+search	seattle	4	6dabd564
+search	select	22	e5c157b0
+search	sensia	18	43e05677
+search	sepia400	2	0a2f1934
+search	series	14	4c37cbe8
+search	service	7	9d11ec5c
+search	sfx	6	5a1b1bf6
+search	sfx200	6	5a1b1bf6
+search	sg100	4	5d727148
+search	sg200	3	5987b6f2
+search	sg400	4	b9b25c62
+search	sg800	3	7ed207cf
+search	shades	4	638d1f06
+search	shanghai	8	e57e364b
+search	shd100	4	e51a4054
+search	shd400	4	7cb95210
+search	sheets	5	c01c6010
+search	shenguang	2	b4c4055d
+search	shinra100	1	223f0926
+search	shirokuro	1	7ec971c8
+search	short	1	134102f5
+search	shqii	9	f46f3c9a
+search	shr100	4	418a4c99
+search	shr200	3	fd56b32b
+search	shr400	2	914e3ae2
+search	sights	1	3a566471
+search	signature	2	834b3124
+search	silver	1	6a8ad391
+search	silvertone	1	6a8ad391
+search	sinbi	6	39b0d57d
+search	sinbi100	4	818fbb88
+search	sinbi200	2	d5349bb7
+search	single	6	44ee4baa
+search	sinra	1	d8cc33d8
+search	skin	1	0e4ecd7d
+search	sl100	1	a2dd61d3
+search	slide	23	72e2b10a
+search	slides	5	be75c54c
+search	small	4	ffbf189d
+search	smart	1	951b61ad
+search	smile	1	f9d75edc
+search	snap	7	ecae4c59
+search	so	271	85dd5bf7
+search	so200	1	2f676a71
+search	so279	1	635b20f6
+search	so366	1	134102f5
+search	so370	1	19bef5a8
+search	so446	1	e7e6a0da
+search	so511	1	525859ca
+search	so517	1	cb1da91a
+search	so604	1	9215d5bc
+search	soccer	1	4042843a
+search	solar	53	32607739
+search	solaris	50	733c6f5b
+search	solution	3	1dd789c1
+search	sonne	1	88dba0da
+search	sooter	2	5c364fda
+search	soul	4	ee8f181b
+search	soulcolor	4	ee8f181b
+search	sow	1	134102f5
+search	sp	136	20808379
+search	sp100	3	0ae7f9e1
+search	sp400	2	c9863a43
+search	sp815t	2	db03c3a0
+search	sp816t	2	f875e75c
+search	sp952	1	2fed2ec8
+search	spain	1	f82c2b27
+search	spector	4	afaec35a
+search	spectra	1	2eeda3a2
+search	speed	20	9c29649e
+search	spider	1	cca73af7
+search	spielmann	4	ec94a512
+search	spirals	1	d46a275a
+search	splicer	6	e03f20e2
+search	splined	1	991a2359
+search	sport	2	cfe57864
+search	sports	1	b876ac01
+search	squares	1	3c0c3cb7
+search	sr	32	10644073
+search	sr100	11	821ce7d5
+search	sr200	6	c88df8a1
+search	sr400	3	d87d536d
+search	sra	1	4e2fca61
+search	srm	1	9e5d9623
+search	srp	1	0d5afde5
+search	ss	438	ad113740
+search	stabilty	1	28094392
+search	standard	2	b54aef54
+search	star	15	a67a066f
+search	stereo	2	d88170ef
+search	streamers	1	982895b5
+search	streetpan	2	bbd93398
+search	stroboscope	1	a6d86046
+search	studio35	3	c76c5d8b
+search	style	1	24fdba70
+search	su400	1	dd45b4ff
+search	sugulite	1	4e94a24b
+search	sunny	2	ac12b94b
+search	sunshine	1	6100c784
+search	sunstroke	2	bca13510
+search	super	348	175c177b
+search	super100	10	057b08a9
+search	super1600	2	29be2850
+search	super200	14	383b298a
+search	super400	19	165df80c
+search	super800	4	5880b7a6
+search	superia	149	69c07ea6
+search	superia x-tra 400	36	25138da1
+search	supra	10	46444f88
+search	supreme	4	cb6d133a
+search	surveillance	11	6f9b9815
+search	svema	3	6a16f7aa
+search	sw200	1	1d857a20
+search	sweetheart	4	0d0facdc
+search	switch	1	b38c4499
+search	sx	26	41c2bd19
+search	sxg	3	86e6fcdb
+search	sy	9	46075ae9
+search	system	1	2f823d7f
+search	sélection	4	48abd77f
+search	t-max 100	6	f2814dfc
+search	t100	13	9768d938
+search	t200	9	1b7f6523
+search	t400	8	9b93fbf8
+search	t400cn	2	7c73a207
+search	t64	3	b20c96eb
+search	tc	95	0d9a9ad3
+search	td400	1	dbf7d8b9
+search	technical	5	649af781
+search	technology	27	43da8964
+search	temps	1	e90658d3
+search	tesco	3	3f0f1457
+search	test	7	974606cc
+search	tester	1	81701c48
+search	the	91	a9680e70
+search	thick	2	5428e413
+search	thin	3	5f376cd5
+search	ti	459	e20cf6d5
+search	tikes	1	f4a416a9
+search	time	17	bdc985bd
+search	tmax	22	7bb6aa22
+search	tmax400	6	f301d683
+search	tmx	2	64f06eaf
+search	tmy	7	626fc2bc
+search	tmy3200	1	80465c32
+search	tmz	3	db725600
+search	tmz3200	1	8430baa4
+search	to	378	d7bcc7fb
+search	tone	3	12b8b7c7
+search	top	17	436dc649
+search	totaly	1	93d52b4e
+search	totte	1	8a4eb044
+search	tough	1	9be518a1
+search	tp	12	d32d826d
+search	tra	168	1396b288
+search	traffic	6	3d2cf85f
+search	trebi	3	3f980048
+search	trekpleister	1	af704d68
+search	trg100	1	81b08d70
+search	tri	61	ea0fee2d
+search	trifca	1	8c37baf5
+search	trix	11	e03debe3
+search	true	6	b767d677
+search	truprint	1	f5be35f8
+search	tudor	10	c147dbe3
+search	tudorcolor	10	56217a6d
+search	tungsten	13	423c0e6d
+search	tx	18	fb126b1f
+search	tx400	3	48ea0d42
+search	type	11	ca70f905
+search	typeii	3	e0f9c281
+search	uboot	1	2912f1cb
+search	uc	83	cd171756
+search	ufo	1	33553b03
+search	ultima	4	b2246336
+search	ultima100	4	1fb7ea13
+search	ultra	28	580f9ac8
+search	ultracolor	8	549968d7
+search	ultrafine	2	2d767e5f
+search	ultramax	5	5143cc2a
+search	underwater	1	b62025f8
+search	unichem	2	5091efcd
+search	uniform	1	a6fe4411
+search	united	1	279ed41a
+search	universal	9	c8a59cb0
+search	unknow	12	bc7b3258
+search	unknown	12	df4ddf21
+search	until	2	4807d183
+search	up	405	df504ca6
+search	us	392	9b50cfaa
+search	usa	119	9f551b4d
+search	use	43	cb65d182
+search	uw	1	b62025f8
+search	uxi	1	3bcd980b
+search	v100	9	e397b081
+search	v200	5	92f5a90d
+search	v400	4	3cf8de5b
+search	value	7	23f404db
+search	vari	7	f88d8f55
+search	various	1	2969f8a5
+search	veins	1	88134972
+search	velvia	13	d6ea8bb9
+search	venus	8	a5aa44a2
+search	vericolor	12	e3fc0592
+search	version	53	602b7976
+search	vhc	3	347d33ea
+search	vibe	1	b3ccfc2e
+search	vintage	2	7dad9702
+search	vision	5	d9c97271
+search	vista	65	2a2b1cee
+search	voigtländer	4	eca8a3b9
+search	vons	1	919c2c9a
+search	voor	1	4bb07814
+search	vph	3	4e7ab890
+search	vpl	2	4ea8be2b
+search	vps	2	17628f81
+search	vr	59	f22b5225
+search	vr100	15	6f7fc046
+search	vr1000	2	155fc331
+search	vr200	17	4b92c392
+search	vr400	6	14a722d9
+search	vrg	10	7bbf1c1b
+search	vs	5	d3a6b074
+search	vx	66	1a614f6b
+search	vx100	21	2a65d268
+search	vx200	16	ee53ffd3
+search	vx400	22	8ddd880c
+search	vxs200	3	a8663788
+search	vxs400	1	2cf18cc8
+search	wal	16	3af4fde8
+search	walgreens	5	47886e3c
+search	walmart	11	2a66dcff
+search	warmer	1	f5ed208d
+search	warning	1	f74f2ed1
+search	werlisa	1	888eeacd
+search	western	4	533835ae
+search	white	41	42f48264
+search	whitelabel	2	120f658d
+search	wintermärchen	2	3afa62f6
+search	wit	64	9a8493e8
+search	with	61	512ff0ff
+search	world	6	83013527
+search	wphoto	2	4841ba0d
+search	xd	2	28e116fa
+search	xdt	1	0e62232d
+search	xdt200	1	0e62232d
+search	xg	11	b45d1c18
+search	xg100	4	7fd7ed48
+search	xg400	3	d75b19f3
+search	xiamen	6	e3e2aed1
+search	xl	24	ebea412a
+search	xl100	6	8efff001
+search	xls	2	5964f252
+search	xlx100	1	45148f92
+search	xlx400	1	0d72718c
+search	xp1	4	02ebd61f
+search	xp2	7	b1151aa6
+search	xpro	4	6444a26d
+search	xps	3	a1e49288
+search	xps160	2	103983d8
+search	xr	60	791e8558
+search	xr100	6	589136c4
+search	xr100i	4	c434e3bf
+search	xr200	2	5e6305ed
+search	xrc	5	083e3fd5
+search	xrc100	1	c7fba516
+search	xrg	36	4ae3406c
+search	xrg100	12	467e72f7
+search	xrg2	16	0beb9789
+search	xrg200	16	f2b937a9
+search	xrg400	2	e83f0e13
+search	xrs	13	53b63261
+search	xrs100	7	90b647d5
+search	xrs1000	3	efd71e90
+search	xrs100lc	1	e249df48
+search	xrs200	3	13b02e08
+search	xrs400	3	b70f62e7
+search	xtra	62	d30a3692
+search	xtreme	2	0aef270e
+search	yellow	16	08a1164e
+search	yes	5	141b4f58
+search	ykl	2	7907ccba
+search	york	4	0ae88574
+search	z200	1	ac391d56
+search	zoom	6	15afec6e
+search	zwart	2	6d98c1f2
+search	zzzzqq	0	-
+search	дс	2	62a628e8
+search	свема	2	62a628e8
+search	“79-15”	0	-
+search	ママ撮って	1	af9e589a
+search	乐凯	1	fabd5453
+search	写ルンで1600	1	6e0a9122
+search	写ルンです	1	6e0a9122
+search	彩韵 200	1	fabd5453
+search	彩韵-200	0	-
+search	彩韵200	1	fabd5453
+search	撮りっきりコニカ	1	59e656eb
+search	柯达400	0	-
+search	業務用カラーフィルム100	2	3c3e356d
+search	業務用カラーフィルム400	2	d76f4038
+search	業務記錄用	3	9e26021c
+search	樱花	1	61d96e4e
+search	２００	852	aa5c72f0
+search	ｆｕｊｉ２００	1	e2d4caf2
+DX	1-3	1+6+0	a85bd1e4
+DX	1-4	1+3+0	bbb6e80d
+DX	1-6	1+2+0	d5b25c1a
+DX	1-7	1+5+0	c356b12c
+DX	1-8	2+2+0	d13656eb
+DX	2-0	0+3+0	e20ff525
+DX	2-1	0+1+0	34239b02
+DX	2-3	0+1+0	4e73b459
+DX	2-11	0+1+0	bfb6fdb8
+DX	2-13	0+2+0	d76ffe19
+DX	3-3	0+1+0	190b0cf5
+DX	3-5	0+3+0	72838e50
+DX	3-6	2+2+0	b5e0b71e
+DX	3-9	5+7+0	acadc322
+DX	3-10	0+1+0	fd80f09f
+DX	3-11	0+1+0	aca5b1b0
+DX	3-12	0+1+0	d2dd7490
+DX	4-0	0+1+0	a6243e59
+DX	4-1	1+2+0	83876e95
+DX	5-6	1+1+0	b6c52763
+DX	5-9	2+2+0	efcbc734
+DX	6-0	0+2+0	45be973f
+DX	6-1	1+6+0	559326c7
+DX	6-2	0+1+0	1fdb6cf1
+DX	6-3	1+1+0	16f60403
+DX	7-2	0+1+0	7cb9bf50
+DX	7-5	2+5+0	7bb57388
+DX	7-6	4+4+0	4a89b825
+DX	7-12	0+1+0	4c125cc4
+DX	8-0	1+3+0	775ffece
+DX	8-1	1+13+0	64cfae75
+DX	8-2	1+8+0	fd937bfe
+DX	8-3	1+3+1	33363c07
+DX	8-4	0+3+0	4a874ce3
+DX	8-5	1+2+0	4150507b
+DX	8-6	0+1+0	1a97ca2e
+DX	8-7	1+4+0	bf4b7c8b
+DX	8-8	1+3+0	d045b81f
+DX	8-9	0+2+0	b5b1511d
+DX	8-10	0+1+0	8949c7c4
+DX	8-11	0+1+0	21942d2e
+DX	8-12	1+6+0	ea3bf05c
+DX	8-13	1+8+0	6f2db70f
+DX	8-14	0+1+0	eeff24f9
+DX	8-15	1+1+0	99e06b69
+DX	9-0	0+1+0	341ceb22
+DX	9-1	1+2+0	4708f88c
+DX	10-0	1+2+0	77553582
+DX	10-1	1+1+0	2e26b840
+DX	10-2	0+3+0	a517c43e
+DX	10-3	0+3+0	6c60882a
+DX	10-4	0+2+0	03100db4
+DX	10-5	0+1+0	6b6fa69f
+DX	10-6	0+1+0	6d529e4b
+DX	10-7	0+1+0	55def547
+DX	10-8	0+3+0	46649e63
+DX	10-9	0+1+0	e318a428
+DX	10-10	0+3+0	ebff22ab
+DX	10-11	0+3+0	ea3f88c7
+DX	10-12	0+3+0	546db24e
+DX	10-13	0+2+0	c9d28402
+DX	10-14	0+1+1	294ffd20
+DX	10-15	0+1+0	7ab3ecbd
+DX	11-1	0+1+0	b7758a41
+DX	11-2	0+1+0	36a7e934
+DX	11-3	1+1+0	e9dfed47
+DX	12-0	1+1+0	9a0362d4
+DX	12-1	1+3+0	bc3c6fdb
+DX	12-2	0+1+0	fe7ea09a
+DX	12-3	1+4+0	4ff21772
+DX	12-4	0+2+0	e0e14bd7
+DX	12-5	1+4+0	7e086e95
+DX	12-6	1+1+0	b3772edb
+DX	12-7	0+2+0	47366761
+DX	12-8	1+7+0	f2a3fe9b
+DX	12-9	0+2+0	a74dd0bd
+DX	12-10	0+1+0	fabe76d4
+DX	12-11	0+3+0	d40315b7
+DX	12-12	1+2+0	c27ea082
+DX	12-13	0+2+0	68577fa5
+DX	12-14	1+2+0	7a6405a2
+DX	12-15	0+1+0	973841da
+DX	13-1	0+1+0	a1c44604
+DX	14-1	0+1+0	50fff9df
+DX	14-3	0+1+0	18ddcfc2
+DX	16-0	1+1+0	ae7d0c71
+DX	16-3	1+7+0	2c8262c8
+DX	16-4	1+1+0	dcb16596
+DX	16-5	1+1+0	a56f1f3a
+DX	16-6	1+1+0	da0a5f49
+DX	16-7	1+2+0	28e66de8
+DX	16-8	1+1+0	0304c1ec
+DX	17-0	0+14+1	f5c29ead
+DX	17-1	1+6+0	b5c4d751
+DX	17-2	3+12+0	15dec879
+DX	17-3	1+2+0	30cc7f18
+DX	17-4	0+3+0	9cba5654
+DX	17-5	0+2+0	baff6004
+DX	17-6	1+1+0	e021babf
+DX	17-7	1+2+0	ce83b289
+DX	17-8	1+1+0	c83110aa
+DX	17-10	1+1+0	6f69690a
+DX	17-11	1+1+0	0bfcc419
+DX	17-12	1+1+0	830a3477
+DX	17-13	1+1+0	e03b8f4f
+DX	17-15	1+1+0	a824805e
+DX	18-1	0+1+0	2bc5c70b
+DX	18-2	0+1+0	f08fb85f
+DX	18-3	0+3+0	9251e3e8
+DX	18-4	0+1+0	241cb743
+DX	18-5	0+2+0	abde285c
+DX	18-6	0+3+0	8c089fd1
+DX	18-7	1+4+0	47d839bd
+DX	18-8	0+3+0	c42f3dbc
+DX	18-9	1+3+0	1515c62e
+DX	18-10	1+1+0	321151c4
+DX	18-11	0+3+0	e97c3d8b
+DX	18-15	0+1+0	ace786e8
+DX	19-1	0+1+0	570f7c0d
+DX	20-1	1+2+0	a5115602
+DX	20-2	0+1+0	1019db7d
+DX	20-3	0+1+0	9b0448ec
+DX	20-4	0+1+0	0fc42325
+DX	20-5	1+1+0	7f3f9c37
+DX	20-6	0+1+0	27577c83
+DX	20-7	0+1+0	2faba33d
+DX	20-8	0+1+0	09f8ed1d
+DX	20-9	0+3+0	04616601
+DX	20-10	0+1+0	2248f2bf
+DX	20-11	0+1+0	51e42f6e
+DX	20-12	0+1+0	ac46baf6
+DX	20-13	1+5+0	822f872b
+DX	20-14	0+1+0	1a891cbb
+DX	20-15	1+1+0	4d72e72e
+DX	22-1	0+1+1	49452adf
+DX	22-2	0+1+0	bb13d0d3
+DX	23-1	0+1+0	28ea353b
+DX	23-2	0+2+0	b611d3be
+DX	23-3	0+2+0	bae9ca3a
+DX	23-4	0+2+0	4c75c8b4
+DX	23-6	0+1+0	f3a908b9
+DX	23-8	0+2+0	adc328ec
+DX	23-9	0+4+0	e379dbe7
+DX	23-10	1+2+0	421812cf
+DX	23-11	1+4+0	3a2d76fb
+DX	23-12	1+2+0	5cf9045a
+DX	23-13	1+3+0	072008cb
+DX	23-14	2+6+0	ffe82545
+DX	23-15	1+1+0	e4566367
+DX	24-0	0+1+0	22a413ab
+DX	24-1	1+2+0	fbe69598
+DX	24-4	1+2+0	51bbb232
+DX	24-6	1+1+0	587aa3a0
+DX	26-0	1+3+0	aa215268
+DX	26-1	1+2+0	346c5ddf
+DX	26-2	1+1+0	70c75799
+DX	26-3	1+3+0	e3183042
+DX	26-4	1+1+0	00f4a21f
+DX	26-5	1+2+0	ebc75e14
+DX	26-6	1+2+0	394e1b98
+DX	26-7	0+1+0	40559892
+DX	26-8	1+1+0	3b24a57e
+DX	26-9	1+3+0	a06226ac
+DX	26-10	0+2+0	e457e1a4
+DX	28-3	0+1+0	acd23bd7
+DX	28-4	1+2+0	6fb49fd2
+DX	28-5	1+8+0	a1766bbc
+DX	28-6	1+7+0	6d4730a9
+DX	28-7	1+3+0	431bdfd7
+DX	28-11	0+1+0	f86853f4
+DX	28-12	1+4+0	96d5180e
+DX	28-13	1+5+0	0f71d347
+DX	28-14	1+6+0	31fc3920
+DX	30-5	0+1+0	426e00ad
+DX	30-11	0+1+0	877f1f30
+DX	31-1	1+6+0	e5b6d8f4
+DX	31-2	1+2+0	57a9b9d4
+DX	32-0	1+2+0	73ec9ebb
+DX	32-1	1+2+0	0415366a
+DX	32-2	1+2+0	4c2ec7f9
+DX	32-3	1+3+0	d73c53c3
+DX	32-4	1+1+0	34e46637
+DX	32-5	1+2+0	6e170279
+DX	32-6	1+1+0	5baa7d1f
+DX	32-10	1+4+0	2a8d3a81
+DX	32-11	1+1+0	66853649
+DX	32-12	0+6+0	07a101a9
+DX	32-13	0+1+0	c3aea674
+DX	32-14	1+2+0	38d354d5
+DX	32-15	1+2+0	ab6845dd
+DX	33-13	0+1+0	b6f62157
+DX	34-0	1+1+0	3a26e3e1
+DX	34-2	1+2+0	804e6d45
+DX	34-3	0+1+0	b2e83695
+DX	34-4	0+1+0	10fcedad
+DX	34-5	0+1+0	42f9123a
+DX	34-6	1+1+0	9aa4841b
+DX	34-7	1+4+0	a228f58b
+DX	34-9	1+1+0	a56729b9
+DX	34-10	1+1+0	3dada917
+DX	34-11	1+2+0	5ad1098e
+DX	34-13	1+3+0	5b501cc7
+DX	34-14	1+1+0	fddb2d24
+DX	34-15	1+2+0	294b6efe
+DX	35-0	1+2+0	85f9f5fc
+DX	35-1	1+7+0	9180ff62
+DX	35-2	1+3+0	23414dce
+DX	35-3	1+1+0	16b89b5b
+DX	35-4	1+1+0	b7c3b062
+DX	35-5	1+1+0	bc0299b6
+DX	35-6	1+1+0	3b896587
+DX	35-7	1+2+0	793fb3d5
+DX	35-8	1+1+0	5385f44c
+DX	35-9	1+1+0	7c439632
+DX	35-10	1+4+0	ddb1af6c
+DX	35-11	1+1+0	94835104
+DX	35-12	1+1+0	ab3b0249
+DX	35-13	1+1+0	a1f41704
+DX	35-14	1+11+0	e682033f
+DX	35-15	1+1+0	6d870483
+DX	36-0	1+1+0	6f40926d
+DX	36-1	1+1+0	37642868
+DX	36-2	1+6+0	b55caa8f
+DX	36-3	0+2+0	7ddd4b9b
+DX	36-4	0+2+0	dfe1da3d
+DX	36-5	0+4+0	f5bbd8cf
+DX	36-6	0+1+0	8b3f6ee2
+DX	36-7	1+1+0	17fd6082
+DX	36-8	1+2+0	01b52471
+DX	36-9	0+1+0	0a9d5d4d
+DX	36-10	1+1+0	cd2ea137
+DX	36-11	1+2+0	30bd72c4
+DX	36-12	0+1+0	e911e7a6
+DX	36-13	0+1+0	8186093c
+DX	36-14	1+1+0	d17dad21
+DX	36-15	0+1+0	2fb9f1a1
+DX	39-0	1+3+0	84db6725
+DX	39-1	1+33+1	ba9a5085
+DX	39-2	1+10+0	21813b69
+DX	39-3	0+3+0	0ae2422d
+DX	39-4	0+20+0	50152a4c
+DX	39-8	1+2+0	d0620ee6
+DX	39-9	1+1+0	c88bc5af
+DX	39-10	1+6+0	68f2baa8
+DX	39-11	1+7+0	2c43c30d
+DX	39-12	1+3+0	bc15179a
+DX	40-0	0+4+0	f81384ba
+DX	40-2	0+1+0	9467af67
+DX	40-3	1+2+0	275a1776
+DX	40-4	0+1+0	95b6e568
+DX	40-6	0+5+0	c587b30d
+DX	40-7	0+1+0	a6090fc7
+DX	40-9	0+1+0	d0701413
+DX	40-10	0+1+0	e3931167
+DX	40-11	0+5+0	b9315407
+DX	40-12	0+2+0	bd0c2cae
+DX	40-13	0+3+0	b29b187a
+DX	40-14	0+1+0	1acb4359
+DX	42-8	1+4+0	57a85ec1
+DX	43-1	0+1+0	50cd60cb
+DX	43-2	0+2+0	d2bea297
+DX	43-3	0+1+0	cc345b83
+DX	43-4	1+2+0	42ba3707
+DX	43-5	2+4+0	d077a0ed
+DX	43-6	1+1+0	7fc9f2ad
+DX	43-7	1+1+0	44127f32
+DX	43-8	0+1+0	59e3045d
+DX	43-9	0+1+0	19df5033
+DX	43-10	0+1+0	c99ce1ab
+DX	44-1	1+1+0	cc5fc54b
+DX	44-4	1+1+0	5ea5dafa
+DX	44-5	1+1+0	89393a84
+DX	44-6	1+1+0	d910a230
+DX	44-8	1+1+0	7c3f333c
+DX	44-9	1+1+0	2f976456
+DX	44-10	1+1+0	5b6889b8
+DX	44-11	1+1+0	62b5f1a4
+DX	45-2	0+1+0	cce18590
+DX	45-6	1+1+0	37c33f5e
+DX	45-8	1+1+0	92e79851
+DX	46-1	1+2+0	78db3294
+DX	46-2	1+2+0	a46718e9
+DX	46-3	1+2+0	077b84f6
+DX	46-4	1+2+0	6cb7f049
+DX	46-5	1+1+0	88cc52b2
+DX	46-6	1+1+0	ff338896
+DX	46-7	1+1+0	e96a402d
+DX	46-8	1+1+0	ef51b27d
+DX	47-1	1+9+0	835a7efc
+DX	47-2	1+1+0	59ac08dd
+DX	47-3	1+2+0	7ad8c5f1
+DX	47-4	2+11+0	375a3e2a
+DX	47-5	2+2+0	8e671f1e
+DX	47-6	1+1+0	bda4b4eb
+DX	47-8	1+1+0	1f682a12
+DX	49-0	0+1+0	edabc5cf
+DX	49-1	1+2+0	7a6d4755
+DX	49-2	1+1+0	3ebfd7ba
+DX	49-3	1+1+0	622d2c9a
+DX	49-4	1+2+0	24938194
+DX	49-5	1+1+0	89ebc022
+DX	49-7	1+2+0	0ece337b
+DX	49-8	1+1+0	9f2e7396
+DX	49-9	1+2+0	87a9929a
+DX	49-10	0+2+0	69714a0e
+DX	49-11	1+2+0	cd2918ff
+DX	49-12	1+1+0	f0b30b51
+DX	49-13	1+1+0	148a3442
+DX	49-14	0+1+0	94258e5a
+DX	49-15	0+1+0	865db70d
+DX	50-0	1+1+0	876e0905
+DX	50-1	1+1+0	15076c0b
+DX	50-2	1+2+0	156c75b1
+DX	50-3	1+5+0	8f323871
+DX	50-4	1+2+0	8781c2a0
+DX	50-5	1+1+0	9028347d
+DX	50-6	1+1+0	7d1fa338
+DX	50-7	1+5+0	d56fb77f
+DX	50-8	1+2+0	bc654082
+DX	50-9	1+2+0	fadc4469
+DX	50-10	1+1+0	a4aea5cd
+DX	50-11	1+1+0	ab271e36
+DX	50-12	1+4+0	301cc8e2
+DX	50-13	1+2+0	64b517b5
+DX	50-14	1+1+0	3e7c1bf4
+DX	52-1	1+6+0	2e542586
+DX	52-2	0+1+0	140a2a18
+DX	52-3	0+5+0	e311ec2b
+DX	52-4	1+4+0	7de37371
+DX	52-5	0+2+0	8306eb11
+DX	52-6	0+1+0	046e6c90
+DX	52-7	2+3+0	29f1db97
+DX	52-8	0+4+0	40088f5d
+DX	52-9	1+4+0	36b7a06d
+DX	52-10	1+1+0	8b37a4fd
+DX	52-11	1+3+0	d441ee68
+DX	52-12	0+2+0	ffcf558f
+DX	52-13	0+3+0	3d6037e0
+DX	52-14	0+2+0	bbda7b8f
+DX	52-15	1+4+0	a05246f9
+DX	53-1	0+2+0	8ede5418
+DX	53-2	0+1+0	f9f3627b
+DX	53-3	0+1+0	afcad59e
+DX	53-4	0+2+0	affb01fd
+DX	53-5	0+1+0	179bec99
+DX	53-6	0+1+0	b4425758
+DX	53-7	0+1+0	eccf7260
+DX	53-9	0+1+0	5d0cdef3
+DX	53-10	1+1+0	de9fa516
+DX	53-11	0+1+0	76fe1563
+DX	53-12	1+1+0	93ef8b79
+DX	60-4	1+1+0	f2fe2c4b
+DX	64-1	0+2+0	cff5dbd3
+DX	64-2	0+8+0	e1ad1100
+DX	64-3	0+5+0	582302bb
+DX	64-4	1+2+0	cdd55d5e
+DX	64-5	1+5+0	9a4b287c
+DX	64-7	0+1+0	35eff030
+DX	64-8	0+1+0	c7e4d155
+DX	65-9	0+1+0	e247f705
+DX	66-5	1+3+0	20eebaf0
+DX	66-6	1+8+0	8132c9b9
+DX	66-7	0+1+0	c5e6d9b9
+DX	66-10	1+2+0	dc9616bd
+DX	66-11	1+6+0	04dbf836
+DX	67-1	0+2+0	fa832aa4
+DX	67-2	0+2+0	b0d7295f
+DX	67-3	0+2+0	04472e6f
+DX	67-4	0+2+0	fe5c2e7e
+DX	67-5	0+1+0	b7e2fcbc
+DX	67-7	1+3+0	20c2b41a
+DX	67-8	1+4+0	46f35303
+DX	67-9	1+2+0	79fd86f5
+DX	68-8	1+1+0	fb76b132
+DX	70-1	0+2+0	0de6a26b
+DX	75-6	0+1+0	b393c625
+DX	78-0	0+2+0	418437d9
+DX	78-1	1+9+0	eca7f797
+DX	78-2	1+25+0	7bfc6076
+DX	78-3	0+7+0	bddf1927
+DX	78-4	0+2+0	2ad56510
+DX	78-5	0+2+0	7c789eed
+DX	78-6	0+2+0	a970202b
+DX	78-7	0+3+0	32d9b0cc
+DX	78-8	0+2+0	0b11aa0c
+DX	78-9	2+3+0	751b7f02
+DX	78-11	0+1+0	d05855cd
+DX	78-12	0+1+0	faf437a7
+DX	78-13	1+7+0	cbef665a
+DX	78-15	0+1+0	7d3f993a
+DX	79-1	0+1+0	9b766ab8
+DX	79-2	0+3+0	e18f6ac6
+DX	79-3	0+2+0	77117e5c
+DX	79-4	0+1+0	2f291ddb
+DX	79-6	1+7+0	66d15121
+DX	79-7	1+10+0	ec856d4e
+DX	79-8	1+1+0	d95df6c5
+DX	79-10	1+1+0	0ee2f26d
+DX	79-11	1+2+0	fb85ef59
+DX	79-12	1+1+0	939cf2b7
+DX	79-13	1+2+0	5936672f
+DX	79-14	0+1+0	ff1abd2c
+DX	79-15	1+3+0	37e11fa7
+DX	80-2	0+1+0	07494195
+DX	80-3	0+1+0	7f6db29e
+DX	80-4	0+1+0	4c6e33c5
+DX	80-5	0+1+0	748d87d0
+DX	80-6	0+2+0	be13d0ba
+DX	80-7	0+3+0	ecdc548c
+DX	80-8	0+2+0	900a53d3
+DX	80-9	0+3+0	08b6d8e9
+DX	80-10	0+1+0	f3a0ecc7
+DX	80-11	0+4+0	899f8237
+DX	80-12	0+2+0	a17b7a76
+DX	80-13	0+1+0	fb741e2d
+DX	80-14	0+1+0	61f83334
+DX	81-1	0+3+0	cd80b049
+DX	81-2	0+1+0	2d95a979
+DX	81-3	0+2+0	acd3d388
+DX	81-4	0+1+0	53eb8e60
+DX	81-5	0+1+0	030e40de
+DX	81-6	0+2+0	e023fa31
+DX	81-7	0+4+0	d8f50714
+DX	81-8	0+3+0	819c3dc3
+DX	81-9	0+1+0	b3bbb916
+DX	81-10	0+2+0	d6ee7244
+DX	81-11	0+1+0	5d4f242a
+DX	81-13	0+2+0	45131d57
+DX	81-14	0+1+0	0d2dfbfc
+DX	82-1	0+3+0	ba8e683e
+DX	82-2	0+2+0	8f41e9df
+DX	82-3	1+6+0	63f8195d
+DX	82-4	2+4+0	c9adb3bf
+DX	82-5	0+1+0	6723b748
+DX	82-6	0+3+0	6de081f5
+DX	82-7	0+3+0	c8cd39c5
+DX	82-8	0+1+0	733cb97b
+DX	82-9	0+1+0	c6977797
+DX	82-10	0+3+0	16ca6028
+DX	82-11	0+1+0	5707b1d1
+DX	82-12	1+1+0	6a6aad87
+DX	82-13	0+2+0	7402f763
+DX	82-14	0+2+0	971edcf2
+DX	83-2	0+6+0	6737a89a
+DX	83-3	0+1+0	333f797c
+DX	83-4	0+6+0	16d634a4
+DX	83-5	0+5+0	16a417cd
+DX	83-6	0+12+0	4d3e5e2f
+DX	83-7	0+1+0	0cacc476
+DX	83-8	0+6+0	ea902942
+DX	83-9	0+1+0	2656edb9
+DX	83-10	0+4+0	0ce40d37
+DX	83-11	0+2+0	8d61f8bf
+DX	83-12	0+6+0	597e7504
+DX	83-13	0+2+0	319fed80
+DX	83-14	0+2+0	d4796f3e
+DX	84-1	1+3+0	93084be6
+DX	84-2	0+1+0	b93a63cc
+DX	84-3	0+2+0	71c86321
+DX	84-4	1+3+0	033a9d3f
+DX	84-6	1+1+0	f75693b9
+DX	84-7	0+1+0	4abd29f5
+DX	84-8	1+1+0	6a1a5752
+DX	85-1	1+7+0	6fd8288d
+DX	85-2	1+4+0	12e9cb7e
+DX	85-4	1+3+0	f92337a7
+DX	85-14	0+1+0	c1b08297
+DX	87-1	1+1+0	ddf44f10
+DX	87-2	1+11+0	6b4b6e7d
+DX	87-3	1+14+0	24e848ca
+DX	87-4	1+6+0	c203c1c6
+DX	87-5	1+2+0	0901e7f8
+DX	87-6	1+18+1	645efad8
+DX	87-7	1+15+0	a67a9fbd
+DX	87-8	1+2+0	ee020eb8
+DX	87-9	1+1+0	8668534c
+DX	87-10	1+3+0	86d89986
+DX	87-11	0+3+0	ef532875
+DX	87-13	0+1+0	729807da
+DX	87-14	0+1+2	fe6a46cd
+DX	88-0	4+4+0	f2f00f87
+DX	88-1	4+0+0	853d9d30
+DX	88-2	4+0+0	853d9d30
+DX	88-3	4+0+0	853d9d30
+DX	88-4	4+0+0	853d9d30
+DX	88-5	4+0+0	853d9d30
+DX	88-6	4+0+0	853d9d30
+DX	88-7	4+0+0	853d9d30
+DX	88-8	4+0+0	853d9d30
+DX	88-9	4+0+0	853d9d30
+DX	88-10	4+0+0	853d9d30
+DX	88-11	4+0+0	853d9d30
+DX	88-12	4+0+0	853d9d30
+DX	88-13	4+0+0	853d9d30
+DX	88-14	4+0+0	853d9d30
+DX	88-15	4+0+0	853d9d30
+DX	90-8	1+2+0	95a974cd
+DX	90-10	1+1+0	cab6ca82
+DX	90-12	1+1+0	11e39aa3
+DX	91-1	0+1+0	e7b06c32
+DX	93-1	1+1+0	23473c2d
+DX	94-2	0+1+0	a4d1b2d4
+DX	95-1	1+5+0	aa8bd40a
+DX	95-2	2+3+0	2e9bb47a
+DX	95-3	1+3+0	123c889a
+DX	95-4	1+2+0	3d29a78e
+DX	95-5	1+2+0	b786ce91
+DX	95-6	1+1+0	7ea06026
+DX	95-7	0+6+0	bcc63a57
+DX	95-9	0+1+0	9c835302
+DX	95-10	0+1+0	b9279992
+DX	95-11	0+2+0	0f02adfa
+DX	95-12	0+2+0	d6c6e46b
+DX	95-13	0+1+0	2bb49507
+DX	95-14	0+1+0	c84a3026
+DX	95-15	0+1+0	1894de80
+DX	96-1	1+9+0	08aedfa7
+DX	96-2	1+1+0	f0a19afc
+DX	96-3	1+1+0	e7319f82
+DX	96-6	1+1+0	3ead06a4
+DX	96-7	1+1+0	4e71cd61
+DX	96-8	1+1+0	bfeaeb4f
+DX	96-9	1+1+0	c33e8810
+DX	96-10	1+1+0	d4d4e3d6
+DX	96-11	1+1+0	eff22182
+DX	96-12	1+1+0	9b2135c3
+DX	96-13	1+1+0	b33dd14b
+DX	96-14	1+22+0	424116d7
+DX	96-15	2+1+0	868fcf9e
+DX	97-1	1+2+0	4fc1f62f
+DX	97-2	1+3+0	da40d6f8
+DX	97-3	1+3+0	c12a8ae3
+DX	97-4	1+1+0	db180b9a
+DX	97-5	1+2+0	938ffc3c
+DX	97-6	1+7+0	3f72a2ce
+DX	97-7	1+2+1	173dd333
+DX	97-8	1+2+0	206f928b
+DX	97-9	0+8+0	fbd87f83
+DX	97-10	0+2+0	40f56213
+DX	97-12	0+1+0	26cdcad3
+DX	98-1	1+1+0	fddbd03e
+DX	98-2	1+1+0	c1a5b47d
+DX	98-3	1+1+0	a1fdd92e
+DX	98-5	0+1+0	6a68e3e8
+DX	100-0	0+1+0	0a532b55
+DX	100-2	1+2+0	bee75a04
+DX	100-3	0+2+0	10f40110
+DX	100-4	0+5+0	b5235f01
+DX	100-6	1+3+0	66b0654d
+DX	100-8	1+1+0	e819f6d9
+DX	100-9	1+4+0	05e8d644
+DX	100-11	1+2+0	a0806c01
+DX	100-12	0+1+0	fc7d6c26
+DX	100-13	1+1+0	5259a2cf
+DX	101-0	0+0+1	b4bfb20b
+DX	103-14	0+1+0	773fb03a
+DX	105-1	0+2+0	f4972d4e
+DX	105-3	0+1+0	04f1f27f
+DX	105-8	0+1+0	d7198e94
+DX	105-15	0+1+0	f7a8c79b
+DX	106-5	0+1+0	4c75e7b8
+DX	108-1	1+2+0	d0a28647
+DX	108-2	1+2+0	443836bf
+DX	108-3	1+1+0	79f23d3b
+DX	108-4	1+1+0	d494ab20
+DX	108-5	1+2+0	0c678a9f
+DX	108-6	1+1+0	7ccef293
+DX	108-7	1+2+0	4a6e93c4
+DX	108-8	1+1+0	88eefd6b
+DX	108-9	1+1+0	b5a4539d
+DX	108-10	1+3+0	9760da3a
+DX	108-11	0+1+0	2a2cfe28
+DX	109-1	1+1+0	da6ff48b
+DX	109-2	1+3+0	d1d7e2ba
+DX	109-3	1+1+0	47a883d8
+DX	109-4	1+1+0	d42cee01
+DX	109-5	1+1+0	3f3b0f5c
+DX	109-6	1+1+0	882d6d58
+DX	109-7	1+3+0	41fe30e9
+DX	109-8	1+2+0	5eee3e1d
+DX	109-9	1+6+0	1edb5af6
+DX	109-10	1+1+0	58dd0aa5
+DX	109-11	1+1+0	1dc8ff77
+DX	109-12	1+7+0	c2ba62b2
+DX	109-13	1+3+0	acc33741
+DX	109-14	1+2+0	aa09d5e9
+DX	109-15	1+2+0	e9e57d6d
+DX	110-1	1+1+0	527556f5
+DX	110-2	1+1+0	236c44e3
+DX	110-3	1+2+0	f37810eb
+DX	110-4	1+3+0	2ee30feb
+DX	110-10	0+6+0	e73da91b
+DX	110-11	0+5+0	502e3ae7
+DX	111-0	0+0+1	943dd049
+DX	112-1	0+2+0	0ff1d5e2
+DX	112-2	0+2+0	b624d765
+DX	112-3	0+1+0	e57af559
+DX	112-4	0+2+0	59ca7554
+DX	112-6	0+2+0	e5d61d3d
+DX	112-7	0+3+0	52d9e0c0
+DX	112-8	0+1+0	8f31c598
+DX	112-9	0+1+0	b3c6ae7a
+DX	112-10	0+1+0	ba390a86
+DX	112-11	0+3+0	5090fd27
+DX	112-12	1+2+0	5617fcac
+DX	113-0	0+2+0	f528aec2
+DX	113-1	1+2+0	47ec851e
+DX	113-2	1+1+0	8d7efe80
+DX	113-3	1+1+0	288f8ee2
+DX	113-4	1+1+0	bcbfe025
+DX	113-5	1+2+0	418549cd
+DX	113-6	1+4+0	658e0aaa
+DX	113-7	1+1+0	baa5eac4
+DX	113-8	1+1+0	3b7f3228
+DX	113-9	1+1+0	d69df4b5
+DX	113-10	1+2+0	214f81a1
+DX	113-11	1+1+0	92680262
+DX	113-12	1+3+0	e8998faf
+DX	113-13	1+4+0	7710c104
+DX	115-0	0+2+0	cf689d56
+DX	115-1	1+7+0	4fb5eef5
+DX	115-3	1+9+0	3dd50bb0
+DX	115-4	1+6+0	bf30b6b1
+DX	115-5	1+5+0	0fbdf3ed
+DX	115-6	1+3+0	3d6b2773
+DX	115-7	1+7+0	da4f0fb9
+DX	115-8	1+4+0	5f0f8d7e
+DX	115-9	1+9+0	ebe98b73
+DX	115-10	1+11+0	bb48dc66
+DX	115-11	1+8+0	a072eced
+DX	115-12	1+7+1	919e3e6a
+DX	115-14	0+1+0	c6ff1da6
+DX	116-1	1+1+0	263d35e2
+DX	116-2	0+1+0	9adb2f35
+DX	116-3	1+3+0	852ff677
+DX	116-4	1+2+0	2fb680d8
+DX	116-5	1+2+0	7f1a2358
+DX	120-1	1+1+0	df76f913
+DX	121-0	0+1+0	db06cb90
+DX	121-1	1+1+0	cc67eafc
+DX	121-5	0+1+0	53e7be11
+DX	121-6	1+1+0	7709c4c9
+DX	122-0	0+1+0	ea903aa6
+DX	122-1	1+1+0	0da32b99
+DX	122-2	1+1+0	5b037222
+DX	122-3	1+1+0	c634f5cb
+DX	122-4	1+1+0	65ef7ef6
+DX	122-5	1+1+0	f713e464
+DX	122-7	1+1+0	76edda31
+DX	123-0	0+1+0	d0913ee8
+DX	123-1	1+1+0	898452ad
+DX	123-2	1+1+0	f9d8be02
+DX	123-3	1+1+0	057665c4
+DX	127-15	0+1+0	31e8c276
+cassette	000000	0+0+3+2+2+2	667af8fc
+cassette	000004	0+0+2+3+2+2	8e3b8554
+cassette	000054	0+0+3+0+0+0	d93d170f
+cassette	000084	0+0+2+0+0+0	fcfd5368
+cassette	000190	0+0+2+4+0+0	0c51533e
+cassette	000191	0+0+2+4+0+0	e2c6432a
+cassette	000194	0+0+2+4+0+0	6aa71686
+cassette	000204	0+0+2+0+0+1	4fc9048a
+cassette	000222	0+0+1+1+0+0	bad4c6c9
+cassette	000224	0+0+1+1+0+0	8a71645d
+cassette	000231	0+0+1+4+0+0	60a4264f
+cassette	000234	0+0+4+1+0+0	adccde35
+cassette	000240	0+0+2+0+0+0	a9938b77
+cassette	000323	0+0+1+1+0+1	8fe8bde1
+cassette	000327	0+0+1+1+0+1	4a63bbf0
+cassette	000333	0+0+1+0+0+0	16a0c89e
+cassette	000351	0+0+1+0+0+0	5c84f472
+cassette	000433	0+0+1+0+0+0	59ad9e71
+cassette	000451	0+0+1+1+0+0	058d1c93
+cassette	000453	0+0+1+1+0+0	854e9644
+cassette	000514	0+0+1+0+0+0	00c29977
+cassette	000534	0+0+1+0+0+2	d8f07fa2
+cassette	000540	0+0+2+0+0+0	e0ec48fc
+cassette	000570	0+0+4+3+0+0	b6b81bdf
+cassette	000574	0+0+3+4+0+0	020399a6
+cassette	000584	0+0+1+0+0+0	f798400c
+cassette	000594	0+0+1+0+0+0	db2f071f
+cassette	000644	0+0+1+0+0+0	c1afa1cc
+cassette	000654	0+0+1+0+0+1	34764f94
+cassette	000860	0+0+1+0+0+0	e03eac5e
+cassette	000890	0+0+2+0+0+0	1fef0169
+cassette	000960	0+0+2+0+0+0	182ae749
+cassette	000974	0+0+2+0+0+4	5d98f3ff
+cassette	000980	0+0+1+0+0+0	5feb7aa5
+cassette	000990	0+0+1+0+0+0	a7cb0b27
+cassette	001144	0+0+1+0+0+0	3e8b5cc9
+cassette	001170	0+0+4+0+0+1	082f599f
+cassette	001180	0+0+4+0+0+0	d0a55f4e
+cassette	001247	0+0+1+0+0+0	81889fcf
+cassette	001280	0+0+3+0+0+0	bf0314d0
+cassette	001290	0+0+1+12+0+0	f85be6f7
+cassette	001293	0+0+5+8+0+0	d86e9fb6
+cassette	001294	0+0+6+7+0+0	216b47a1
+cassette	001298	0+0+1+12+0+0	3e4bc0d2
+cassette	001300	0+0+4+1+3+0	d69bef96
+cassette	001304	0+0+1+4+3+0	b148ac76
+cassette	001310	0+0+3+0+1+0	2638ccfb
+cassette	001323	0+0+2+1+0+0	d70a6955
+cassette	001324	0+0+1+2+0+0	ff5eabee
+cassette	001330	0+0+1+1+0+0	6b73e179
+cassette	001333	0+0+1+1+0+0	6dd3f9bb
+cassette	001340	0+0+1+0+0+0	556dc688
+cassette	001350	0+0+1+3+0+0	cf9bb032
+cassette	001351	0+0+1+3+0+0	0fa4d6f8
+cassette	001353	0+0+1+3+0+0	ac43de82
+cassette	001354	0+0+1+3+0+0	10f7d5bf
+cassette	001360	0+0+2+0+1+0	64d105a8
+cassette	001370	0+0+2+0+0+0	cf82fb61
+cassette	001380	0+0+1+0+0+0	2ff2ddc7
+cassette	001390	0+0+1+0+0+0	437df245
+cassette	001400	0+0+1+4+1+0	c63e13d8
+cassette	001401	0+0+2+3+1+0	22e784da
+cassette	001403	0+0+1+4+1+0	4c9a146f
+cassette	001404	0+0+1+4+1+0	f4503318
+cassette	001410	0+0+1+2+5+0	61eae52e
+cassette	001413	0+0+2+1+5+0	331066a9
+cassette	001424	0+0+1+0+0+0	3cf33def
+cassette	001430	0+0+1+0+0+0	f142f738
+cassette	001441	0+0+1+0+0+0	4c03c8ea
+cassette	001450	0+0+2+0+0+0	4befa773
+cassette	001600	0+0+2+0+0+0	253163f6
+cassette	001610	0+0+1+0+0+0	a0a31d04
+cassette	001620	0+0+3+0+0+0	43acc8f5
+cassette	001630	0+0+3+0+0+0	7d5720af
+cassette	001643	0+0+2+0+0+0	088cba08
+cassette	001650	0+0+1+0+0+0	eee6503b
+cassette	001660	0+0+1+0+0+0	a09728dd
+cassette	001670	0+0+1+0+0+0	48db5e18
+cassette	001680	0+0+1+1+0+1	3f0ea749
+cassette	001684	0+0+1+1+0+1	45ed33f2
+cassette	001690	0+0+1+0+0+0	ea1de983
+cassette	001700	0+0+2+1+0+0	7ea2026d
+cassette	001704	0+0+1+2+0+0	babc2c23
+cassette	001710	0+0+1+2+0+0	ebc69cd4
+cassette	001713	0+0+1+2+0+0	e93e32d4
+cassette	001714	0+0+1+2+0+0	9d4ec723
+cassette	001720	0+0+2+0+0+1	79c25ba8
+cassette	001730	0+0+1+1+0+0	ea3664ee
+cassette	001733	0+0+1+1+0+0	8491e63f
+cassette	001742	0+0+1+1+0+0	056be513
+cassette	001744	0+0+1+1+0+0	6c0bc774
+cassette	001753	0+0+1+0+0+0	25c274e0
+cassette	001774	0+0+1+0+0+0	ea7ab6e5
+cassette	001780	0+0+1+0+0+0	ac715668
+cassette	001790	0+0+1+0+0+0	2e8a7f2e
+cassette	001920	0+0+1+0+0+0	dc28ca15
+cassette	001930	0+0+1+0+2+0	e31cae3f
+cassette	001940	0+0+1+0+0+0	10c09993
+cassette	001950	0+0+1+2+1+0	513e0693
+cassette	001953	0+0+2+1+1+0	35598453
+cassette	001960	0+0+1+1+0+0	00f8f17a
+cassette	001964	0+0+1+1+0+0	97fb936d
+cassette	001970	0+0+1+0+2+1	bc24076f
+cassette	001984	0+0+1+0+0+0	cf75f73b
+cassette	001990	0+0+1+1+0+0	e0a31ca8
+cassette	001993	0+0+1+1+0+0	610bcd3c
+cassette	002007	0+0+1+0+6+0	029b00a3
+cassette	002010	0+0+2+0+0+0	836b269f
+cassette	002023	0+0+1+0+0+0	67c8de93
+cassette	002030	0+0+1+2+0+0	c58c917d
+cassette	002033	0+0+1+2+0+0	f871af89
+cassette	002034	0+0+1+2+0+0	78a7e6c8
+cassette	002040	0+0+2+0+0+0	98cc5c1e
+cassette	002053	0+0+2+0+0+0	727fef00
+cassette	002060	0+0+2+0+0+0	6a73d43c
+cassette	002074	0+0+1+0+0+0	3e865b71
+cassette	002094	0+0+1+0+0+0	9adc9bca
+cassette	002254	0+0+1+0+0+0	82d2c10b
+cassette	002560	0+0+1+0+0+0	8fb48790
+cassette	002590	0+0+2+5+0+0	e88b9e19
+cassette	002593	0+0+4+3+0+0	4bc5d7a1
+cassette	002594	0+0+1+6+0+0	50066697
+cassette	002600	0+0+1+0+0+0	ed86f370
+cassette	002610	0+0+1+0+0+0	b0054a1b
+cassette	002620	0+0+1+0+0+0	5feba990
+cassette	002630	0+0+2+0+0+0	4c5ae5da
+cassette	002640	0+0+1+0+0+0	4241208f
+cassette	002721	0+0+1+14+0+0	988ebb68
+cassette	002722	0+0+1+14+0+0	ab6d304f
+cassette	002723	0+0+5+10+0+0	c2a9a596
+cassette	002724	0+0+7+8+0+0	d5a21551
+cassette	002727	0+0+1+14+0+0	b40243f9
+cassette	002730	0+0+3+1+0+2	a21c9205
+cassette	002734	0+0+1+3+0+2	93a4287d
+cassette	002740	0+0+4+8+0+0	3d634810
+cassette	002741	0+0+1+11+0+0	c02e9e6b
+cassette	002743	0+0+4+8+0+0	efc3d79a
+cassette	002744	0+0+2+10+0+0	8780656c
+cassette	002748	0+0+1+11+0+0	182ad9f7
+cassette	002750	0+0+2+0+0+0	4538eb88
+cassette	002760	0+0+3+0+0+0	38d88e6d
+cassette	002770	0+0+1+1+0+0	44f245a3
+cassette	002778	0+0+1+1+0+0	c2970c65
+cassette	002780	0+0+1+0+0+0	b6a4059a
+cassette	002790	0+0+2+0+0+0	aacadaac
+cassette	002800	0+0+1+0+0+0	66391563
+cassette	002820	0+0+1+0+0+0	4a0d22e3
+cassette	002830	0+0+1+0+0+0	1666a5ac
+cassette	002840	0+0+1+0+0+0	ea531a92
+cassette	002850	0+0+1+0+0+0	d21c2844
+cassette	002870	0+0+1+0+0+0	80e1f0b6
+cassette	002893	0+0+1+0+0+0	827e5328
+cassette	002900	0+0+1+0+0+0	0454bb81
+cassette	002910	0+0+3+0+0+0	aad72a0b
+cassette	002920	0+0+1+0+0+0	6e80b04c
+cassette	002930	0+0+2+0+0+0	13cf7036
+cassette	002940	0+0+1+2+0+0	5a613d95
+cassette	002943	0+0+2+1+0+0	aecf8468
+cassette	002950	0+0+3+1+0+0	cf2d4101
+cassette	002951	0+0+1+3+0+0	06b5a094
+cassette	002960	0+0+3+0+0+0	63df1abf
+cassette	002970	0+0+3+0+0+0	e5bbb8a7
+cassette	002980	0+0+1+0+0+0	5d186e2e
+cassette	002990	0+0+3+0+0+0	3efcbe97
+cassette	003034	0+0+1+0+0+0	43b83f65
+cassette	003054	0+0+1+0+0+0	b7b16d42
+cassette	003210	0+0+1+1+0+0	b26f335c
+cassette	003214	0+0+1+1+0+0	df5ac759
+cassette	003224	0+0+1+0+0+0	fca1d7aa
+cassette	003234	0+0+1+0+0+0	62fcda5f
+cassette	003244	0+0+1+0+0+0	d840290f
+cassette	003250	0+0+1+0+0+0	8728e1cb
+cassette	003264	0+0+1+0+0+0	1186ac3c
+cassette	003274	0+0+1+0+0+0	b0c749c6
+cassette	003284	0+0+1+0+0+0	721aeebe
+cassette	003294	0+0+3+0+0+0	bc51cc38
+cassette	003304	0+0+1+0+0+0	0f5bbc9b
+cassette	003314	0+0+1+0+0+0	a227604c
+cassette	003320	0+0+1+0+0+0	99220468
+cassette	003330	0+0+2+0+3+0	f95a76a1
+cassette	003340	0+0+1+0+0+0	6c9a9cfb
+cassette	003350	0+0+1+0+0+0	a8abc0cb
+cassette	003534	0+0+2+0+0+0	dc135477
+cassette	003690	0+0+1+0+0+0	4825bdc1
+cassette	003703	0+0+2+0+0+0	e5570169
+cassette	003710	0+0+1+1+0+0	c3d259e2
+cassette	003714	0+0+1+1+0+0	e7136fa3
+cassette	003720	0+0+2+0+0+0	11322855
+cassette	003764	0+0+1+0+0+1	b83e41f8
+cassette	003780	0+0+1+0+1+0	aadb6c5d
+cassette	003793	0+0+1+0+3+0	554acf6c
+cassette	003800	0+0+1+0+1+0	e94c26f3
+cassette	003810	0+0+1+0+2+0	5e008817
+cassette	003820	0+0+2+1+2+1	8e135c44
+cassette	003824	0+0+1+2+2+1	e662077c
+cassette	003830	0+0+1+0+0+0	065e2be5
+cassette	003840	0+0+1+0+0+0	a1828136
+cassette	003850	0+0+2+0+0+0	5dcf7ef3
+cassette	003880	0+0+2+0+0+0	1b9a9ec2
+cassette	003900	0+0+1+0+0+0	74f0e6ac
+cassette	004160	0+0+1+2+0+0	8983d2cb
+cassette	004163	0+0+1+2+0+0	f3f07a48
+cassette	004167	0+0+1+2+0+0	0480c971
+cassette	004170	0+0+1+1+0+0	16eb3291
+cassette	004177	0+0+1+1+0+0	1bf1bfc6
+cassette	004180	0+0+1+0+0+0	d541ba44
+cassette	004190	0+0+1+2+0+0	e27458bf
+cassette	004193	0+0+1+2+0+0	27462636
+cassette	004194	0+0+1+2+0+0	ef2c6b58
+cassette	004200	0+0+1+0+0+0	fd69c0af
+cassette	004210	0+0+1+1+0+0	b6310de7
+cassette	004217	0+0+1+1+0+0	92e5445a
+cassette	004220	0+0+1+1+0+0	8f0011e8
+cassette	004227	0+0+1+1+0+0	c28c4fdb
+cassette	004233	0+0+1+0+0+0	8354c2eb
+cassette	004240	0+0+1+0+0+0	2a7685fa
+cassette	004250	0+0+1+2+0+0	25ee75ee
+cassette	004257	0+0+2+1+0+0	7ba9b6ae
+cassette	004264	0+0+2+0+0+0	bf2ba620
+cassette	004520	0+0+2+0+0+0	c7f5d89f
+cassette	004530	0+0+4+4+0+0	d3d839fd
+cassette	004531	0+0+1+7+0+0	8015f23b
+cassette	004533	0+0+3+5+0+0	69018a1d
+cassette	004540	0+0+2+5+0+0	289d8439
+cassette	004541	0+0+1+6+0+0	708e2d95
+cassette	004543	0+0+3+4+0+0	722abdcd
+cassette	004544	0+0+1+6+0+0	af738b5d
+cassette	004550	0+0+3+0+0+0	c9ff4bdc
+cassette	004597	0+0+1+0+0+0	3aaa2236
+cassette	004600	0+0+2+2+0+0	9deb358b
+cassette	004603	0+0+2+2+0+0	9927120a
+cassette	004610	0+0+1+4+0+0	1eac1d96
+cassette	004612	0+0+2+3+0+0	dc5411a8
+cassette	004613	0+0+2+3+0+0	589cd58c
+cassette	004620	0+0+3+3+0+0	c9ac9211
+cassette	004623	0+0+3+3+0+0	62694d5b
+cassette	004850	0+0+1+0+0+0	f2bfba6a
+cassette	004911	0+0+1+0+0+0	2c59700f
+cassette	004970	0+0+1+5+0+0	7eaaf5b3
+cassette	004973	0+0+1+5+0+0	7e5fdb45
+cassette	004974	0+0+4+2+0+0	6f87bebb
+cassette	004980	0+0+2+0+0+0	9b25f89b
+cassette	005120	0+0+1+1+0+0	c22987dc
+cassette	005128	0+0+1+1+0+0	e3544f14
+cassette	005130	0+0+2+0+0+0	425792d9
+cassette	005140	0+0+1+0+1+0	ee97dd80
+cassette	005150	0+0+1+0+2+0	25db8f6e
+cassette	005160	0+0+1+0+0+0	41fbdbfb
+cassette	005170	0+0+1+1+0+0	7d76d9ba
+cassette	005174	0+0+1+1+0+0	d235c584
+cassette	005180	0+0+1+0+0+0	f3770f7e
+cassette	005220	0+0+1+3+0+0	9b38db75
+cassette	005224	0+0+3+1+0+0	a333bc4d
+cassette	005230	0+0+1+0+0+0	0c612d6b
+cassette	005244	0+0+4+0+0+2	487fd020
+cassette	005260	0+0+1+0+0+1	2f7e64ae
+cassette	005270	0+0+2+0+0+0	c252a860
+cassette	005414	0+0+1+0+0+0	02ed68b5
+cassette	005440	0+0+1+0+0+0	d05ea03d
+cassette	005460	0+0+1+0+1+0	2b5a5c5b
+cassette	005474	0+0+1+0+0+0	595b0b61
+cassette	005480	0+0+1+0+0+0	be203e09
+cassette	005494	0+0+1+0+0+0	250e53b7
+cassette	005500	0+0+1+0+0+0	b7da39d0
+cassette	005514	0+0+2+0+2+0	4c71d8e1
+cassette	005530	0+0+1+0+0+0	c4fab8d6
+cassette	005540	0+0+1+0+0+0	ccede587
+cassette	005550	0+0+1+0+1+0	92f9de17
+cassette	005570	0+0+1+1+1+0	dbfc81fc
+cassette	005574	0+0+1+1+1+0	60a7ccab
+cassette	005580	0+0+1+0+0+0	bb927c28
+cassette	005590	0+0+1+1+0+0	72f5c2a1
+cassette	005594	0+0+1+1+0+0	a97aedaa
+cassette	005600	0+0+1+0+1+0	33854c08
+cassette	005610	0+0+1+2+4+0	19dc351d
+cassette	005613	0+0+2+1+4+0	f09a6186
+cassette	005620	0+0+1+1+1+0	6e25cb34
+cassette	005623	0+0+1+1+1+0	d37da3da
+cassette	005630	0+0+1+0+0+0	9205ab5d
+cassette	005640	0+0+1+0+0+0	98d90dfb
+cassette	005650	0+0+1+0+0+0	d748782d
+cassette	005660	0+0+1+0+0+0	3726bd05
+cassette	005670	0+0+2+0+0+0	a2da53d8
+cassette	005680	0+0+1+0+0+0	5efcac68
+cassette	005690	0+0+1+0+0+0	8c2608f2
+cassette	005700	0+0+1+0+2+1	5f1384f1
+cassette	005710	0+0+1+0+0+0	322cc91c
+cassette	005720	0+0+1+0+0+0	4bd62092
+cassette	005730	0+0+1+0+0+0	ecb94132
+cassette	005740	0+0+2+3+5+1	396b3d02
+cassette	005743	0+0+1+4+5+1	8377d9ef
+cassette	005744	0+0+2+3+5+1	40464dba
+cassette	005750	0+0+1+0+0+0	52fe56c8
+cassette	005760	0+0+1+0+0+0	a5b6c49f
+cassette	005770	0+0+1+0+0+0	effc27b9
+cassette	005780	0+0+1+2+3+0	4a1b58e2
+cassette	005781	0+0+1+2+3+0	837fbb59
+cassette	005783	0+0+1+2+3+0	5a8e6185
+cassette	005791	0+0+1+1+0+0	1d7e866f
+cassette	005793	0+0+1+1+0+0	6fe0afa6
+cassette	005803	0+0+2+0+0+0	a2ac449b
+cassette	005813	0+0+2+2+0+0	34e8f78f
+cassette	005814	0+0+2+2+0+0	4cde6aa7
+cassette	005820	0+0+1+0+0+0	341ffa49
+cassette	005830	0+0+1+0+0+0	c9b8b078
+cassette	005840	0+0+1+0+1+0	cd557673
+cassette	005850	0+0+1+0+0+0	ca2517e3
+cassette	005860	0+0+1+0+0+0	7c8f2301
+cassette	005870	0+0+1+0+1+0	549ffbc6
+cassette	005880	0+0+1+0+0+0	7827efa8
+cassette	005890	0+0+1+0+0+0	9f5a9cbc
+cassette	005900	0+0+1+0+0+0	3fa8a7cf
+cassette	005910	0+0+1+0+0+0	fecd846b
+cassette	006250	0+0+1+2+28+3	d75dcd97
+cassette	006253	0+0+1+2+28+3	2d3aecf7
+cassette	006254	0+0+1+2+28+3	24af10c6
+cassette	006260	0+0+1+0+9+0	a58bbe94
+cassette	006274	0+0+1+0+2+0	00d790f9
+cassette	006280	0+0+1+1+17+1	ea8dfde3
+cassette	006283	0+0+1+1+17+1	0624cdbc
+cassette	006320	0+0+1+0+1+0	cb8bc092
+cassette	006330	0+0+1+0+0+0	cd85165a
+cassette	006340	0+0+1+2+3+0	51d3c66e
+cassette	006344	0+0+2+1+3+0	63a2717c
+cassette	006350	0+0+1+2+4+0	0d4d18a6
+cassette	006354	0+0+1+2+4+0	457e36e0
+cassette	006357	0+0+1+2+4+0	f5e909d0
+cassette	006360	0+0+1+1+1+0	e56e7038
+cassette	006363	0+0+1+1+1+0	0422e4fe
+cassette	006400	0+0+1+3+0+0	f5ce8f5c
+cassette	006403	0+0+2+2+0+0	96e37413
+cassette	006404	0+0+1+3+0+0	983283ce
+cassette	006423	0+0+1+0+0+0	3d138771
+cassette	006430	0+0+1+1+0+0	3187de53
+cassette	006433	0+0+1+1+0+0	bb13c065
+cassette	006440	0+0+1+0+0+0	ed072dc4
+cassette	006460	0+0+5+0+0+0	5a33a500
+cassette	006470	0+0+1+0+0+0	97afe42e
+cassette	006494	0+0+1+0+0+0	c6c3545f
+cassette	006500	0+0+1+0+0+0	58e5c551
+cassette	006510	0+0+2+3+0+0	39f237fc
+cassette	006513	0+0+3+2+0+0	86a6f156
+cassette	006520	0+0+1+0+0+1	19cf9ccb
+cassette	006530	0+0+3+0+0+0	6c13d163
+cassette	006543	0+0+1+0+0+0	aa7b0ee5
+cassette	006800	0+0+4+0+0+0	a984bd7f
+cassette	006907	0+0+2+0+0+0	88e29012
+cassette	006914	0+0+1+0+0+0	b2bf48e9
+cassette	006920	0+0+1+0+1+0	02a54075
+cassette	006930	0+0+3+1+0+0	d195e1d0
+cassette	006937	0+0+1+3+0+0	9e6a9c01
+cassette	006940	0+0+1+0+0+0	15efae2e
+cassette	006950	0+0+1+0+0+0	3156ce56
+cassette	006960	0+0+1+0+0+0	76c02f55
+cassette	006970	0+0+1+0+0+0	f2ec9df8
+cassette	006980	0+0+1+0+0+0	14787ba6
+cassette	007050	0+0+1+0+0+0	4859f77e
+cassette	007080	0+0+1+0+0+0	85e9e4de
+cassette	007090	0+0+1+0+0+0	cf083a47
+cassette	007100	0+0+1+0+0+0	5223cbda
+cassette	007120	0+0+1+0+0+0	68006535
+cassette	007130	0+0+1+0+0+0	5bf89e4d
+cassette	007140	0+0+1+0+0+0	42961481
+cassette	007150	0+0+1+0+0+0	d349f19f
+cassette	007221	0+0+1+0+0+0	b97c96d5
+cassette	007260	0+0+1+0+0+0	fcfdfb4c
+cassette	007280	0+0+1+0+0+0	f4d23da4
+cassette	007370	0+0+1+1+0+0	342cd0d9
+cassette	007374	0+0+1+1+0+0	e71a02cf
+cassette	007380	0+0+2+0+0+0	a6154064
+cassette	007390	0+0+2+0+0+0	0fe4a4c9
+cassette	007400	0+0+2+0+0+0	c0ce422e
+cassette	007410	0+0+1+0+0+0	077050cc
+cassette	007420	0+0+1+0+0+0	26d7c5a5
+cassette	007430	0+0+1+0+0+0	4ca4f01f
+cassette	007440	0+0+1+0+0+0	bffebf27
+cassette	007530	0+0+2+7+0+0	4dc88c8f
+cassette	007533	0+0+2+7+0+0	53e5832f
+cassette	007534	0+0+2+7+0+0	6e59cb06
+cassette	007537	0+0+2+7+0+0	c2d6dfcc
+cassette	007538	0+0+1+8+0+0	96145f4b
+cassette	007540	0+0+1+0+0+0	d7ba7712
+cassette	007550	0+0+2+0+0+0	c37bb86b
+cassette	007560	0+0+4+7+0+0	f15b2db9
+cassette	007563	0+0+4+7+0+0	9c7c878f
+cassette	007564	0+0+3+8+0+0	599a595d
+cassette	007570	0+0+2+0+0+0	8174a5cc
+cassette	007580	0+0+1+0+0+0	1100f547
+cassette	007600	0+0+1+0+0+0	837012b6
+cassette	007840	0+0+1+0+0+0	73d72c89
+cassette	007850	0+0+2+0+0+0	120ad47e
+cassette	007860	0+0+1+0+0+0	90b3ae59
+cassette	007870	0+0+1+0+0+0	771837df
+cassette	007880	0+0+2+0+0+0	75b15d0f
+cassette	007890	0+0+1+0+0+0	c22a13fd
+cassette	007910	0+0+2+0+0+0	352000c9
+cassette	007920	0+0+1+0+0+0	f54eb839
+cassette	007930	0+0+2+0+0+0	bfdbaaba
+cassette	007944	0+0+2+0+0+0	6bc136cc
+cassette	007950	0+0+1+1+0+0	644b927e
+cassette	007953	0+0+1+1+0+0	a6b64660
+cassette	007960	0+0+1+0+0+0	45018b27
+cassette	007970	0+0+1+0+0+0	6296d95f
+cassette	007983	0+0+1+0+0+0	43ff35d1
+cassette	007990	0+0+1+0+0+0	0f59bafd
+cassette	008000	0+0+1+0+0+0	d2146e6e
+cassette	008010	0+0+1+0+0+0	20f6347b
+cassette	008020	0+0+2+0+0+0	81933790
+cassette	008030	0+0+2+3+0+0	5a4d58c4
+cassette	008031	0+0+1+4+0+0	fa12b28e
+cassette	008033	0+0+2+3+0+0	5178082e
+cassette	008040	0+0+2+0+0+0	d0b299f9
+cassette	008050	0+0+1+0+0+0	77f8f4cd
+cassette	008060	0+0+1+0+0+0	19252849
+cassette	008070	0+0+2+2+0+1	c1c5c0a6
+cassette	008073	0+0+2+2+0+1	2fd0fcfb
+cassette	008080	0+0+2+0+0+0	8fdd355c
+cassette	008090	0+0+2+0+0+0	f7d5b000
+cassette	008100	0+0+1+0+0+0	c1dc9142
+cassette	008110	0+0+1+0+0+0	261c641a
+cassette	008120	0+0+2+1+0+1	aebb1183
+cassette	008124	0+0+1+2+0+1	d0affab2
+cassette	008130	0+0+2+0+0+0	5024b6e9
+cassette	008149	0+0+1+0+0+0	fc53b374
+cassette	008330	0+0+1+0+0+5	0d5f39c3
+cassette	008344	0+0+1+0+0+0	e854d15f
+cassette	008354	0+0+3+0+0+2	705b5c80
+cassette	008360	0+0+1+1+0+2	1eddea16
+cassette	008364	0+0+1+1+0+2	b21b6945
+cassette	008374	0+0+2+0+0+0	5561cb31
+cassette	008384	0+0+1+0+0+0	b2566dcf
+cassette	008390	0+0+1+2+0+0	61f49132
+cassette	008393	0+0+1+2+0+0	e360ebb0
+cassette	008394	0+0+1+2+0+0	d4fe9dfd
+cassette	008404	0+0+1+0+0+3	bc47292c
+cassette	008410	0+0+1+0+0+3	f8cc7d73
+cassette	008420	0+0+1+0+0+0	ef5996e4
+cassette	008430	0+0+1+1+1+0	f2cd2591
+cassette	008434	0+0+1+1+1+0	93317b20
+cassette	008440	0+0+1+0+0+1	fda12fc3
+cassette	008450	0+0+1+0+0+2	380de219
+cassette	008460	0+0+1+0+0+1	162e7384
+cassette	008470	0+0+1+0+1+2	521b6f42
+cassette	008490	0+0+1+0+0+1	720cf159
+cassette	008500	0+0+1+0+0+0	dbeb8973
+cassette	008510	0+0+1+0+0+0	1c82cd01
+cassette	008520	0+0+2+0+0+0	78494fe2
+cassette	008530	0+0+1+0+0+0	09a8d4df
+cassette	008540	0+0+1+0+0+0	c6b098c0
+cassette	008550	0+0+1+0+0+0	1f76c461
+cassette	008570	0+0+1+0+0+0	dec57b54
+cassette	008580	0+0+1+0+0+0	d07a324a
+cassette	008590	0+0+1+0+0+0	1f4a5359
+cassette	008600	0+0+1+0+0+0	2d39ad24
+cassette	009640	0+0+1+0+0+0	c763b856
+cassette	010254	0+0+1+0+0+1	630634b3
+cassette	010263	0+0+3+0+0+5	8591ea78
+cassette	010274	0+0+3+0+1+1	9bd7c314
+cassette	010280	0+0+1+0+1+0	c8883a65
+cassette	010293	0+0+1+1+3+0	2995ff56
+cassette	010294	0+0+1+1+3+0	421584f9
+cassette	010314	0+0+1+0+0+0	77aed7ba
+cassette	010323	0+0+1+0+0+0	67a4daf5
+cassette	010610	0+0+2+0+1+0	90c931c4
+cassette	010620	0+0+3+5+0+0	7f95f444
+cassette	010621	0+0+1+7+0+0	c2983171
+cassette	010623	0+0+3+5+0+0	fd6b2da5
+cassette	010624	0+0+1+7+0+0	f81e3e62
+cassette	010634	0+0+1+0+0+0	42f7674f
+cassette	010660	0+0+2+0+0+0	8cacc0bd
+cassette	010670	0+0+2+4+0+0	23f1c528
+cassette	010673	0+0+3+3+0+0	edb3a2ae
+cassette	010674	0+0+1+5+0+0	30bd1f44
+cassette	010733	0+0+2+0+0+0	d5c62c2f
+cassette	010743	0+0+2+0+0+0	e709c12f
+cassette	010754	0+0+1+0+0+1	af513a0f
+cassette	010764	0+0+2+0+0+0	68503293
+cassette	010774	0+0+1+0+0+0	9770f264
+cassette	010790	0+0+2+0+1+0	f3961d57
+cassette	010800	0+0+1+0+3+0	68a8969e
+cassette	010810	0+0+2+0+0+0	71225c88
+cassette	010960	0+0+1+0+0+0	1d37bbc9
+cassette	011214	0+0+1+0+0+1	dfe73125
+cassette	012483	0+0+1+0+1+0	05f05847
+cassette	012497	0+0+3+0+6+0	801b4672
+cassette	012500	0+0+1+0+8+16	477259cf
+cassette	012513	0+0+1+2+4+0	31fc2601
+cassette	012514	0+0+2+1+4+0	dd78f13a
+cassette	012520	0+0+1+0+1+0	64db7432
+cassette	012530	0+0+1+1+0+0	32810850
+cassette	012534	0+0+1+1+0+0	c4b06c4d
+cassette	012540	0+0+1+0+1+0	fb237860
+cassette	012550	0+0+2+0+1+0	1567067f
+cassette	012570	0+0+1+0+2+0	023d6974
+cassette	012593	0+0+1+0+0+0	b9fe2e65
+cassette	012604	0+0+1+0+0+0	509b3e2b
+cassette	012610	0+0+1+3+3+0	8be5e48f
+cassette	012613	0+0+1+3+3+0	c8888b34
+cassette	012614	0+0+2+2+3+0	132997c1
+cassette	012634	0+0+1+0+0+0	7d9a2ce1
+cassette	012650	0+0+1+0+0+0	e1cbbb43
+cassette	012660	0+0+3+0+0+0	84f0b3c7
+cassette	012673	0+0+2+0+0+0	32ad7399
+cassette	012680	0+0+1+0+0+0	95be6ea8
+cassette	012700	0+0+1+0+6+0	f9efe3d0
+cassette	012720	0+0+1+0+0+0	30538665
+cassette	012740	0+0+1+0+0+0	5601cc29
+cassette	012760	0+0+1+0+0+0	9c62f163
+cassette	012784	0+0+1+0+0+0	748ad535
+cassette	012820	0+0+1+0+0+0	5b4b3908
+cassette	012831	0+0+1+0+0+0	b6a6018c
+cassette	012841	0+0+1+0+0+0	241f31a8
+cassette	012854	0+0+1+0+0+0	28bfc1ac
+cassette	012864	0+0+2+0+0+0	7e345b04
+cassette	012870	0+0+2+1+0+0	b2864c35
+cassette	012874	0+0+1+2+0+0	46723fda
+cassette	012880	0+0+2+0+0+0	cd80584e
+cassette	012890	0+0+2+1+0+0	768bc890
+cassette	012893	0+0+1+2+0+0	dbdc3b1d
+cassette	012904	0+0+1+0+0+0	23a07622
+cassette	012910	0+0+2+2+0+0	fa4c064c
+cassette	012913	0+0+1+3+0+0	fd5c44f8
+cassette	012914	0+0+1+3+0+0	336f9ac0
+cassette	012921	0+0+1+1+0+0	c8512b49
+cassette	012924	0+0+1+1+0+0	aa96c115
+cassette	012933	0+0+1+0+0+0	d26c737e
+cassette	012944	0+0+1+0+0+0	2ca81b77
+cassette	012973	0+0+1+0+2+0	134abfad
+cassette	012983	0+0+1+0+0+0	6ef1ee84
+cassette	012993	0+0+1+0+0+1	f4893792
+cassette	013004	0+0+1+0+0+0	5f8ac4f2
+cassette	013014	0+0+1+0+0+0	72fbf909
+cassette	013020	0+0+1+1+0+0	647ad0e9
+cassette	013024	0+0+1+1+0+0	0740cf95
+cassette	013030	0+0+1+3+0+0	aae49bc6
+cassette	013034	0+0+3+1+0+0	34eefd35
+cassette	013040	0+0+1+1+0+1	613c5535
+cassette	013044	0+0+1+1+0+1	39cfd49c
+cassette	013050	0+0+1+0+0+0	da05557c
+cassette	013060	0+0+1+1+0+0	46deb365
+cassette	013064	0+0+1+1+0+0	68010d7b
+cassette	013070	0+0+1+0+0+0	46dfe9f5
+cassette	013090	0+0+2+0+0+0	89e4d0a8
+cassette	013130	0+0+1+2+0+0	4157c9f1
+cassette	013133	0+0+2+1+0+0	ef13316e
+cassette	013141	0+0+1+1+0+0	ea886744
+cassette	013144	0+0+1+1+0+0	607bd0ae
+cassette	013150	0+0+1+3+2+0	0f319b5f
+cassette	013153	0+0+2+2+2+0	30dae303
+cassette	013157	0+0+1+3+2+0	bb496482
+cassette	013160	0+0+3+0+1+0	5334ae6d
+cassette	013170	0+0+1+0+0+0	94e96b8a
+cassette	013180	0+0+1+1+1+0	611f5a5b
+cassette	013183	0+0+1+1+1+0	6e14ced3
+cassette	013190	0+0+2+1+0+0	9c11c59f
+cassette	013193	0+0+1+2+0+0	acb74c0f
+cassette	013200	0+0+1+0+0+0	4661ed7d
+cassette	013210	0+0+1+0+0+0	c5106fa4
+cassette	013220	0+0+3+0+0+0	c7ecee30
+cassette	013230	0+0+1+0+0+0	a3d1dddd
+cassette	013240	0+0+1+0+0+0	0a44c8d2
+cassette	013250	0+0+1+0+1+0	9a966b8b
+cassette	013264	0+0+1+0+1+0	86fdef77
+cassette	013300	0+0+6+0+0+0	8345bdc8
+cassette	013314	0+0+1+0+0+0	b62bbd31
+cassette	013320	0+0+3+1+2+0	6ec838c2
+cassette	013328	0+0+1+3+2+0	20199d19
+cassette	013330	0+0+2+3+0+0	651ce55b
+cassette	013333	0+0+3+2+0+0	4875c998
+cassette	013340	0+0+5+1+5+1	85bdc652
+cassette	013343	0+0+1+5+5+1	453f3279
+cassette	013350	0+0+1+0+0+0	47952a0c
+cassette	013360	0+0+6+0+0+0	1d0a0f79
+cassette	013370	0+0+1+0+0+0	15e49586
+cassette	013380	0+0+3+0+0+1	cb2c317b
+cassette	013390	0+0+2+0+0+0	0113db5f
+cassette	013401	0+0+1+2+3+0	d25adcb1
+cassette	013403	0+0+2+1+3+0	4550d39b
+cassette	013413	0+0+2+0+0+0	3411fcbf
+cassette	013420	0+0+1+1+0+0	1fdb2a32
+cassette	013427	0+0+1+1+0+0	90ba1a35
+cassette	013450	0+0+1+1+0+1	258b963b
+cassette	013454	0+0+1+1+0+1	cdc6edd8
+cassette	013464	0+0+1+0+0+0	a83aafca
+cassette	013470	0+0+1+0+0+1	e113407e
+cassette	013480	0+0+1+0+2+0	a8086d20
+cassette	013500	0+0+1+0+0+0	639593aa
+cassette	013514	0+0+1+0+0+0	c2146895
+cassette	013520	0+0+1+0+0+0	747b0752
+cassette	013610	0+0+1+6+0+0	52b01bd3
+cassette	013611	0+0+1+6+0+0	d1912198
+cassette	013613	0+0+1+6+0+0	1ed50616
+cassette	013614	0+0+3+4+0+0	3d10333f
+cassette	013616	0+0+1+6+0+0	ff70401c
+cassette	013620	0+0+1+3+0+0	6fd754fc
+cassette	013623	0+0+3+1+0+0	e8b7a2cf
+cassette	013640	0+0+1+1+0+1	9670329f
+cassette	013643	0+0+1+1+0+1	40f535bb
+cassette	013740	0+0+1+0+0+0	ed0687a5
+cassette	013930	0+0+1+0+0+0	b9118e2f
+cassette	013940	0+0+1+10+0+0	5071f481
+cassette	013943	0+0+1+10+0+0	884c6efd
+cassette	013944	0+0+4+7+0+0	c6ccc578
+cassette	013947	0+0+5+6+0+0	9399bf5f
+cassette	013953	0+0+2+9+0+3	d15270af
+cassette	013954	0+0+9+2+0+3	40b072dd
+cassette	013960	0+0+1+4+0+1	2e8c289e
+cassette	013963	0+0+1+4+0+1	fa07c629
+cassette	013964	0+0+2+3+0+1	a1318c3a
+cassette	013967	0+0+1+4+0+1	71565748
+cassette	013970	0+0+1+1+0+0	91d41d86
+cassette	013973	0+0+1+1+0+0	f8490af6
+cassette	013980	0+0+5+11+0+3	1d370510
+cassette	013983	0+0+5+11+0+3	e4ebe2b7
+cassette	013984	0+0+6+10+0+3	5db5026e
+cassette	013990	0+0+1+12+0+2	811553a4
+cassette	013993	0+0+4+9+0+2	e5c78990
+cassette	013994	0+0+7+6+0+2	16b4d0e2
+cassette	013997	0+0+1+12+0+2	059bf361
+cassette	014000	0+0+1+0+0+1	adcc866a
+cassette	014010	0+0+1+0+0+0	c1ca640c
+cassette	014020	0+0+1+2+0+0	0ecf9e83
+cassette	014024	0+0+1+2+0+0	06be1f14
+cassette	014027	0+0+1+2+0+0	c7396ec5
+cassette	014034	0+0+1+0+2+0	d1da4eb1
+cassette	014061	0+0+1+0+2+0	b30ed0bf
+cassette	014080	0+0+4+0+0+0	e115986f
+cassette	014480	0+0+1+0+0+1	42b51943
+cassette	014500	0+0+1+0+0+0	a06d6a7d
+cassette	014520	0+0+1+0+0+0	6f589eee
+cassette	014890	0+0+1+0+0+0	c5adcf93
+cassette	015063	0+0+1+0+0+0	a17ba48d
+cassette	015210	0+0+3+0+2+0	d4dd14a3
+cassette	015220	0+0+1+0+2+0	bbb4c688
+cassette	015230	0+0+2+0+1+0	f4fc5c0a
+cassette	015240	0+0+1+0+1+0	fdc97214
+cassette	015250	0+0+1+0+1+0	71c95da8
+cassette	015260	0+0+1+0+0+0	34dd7411
+cassette	015270	0+0+5+0+0+1	e7fdcb6d
+cassette	015290	0+0+1+0+0+0	62932683
+cassette	015300	0+0+1+0+0+0	7f6ffc83
+cassette	015320	0+0+1+1+0+0	51a09dac
+cassette	015329	0+0+1+1+0+0	28b4d945
+cassette	015373	0+0+1+2+6+0	6339237a
+cassette	015377	0+0+2+1+6+0	dcc43d18
+cassette	015380	0+0+1+0+0+0	776bc1e0
+cassette	015390	0+0+1+0+0+0	e1265481
+cassette	015420	0+0+1+0+0+0	9256e1e9
+cassette	015430	0+0+1+0+0+0	58af6261
+cassette	015440	0+0+1+0+0+0	fcffcdf1
+cassette	015450	0+0+1+0+0+0	9b28060e
+cassette	015460	0+0+1+0+0+0	3c59dfa9
+cassette	015470	0+0+1+0+0+0	7d32970c
+cassette	015480	0+0+1+0+0+0	4385f641
+cassette	015490	0+0+1+0+0+0	243de903
+cassette	015500	0+0+2+1+1+18	87f87077
+cassette	015504	0+0+1+2+1+18	0e968467
+cassette	015510	0+0+1+0+0+0	44758a1a
+cassette	015530	0+0+1+0+1+0	714863d8
+cassette	015540	0+0+1+0+1+1	03987dbc
+cassette	015550	0+0+1+0+2+0	618e0802
+cassette	015560	0+0+1+0+0+0	fb19f25e
+cassette	015570	0+0+1+0+1+0	d74fd5f5
+cassette	015580	0+0+1+0+5+1	37b937fd
+cassette	015590	0+0+2+0+1+0	1dd3f875
+cassette	015600	0+0+1+0+1+0	06ce9a24
+cassette	015610	0+0+2+0+1+5	afd5c35b
+cassette	015620	0+0+2+0+0+0	6ee4d563
+cassette	015640	0+0+1+0+0+0	8529dca6
+cassette	015690	0+0+1+0+0+0	2a1516f6
+cassette	015700	0+0+1+0+0+0	255c00fb
+cassette	015710	0+0+1+0+0+0	91684d75
+cassette	016000	0+0+1+0+0+0	efc3214e
+cassette	016020	0+0+1+1+0+0	5236ea64
+cassette	016024	0+0+1+1+0+0	3b80ad6b
+cassette	016034	0+0+2+0+0+0	0329c076
+cassette	016040	0+0+1+4+0+0	f6c855ce
+cassette	016041	0+0+1+4+0+0	e5294a0c
+cassette	016044	0+0+3+2+0+0	64c1893d
+cassette	016060	0+0+2+0+0+1	273acdf1
+cassette	016080	0+0+1+0+0+0	1c9ad45f
+cassette	016090	0+0+2+0+0+2	500f8161
+cassette	016110	0+0+1+0+0+1	939daaa3
+cassette	016128	0+0+1+0+0+0	43593fd7
+cassette	016130	0+0+1+0+0+0	a21c4f43
+cassette	016164	0+0+1+0+0+0	089ae33f
+cassette	016814	0+0+2+0+0+0	92b7bb3a
+cassette	016884	0+0+1+0+0+0	ce0d0b74
+cassette	016954	0+0+1+0+0+0	ed515e6f
+cassette	017290	0+0+1+1+0+0	7e4aeec2
+cassette	017294	0+0+1+1+0+0	7c763499
+cassette	017300	0+0+1+1+0+0	2d2aaf48
+cassette	017304	0+0+1+1+0+0	62c66473
+cassette	017310	0+0+1+0+0+0	e3aa65a6
+cassette	017320	0+0+1+0+0+0	60eeca12
+cassette	017330	0+0+1+1+0+0	449594d0
+cassette	017334	0+0+1+1+0+0	7cddd41a
+cassette	017340	0+0+1+0+0+0	bb200f6c
+cassette	017350	0+0+2+0+0+0	6f6456c6
+cassette	017360	0+0+1+0+0+0	e589f731
+cassette	017370	0+0+1+0+0+0	ab7e2877
+cassette	017380	0+0+3+0+0+0	466b815d
+cassette	017394	0+0+1+0+0+0	a966ef7f
+cassette	017450	0+0+1+0+0+0	b930e0d4
+cassette	017460	0+0+1+1+0+1	40b3c99c
+cassette	017462	0+0+1+1+0+1	d1848d07
+cassette	017470	0+0+1+0+0+0	e3595e74
+cassette	017480	0+0+1+0+0+0	f6dcdbc3
+cassette	017490	0+0+1+0+0+0	0821382b
+cassette	017500	0+0+1+0+0+0	528ddf1a
+cassette	017510	0+0+1+1+0+1	e25fec03
+cassette	017519	0+0+1+1+0+1	28f8d5b1
+cassette	017520	0+0+2+0+0+0	22aa9995
+cassette	017530	0+0+5+0+0+1	5a74da13
+cassette	017540	0+0+1+0+0+0	79267fad
+cassette	017550	0+0+1+0+0+0	ce9e97ae
+cassette	017560	0+0+5+0+0+2	f049013a
+cassette	017570	0+0+3+0+0+0	a4f0f291
+cassette	017580	0+0+1+1+0+0	2ebcd9c6
+cassette	017584	0+0+1+1+0+0	fe78741f
+cassette	017590	0+0+2+0+0+0	7a718de6
+cassette	017610	0+0+1+0+0+0	dcadf6fe
+cassette	017620	0+0+1+0+0+0	761b9652
+cassette	017630	0+0+2+0+0+0	b5995280
+cassette	017640	0+0+2+0+1+0	76b6386c
+cassette	017701	0+0+2+4+0+0	200f4708
+cassette	017703	0+0+3+3+0+0	19d62a4b
+cassette	017708	0+0+1+5+0+0	706d91b0
+cassette	017711	0+0+2+3+0+0	23721bf0
+cassette	017712	0+0+2+3+0+0	e7dcff04
+cassette	017713	0+0+1+4+0+0	91f48bf4
+cassette	017765	0+0+1+0+0+0	6f99486f
+cassette	017934	0+0+1+0+0+1	099363e4
+cassette	017940	0+0+1+1+0+0	07274b9c
+cassette	017944	0+0+1+1+0+0	57dd3c00
+cassette	017950	0+0+1+0+0+0	3e32d62d
+cassette	017960	0+0+2+0+0+0	83387c9c
+cassette	017980	0+0+2+0+0+0	6fe04e6b
+cassette	017990	0+0+2+1+0+0	cff633cd
+cassette	017994	0+0+1+2+0+0	c2b6f16b
+cassette	018000	0+0+1+0+0+0	1fb25c91
+cassette	018014	0+0+1+0+0+0	ad29743b
+cassette	018020	0+0+1+0+0+0	7fb1d155
+cassette	018030	0+0+3+0+0+0	4bb62dc5
+cassette	018040	0+0+1+1+0+0	d528bfb4
+cassette	018044	0+0+1+1+0+0	99f13f56
+cassette	018080	0+0+1+1+0+0	abb9f687
+cassette	018084	0+0+1+1+0+0	898f9c6d
+cassette	018090	0+0+1+1+0+0	8026488f
+cassette	018093	0+0+1+1+0+0	eecbfc4c
+cassette	018107	0+0+1+0+0+0	d8ed8adf
+cassette	018110	0+0+1+0+0+0	37313f98
+cassette	018120	0+0+1+0+0+0	7e31fe69
+cassette	018130	0+0+1+1+0+0	bc86921b
+cassette	018133	0+0+1+1+0+0	b58e2c0e
+cassette	018140	0+0+1+2+0+1	da5a78e1
+cassette	018147	0+0+2+1+0+1	f8ce4317
+cassette	018150	0+0+1+0+0+0	40721729
+cassette	018160	0+0+1+0+0+0	43e7ccef
+cassette	018170	0+0+1+0+0+0	f64d5b0b
+cassette	018180	0+0+1+0+0+1	1947db0c
+cassette	018190	0+0+1+0+0+0	5cbaae42
+cassette	018200	0+0+1+1+0+1	0084bbae
+cassette	018204	0+0+1+1+0+1	a22cd4bc
+cassette	018210	0+0+1+3+0+0	e345aecd
+cassette	018213	0+0+1+3+0+0	c846347e
+cassette	018214	0+0+1+3+0+0	727580c1
+cassette	018217	0+0+1+3+0+0	ac768b73
+cassette	018400	0+0+2+0+0+0	a2197bde
+cassette	018410	0+0+3+4+0+0	273d81f0
+cassette	018413	0+0+3+4+0+0	10401c1a
+cassette	018414	0+0+1+6+0+0	4be3f400
+cassette	018430	0+0+2+6+0+1	45e771cd
+cassette	018433	0+0+4+4+0+1	f1f41eef
+cassette	018434	0+0+1+7+0+1	785debb9
+cassette	018437	0+0+1+7+0+1	a9c3eecd
+cassette	018440	0+0+1+5+0+0	b98f871c
+cassette	018443	0+0+1+5+0+0	f3b805c5
+cassette	018444	0+0+4+2+0+0	0d87a3d6
+cassette	018450	0+0+1+4+0+0	7aa139d5
+cassette	018453	0+0+2+3+0+0	fc2b8295
+cassette	018454	0+0+1+4+0+0	e8e9a534
+cassette	018458	0+0+1+4+0+0	1102c921
+cassette	018460	0+0+3+0+0+0	27e73b6e
+cassette	018470	0+0+2+5+0+0	71043fd2
+cassette	018473	0+0+3+4+0+0	de804462
+cassette	018474	0+0+1+6+0+0	3a5fe933
+cassette	018477	0+0+1+6+0+0	ef20f2b4
+cassette	018480	0+0+3+1+0+0	2a35551c
+cassette	018487	0+0+1+3+0+0	ffde57d4
+cassette	018490	0+0+3+6+0+0	95482eeb
+cassette	018493	0+0+4+5+0+0	5f1d4490
+cassette	018497	0+0+2+7+0+0	30aef6e9
+cassette	018500	0+0+1+10+0+0	615f019c
+cassette	018503	0+0+7+4+0+0	fae9ee66
+cassette	018504	0+0+1+10+0+0	63cb5479
+cassette	018506	0+0+2+9+0+0	46a53898
+cassette	018510	0+0+2+6+0+0	ae92d021
+cassette	018513	0+0+5+3+0+0	deffcbaf
+cassette	018514	0+0+1+7+0+0	518f1af1
+cassette	018520	0+0+2+6+0+0	cf342772
+cassette	018523	0+0+4+4+0+0	4e0f7f1a
+cassette	018524	0+0+2+6+0+0	8972ba76
+cassette	018543	0+0+1+0+0+0	384ab4a0
+cassette	018570	0+0+1+0+0+0	562319ea
+cassette	018584	0+0+1+0+0+0	e0c7cd2b
+cassette	018590	0+0+1+0+0+2	ffe7e7b7
+cassette	018600	0+0+1+1+0+0	bc3a90f4
+cassette	018604	0+0+1+1+0+0	5a751e3e
+cassette	018610	0+0+2+0+0+0	f2412c77
+cassette	019210	0+0+1+0+0+0	f2c288cd
+cassette	019360	0+0+1+0+0+0	2d762659
+cassette	019370	0+0+1+0+0+0	1c7746b7
+cassette	019410	0+0+1+0+0+0	90a08f82
+cassette	019420	0+0+1+0+0+0	f3315e94
+cassette	019523	0+0+1+0+0+0	e517e3ae
+cassette	019530	0+0+1+0+0+0	7c972e66
+cassette	019540	0+0+1+0+0+0	47dd0055
+cassette	019550	0+0+1+0+0+0	e628b0e8
+cassette	019560	0+0+1+0+0+0	258be148
+cassette	019570	0+0+1+0+0+0	027b438d
+cassette	019590	0+0+1+0+0+0	796cbc0a
+cassette	019684	0+0+1+0+0+0	d7eb00f1
+cassette	019690	0+0+1+0+0+0	8ab163f4
+cassette	019700	0+0+1+0+0+0	3f7c9cfb
+cassette	019710	0+0+1+0+0+0	094f7b03
+cassette	020470	0+0+1+0+0+0	d6f311f3
+cassette	020650	0+0+1+0+0+0	b86d2f4e
+cassette	020660	0+0+1+0+0+1	6f6d85a0
+cassette	024010	0+0+1+0+0+0	7cf8975c
+cassette	024020	0+0+1+0+0+0	60383401
+cassette	024030	0+0+1+0+0+0	168f6c5d
+cassette	024040	0+0+1+0+0+0	059ae1c9
+cassette	050123	0+0+1+0+0+0	6cd6e7a3
+cassette	050723	0+0+1+0+0+0	f784451c
+cassette	050747	0+0+1+0+0+0	9e610331
+cassette	050824	0+0+1+0+0+0	eb3be71d
+cassette	051424	0+0+1+0+0+0	cc12d631
+cassette	052323	0+0+1+0+0+0	713d7d6b
+cassette	052424	0+0+1+0+0+0	0b4afb78
+cassette	054323	0+0+1+0+0+0	b6c9a9da
+cassette	084126	0+0+1+0+0+0	c0391efe
+cassette	100004	0+0+2+0+5+2	a87143c0
+cassette	101364	0+0+1+0+2+0	d15a28ca
+cassette	102004	0+0+1+0+6+0	02861173
+cassette	103744	0+0+1+0+0+0	46b277d0
+cassette	103780	0+0+1+0+1+0	c0e0d1e5
+cassette	103804	0+0+1+0+1+0	1c4d9b7b
+cassette	105154	0+0+1+0+2+0	9a9012a8
+cassette	105464	0+0+1+0+1+0	ab8fd51d
+cassette	105514	0+0+1+0+3+0	53d4d33e
+cassette	105554	0+0+1+0+1+0	df91fa38
+cassette	105574	0+0+1+0+2+0	36fff02c
+cassette	105604	0+0+1+0+1+0	1f92d7c8
+cassette	105614	0+0+2+0+5+0	6fac25fc
+cassette	105744	0+0+2+0+8+1	c7b562a4
+cassette	105844	0+0+1+0+1+0	a67ee24f
+cassette	105874	0+0+1+0+1+0	52b25898
+cassette	106250	0+0+2+4+25+3	f08b9b0f
+cassette	106253	0+0+1+5+25+3	27abd2ce
+cassette	106254	0+0+3+3+25+3	e1aba995
+cassette	106267	0+0+1+0+9+0	5859730e
+cassette	106283	0+0+2+3+14+1	f25ebe3c
+cassette	106284	0+0+2+3+14+1	67106ca5
+cassette	106287	0+0+1+4+14+1	270ee5b0
+cassette	106340	0+0+1+1+4+0	e49c067f
+cassette	106344	0+0+1+1+4+0	b5f7bdaf
+cassette	106353	0+0+2+0+5+0	33f9249a
+cassette	106363	0+0+1+0+2+0	bc733992
+cassette	106893	0+0+1+0+0+0	848f05ff
+cassette	108434	0+0+1+0+2+0	bf3ddabf
+cassette	110271	0+0+1+0+3+1	816cb227
+cassette	110294	0+0+2+0+3+0	629f7d0e
+cassette	110617	0+0+1+0+2+0	7a84aad4
+cassette	110793	0+0+1+0+2+0	0c79d8de
+cassette	110809	0+0+1+0+3+0	a8541a79
+cassette	112564	0+0+1+0+0+1	b132ed97
+cassette	112617	0+0+1+0+6+0	ed53334a
+cassette	112703	0+0+1+0+6+0	ed87b0f7
+cassette	112754	0+0+1+0+1+0	e2b0db98
+cassette	112774	0+0+1+0+1+0	8d6fb337
+cassette	112974	0+0+1+0+2+0	a5e1f267
+cassette	113163	0+0+1+0+3+0	521d7b5d
+cassette	113253	0+0+1+0+1+0	90940a6d
+cassette	113263	0+0+1+0+1+0	8fb035dd
+cassette	113344	0+0+1+0+10+1	80550681
+cassette	114034	0+0+2+0+1+0	0e0a571b
+cassette	114054	0+0+1+0+0+0	afd3f7bb
+cassette	114064	0+0+2+0+1+0	f4b4eea0
+cassette	115223	0+0+1+0+2+0	9f60eacf
+cassette	115244	0+0+1+0+1+0	bafa4cf7
+cassette	115314	0+0+2+0+0+0	ef999510
+cassette	115334	0+0+1+0+0+0	634a5733
+cassette	115344	0+0+1+0+0+0	e08d78d2
+cassette	115577	0+0+1+0+1+0	b4ab8b09
+cassette	115584	0+0+1+1+4+1	06ccec48
+cassette	115587	0+0+1+1+4+1	945478c1
+cassette	117644	0+0+1+0+2+0	3c5205a4
+cassette	125684	0+0+1+0+0+0	70ebd9b9
+cassette	136023	0+0+1+0+2+0	f3e24e0a
+cassette	191308	0+0+2+0+0+0	2b10bd15
+cassette	200607	0+0+1+0+0+0	59757b95
+cassette	202003	0+0+1+0+6+0	b79e2c0f
+cassette	203773	0+0+1+0+2+1	fc856e03
+cassette	205744	0+0+2+0+8+1	2445994c
+cassette	206244	0+0+1+0+2+0	44363aab
+cassette	206254	0+0+1+0+30+3	74784c85
+cassette	206263	0+0+2+0+8+0	46bdd353
+cassette	206283	0+0+2+0+17+1	caf4644a
+cassette	206324	0+0+1+0+1+0	6d0b6cfb
+cassette	206353	0+0+1+0+6+0	ca010c07
+cassette	208474	0+0+1+0+1+2	2c9551c4
+cassette	210804	0+0+1+0+3+0	924df4e6
+cassette	212483	0+0+1+0+1+0	4e45001c
+cassette	212493	0+0+1+0+8+0	59338a68
+cassette	212503	0+0+1+0+8+16	6d814ace
+cassette	212514	0+0+1+0+6+0	494b3841
+cassette	212613	0+0+1+0+6+0	4469ee05
+cassette	212703	0+0+1+0+6+0	9ea78e05
+cassette	212714	0+0+1+0+9+0	951f9fde
+cassette	212754	0+0+1+0+1+0	7afc5022
+cassette	212774	0+0+1+0+1+0	05e3f625
+cassette	212794	0+0+1+0+2+0	0d894dea
+cassette	213183	0+0+1+0+2+0	f089f5d8
+cassette	213320	0+0+2+0+4+0	eac8b24a
+cassette	215213	0+0+1+0+4+0	68e135ac
+cassette	215230	0+0+1+0+2+0	b7b53b26
+cassette	215374	0+0+1+0+8+0	ad59ddc4
+cassette	215554	0+0+1+0+2+0	ca540f25
+cassette	301304	0+0+1+0+7+0	e6d25c1f
+cassette	301933	0+0+1+0+2+0	695dc175
+cassette	305614	0+0+1+0+6+0	27fe5249
+cassette	306253	0+0+3+2+26+3	c9328fc7
+cassette	306254	0+0+2+3+26+3	27e7b970
+cassette	306264	0+0+1+0+9+0	81c4675e
+cassette	306283	0+0+2+3+14+1	c488bb60
+cassette	306284	0+0+3+2+14+1	b347842d
+cassette	306343	0+0+1+0+5+0	a81e8a51
+cassette	310490	0+0+1+0+0+0	86f82f29
+cassette	310804	0+0+1+0+3+0	e396e2de
+cassette	312494	0+0+1+0+8+0	d011ba16
+cassette	312557	0+0+1+0+2+0	07cf5d42
+cassette	312613	0+0+1+0+6+0	af7da0ac
+cassette	312794	0+0+1+0+2+0	73eb8d31
+cassette	313344	0+0+1+0+10+1	3d918552
+cassette	315214	0+0+1+0+4+0	47d1fb20
+cassette	315223	0+0+1+0+2+0	6e21187a
+cassette	315254	0+0+1+0+1+0	5ec7d0c9
+cassette	315500	0+0+1+0+3+18	d15e33fb
+cassette	315530	0+0+1+0+1+0	2b1e4725
+cassette	315544	0+0+1+0+1+1	4d4b61d9
+cassette	315554	0+0+1+0+2+0	62736bbc
+cassette	333098	0+0+1+0+0+0	1be943cd
+cassette	403334	0+0+1+0+4+0	629850d1
+cassette	403793	0+0+1+0+3+0	08db2244
+cassette	403814	0+0+1+0+2+0	20c2eb94
+cassette	405154	0+0+1+0+2+0	d5f0ce1b
+cassette	405613	0+0+1+0+6+0	8e2950b5
+cassette	405704	0+0+1+0+2+1	cf4f3222
+cassette	406254	0+0+2+0+29+3	9f92283e
+cassette	406283	0+0+1+0+18+1	2201720b
+cassette	412493	0+0+1+0+8+0	c42c37fe
+cassette	412503	0+0+1+0+8+16	9311189c
+cassette	412513	0+0+1+0+6+0	e8029dcd
+cassette	412520	0+0+1+0+1+0	e22660b1
+cassette	412544	0+0+1+0+1+0	e8f2927e
+cassette	412794	0+0+1+0+2+0	d16b03f3
+cassette	413154	0+0+1+0+5+0	ce836ccb
+cassette	413403	0+0+1+0+5+0	35b68da8
+cassette	417010	0+0+1+0+0+0	d80c1175
+cassette	491008	0+0+1+0+0+0	8ef64d9c
+cassette	501303	0+0+1+0+7+0	43261636
+cassette	501413	0+0+3+0+5+0	6f2a0a4c
+cassette	501933	0+0+1+0+2+0	21819f3d
+cassette	502003	0+0+1+0+6+0	51164ba1
+cassette	503774	0+0+1+0+2+1	ad159824
+cassette	505514	0+0+1+0+3+0	f2c815d1
+cassette	505744	0+0+1+0+9+1	4721309b
+cassette	505783	0+0+1+0+5+0	42685a5b
+cassette	506254	0+0+1+0+30+3	6653d5ec
+cassette	506283	0+0+1+0+18+1	78a871d7
+cassette	512494	0+0+1+0+8+0	913887bb
+cassette	512503	0+0+2+3+4+16	d3b5e593
+cassette	512504	0+0+3+2+4+16	8909359e
+cassette	512574	0+0+1+0+2+0	771a683f
+cassette	512703	0+0+2+0+5+0	b5364f33
+cassette	512713	0+0+1+4+5+0	4766fdb3
+cassette	512714	0+0+4+1+5+0	7b2940f8
+cassette	513347	0+0+2+0+9+1	e601c3a0
+cassette	514574	0+0+1+0+0+0	c2051971
+cassette	515374	0+0+1+0+8+0	2b36b58e
+cassette	515594	0+0+1+0+2+0	49c93734
+cassette	515603	0+0+1+0+1+0	0ba8f561
+cassette	515613	0+0+1+0+2+5	2f3d52c7
+cassette	601413	0+0+1+0+7+0	b51797cb
+cassette	601973	0+0+2+0+1+1	347eb6e8
+cassette	602003	0+0+1+1+5+0	b5b2b63b
+cassette	602004	0+0+1+1+5+0	df3ffb4b
+cassette	605623	0+0+1+0+2+0	1ddcf5a8
+cassette	605703	0+0+1+0+2+1	a11bc5c7
+cassette	606243	0+0+1+0+2+0	e02dcc60
+cassette	606253	0+0+3+2+26+3	0b10b863
+cassette	606254	0+0+2+3+26+3	c1d04a03
+cassette	606263	0+0+2+0+8+0	56797ac1
+cassette	606353	0+0+1+0+6+0	12d23383
+cassette	613154	0+0+1+0+5+0	8dc72244
+cassette	613404	0+0+1+0+5+0	c274b22b
+cassette	615374	0+0+1+0+8+0	991401d7
+cassette	615584	0+0+1+0+5+1	a57be7aa
+cassette	636024	0+0+1+0+2+0	77b04a05
+cassette	701310	0+0+1+0+3+0	066314ac
+cassette	701403	0+0+1+0+5+0	d95f28cb
+cassette	701950	0+0+1+0+3+0	42aca484
+cassette	706243	0+0+1+0+2+0	92744be7
+cassette	706253	0+0+1+2+28+3	d6577edc
+cassette	706254	0+0+2+1+28+3	d0491b3d
+cassette	706263	0+0+2+1+7+0	14cc88f6
+cassette	706264	0+0+1+2+7+0	c6c3b9eb
+cassette	706284	0+0+1+0+18+1	5c4b38d8
+cassette	712494	0+0+1+0+8+0	6e237c12
+cassette	712570	0+0+1+0+2+0	5f1d3681
+cassette	712704	0+0+1+0+6+0	dedf2ffc
+cassette	715374	0+0+1+0+8+0	786cb51a
+cassette	715587	0+0+1+0+5+1	24706f92
+cassette	715730	0+0+1+0+0+0	8c07f443
+cassette	732983	1+1+1+0+1+0	464ae4e4
+cassette	733633	1+1+1+0+1+0	ff5c8ca0
+cassette	736024	0+0+1+0+2+0	414db98f
+cassette	753911	0+0+1+3+0+0	c36f94f7
+cassette	753912	0+0+1+3+0+0	5703b6ed
+cassette	753914	0+0+2+2+0+0	3a293e31
+cassette	803333	0+0+1+0+4+0	f48e8210
+cassette	803773	0+0+1+0+2+1	6847c5cf
+cassette	803794	0+0+1+0+3+0	81909b18
+cassette	805144	0+0+1+0+1+0	5bdf45f9
+cassette	805253	0+0+1+0+0+0	cc13f054
+cassette	805784	0+0+1+0+5+0	431a50dc
+cassette	806253	0+0+1+3+27+3	b2cb7a00
+cassette	806254	0+0+3+1+27+3	c98c8360
+cassette	806270	0+0+2+0+1+0	dea4db17
+cassette	806280	0+0+1+1+17+1	b28fc997
+cassette	806283	0+0+1+1+17+1	53119c58
+cassette	812511	0+0+1+0+6+0	e2a330f0
+cassette	812973	0+0+1+0+2+0	18b247f3
+cassette	813344	0+0+1+0+10+1	301911e0
+cassette	813404	0+0+1+0+5+0	4d0b6086
+cassette	813484	0+0+2+0+1+0	969c4a74
+cassette	830254	0+0+1+0+0+0	8f5105f7
+cassette	832973	1+0+1+0+0+0	fb636859
+cassette	832983	1+1+1+0+1+0	4a9ff7cd
+cassette	833633	1+1+1+0+1+0	ba706a77
+cassette	844004	0+0+1+0+0+0	941f6d64
+cassette	854011	0+0+1+0+0+0	6cbeeb85
+cassette	868400	0+0+3+0+0+0	636c376b
+cassette	874116	0+0+1+0+0+0	03f975f3
+cassette	883610	0+0+1+0+0+0	bb64a3fe
+cassette	883640	0+0+1+0+0+0	6134edd4
+cassette	901304	0+0+1+0+7+0	3793340d
+cassette	901413	0+0+1+0+7+0	5ea79438
+cassette	902004	0+0+1+0+6+0	e2579161
+cassette	903334	0+0+1+0+4+0	f9ec4118
+cassette	903793	0+0+1+0+3+0	ef862084
+cassette	903814	0+0+1+0+2+0	66225571
+cassette	903823	0+0+1+1+3+1	445353cd
+cassette	903824	0+0+1+1+3+1	53663273
+cassette	905783	0+0+1+0+5+0	34d6598e
+cassette	906254	0+0+1+0+30+3	c34e7022
+cassette	906923	0+0+1+0+1+0	cb0e098d
+cassette	910283	0+0+1+0+1+0	08a960cb
+cassette	910293	0+0+1+0+4+0	3a40a9c9
+cassette	912494	0+0+1+0+8+0	08565108
+cassette	912503	0+0+1+0+8+16	3c8f6ec3
+cassette	912513	0+0+1+0+6+0	79cbed52
+cassette	912704	0+0+1+0+6+0	789fe956
+cassette	912713	0+0+1+3+6+0	95e69391
+cassette	912714	0+0+3+1+6+0	293f8181
+cassette	915353	0+0+1+0+0+0	139ff844
+cassette	915373	0+0+1+1+7+0	7a49685c
+cassette	915374	0+0+1+1+7+0	b8c34328
+cassette	915584	0+0+1+0+5+1	0ab693fa

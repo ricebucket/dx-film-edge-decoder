@@ -102,10 +102,10 @@
 
   const normalize = (text) => String(text).replace(/\s+/g, ' ').trim();
 
-  /** The text with its {names} filled in. A value that ends in a period, such as "…, INC.", takes the place of the period after it. */
+  /** The text with its {names} filled in. A value that ends in a period, such as "…, INC.", takes the place of the period after it, or the "。". */
   function fill(text, params) {
     if (!params) return text;
-    return text.replace(/\{(\w+)\}(\.?)/g, (m, key, period) => {
+    return text.replace(/\{(\w+)\}([.。]?)/g, (m, key, period) => {
       if (!(key in params)) return m;
       const value = String(params[key]);
       return value.endsWith('.') ? value : value + period;
@@ -139,7 +139,7 @@
     const template = entry === undefined ? text : choose(entry, params);
     const out = [];
     let last = 0;
-    template.replace(/\{(\w+)\}(\.?)/g, (m, key, period, at) => {
+    template.replace(/\{(\w+)\}([.。]?)/g, (m, key, period, at) => {
       if (!(key in params)) return m;
       const value = params[key];
       const words = typeof value === 'object' && value !== null ? value.textContent : String(value);
