@@ -42,7 +42,7 @@
       h('div', { class: 'source__actions' },
         kind.back ? h('button', { type: 'button', class: 'tool tool--small', onClick: onBack }, kind.back) : null,
         h('button', {
-          type: 'button', class: 'icon-button source__remove', onClick: onRemove,
+          type: 'button', class: 'icon-button', onClick: onRemove,
           'aria-label': kind.remove || t('Hide where this code came from'),
         }, icon('cross'))));
   }

@@ -157,7 +157,7 @@
         h('span', { class: 'bracket__name' }, short[f.id] || ''),
         h('span', { class: 'bracket__value' })));
       const annot = h('div', { class: 'annot', 'aria-hidden': 'true' },
-        h('div', { class: 'annot__grid annot__fields' }, brackets));
+        h('div', { class: 'annot__grid' }, brackets));
 
       // A photo's barcode, stretched so each cell sits over its own (render's state.photo).
       const photoRow = h('div', { class: 'strip__photo', hidden: true, 'aria-hidden': 'true' },

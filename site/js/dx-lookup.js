@@ -51,6 +51,146 @@
 
   const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+  // ---- search by name, in three stages -------------------------------------------
+  //
+  //   analyze   the text typed → the words to look for, and the kind of each
+  //   matcher   those words against one row of the name index (indexRow) →
+  //             how well it matches (MATCH), or 0
+  //   search    every row → the films found, ranked by score (in createLookup)
+  //
+  // tests/unit/search-words.mjs lists typed texts beside the words `analyze`
+  // gives for them, and beside how well they match example rows. Those
+  // tables are the contract: a way of typing that is not in them is not
+  // supported, and a new rule is a new row there. tests/unit/search.test.mjs
+  // tests each stage on its own.
+
+  /** Digits joined by marks, with no marks around them: "20-0", "100-2". */
+  const JOINED = /^\d+(?:[^a-z0-9]+\d+)+$/;
+  /** A letter of another script: `normalize` leaves a to z of the Latin ones. */
+  const OTHER = /[^\P{L}a-z]/u;
+  /** The marks around a text: "(20-0)." is 20-0. */
+  const AROUND = /^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu;
+
+  /**
+   * Stage 1: the text typed, as the words to look for.
+   *
+   *   text    the text normalized (`normalize`), and digits joined by marks
+   *           without the marks around them: "(20-0)." is 20-0
+   *   words   one for each run without a space. Letters of another script
+   *           against Latin letters or digits are two words ("彩韵200" is 彩韵
+   *           and 200); such a letter's own marks go with it (`normalize`
+   *           writes ジ as シ and a mark). Each word has its `text` and `kind`:
+   *             number   digits joined by marks ("20-0"): matched only as
+   *                      typed, never run into other digits ("200", "120-0")
+   *             typed    a word with letters of another script, or without a
+   *                      letter or digit: matched as typed, its letters never
+   *                      dropped (which would leave only "200" of "彩韵200")
+   *             letters  any other word: matched by its letters and digits
+   *                      (`key`: "t-max" is tmax) as a whole word, the start
+   *                      of one or part of one, or as typed
+   *   number  whether the whole text, without marks around it, reads as a DX
+   *           number or a cassette number. Those have lookups of their own
+   *           (byDx, byCassette): here they are words like any other.
+   */
+  function analyze(query) {
+    const text = normalize(query).trim().replace(/\S+/g, (t) => {
+      const core = t.replace(AROUND, '');
+      return JOINED.test(core) ? core : t;
+    });
+    const words = text.replace(/([a-z0-9])([^\P{L}a-z])/gu, '$1 $2').replace(/([^\P{L}a-z]\p{M}*)([a-z0-9])/gu, '$1 $2')
+      .split(/\s+/).filter(Boolean).map((t) => {
+        if (JOINED.test(t)) return { text: t, kind: 'number' };
+        const key = OTHER.test(t) ? '' : compact(t);
+        return key ? { text: t, kind: 'letters', key } : { text: t, kind: 'typed' };
+      });
+    const bare = String(query || '').trim().replace(AROUND, '');
+    return { text, words, number: Boolean(codec.parseDxNumber(bare) || codec.parseCassette(bare)) };
+  }
+
+  /**
+   * A row of the name index: a film (`entry`) and the fields the search looks
+   * in, its name first. It holds the words of each field and those words
+   * written together, each field apart, so that a match never runs from one
+   * field into the next ("PhotoPoint / Max" is no "tmax").
+   */
+  function indexRow(entry, fields) {
+    const normal = fields.filter(Boolean).map(normalize);
+    const words = normal.map(wordsOf);
+    const nameWords = wordsOf(normalize(entry.name));
+    return {
+      entry,
+      name: normalize(entry.name),
+      text: normal.join(' '),
+      words: words.flat(),
+      runs: words.flatMap(runsFrom),
+      fieldWords: words,
+      joins: null, // made when a search first needs them (whole words outside the name)
+      nameRuns: runsFrom(nameWords),
+      nameJoins: joinsOf(nameWords),
+    };
+  }
+
+  /**
+   * How well a row matches the words, as `match` for its score (scoreOf):
+   * names that have every word as a whole word, as the start of one, or the
+   * text as typed; then names that only contain each word somewhere; then
+   * matches in the row's other fields, where too a whole word comes first,
+   * then the start of one, then a match inside one ("pan" in "Company").
+   */
+  const MATCH = { words: 9, starts: 8.5, inName: 8, pieces: 4, elsewhere: 3, elsewhereStarts: 2.5, elsewhereInside: 2 };
+
+  /**
+   * Stage 2: for the words of `analyze`, a function that gives how well a row
+   * of the name index matches them (a MATCH level), or 0 for a row that lacks
+   * one of them.
+   *
+   * A word matches a text as typed, as part of one of its words, or as the
+   * start of neighboring words written together ("tmax" or "tmax400" for
+   * "T-MAX 400"). A number matches as typed, not run into other digits:
+   * "20-0" is no "200" (a film speed), nor part of "120-0". In a name it is
+   * a whole word where no letter or digit touches it ("OPTIMA 100-2"), and
+   * the start of one where none comes before; "XRG200-2" has "200-2" inside,
+   * as "X400" has "400".
+   */
+  function matcher({ text, words }) {
+    const asTyped = (t, before, after) => new RegExp(`(^|[^${before}])${escapeRegExp(t)}($|[^${after}])`);
+    const joins = (h) => h.joins || (h.joins = h.fieldWords.flatMap(joinsOf));
+    const tests = words.map((word) => {
+      const t = word.text;
+      if (word.kind === 'number') {
+        const [typed, whole, start] = [asTyped(t, '0-9', '0-9'), asTyped(t, 'a-z0-9', 'a-z0-9'), asTyped(t, 'a-z0-9', '0-9')];
+        return {
+          t,
+          found: (h) => typed.test(h.text),
+          wordOfName: (h) => whole.test(h.name),
+          startInName: (h) => start.test(h.name),
+          wordElsewhere: (h) => whole.test(h.text),
+          startElsewhere: (h) => start.test(h.text),
+        };
+      }
+      // A word matched as typed has marks or letters that the index's words, all a to z and digits, never have.
+      const c = word.kind === 'letters' ? word.key : t;
+      return {
+        t,
+        found: (h) => h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c)),
+        wordOfName: (h) => h.nameJoins.includes(c),
+        startInName: (h) => h.nameRuns.some((r) => r.startsWith(c)),
+        wordElsewhere: (h) => joins(h).includes(c),
+        startElsewhere: (h) => h.runs.some((r) => r.startsWith(c)),
+      };
+    });
+    return (h) => {
+      if (!tests.every((k) => k.found(h))) return 0;
+      if (tests.every((k) => k.wordOfName(h))) return MATCH.words;
+      if (tests.every((k) => k.startInName(h))) return MATCH.starts;
+      if (h.name.includes(text)) return MATCH.inName;
+      if (tests.every((k) => h.name.includes(k.t))) return MATCH.pieces;
+      if (tests.every((k) => k.wordElsewhere(h))) return MATCH.elsewhere;
+      if (tests.every((k) => k.startElsewhere(h))) return MATCH.elsewhereStarts;
+      return MATCH.elsewhereInside;
+    };
+  }
+
   const AVAILABILITY = { 0: 'discontinued', 1: 'possibly discontinued', 2: 'on the market' };
 
   /**
@@ -275,90 +415,37 @@
       return hit;
     }
 
-    // The name index, made from the rows when first needed rather than
-    // stored, which would weigh more than half the database itself: one per
-    // entry, with the words of each field and those words written together,
-    // so that matches never run from one field into the next ("PhotoPoint /
-    // Max" is no "tmax").
+    // The name index (indexRow), made from the rows when first needed rather
+    // than stored, which would weigh more than half the database itself: one
+    // row per entry.
     let names = null;
     function nameIndex() {
       if (names) return names;
-      const haystack = (entry, fields) => {
-        const normal = fields.filter(Boolean).map(normalize);
-        const words = normal.map(wordsOf);
-        const nameWords = wordsOf(normalize(entry.name));
-        return {
-          entry,
-          name: normalize(entry.name),
-          text: normal.join(' '),
-          words: words.flat(),
-          runs: words.flatMap(runsFrom),
-          fieldWords: words,
-          joins: null, // made when a search first needs them (whole words outside the name)
-          nameRuns: runsFrom(nameWords),
-          nameJoins: joinsOf(nameWords),
-        };
-      };
       names = [
         // A registry film's maker by its short name and by the full one its row shows ("Eastman Kodak Company").
-        ...[...products, ...augmented].map((p) => haystack(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.name, p.sensitizer && p.sensitizer.aka])),
+        ...[...products, ...augmented].map((p) => indexRow(p, [p.name, p.sensitizer && p.sensitizer.label, p.sensitizer && p.sensitizer.name, p.sensitizer && p.sensitizer.aka])),
         // Its words and years: not its numbers, which have lookups of their own, nor its certainty or availability.
-        ...community.map((c) => haystack(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor, c.country, c.from, c.to])),
+        ...community.map((c) => indexRow(c, [c.name, c.tags, c.original, c.manufacturer, c.distributor, c.country, c.from, c.to])),
       ];
       return names;
     }
 
     /**
-     * Search by film name or maker, as [{ entry }]: names that have every
-     * word typed as a whole word, as the start of one, or as typed, then
-     * names that only contain each word somewhere, then matches in other
-     * fields (tags, notes, makers, distributor, country, years): there too a
-     * whole word comes first, then the start of one, then a match inside one
-     * ("pan" in "Company"), and nothing found is left out. Numbers are words too, never
-     * read as a DX or cassette number, which have lookups of their own
-     * (byDx, byCassette) that the page offers apart; but digits joined by
-     * marks match only as typed (below).
-     *
-     * Each result's score is scoreOf, with how well it matches (MATCH, below).
+     * Stage 3 of the search by film name or maker (see `analyze`): every row
+     * of the name index that has every word typed, as [{ entry }], ranked by
+     * score (scoreOf, with how well the row matches). The words are matched
+     * against names, tags, notes, makers, distributor, country and years.
+     * Numbers are words too, never read as a DX or cassette number: those
+     * have lookups of their own (byDx, byCassette) that the page offers apart.
      */
     function search(query) {
-      // Digits joined by marks, as in the tokens below, without any marks around them: "(20-0)." is 20-0.
-      const joined = /^\d+(?:[^a-z0-9]+\d+)+$/;
-      const q = normalize(query).trim().replace(/\S+/g, (t) => {
-        const core = t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
-        return joined.test(core) ? core : t;
-      });
-      if (!q) return [];
+      const typed = analyze(query);
+      if (!typed.words.length) return [];
+      const matchOf = matcher(typed);
       const found = [];
-      const MATCH = { words: 9, starts: 8.5, inName: 8, pieces: 4, elsewhere: 3, elsewhereStarts: 2.5, elsewhereInside: 2 };
-      // A token matches the text as typed, part of one word, or the start of
-      // neighboring words written together ("tmax" or "tmax400" for "T-MAX 400").
-      // Digits joined by marks match as typed, not run into other digits:
-      // "20-0" is no "200" (a film speed), nor part of "120-0". In a name they
-      // are a whole word where no letter or digit touches them ("OPTIMA
-      // 100-2"), and the start of one where none comes before; "XRG200-2" has
-      // "200-2" inside, as "X400" has "400".
-      const asTyped = (t, before, after) => new RegExp(`(^|[^${before}])${escapeRegExp(t)}($|[^${after}])`);
-      // Letters of another script against Latin letters or digits are two words
-      // ("彩韵200" is 彩韵 and 200), and a word with such letters is matched as
-      // typed: its letters are never dropped, which would leave only "200".
-      // Such a letter's own marks go with it: `normalize` writes ジ as シ and a mark.
-      const other = /[^\P{L}a-z]/u;
-      const tokens = q.replace(/([a-z0-9])([^\P{L}a-z])/gu, '$1 $2').replace(/([^\P{L}a-z]\p{M}*)([a-z0-9])/gu, '$1 $2')
-        .split(/\s+/).filter(Boolean).map((t) => (joined.test(t)
-          ? { t, typed: asTyped(t, '0-9', '0-9'), word: asTyped(t, 'a-z0-9', 'a-z0-9'), start: asTyped(t, 'a-z0-9', '0-9') }
-          : { t, c: other.test(t) ? t : compact(t) || t }));
-      const matches = (h, { t, c, typed }) => (typed ? typed.test(h.text) : h.text.includes(t) || h.words.some((w) => w.includes(c)) || h.runs.some((r) => r.startsWith(c)));
       for (const h of nameIndex()) {
-        if (!tokens.every((k) => matches(h, k))) continue;
-        let match = MATCH.elsewhereInside;
-        if (tokens.every(({ c, word }) => (word ? word.test(h.name) : h.nameJoins.includes(c)))) match = MATCH.words;
-        else if (tokens.every(({ c, start }) => (start ? start.test(h.name) : h.nameRuns.some((r) => r.startsWith(c))))) match = MATCH.starts;
-        else if (h.name.includes(q)) match = MATCH.inName;
-        else if (tokens.every(({ t }) => h.name.includes(t))) match = MATCH.pieces;
-        else if (tokens.every(({ c, word }) => (word ? word.test(h.text) : (h.joins || (h.joins = h.fieldWords.flatMap(joinsOf))).includes(c)))) match = MATCH.elsewhere;
-        else if (tokens.every(({ c, start }) => (start ? start.test(h.text) : h.runs.some((r) => r.startsWith(c))))) match = MATCH.elsewhereStarts;
-        found.push({ entry: h.entry, score: scoreOf(h.entry, match) });
+        const match = matchOf(h);
+        if (match) found.push({ entry: h.entry, score: scoreOf(h.entry, match) });
       }
       return ranked(found, (r) => r.score, (r) => r.entry).map((r) => ({ entry: r.entry }));
     }
@@ -397,6 +484,7 @@
       byDx,
       byCassette,
       search,
+      analyze,
       stats,
     };
   }
@@ -407,6 +495,11 @@
   createLookup.middleOf = middleOf;
   createLookup.ranked = ranked;
   createLookup.scoreOf = scoreOf;
+  // The stages of the search, for their tests (tests/unit/search.test.mjs).
+  createLookup.analyze = analyze;
+  createLookup.indexRow = indexRow;
+  createLookup.matcher = matcher;
+  createLookup.MATCH = MATCH;
   createLookup.WEIGHT = WEIGHT;
   createLookup.UNRATED = UNRATED;
   createLookup.cassetteKey = cassetteKey;

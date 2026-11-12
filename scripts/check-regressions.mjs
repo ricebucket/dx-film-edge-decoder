@@ -20,8 +20,9 @@
 // `npm run check:regressions -- --against [commit]` compares the working tree
 // with a commit instead (the last one, if none is named): the same states,
 // down to the place and size of every element, both measured on this machine.
-// It is for a change that is meant to move nothing. It reports and never
-// fails.
+// In place of a commit it takes a folder with a copy of the project, or of
+// its site/, made before a change that is not committed. It is for a change
+// that is meant to move nothing. It reports and never fails.
 //
 // Needs Playwright with Chromium, installed outside this repository; see
 // scripts/run-e2e.mjs. The snapshots change with the film data: update them
@@ -55,6 +56,25 @@ const sample = async (page) => {
 };
 const useSample = async (page) => {
   await sample(page);
+  await page.locator('.photo__result button').first().click();
+  await page.locator('#strip .strip__photo:not([hidden])').waitFor();
+};
+// A photo of a 7-bar code, drawn by the reader's own sample maker and opened as a file would be.
+const useSevenBarPhoto = async (page) => {
+  await page.locator('#tab-photo').click();
+  await page.locator('.photo__drop').waitFor();
+  await page.evaluate(async () => {
+    const reader = globalThis.DX.image;
+    const drawn = reader.synthesize({ part1: 79, part2: 7, format: 'short', module: 8, angle: 1 });
+    const canvas = Object.assign(document.createElement('canvas'), { width: drawn.width, height: drawn.height });
+    canvas.getContext('2d').putImageData(new ImageData(reader.compose(drawn, { look: 'negative' }), drawn.width, drawn.height), 0, 0);
+    const files = new DataTransfer();
+    files.items.add(new File([await new Promise((done) => canvas.toBlob(done, 'image/png'))], 'edge.png', { type: 'image/png' }));
+    const input = document.getElementById('photo-file');
+    input.files = files.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await page.locator('.photo__found').waitFor();
   await page.locator('.photo__result button').first().click();
   await page.locator('#strip .strip__photo:not([hidden])').waitFor();
 };
@@ -96,6 +116,8 @@ const STATES = [
   { name: 'a photo’s code used', steps: useSample },
   { name: 'a photo’s code used, back at copying', steps: async (page) => { await useSample(page); await page.locator('#tab-copy').click(); } },
   { name: 'a photo’s code used, back at copying, mirrored', steps: async (page) => { await useSample(page); await page.locator('#tab-copy').click(); await page.locator('#mirror-toggle').click(); } },
+  { name: 'a 7-bar photo’s code used', steps: useSevenBarPhoto },
+  { name: 'a 7-bar photo’s code used, back at copying', steps: async (page) => { await useSevenBarPhoto(page); await page.locator('#tab-copy').click(); } },
   { name: 'the code list: a Part 1 number chosen in the table', steps: (page) => page.locator('.num-chip[data-part1="109"]').click() },
   { name: 'the code list: a manufacturer and a status', steps: async (page) => { await page.locator('#ref-maker').selectOption({ index: 3 }); await page.locator('#ref-status').selectOption('gone'); } },
   { name: 'the code list: nothing matches', steps: async (page) => { await page.locator('#ref-maker').selectOption({ index: 7 }); await page.locator('#ref-status').selectOption('live'); } },
@@ -171,6 +193,7 @@ function look(full) {
     const cell = box('.track--data .cell', strip);
     facts['strip layout'] = `${strip.dataset.format}${strip.classList.contains('is-mirrored') ? ', mirrored' : ''}${scroller.scrollWidth > scroller.clientWidth + 1 ? ', scrolls sideways' : ''}`;
     facts['strip cell'] = cell ? `${round(cell.width)} px` : '(none)';
+    for (const track of ['clock', 'data']) facts[`bars, ${track} track`] = [...strip.querySelectorAll(`.track--${track} .cell`)].map((c) => (c.classList.contains('is-bar') ? '1' : '0')).join('');
     const film = box('.film', strip);
     const canvas = box('.strip__canvas', strip);
     facts['strip wider than its film by'] = film && canvas ? `${round(canvas.width - film.width)} px` : '(none)';
@@ -304,30 +327,59 @@ async function sources(site) {
 
 const same = (a, b) => a.length === b.length && a.every((line, i) => line === b[i]);
 
+/** What turns the lines `from` into `to`: each line taken out or put in, with its number in its own text. */
+function changes(from, to) {
+  // The longest run of lines the two share, by the usual table.
+  const table = Array.from({ length: from.length + 1 }, () => new Uint16Array(to.length + 1));
+  for (let i = from.length - 1; i >= 0; i--) {
+    for (let j = to.length - 1; j >= 0; j--) table[i][j] = from[i] === to[j] ? table[i + 1][j + 1] + 1 : Math.max(table[i + 1][j], table[i][j + 1]);
+  }
+  const out = [];
+  let [i, j] = [0, 0];
+  while (i < from.length || j < to.length) {
+    if (i < from.length && j < to.length && from[i] === to[j]) { i++; j++; }
+    else if (j < to.length && (i === from.length || table[i][j + 1] >= table[i + 1][j])) { out.push(`+${j + 1}\t${to[j]}`); j++; }
+    else { out.push(`-${i + 1}\t${from[i]}`); i++; }
+  }
+  return out;
+}
+
 /**
- * One language's snapshot. Every part is written out once, for the first
- * state on the desktop; another state lists the parts and facts that differ
- * from that one, and another screen those that differ from the desktop's
- * same state.
+ * One language's snapshot. Every part is written out in full once, for the
+ * first state on the desktop. After that a part is left out where it is the
+ * same as in the state it is compared with: on the desktop the first state,
+ * on another screen the desktop's same state. A part that differs is given as
+ * the lines that differ from the nearest of the states it could be compared
+ * with, or in full where that is shorter.
  */
 function pageSnapshot(lang, seen, sourcePages) {
   const lines = [
     `What the page shows in "${lang}", state by state: written by \`npm run check:regressions -- --update\`, never by hand.`,
-    'Every part of the page is given in full once, for the state "empty" on the desktop. Each other state lists',
-    'only the parts and facts that differ from it, and each other screen what differs from the desktop in the same state.',
-    'Lines that start with @ are names and tips for screen readers and pointers.',
+    'Every part of the page is given in full once, for the state "empty" on the desktop. After that, a part that is',
+    'not listed is the same as on the desktop in the same state (for the desktop: as in its state "empty"). A part',
+    'that differs is listed with the state it is nearest to, and the lines that differ: +12 is line 12 of the part as',
+    'it is, -12 is line 12 of the part in that other state. Lines that start with @ are names and tips for screen',
+    'readers and pointers. Facts are listed where they differ in the same way.',
   ];
-  const first = STATES[0].name;
+  const [desktop, first] = [SCREENS[0].name, STATES[0].name];
   for (const screen of SCREENS) {
     for (const state of STATES) {
       const now = seen[screen.name][state.name];
       if (!now) continue;
-      const reference = screen.name === SCREENS[0].name ? (state.name === first ? null : seen[screen.name][first]) : seen[SCREENS[0].name][state.name];
+      // The states to compare with, the one whose parts go unlisted first.
+      const others = [];
+      if (screen.name !== desktop) others.push([`${desktop} / ${state.name}`, seen[desktop][state.name]]);
+      if (state.name !== first) others.push([`${screen.name} / ${first}`, seen[screen.name][first]]);
       const block = [];
       for (const [part, text] of Object.entries(now.parts)) {
-        if (reference && same(text, reference.parts[part])) continue;
-        block.push(`--- ${part}`, ...text);
+        if (!others.length) { block.push(`--- ${part}`, ...text); continue; }
+        if (same(text, others[0][1].parts[part])) continue;
+        const [name, differ] = others.map(([other, saw]) => [other, changes(saw.parts[part], text)]).sort((x, y) => x[1].length - y[1].length)[0];
+        if (!differ.length) block.push(`--- ${part}: as in "${name}"`);
+        else if (differ.length < text.length) block.push(`--- ${part}: as in "${name}", but`, ...differ);
+        else block.push(`--- ${part}`, ...text);
       }
+      const reference = others.length ? others[0][1] : null;
       const facts = Object.entries(now.facts).filter(([name, value]) => !reference || reference.facts[name] !== value);
       const gone = reference ? Object.keys(reference.facts).filter((name) => !(name in now.facts)) : [];
       if (facts.length || gone.length) block.push('--- facts', ...facts.map(([name, value]) => `${name}: ${value}`), ...gone.map((name) => `${name}: (does not apply)`));
@@ -342,24 +394,42 @@ function pageSnapshot(lang, seen, sourcePages) {
 }
 
 /** The lines where two texts first differ, with what follows: enough to see what it is about. */
-function firstDifference(was, now, limit = 30) {
-  const a = was.split('\n');
-  const b = now.split('\n');
-  let start = 0;
-  while (start < a.length && start < b.length && a[start] === b[start]) start++;
-  let end = 0;
-  while (end < a.length - start && end < b.length - start && a[a.length - 1 - end] === b[b.length - 1 - end]) end++;
-  // The heading above, to say where.
-  let heading = start;
-  while (heading > 0 && !a[heading].startsWith('===')) heading--;
-  const out = [`  ${a[heading] || ''}`];
-  const removed = a.slice(start, a.length - end);
-  const added = b.slice(start, b.length - end);
-  for (const line of removed.slice(0, limit)) out.push(`- ${line}`);
-  if (removed.length > limit) out.push(`- … ${removed.length - limit} more lines`);
-  for (const line of added.slice(0, limit)) out.push(`+ ${line}`);
-  if (added.length > limit) out.push(`+ … ${added.length - limit} more lines`);
-  return out.join('\n');
+/** Where a snapshot differs from what it was: under each heading, the lines gone and the new ones. */
+function differences(was, now, limit = 60) {
+  const sections = (text) => {
+    const parts = new Map([['', []]]);
+    let heading = '';
+    for (const line of text.split('\n')) {
+      if (line.startsWith('=== ')) parts.set(heading = line, []);
+      else parts.get(heading).push(line);
+    }
+    return parts;
+  };
+  const [before, after] = [sections(was), sections(now)];
+  const out = [];
+  let [differing, left] = [0, 0];
+  for (const heading of new Set([...before.keys(), ...after.keys()])) {
+    let [a, b] = [before.get(heading) || [], after.get(heading) || []];
+    if (same(a, b)) continue;
+    differing++;
+    // Only the lines between the first and the last that differ: the table of `changes` stays small.
+    let start = 0;
+    while (start < a.length && start < b.length && a[start] === b[start]) start++;
+    let end = 0;
+    while (end < a.length - start && end < b.length - start && a[a.length - 1 - end] === b[b.length - 1 - end]) end++;
+    [a, b] = [a.slice(start, a.length - end), b.slice(start, b.length - end)];
+    const lines = a.length * b.length > 2e7
+      ? [...a.filter((line) => !b.includes(line)).map((line) => `-\t${line}`), ...b.filter((line) => !a.includes(line)).map((line) => `+\t${line}`)]
+      : changes(a, b);
+    if (before.size + after.size > 2) out.push(`  ${heading || '(above the first heading)'}`);
+    for (const line of lines) {
+      if (out.length > limit) { left++; continue; }
+      out.push(`    ${line[0] === '-' ? 'gone:' : 'new: '} ${line.slice(line.indexOf('\t') + 1)}`);
+    }
+  }
+  if (left) out.push(`  … and ${left} more lines`);
+  const headings = Math.max(before.size, after.size) - 1;
+  return `${headings ? `under ${differing} of its ${headings} headings` : `in ${out.length - (left ? 1 : 0) + left} lines`}:\n${out.join('\n')}`;
 }
 
 async function snapshots(site) {
@@ -380,7 +450,9 @@ function siteAt(commit) {
 
 /** What differs between a commit and the working tree, down to every element's box. */
 async function against(commit) {
-  const dir = siteAt(commit);
+  // A folder with a copy of the project made earlier, in place of a commit.
+  const copy = existsSync(join(commit, 'site', 'index.html'));
+  const dir = copy ? commit : siteAt(commit);
   try {
     const [was, now] = [await collect(join(dir, 'site'), { full: true }), await collect(join(ROOT, 'site'), { full: true })];
     let states = 0;
@@ -430,7 +502,7 @@ async function against(commit) {
     }
     console.log(`\nAgainst ${commit}: ${changed} of ${states} page states differ; the lookups ${lookupsDiffer ? 'differ' : 'are the same'}.`);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    if (!copy) rmSync(dir, { recursive: true, force: true });
   }
 }
 
@@ -438,7 +510,7 @@ async function main() {
   const args = process.argv.slice(2);
   const unknown = args.find((arg, i) => !['--update', '--against'].includes(arg) && args[i - 1] !== '--against');
   if (unknown) {
-    console.error(`Unknown option ${unknown}: the options are --update and --against [commit].`);
+    console.error(`Unknown option ${unknown}: the options are --update and --against [commit or folder].`);
     process.exit(1);
   }
   if (args.includes('--against')) {
@@ -463,7 +535,7 @@ async function main() {
     const was = existsSync(file) ? readFileSync(file, 'utf8') : '';
     if (was === text) continue;
     differ++;
-    console.error(`tests/regressions/${name} ${was ? 'differs from what the page gives now' : 'is missing'}:\n${firstDifference(was, text)}\n`);
+    console.error(was ? `tests/regressions/${name} differs from what the ${name === 'lookups.txt' ? 'lookups give' : 'page gives'} now, ${differences(was, text)}\n` : `tests/regressions/${name} is missing.\n`);
   }
   if (differ) {
     console.error('If these changes were meant, accept them with `npm run check:regressions -- --update` and read `git diff tests/regressions` before committing.');

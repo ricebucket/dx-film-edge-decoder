@@ -5,7 +5,6 @@ import { buildIndex } from '../../scripts/lib/dx-index.mjs';
 
 const require = createRequire(import.meta.url);
 const createLookup = require('../../site/js/dx-lookup.js');
-const codec = require('../../site/js/dx-codec.js');
 const realData = require('../../site/js/dx-data.js');
 const realCommunity = require('../../site/js/dx-data-community.js');
 const realIndex = require('../../site/js/dx-index.js');

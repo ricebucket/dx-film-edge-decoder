@@ -997,23 +997,62 @@ h1 {
   display: block;
 }
 
+/* One grid for every row of the strip, in three columns: the number printed
+   before the code (label), the code, and the film after it (tail). Each row
+   spans the grid and hands its columns on to its parts, and each part names
+   the column it stands in: no row lines itself up with the code by rules of
+   its own. Seen from the back of the film the columns change places, here
+   and nowhere else. */
 .strip__canvas {
+  display: grid;
+  grid-template-columns: [label-start] var(--label-w) [label-end code-start] var(--code-w) [code-end tail-start] var(--tail-w) [tail-end];
   width: max-content;
   margin-inline: auto;
 }
 
+.strip.is-mirrored .strip__canvas {
+  grid-template-columns: [tail-start] var(--tail-w) [tail-end code-start] var(--code-w) [code-end label-start] var(--label-w) [label-end];
+}
+
+.strip__photo,
+.ruler,
+.film,
+.film__row,
+.annot {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.strip__photo canvas,
+.ruler__grid,
+.film__code,
+.annot__grid {
+  grid-column: code;
+}
+
+.strip__photo-label,
+.film__label {
+  grid-column: label;
+}
+
+/* The parts of one row stay in it, whichever of their columns comes first. */
+.strip__photo-label,
+.strip__photo canvas,
+.film__label,
+.film__code {
+  grid-row: 1;
+}
+
 /* A photo's barcode, stretched so each cell sits over the strip's matching
-   cell: the label in the edge-label column, the image across the code. */
+   cell: the label in the edge-label column, the image across the code. A
+   mirrored strip has no such row (app.js). */
 .strip__photo {
-  display: flex;
   align-items: center;
   margin-bottom: 8px;
 }
 
 .strip__photo-label {
-  flex: none;
-  box-sizing: border-box;
-  width: var(--label-w);
   padding-right: 10px;
   text-align: right;
   font-size: 0.8rem;
@@ -1028,13 +1067,22 @@ h1 {
   border-radius: 3px;
 }
 
-.strip.is-mirrored .strip__photo canvas {
-  transform: scaleX(-1);
+/* With no room before a 23-cell code, and on a strip that scrolls sideways,
+   "Photo detail" stands above the photo, at its left. */
+.strip[data-format="short"] .strip__photo-label,
+.strip.is-overflowing .strip__photo-label {
+  grid-column: code;
+  padding: 0 0 4px;
+  text-align: left;
+}
+
+.strip[data-format="short"] .strip__photo canvas,
+.strip.is-overflowing .strip__photo canvas {
+  grid-row: 2;
 }
 
 .film {
   position: relative;
-  width: calc(var(--label-w) + var(--code-w) + var(--tail-w));
   /* Film up to 1.7 cells into the perforations (code 5.05 cells + 1.6),
      enough for their rounded corners and the clock bars between them; the
      data track runs along the film edge, so there is no film below it. */
@@ -1091,7 +1139,6 @@ h1 {
 
 .film__row {
   position: relative;
-  display: flex;
 }
 
 .film__code {
@@ -1204,9 +1251,7 @@ h1 {
    an A position is printed smaller, 2.8 cells before the code, over an arrow.
    The next number starts at least 4.3 cells after the code, beyond this view. */
 .film__label {
-  flex: none;
   box-sizing: border-box;
-  width: var(--label-w);
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
@@ -1275,11 +1320,6 @@ h1 {
    only colors and visibility, never a size, a weight, a transform or what is
    laid out: anything else lays out the page and redraws the film's cut-out
    holes on every move of the mouse. */
-.ruler {
-  padding-left: var(--label-w);
-  padding-right: var(--tail-w);
-}
-
 .ruler__grid {
   display: grid;
   grid-template-columns: repeat(var(--cells), var(--cell));
@@ -1349,11 +1389,9 @@ h1 {
   }
 }
 
-/* Seen from the back of the film: everything reverses, print included. */
-.strip.is-mirrored .film__row {
-  flex-direction: row-reverse;
-}
-
+/* Seen from the back of the film: everything reverses, print included. The
+   columns change places in the strip's grid (.strip__canvas); here the cells
+   within the code, the print and the holes. */
 .strip.is-mirrored .track,
 .strip.is-mirrored .ruler__grid,
 .strip.is-mirrored .annot__grid {
@@ -1376,71 +1414,8 @@ h1 {
   mask-position: 0 0, right calc(var(--perfs-left) - var(--cell) * 6.79) bottom var(--perfs-bottom);
 }
 
-.strip.is-mirrored .ruler,
-.strip.is-mirrored .annot {
-  padding-left: var(--tail-w);
-  padding-right: var(--label-w);
-}
-
-/* Mirrored, the room beside the photo is at its right. "Photo detail" stays
-   at the left all the same: above the photo. */
-.strip.is-mirrored .strip__photo {
-  flex-wrap: wrap;
-  padding-left: var(--tail-w);
-  padding-right: var(--label-w);
-}
-
-.strip.is-mirrored .strip__photo-label {
-  width: 0;
-  min-width: 100%;
-  padding: 0 0 4px;
-  text-align: left;
-}
-
-/* The 23-cell photo is wider than the room between its row's paddings (below):
-   mirrored, it starts from the right, to stay over its cells. */
-.strip[data-format="short"].is-mirrored .strip__photo {
-  flex-direction: row-reverse;
-}
-
-/* With no room before a 23-cell code, "Photo detail" goes above the photo. */
-.strip[data-format="short"] .strip__photo {
-  flex-wrap: wrap;
-  padding-inline: var(--label-w);
-}
-
-.strip[data-format="short"] .strip__photo-label {
-  /* As wide as the row, but its text doesn't count toward the row's width:
-     that would widen the strip and, mirrored, move the photo off its cells. */
-  width: 0;
-  min-width: 100%;
-  padding: 0 0 4px;
-  text-align: left;
-}
-
-/* A strip that scrolls sideways: "Photo detail" above the photo, at its left. */
-.strip.is-overflowing .strip__photo {
-  flex-wrap: wrap;
-  padding-left: var(--label-w);
-  padding-right: var(--tail-w);
-}
-
-.strip.is-overflowing.is-mirrored .strip__photo {
-  padding-left: var(--tail-w);
-  padding-right: var(--label-w);
-}
-
-.strip.is-overflowing .strip__photo-label {
-  width: 0;
-  min-width: 100%;
-  padding: 0 0 4px;
-  text-align: left;
-}
-
 /* Field annotations under the strip. */
 .annot {
-  padding-left: var(--label-w);
-  padding-right: var(--tail-w);
   margin-top: 4px;
 }
 

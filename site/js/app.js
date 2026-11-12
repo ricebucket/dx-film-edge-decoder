@@ -32,20 +32,42 @@
 
   const scrollBehavior = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
-  // `loaded`: the code came from a link, an example, a search, a photo or a
-  // correction, and has not been edited by hand since. Only the all-zero
-  // strip needs it: loaded, it is DX 0-0; otherwise nothing is entered yet.
-  // `picked`: the record IDs of the films picked to show the code (a "Show
-  // barcode", say), which the result lists first while their DX number is on
-  // the strip; kept in the URL (&film=) and by Undo.
-  const state = { format: 'long', cells: emptyCells('long'), loaded: false, mirrored: false, look: 'negative', picked: [] };
+  // ---- state -------------------------------------------------------------------------
+  //
+  // Everything the page shows follows from this one object. What changes it
+  // calls `update`, which draws again the parts of the page whose view of it
+  // has changed (PARTS).
+  //
+  //   format, cells   the code on the strip
+  //   loaded          the code came from a link, an example, a search, a photo
+  //                   or a correction, and has not been edited by hand since.
+  //                   Only the all-zero strip needs it: loaded, it is DX 0-0;
+  //                   otherwise nothing is entered yet.
+  //   picked          the record IDs of the films picked to show the code (a
+  //                   "Show barcode", say), which the result lists first
+  //                   while their DX number is on the strip; kept in the URL
+  //                   (&film=) and by Undo
+  //   origin          where the code came from, for the bar above the strip
+  //                   (setOrigin); null for a code copied by hand
+  //   way             the tab that is open: 'copy', the steps for copying by
+  //                   hand, or 'photo', the photo reader
+  //   mirrored, look  how the strip is shown, as chosen; kept between visits
+  const state = { format: 'long', cells: emptyCells('long'), loaded: false, picked: [], origin: null, way: 'copy', mirrored: false, look: 'negative' };
+
+  // What follows from the state: each rule is written here, once.
   const isEmpty = () => !state.loaded && state.cells === emptyCells(state.format);
   // Mirror is for copying by hand. The photo reader turns the photo itself
   // (Flip), so while its tab is open the strip is not mirrored and the button
   // is hidden; the choice made for copying shows again in that tab (setWay).
-  const mirrored = () => state.mirrored && way !== 'photo';
+  const mirrored = () => state.mirrored && state.way !== 'photo';
   // A photo's barcode lines up over the strip only in the layout it was read in.
-  const photoOnStrip = () => Boolean(origin && origin.lined && origin.format === state.format);
+  const photoOnStrip = () => Boolean(state.origin && state.origin.lined && state.origin.format === state.format);
+  // Its row shows while the strip is not mirrored: the photo is as the reader
+  // showed it, and a mirrored strip's cells run the other way.
+  const photoRow = () => (photoOnStrip() && !mirrored() ? state.origin.lined : null);
+  // The strip has changed since its code came from where the bar says.
+  const edited = () => Boolean(state.origin) && (state.origin.format !== state.format || state.origin.cells !== state.cells);
+
   const past = [];
   const future = [];
 
@@ -162,7 +184,7 @@
 
   /** What undo brings back: the code, and where it came from. */
   function snapshot() {
-    return { format: state.format, cells: state.cells, loaded: state.loaded, origin, picked: state.picked };
+    return { format: state.format, cells: state.cells, loaded: state.loaded, origin: state.origin, picked: state.picked };
   }
 
   function record(previous) {
@@ -178,7 +200,7 @@
     state.format = s.format;
     state.cells = s.cells;
     state.loaded = s.loaded;
-    origin = s.origin;
+    state.origin = s.origin;
     state.picked = s.picked;
     update();
   }
@@ -217,68 +239,104 @@
     for (const b of group.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.value === value));
   }
 
-  // What the result shows: the code. The film look and Mirror don't change it,
-  // so the result stays as it is, with any list opened in it.
-  let resultShown = '';
+  // The parts of the page that follow the state. `view` picks what a part
+  // shows of it, as plain values; `draw` is given those values and takes
+  // nothing else from the state, so a part cannot show something it has not
+  // listed. `update` asks every part for its view, and draws the part again
+  // where a value is another than last time.
+  const PARTS = {
+    strip: {
+      view: () => ({ format: state.format, cells: state.cells, look: state.look, mirrored: mirrored(), empty: isEmpty(), photo: photoRow() }),
+      draw: (view, decoded) => strip.render(Object.assign({ decoded }, view)),
+    },
+    // What is chosen in the toolbar, and whether there is anything to undo or redo.
+    toolbar: {
+      view: () => ({ format: state.format, look: state.look, mirrored: mirrored(), mirrorOffered: state.way !== 'photo', canUndo: past.length > 0, canRedo: future.length > 0 }),
+      draw(view) {
+        setPressed(document.querySelector('[data-control="format"]'), view.format);
+        setPressed(document.querySelector('[data-control="look"]'), view.look);
+        $('mirror-toggle').hidden = !view.mirrorOffered;
+        $('mirror-toggle').setAttribute('aria-pressed', String(view.mirrored));
+        // A button named in running text shows what the one it names shows.
+        for (const b of document.querySelectorAll('.inline-button')) b.setAttribute('aria-pressed', $(b.dataset.for).getAttribute('aria-pressed'));
+        // aria-disabled rather than disabled, so keyboard focus stays on the button.
+        $('undo').setAttribute('aria-disabled', String(!view.canUndo));
+        $('redo').setAttribute('aria-disabled', String(!view.canRedo));
+      },
+    },
+    // The two ways in, above the strip: the tab that is open, and what it opens.
+    tabs: {
+      view: () => ({ way: state.way }),
+      draw(view) {
+        for (const tab of document.querySelectorAll('.ways [role="tab"]')) {
+          const on = tab.id === `tab-${view.way}`;
+          tab.setAttribute('aria-selected', String(on));
+          tab.tabIndex = on ? 0 : -1;
+        }
+        $('way-copy').hidden = view.way !== 'copy';
+        $('photo').hidden = view.way !== 'photo';
+      },
+    },
+    // The line under the strip. A live region: written only when its words change, so they are read out once.
+    hint: {
+      view: (decoded) => ({ text: hint(decoded) }),
+      draw(view) {
+        $('hint').textContent = view.text;
+      },
+    },
+    // The bar above the strip: where its code came from, and whether the strip has changed since.
+    source: {
+      view: () => ({ origin: state.origin, edited: edited() }),
+      draw(view) {
+        ui.renderSource($('source'), view.origin, { edited: view.edited, onBack: () => goBack(view.origin.kind), onRemove: removeOrigin });
+      },
+    },
+    // The result: what the code says. The film look and Mirror don't change
+    // it, so it stays as it is, with any list opened in it. It lists first
+    // the films picked to show this code, while their DX number is on the
+    // strip (another frame too), so that it names them, as its one-bar
+    // corrections do for theirs (pickedAt). An empty strip and the all-zero
+    // code have the same cells.
+    result: {
+      view: () => ({ format: state.format, cells: state.cells, empty: isEmpty(), picked: pickKey(state.picked) }),
+      draw(view, decoded) {
+        const result = $('result');
+        const hadFocus = result.contains(document.activeElement);
+        ui.renderResult(result, {
+          decoded,
+          empty: view.empty,
+          lookup,
+          pickedAt,
+          examples: examples(),
+          shareUrl: shareUrl(decoded),
+          onLoadExample: loadExample,
+          onApplyCells: applyCells,
+          onUseShort: useShort,
+        });
+        // A button used in the result (a correction, an example) is gone with
+        // the old result: carry on at the new one's heading.
+        if (hadFocus && !result.contains(document.activeElement)) $('result-title').focus({ preventScroll: true });
+      },
+    },
+  };
 
+  /** Draw again what has changed: called by everything that changes the state. */
   function update(options) {
     // Keyboard focus in the strip or the bar above it, which may be drawn anew.
     const focused = document.activeElement;
     const focusedCell = $('strip').contains(focused) ? focused.dataset.cell : undefined;
     const focusedBar = $('source').contains(focused);
     const decoded = codec.decode(state.cells, state.format);
-    const lined = photoOnStrip() ? origin.lined : null;
-    strip.render(Object.assign({}, state, { mirrored: mirrored(), decoded, empty: isEmpty(), photo: lined }));
+    for (const part of Object.values(PARTS)) {
+      const view = part.view(decoded);
+      if (part.shown && Object.keys(view).every((key) => Object.is(view[key], part.shown[key]))) continue;
+      part.shown = view;
+      part.draw(view, decoded);
+    }
     if (options && options.develop) strip.develop();
-    setPressed(document.querySelector('[data-control="format"]'), state.format);
-    setPressed(document.querySelector('[data-control="look"]'), state.look);
-    $('mirror-toggle').setAttribute('aria-pressed', String(mirrored()));
-    for (const b of document.querySelectorAll('.inline-button')) b.setAttribute('aria-pressed', $(b.dataset.for).getAttribute('aria-pressed'));
-    // aria-disabled rather than disabled, so keyboard focus stays on the button.
-    $('undo').setAttribute('aria-disabled', String(past.length === 0));
-    $('redo').setAttribute('aria-disabled', String(future.length === 0));
-    // A live region: rewritten only when its words change, so they are read out once.
-    const text = hint(decoded);
-    if ($('hint').textContent !== text) $('hint').textContent = text;
-    renderSource();
     // The folded reader says its photo's code is on the strip: once another
     // code (or none) is there, it shows its steps again.
-    if (photo && (!origin || origin.kind !== 'photo')) photo.unfold();
-    // The films picked to show this code, while their DX number is on the
-    // strip (another frame too): the result lists them first, so that it
-    // names them, as its one-bar corrections do for theirs (pickedAt).
-    // An empty strip and the all-zero code have the same cells.
-    const shown = `${state.format}:${state.cells}:${isEmpty()}:${pickKey(state.picked)}`;
-    if (shown !== resultShown) {
-      resultShown = shown;
-      const result = $('result');
-      const hadFocus = result.contains(document.activeElement);
-      ui.renderResult(result, {
-        decoded,
-        empty: isEmpty(),
-        lookup,
-        pickedAt,
-        examples: examples(),
-        shareUrl: shareUrl(decoded),
-        onLoadExample: (ex) => loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label, ids: ex.ids } }),
-        onApplyCells(cells) {
-          record();
-          state.cells = cells;
-          state.loaded = true;
-          update({ develop: true });
-        },
-        onUseShort(cells) {
-          record();
-          state.format = 'short';
-          state.cells = cells;
-          state.loaded = true;
-          update({ develop: true });
-        },
-      });
-      // A button used in the result (a correction, an example) is gone with
-      // the old result: carry on at the new one's heading.
-      if (hadFocus && !result.contains(document.activeElement)) $('result-title').focus({ preventScroll: true });
-    }
+    if (photo && (!state.origin || state.origin.kind !== 'photo')) photo.unfold();
     // The cell or button that had focus went with the old strip or bar: carry on
     // at the same cell, or at the bar's first button (Undo, if the bar went).
     if (focused !== document.body && !document.contains(focused)) {
@@ -290,6 +348,29 @@
     syncUrl(decoded);
   }
 
+  // ---- what the result's buttons do -------------------------------------------------------
+
+  function loadExample(ex) {
+    loadCode(ex.code, { look: ex.look, format: ex.format || 'long', origin: { kind: 'example', label: ex.label, ids: ex.ids } });
+  }
+
+  /** A correction: the same code with one bar changed. */
+  function applyCells(cells) {
+    record();
+    state.cells = cells;
+    state.loaded = true;
+    update({ develop: true });
+  }
+
+  /** The code read as the older 23-cell one. */
+  function useShort(cells) {
+    record();
+    state.format = 'short';
+    state.cells = cells;
+    state.loaded = true;
+    update({ develop: true });
+  }
+
   /** Put a code on the strip (in the current layout unless one is given) and bring the strip into view. */
   function loadCode(code, options) {
     const format = (options && options.format) || state.format;
@@ -298,6 +379,7 @@
     // The films it was picked to show, if any ({ ids } of where it came from).
     const picked = (from && from.ids) || [];
     // The same code from the same place again changes nothing, so there is nothing to undo.
+    const origin = state.origin;
     const same = state.loaded && state.format === format && state.cells === cells && Boolean(origin) && Boolean(from) &&
       origin.kind === from.kind && origin.cells === cells && origin.label === originLabel(from, cells, format) && pickKey(state.picked) === pickKey(picked);
     if (!same) {
@@ -350,7 +432,7 @@
     $('clear').addEventListener('click', () => {
       if (isEmpty()) return;
       record();
-      origin = null;
+      state.origin = null;
       state.picked = [];
       state.cells = emptyCells(state.format);
       state.loaded = false;
@@ -382,7 +464,6 @@
   // time it is opened, or about to be: most visits don't use it.
   let photo = null;
   let photoLoading = null;
-  let way = 'copy';
 
   /**
    * Classic scripts, run in the order given as if they had been in the page
@@ -429,27 +510,16 @@
 
   /** Show the steps for copying by hand, or the photo reader, above the strip. */
   function setWay(next, options) {
-    const was = way;
-    way = next;
-    $('mirror-toggle').hidden = way === 'photo';
-    // A mirrored strip turns as the reader's tab opens or closes (`mirrored`).
-    if (state.mirrored && (was === 'photo') !== (way === 'photo')) {
-      // Back at copying, a strip that carries a photo stays as the reader
-      // showed it: Mirror goes off, until it is chosen again.
-      if (way !== 'photo' && photoOnStrip()) {
-        state.mirrored = false;
-        savePrefs();
-      }
-      update();
+    const leavesReader = state.way === 'photo' && next !== 'photo';
+    state.way = next;
+    // Back at copying, a strip that carries a photo stays as the reader
+    // showed it: Mirror goes off, until it is chosen again.
+    if (leavesReader && state.mirrored && photoOnStrip()) {
+      state.mirrored = false;
+      savePrefs();
     }
-    for (const tab of document.querySelectorAll('.ways [role="tab"]')) {
-      const on = tab.id === `tab-${way}`;
-      tab.setAttribute('aria-selected', String(on));
-      tab.tabIndex = on ? 0 : -1;
-    }
-    $('way-copy').hidden = way !== 'copy';
-    $('photo').hidden = way !== 'photo';
-    if (way === 'photo') {
+    update();
+    if (next === 'photo') {
       // Busy (a spinner) until the reader has loaded the first time; a message
       // that it failed before goes while it tries again.
       if (!photo) {
@@ -458,11 +528,11 @@
       }
       photoReader().then((reader) => {
         $('photo').removeAttribute('aria-busy');
-        if (way === 'photo') reader.open(options);
+        if (state.way === 'photo') reader.open(options);
       }, (err) => {
         $('photo').removeAttribute('aria-busy');
         // An alert, which screen readers read out as it comes: focus stays on the tab.
-        if (way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error', role: 'alert' }, err.outdated ? t('This page is out of date. Reload it.') : t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
+        if (state.way === 'photo') $('photo').replaceChildren(DX.dom.h('p', { class: 'form-message is-error', role: 'alert' }, err.outdated ? t('This page is out of date. Reload it.') : t('The photo reader could not be loaded. Choose “Read a photo” to try again.')));
       });
     } else if (photo) {
       photo.close();
@@ -489,12 +559,11 @@
   // ---- where the code came from ----------------------------------------------------------
 
   // The bar above the strip says where its code came from (ui-source.js):
-  // { kind, label, use, format, cells }, plus the button that showed it, a
-  // photo's thumbnail, its barcode lined up for the strip and what the reader
-  // needs to show it again (kept); null for a code copied by hand.
-  let origin = null;
-  let originUses = 0;
-  let sourceShown = '';
+  // state.origin is { kind, label, format, cells }, plus the button that
+  // showed it, a photo's thumbnail, its barcode lined up for the strip and
+  // what the reader needs to show it again (kept); null for a code copied by
+  // hand. A code from the same place again is a new object: the bar is then
+  // drawn again.
 
   /** Record IDs of picked films (state.picked), as text: '' for none. */
   function pickKey(ids) {
@@ -504,11 +573,11 @@
   /** Note where the code now on the strip came from: { kind, name } or { kind, label }, or nothing. */
   function setOrigin(from) {
     if (!from) {
-      origin = null;
+      state.origin = null;
       return;
     }
     // The films picked go to state.picked, which outlasts the bar (Hide).
-    origin = Object.assign({}, from, { ids: undefined, label: originLabel(from, state.cells, state.format), use: ++originUses, format: state.format, cells: state.cells });
+    state.origin = Object.assign({}, from, { ids: undefined, label: originLabel(from, state.cells, state.format), format: state.format, cells: state.cells });
   }
 
   /** What the bar says a code from `from` is: its label, or its name and frame. */
@@ -521,13 +590,13 @@
   function goBack(kind) {
     if (kind === 'photo') {
       // The photo this code came from, also when the reader has moved on to another.
-      setWay('photo', { focus: true, kept: origin && origin.kind === 'photo' ? origin.kept : null });
+      setWay('photo', { focus: true, kept: state.origin && state.origin.kind === 'photo' ? state.origin.kept : null });
       return;
     }
     // The button that showed the code, while its list still shows it: Find a
     // film may have searched again since, or the cassette helper folded it
     // (where some browsers keep its box, but take no focus there).
-    const used = origin && origin.button;
+    const used = state.origin && state.origin.button;
     if (used && used.isConnected && (used.checkVisibility ? used.checkVisibility() : used.getClientRects().length > 0)) {
       used.focus({ preventScroll: true });
       if (document.activeElement === used) {
@@ -541,28 +610,19 @@
     target.focus({ preventScroll: true });
   }
 
-  function renderSource() {
-    const edited = Boolean(origin) && (origin.format !== state.format || origin.cells !== state.cells);
-    const key = origin ? `${origin.use}:${edited}` : '';
-    if (key === sourceShown) return;
-    sourceShown = key;
-    const kind = origin && origin.kind;
-    ui.renderSource($('source'), origin, {
-      edited,
-      onBack: () => goBack(kind),
-      onRemove() {
-        if (kind === 'photo') photo.forget(origin.kept.picture);
-        // Undo does not bring back what was removed: a photo, in none of its uses.
-        const photoOf = (o) => (o && o.kind === 'photo' ? o.kept.picture : null);
-        const removed = photoOf(origin);
-        for (const s of past.concat(future)) {
-          if (s.origin === origin || (removed && photoOf(s.origin) === removed)) s.origin = null;
-        }
-        origin = null;
-        update();
-        $(`tab-${way}`).focus();
-      },
-    });
+  /** The bar's cross: the strip keeps its code, the page forgets where it came from. */
+  function removeOrigin() {
+    const origin = state.origin;
+    if (origin.kind === 'photo') photo.forget(origin.kept.picture);
+    // Undo does not bring back what was removed: a photo, in none of its uses.
+    const photoOf = (o) => (o && o.kind === 'photo' ? o.kept.picture : null);
+    const removed = photoOf(origin);
+    for (const s of past.concat(future)) {
+      if (s.origin === origin || (removed && photoOf(s.origin) === removed)) s.origin = null;
+    }
+    state.origin = null;
+    update();
+    $(`tab-${state.way}`).focus();
   }
 
   // ---- phones: a shorter top of the page ------------------------------------------------
@@ -635,7 +695,6 @@
     addEventListener('popstate', () => writeUrl());
 
     bindWays();
-    setWay('copy');
 
     // Every "Show" button gives a code with a frame (1, unless Find a film is
     // given another), which only the 31-cell layout has.

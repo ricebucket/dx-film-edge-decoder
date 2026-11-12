@@ -94,11 +94,16 @@ files `npm run build:data` writes share one version: publish them together.
 
    ```sh
    npm run build:data
+   npm run check:regressions -- --update
    npm test
    npm run test:e2e
    ```
 
-   Besides the structure of the data, some tests check the snapshot itself:
+   The second command writes the snapshots in `tests/regressions/` again:
+   they record what the page and the lookups show, which changes with the
+   data. `git diff tests/regressions` then shows what the update changed
+   there. Besides the structure of the data, some tests check the snapshot of
+   the database itself:
    the test of the figures quoted in research/04 fails until step 3 is done,
    and a few tests name particular rows, such as those whose DX extract and
    cassette number differ. A row that changed gets a new `bfd-` ID; `npm test`

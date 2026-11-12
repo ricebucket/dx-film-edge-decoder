@@ -63,24 +63,32 @@ data/                 CSV 格式的胶片数据表，见 data/README.zh-CN.md
 research/             关于格式和数据的研究报告
   img/                报告中的图示
 scripts/              数据提取与构建、图示、截图、
-                      演示视频、语言检查、本地服务器、测试运行器、
-                      部署标记
+                      演示视频、语言检查和回归检查、本地服务器、
+                      测试运行器、部署标记
 tests/unit/           单元测试（node:test）
 tests/e2e/            浏览器和无障碍测试（Playwright、axe-core）
-.github/workflows/    测试、许可证检查和 GitHub Pages 部署
+tests/regressions/    页面和查询所显示内容的快照
+tests/mutants.mjs     故意改坏一处的代码，以及此时必须失败的测试
+.github/workflows/    测试和 GitHub Pages 部署
+tsconfig.json,
+globals.d.ts          `npm run check:types` 的设置
 LICENSES/, REUSE.toml 许可证全文，以及每种许可证适用于哪些文件
 ```
 
 ### 测试
 
 ```sh
-npm test            # 单元测试：编解码器、数据、查询、照片读取、语言、图示、视频写入、@phone 标记、链接、部署标记、样式表
-npm run test:e2e    # 浏览器测试：桌面、Android 手机、iPhone
+npm test                    # 单元测试：编解码器、数据、查询及其快照、照片读取、语言、图示、视频写入、@phone 标记、链接、部署标记、样式表、变异体列表
+npm run test:e2e            # 浏览器测试：桌面、Android 手机、iPhone
+npm run check:regressions   # 把页面与它的快照比较
+npm run test:mutants        # 用改坏一处的代码检验测试
+npm run check:types         # 从未使用的代码、未定义的名称、参数过多的调用
+npm run check:styles        # 没有任何地方用到的样式规则和类名
 ```
 
 浏览器测试在 Chromium 中以桌面屏幕和 Pixel 10 Pro 运行，并在 Safari 的内核 WebKit 中以 iPhone 17 Pro 运行。只想运行其中一种时，加上 `-- --project=desktop`（或 `android`、`iphone`）。浏览器测试还包括用 [axe-core](https://github.com/dequelabs/axe-core) 进行的无障碍检查（它的 WCAG 2.2 A 级和 AA 级规则），覆盖每种语言以及浅色和深色模式。
 
-在 GitHub 上，为了节省时间，浏览器测试分成四个任务同时运行：全部测试都在桌面上运行，分成三份；两种手机只运行标记为 `@phone` 的测试，也就是在手机上表现不同或只在手机上运行的测试。有一项单元测试检查这些标记。在本地机器上，`npm run test:e2e` 会在三种设备上运行全部测试。
+在 GitHub 上，为了节省时间，浏览器测试分成五个任务同时运行：全部测试都在桌面上运行，分成四份；iPhone 只运行标记为 `@phone` 的测试，也就是在手机上表现不同或只在手机上运行的测试。有一项单元测试检查这些标记。Android 手机不在 GitHub 上运行。对整个页面的无障碍检查是耗时最长的测试，在 GitHub 上每种语言只在一种主题下运行：英文在浅色主题下，中文在深色主题下。在本地机器上，`npm run test:e2e` 会在三种设备上运行全部测试，并在每种语言和每种主题下运行这项检查。
 
 单元测试除了 Node 之外不需要别的东西。浏览器测试使用 [Playwright](https://playwright.dev/) 和 axe-core，它们有意**不**作为本项目的依赖。请在本文件夹之外安装一次：可以全局安装（如果全局 npm 文件夹需要，就加上 `sudo`），也可以安装在上级文件夹中，例如主目录：
 
@@ -94,6 +102,12 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 ```
 
 `npm run test:e2e` 能找到这两种安装中的任意一种。如果 Playwright 安装在别处，而且不在上级文件夹中，请把 `PLAYWRIGHT_DIR` 设为包含 `@playwright/test` 的那个 `node_modules` 文件夹。测试产物会存放在系统的临时文件夹中。
+
+`npm run check:regressions` 用来发现并非有意的改动。它在每种语言和三种屏幕尺寸下打开页面的各个主要状态，并把文字和布局与 `tests/regressions/` 中的快照比较。那里还有一份快照，记录每一次搜索、每一个DX码和每一个暗盒编号能找到什么，由 `npm test` 检查。改动是有意的时候，`npm run check:regressions -- --update` 会重新写出快照，`git diff tests/regressions` 则显示有哪些变化。如果一项改动不应该移动任何东西，`npm run check:regressions -- --against` 会把页面与上一次提交比较，精确到每个元素的位置和大小。它同样需要 Playwright，不在 GitHub 上运行。
+
+`npm run test:mutants` 检验的是测试本身。`tests/mutants.mjs` 列出一批变异体：每一个都是故意改坏一处的代码（例如把某项修复重新去掉），旁边写明此时必须失败的测试。这条命令在项目的副本中逐个尝试它们，需要几分钟；如果某个变异体的测试仍然通过，它会报告出来：这项测试已经不再守护它原本要守护的东西。`--` 之后的词按名称挑选变异体（`npm run test:mutants -- mirror`）。每项修复都带有测试，每项测试都带有变异体；代码改动后，如果某个变异体的文字已不在它的文件中，`npm test` 会失败。新增或修改过的浏览器测试，在可以信任之前还要连续运行 20 次：`npm run test:repeat -- -g "测试名称中的词"`。这两条命令都不在 GitHub 上运行。
+
+`npm run check:types` 和 `npm run check:styles` 不运行代码，只读代码，用于在评审之前先检查一遍。前者用 [TypeScript](https://www.typescriptlang.org/) 编译器直接检查现有的 JavaScript（不构建任何东西），报告从未使用或永远执行不到的代码、未定义的名称，以及参数比函数所接受的更多的调用。TypeScript 同样不是本项目的依赖：请在本文件夹之外安装一次，`cd ~ && npm install typescript @types/node`（也可以全局安装，或者把 `TYPESCRIPT_DIR` 设为包含它的那个 `node_modules` 文件夹）。后者不需要安装任何东西：它报告样式表中针对没有任何页面或脚本提到的类名的规则，以及页面和脚本设置了却没有任何地方用到的类名。这两条命令都不在 GitHub 上运行。
 
 ### 胶片数据
 
@@ -133,6 +147,6 @@ npm run media
 
 ## 许可证与来源
 
-代码、测试、脚本和文档是自由软件，采用 [GNU General Public License v3.0](LICENSE) 许可证；页面中 The Big Film Database 的副本和由它生成的索引（`site/js/dx-data-community.js` 和 `site/js/dx-index.js`），以及显示了它的条目的截图和演示视频除外，它们采用 CC BY-SA 4.0 许可证。`tests/unit/zint-vectors.mjs` 中取自 Zint 条码库测试的 11 个位串采用 BSD-3-Clause 许可证。胶片数据有自己的来源和条款，见 [data/README.zh-CN.md](data/README.zh-CN.md)。本项目使用的每一个来源都列在 [research/06](research/06-sources-and-licensing.zh-CN.md) 中。
+代码、测试、脚本和文档是自由软件，采用 [GNU General Public License v3.0](LICENSE) 许可证；页面中 The Big Film Database 的副本和由它生成的索引（`site/js/dx-data-community.js` 和 `site/js/dx-index.js`），以及显示了它的条目的截图、演示视频和快照（`tests/regressions/`）除外，它们采用 CC BY-SA 4.0 许可证。`tests/unit/zint-vectors.mjs` 中取自 Zint 条码库测试的 11 个位串采用 BSD-3-Clause 许可证。胶片数据有自己的来源和条款，见 [data/README.zh-CN.md](data/README.zh-CN.md)。本项目使用的每一个来源都列在 [research/06](research/06-sources-and-licensing.zh-CN.md) 中。
 
-每个文件的许可证还以 [REUSE](https://reuse.software/) 格式记录在 [`REUSE.toml`](REUSE.toml) 中，GitHub 上的测试会检查它。要在本地检查，请安装 REUSE 工具（例如用 `pipx install reuse`），然后运行 `reuse lint`。每个文件只有一种许可证，所以从别处加入的材料需要在其中添加一项；如果它的许可证不同，还要放在单独的文件中。
+每个文件的许可证还以 [REUSE](https://reuse.software/) 格式记录在 [`REUSE.toml`](REUSE.toml) 中。要检查它，请安装 REUSE 工具（例如用 `pipx install reuse`），然后运行 `reuse lint`。每个文件只有一种许可证，所以从别处加入的材料需要在其中添加一项；如果它的许可证不同，还要放在单独的文件中。

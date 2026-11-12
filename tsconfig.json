@@ -1,0 +1,20 @@
+{
+  // Settings for `npm run check:types` (scripts/check-types.mjs), which runs
+  // the TypeScript compiler over the JavaScript as it is. Nothing is built.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "es2023",
+    "module": "nodenext",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": ["node"],
+    "strict": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "skipLibCheck": true
+  },
+  "include": ["globals.d.ts", "site/js", "scripts", "tests", "playwright.config.cjs"]
+}

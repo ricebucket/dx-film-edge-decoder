@@ -210,11 +210,30 @@ test('mirror reverses the strip on screen but not the reading', async ({ page })
   const first = await dataCell(page, 1).boundingBox();
   const last = await dataCell(page, 31).boundingBox();
   expect(first.x).toBeLessThan(last.x);
+  // The rows of the strip against its code: the printed number, the ruler over the film and the labels under it.
+  const rows = () => page.evaluate(() => {
+    const box = (part) => document.querySelector(`#strip ${part}`).getBoundingClientRect();
+    const [code, number, ruler, labels, film] = ['.film__code', '.film__label', '.ruler__grid', '.annot__grid', '.film'].map(box);
+    const near = (a, b) => Math.abs(a - b) < 0.5;
+    return {
+      number: number.right <= code.left + 0.5 ? 'before the code' : number.left >= code.right - 0.5 ? 'after the code' : 'over the code',
+      numberInTheRowOfTheCode: near(number.bottom, code.bottom),
+      rulerOverTheCode: near(ruler.left, code.left) && near(ruler.width, code.width),
+      labelsUnderTheCode: near(labels.left, code.left) && near(labels.width, code.width) && labels.top >= code.bottom,
+      filmBeforeTheCode: Math.round(code.left - film.left),
+      filmAfterTheCode: Math.round(film.right - code.right),
+    };
+  });
+  const front = await rows();
+  expect(front).toMatchObject({ number: 'before the code', numberInTheRowOfTheCode: true, rulerOverTheCode: true, labelsUnderTheCode: true });
+  expect(front.filmBeforeTheCode).toBeGreaterThan(front.filmAfterTheCode);
   await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
   await expect(page.locator('#toolbar').getByRole('button', { name: 'Mirror' })).toHaveAttribute('aria-pressed', 'true');
   const mFirst = await dataCell(page, 1).boundingBox();
   const mLast = await dataCell(page, 31).boundingBox();
   expect(mFirst.x).toBeGreaterThan(mLast.x);
+  // From the back, the number is at the code's other side, and every row is still in its place against the code.
+  expect(await rows()).toEqual({ ...front, number: 'after the code', filmBeforeTheCode: front.filmAfterTheCode, filmAfterTheCode: front.filmBeforeTheCode });
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
 });
 

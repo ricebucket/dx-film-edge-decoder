@@ -81,7 +81,7 @@
         dx: true,
         maker: true,
         explain: true,
-        onShow(f, button) {
+        onShow(_film, button) {
           const frame = readFrame(frameInput, frameHelp);
           if (frame) onShow(Object.assign({ part1: entry.part1, part2: entry.part2 }, frame), { kind: 'finder', name: entry.name, ids: ids || [entry.id], button });
         },
@@ -101,7 +101,6 @@
     let timer = null;
     function run() {
       const q = input.value.trim();
-      const bare = q.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''); // marks around a number are no part of it
       list.replaceChildren();
       shown = 0;
       // The rows' words (names, makers, notes, tags, distributors, countries, years), never their DX or cassette numbers: each has a lookup of its own.
@@ -110,7 +109,7 @@
       if (!q || tooShort) status.textContent = t('Type at least two characters.');
       else if (results.length) status.textContent = i18n.plural(results.length, '{n} film found.', '{n} films found.');
       // A DX number or a cassette number has a lookup of its own, which fewer words won't reach.
-      else if (codec.parseDxNumber(bare) || codec.parseCassette(bare)) status.textContent = t('Nothing matches “{q}”.', { q });
+      else if (lookup.analyze(q).number) status.textContent = t('Nothing matches “{q}”.', { q });
       else status.textContent = t('Nothing matches “{q}”. Try fewer words, or part of the name.', { q });
       showPage();
     }
@@ -157,7 +156,7 @@
     });
 
     host.replaceChildren(
-      h('div', { class: 'finder__search' },
+      h('div', null,
         h('label', { for: 'finder-q', class: 'field-label' }, icon('search'), t('Film name or maker')),
         input,
         h('div', { class: 'finder__frame' },

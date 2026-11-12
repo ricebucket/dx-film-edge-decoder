@@ -6,11 +6,13 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { AxeBuilder } = require('@axe-core/playwright');
 const { watchConsole } = require('./helpers.cjs');
+const { fullScanRuns } = require('./on-github.cjs');
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const LANGUAGES = ['en', ...fs.readdirSync(path.join(__dirname, '..', '..', 'site', 'js', 'i18n'))
   .filter((f) => f.endsWith('.js'))
   .map((f) => f.slice(0, -3))];
+const THEMES = ['light', 'dark'];
 
 /**
  * axe's findings, one line each (rule, element, advice); empty when the page
@@ -37,8 +39,12 @@ test.beforeEach(({ page }) => {
 test.afterEach(() => checkConsole());
 
 for (const lang of LANGUAGES) {
-  for (const colorScheme of ['light', 'dark']) {
+  for (const colorScheme of THEMES) {
     test(`axe finds no WCAG A or AA problems (${lang}, ${colorScheme})`, async ({ page }) => {
+      // The longest tests there are. GitHub runs this one for each language
+      // in one theme, the languages taking the themes in turn; every other
+      // run, all of them (on-github.cjs).
+      test.skip(!fullScanRuns(LANGUAGES, THEMES, lang, colorScheme), 'on GitHub each language has its full scan in one theme');
       // Seven passes of axe, a few seconds each: three times the usual time, so
       // that a busy computer does not stop it halfway.
       test.slow();

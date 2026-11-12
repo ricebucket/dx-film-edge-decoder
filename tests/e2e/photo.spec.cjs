@@ -949,29 +949,31 @@ test('the folded reader shows its steps again once another code, or none, is on 
   await expect(reader).toHaveClass(/\bis-folded\b/);
 });
 
-test("the photo's barcode lines up over the strip's cells, also mirrored, while the layout stays", async ({ page }) => {
+test("the photo's barcode lines up over the strip's cells, while the strip is not mirrored and the layout stays", async ({ page }) => {
   await page.getByRole('button', { name: 'Try a sample' }).click();
   await page.getByRole('button', { name: 'Use this code' }).click();
   const photo = page.locator('#strip .strip__photo canvas');
-  const code = page.locator('#strip .film__code');
-  const [p, c] = [await photo.boundingBox(), await code.boundingBox()];
-  expect(Math.abs(p.x - c.x)).toBeLessThan(1);
-  expect(Math.abs(p.width - c.width)).toBeLessThan(1);
-  // Mirrored, which only the Copy tab offers, the photo turns with the strip, so each cell stays over its own.
+  // Both measured at once: a phone's strip scrolls to its code a moment after it is drawn.
+  const lined = async () => {
+    const [p, c] = await page.evaluate(() => ['.strip__photo canvas', '.film__code'].map((part) => document.querySelector(`#strip ${part}`).getBoundingClientRect().toJSON()));
+    expect(Math.abs(p.x - c.x)).toBeLessThan(1);
+    expect(Math.abs(p.width - c.width)).toBeLessThan(1);
+  };
+  await lined();
+  // Mirrored, which only the Copy tab offers, the strip's cells run the other
+  // way from the photo's: its row goes, the code and the bar stay.
+  const mirror = page.locator('#toolbar').getByRole('button', { name: 'Mirror' });
   await page.locator('#tab-copy').click();
-  await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
-  await expect(photo).toHaveCSS('transform', 'matrix(-1, 0, 0, 1, 0, 0)');
-  const [pm, cm] = [await photo.boundingBox(), await code.boundingBox()];
-  expect(Math.abs(pm.x - cm.x)).toBeLessThan(1);
-  expect(Math.abs(pm.width - cm.width)).toBeLessThan(1);
-  // "Photo detail" stays at the left: above the photo, as the room beside it is now at its right.
-  const words = await page.evaluate(() => {
-    const range = document.createRange();
-    range.selectNodeContents(document.querySelector('#strip .strip__photo-label'));
-    return range.getBoundingClientRect().toJSON();
-  });
-  expect(words.bottom).toBeLessThanOrEqual(pm.y + 0.5);
-  expect(Math.abs(words.left - pm.x)).toBeLessThan(1);
+  await expect(photo).toBeVisible();
+  await mirror.click();
+  await expect(page.locator('#strip .strip')).toHaveClass(/\bis-mirrored\b/);
+  await expect(page.locator('#strip .strip__photo')).toBeHidden();
+  await expect(page.locator('#source')).toContainText('From the photo: DX 96-12, frame 14A');
+  await expect(page.locator('#strip .film__code')).toBeVisible();
+  // Mirror off again: the row is back over its cells.
+  await mirror.click();
+  await expect(photo).toBeVisible();
+  await lined();
   // In the other layout the cells no longer match: the photo goes, the bar stays.
   await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
   await expect(photo).toBeHidden();
@@ -1017,34 +1019,37 @@ test('Mirror is for copying by hand: with the photo reader open it is hidden and
   await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
   await expect(photo).toHaveCSS('transform', 'none');
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('dx-prefs')).mirrored)).toBe(false);
-  // Chosen again there, it turns the strip and the photo with it; the reader's tab and back takes it off again.
+  // Chosen again there, it turns the strip, which then has no photo's row; the reader's tab and back takes it off again.
   await mirror.click();
   await expect(strip).toHaveClass(/\bis-mirrored\b/);
-  await expect(photo).toHaveCSS('transform', 'matrix(-1, 0, 0, 1, 0, 0)');
+  await expect(photo).toBeHidden();
   await reading.click();
   await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
+  await expect(photo).toBeVisible();
   await copying.click();
+  await expect(photo).toBeVisible();
   await expect(mirror).toHaveAttribute('aria-pressed', 'false');
   await expect(strip).not.toHaveClass(/\bis-mirrored\b/);
 });
 
-test("a 7-bar photo's row lines up over the strip too, mirrored or not, and does not widen the strip", async ({ page }, testInfo) => {
+test("a 7-bar photo's row lines up over the strip too, and does not widen the strip", async ({ page }, testInfo) => {
   await upload(page, testInfo, { part1: 79, part2: 7, format: 'short', module: 8, angle: 1 }, { look: 'negative' });
   await page.getByRole('button', { name: 'Use this code' }).click();
   const photo = page.locator('#strip .strip__photo canvas');
-  const code = page.locator('#strip .film__code');
   await expect(photo).toBeVisible();
-  for (const mirrored of [false, true]) {
-    if (mirrored) {
-      await page.locator('#tab-copy').click(); // Mirror is for copying by hand
-      await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
-    }
-    const [p, c] = [await photo.boundingBox(), await code.boundingBox()];
-    expect(Math.abs(p.x - c.x), `mirrored: ${mirrored}`).toBeLessThan(1);
-    expect(Math.abs(p.width - c.width), `mirrored: ${mirrored}`).toBeLessThan(1);
-    const [canvas, film] = await page.evaluate(() => ['.strip__canvas', '.film'].map((s) => document.querySelector(`#strip ${s}`).getBoundingClientRect().width));
-    expect(Math.abs(canvas - film), `mirrored: ${mirrored}`).toBeLessThan(1);
-  }
+  // All measured at once: a phone's strip scrolls to its code a moment after it is drawn.
+  const { p, c, canvas, film, words } = await page.evaluate(() => {
+    const box = (part) => document.querySelector(`#strip ${part}`).getBoundingClientRect().toJSON();
+    const range = document.createRange();
+    range.selectNodeContents(document.querySelector('#strip .strip__photo-label'));
+    return { p: box('.strip__photo canvas'), c: box('.film__code'), canvas: box('.strip__canvas').width, film: box('.film').width, words: range.getBoundingClientRect().toJSON() };
+  });
+  expect(Math.abs(p.x - c.x)).toBeLessThan(1);
+  expect(Math.abs(p.width - c.width)).toBeLessThan(1);
+  expect(Math.abs(canvas - film)).toBeLessThan(1);
+  // With no room before a 23-cell code, "Photo detail" stands above the photo, at its left.
+  expect(words.bottom).toBeLessThanOrEqual(p.y + 0.5);
+  expect(Math.abs(words.left - p.x)).toBeLessThan(1);
 });
 
 test('on a strip that scrolls sideways, "Photo detail" stands above the photo, at its left, where it shows whole', { tag: '@phone' }, async ({ page, isMobile }) => {
@@ -1068,29 +1073,20 @@ test('on a strip that scrolls sideways, "Photo detail" stands above the photo, a
     await page.setViewportSize({ width: 390, height: 844 });
   }
   await expect(strip).toHaveClass(/\bis-overflowing\b/);
-  for (const mirrored of [false, true]) {
-    if (mirrored) {
-      await page.locator('#tab-copy').click(); // Mirror is for copying by hand
-      await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
-      await expect(strip).toHaveClass(/\bis-mirrored\b/);
-    }
-    const where = `mirrored: ${mirrored}`;
-    // A phone shows the code's start, and all of the label with it. Mirrored,
-    // the code starts at the right and the label stays at the left.
-    if (isMobile && !mirrored) {
-      await expect.poll(async () => {
-        const { words, view } = await measure();
-        return words.left >= view.left && words.right <= view.right;
-      }, where).toBe(true);
-    }
-    const at = await measure();
-    // Above the photo, at its left edge, mirrored or not.
-    expect(at.words.bottom, where).toBeLessThanOrEqual(at.photo.top + 0.5);
-    expect(Math.abs(at.words.left - at.photo.left), where).toBeLessThan(1);
-    // The photo still over its cells.
-    expect(Math.abs(at.photo.x - at.code.x), where).toBeLessThan(1);
-    expect(Math.abs(at.photo.width - at.code.width), where).toBeLessThan(1);
+  // A phone shows the code's start, and all of the label with it.
+  if (isMobile) {
+    await expect.poll(async () => {
+      const { words, view } = await measure();
+      return words.left >= view.left && words.right <= view.right;
+    }).toBe(true);
   }
+  const at = await measure();
+  // Above the photo, at its left edge.
+  expect(at.words.bottom).toBeLessThanOrEqual(at.photo.top + 0.5);
+  expect(Math.abs(at.words.left - at.photo.left)).toBeLessThan(1);
+  // The photo still over its cells.
+  expect(Math.abs(at.photo.x - at.code.x)).toBeLessThan(1);
+  expect(Math.abs(at.photo.width - at.code.width)).toBeLessThan(1);
   expect(await sideOverflow(page)).toEqual([]);
 });
 

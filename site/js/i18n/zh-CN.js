@@ -651,8 +651,8 @@
       "数据道，31 位条码（23 位条码的第 1–18 位相同，第 19 位为奇偶检验位，第 20–23 位为输出模式）",
     "What it holds":
       "内容",
-    "<span class=\"swatch swatch--fixed\"></span>Start":
-      "<span class=\"swatch swatch--fixed\"></span>输入模式",
+    "<span class=\"swatch\"></span>Start":
+      "<span class=\"swatch\"></span>输入模式",
     "Always <code>101010</code>, under the wide clock mark.":
       "始终为 <code>101010</code>，位于时钟道宽标记的下方。",
     "<span class=\"swatch swatch--part1\"></span>Part 1":
@@ -679,8 +679,8 @@
       "<span class=\"swatch swatch--parity\"></span>奇偶检验位",
     "Set so that cells 7–25 plus this cell hold an even number of bars.":
       "取值使第 7–25 位与本位中的条数合计为偶数。",
-    "<span class=\"swatch swatch--fixed\"></span>Stop":
-      "<span class=\"swatch swatch--fixed\"></span>输出模式",
+    "<span class=\"swatch\"></span>Stop":
+      "<span class=\"swatch\"></span>输出模式",
     "Always <code>0101</code>, under the shorter clock mark.":
       "始终为 <code>0101</code>，位于时钟道较短标记的下方。",
     "The DX number":

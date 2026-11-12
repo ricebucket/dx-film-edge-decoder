@@ -2,10 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { blank } from '../../scripts/lib/js-source.mjs';
 
-// On GitHub, the phones run only the browser tests tagged @phone
+// On GitHub, a phone runs only the browser tests tagged @phone
 // (.github/workflows/tests.yml). A test that works differently on a phone, or
 // runs only there, asks for `isMobile` or `hasTouch`; unless it skips phones,
 // it needs the tag, or GitHub would never run it on one. The check fails
@@ -185,7 +186,12 @@ test('blank() tells a regular expression from a division by the code before it',
   for (const src of ['f(a; isMobile;', 'a); isMobile;']) assert.throws(() => blank(src), /unbalanced parentheses/, src);
 });
 
-test('GitHub runs every browser test on the desktop, in parts, and the @phone tests on every other device the config has', () => {
+// The devices of the config that GitHub does not run, by choice: the Android
+// phone, which is Chromium as the desktop is. Its runs are local only. Any
+// other device the config has, or gets, must run its @phone tests there.
+const LOCAL_ONLY = ['android'];
+
+test('GitHub runs every browser test on the desktop, in parts, and the @phone tests on every other device the config has but those left to local runs', () => {
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const config = readFileSync(join(root, 'playwright.config.cjs'), 'utf8');
   const workflow = readFileSync(join(root, '.github/workflows/tests.yml'), 'utf8');
@@ -195,8 +201,11 @@ test('GitHub runs every browser test on the desktop, in parts, and the @phone te
   const end = closing(code, open);
   assert.ok(open >= 0 && end > open, 'the projects: [ … ] list');
   const projects = [...config.slice(open, end).matchAll(/\bname:\s*(['"`])([\w-]+)\1/g)].map((m) => m[2]);
-  const phones = projects.filter((name) => name !== 'desktop');
-  assert.ok(projects.includes('desktop') && phones.length >= 2, projects.join());
+  for (const name of LOCAL_ONLY) assert.ok(projects.includes(name), `${name} is in the config`);
+  const phones = projects.filter((name) => name !== 'desktop' && !LOCAL_ONLY.includes(name));
+  assert.ok(projects.includes('desktop') && phones.length >= 1, projects.join());
+  // A phone in Safari's engine is among them: the one engine the desktop's runs do not cover.
+  assert.ok(phones.includes('iphone'), phones.join());
   // The jobs' `tests:` lines: on the desktop all, in parts 1/n … n/n; on the phones those tagged @phone.
   const runs = [...workflow.matchAll(/^\s*tests:(.*)$/gm)].map((m) => m[1].trim().split(/\s+/));
   const desktop = runs.filter((r) => r.includes('--project=desktop'));
@@ -225,5 +234,41 @@ test('GitHub runs the unit tests with `npm test`, fails a run on a test.only or 
   // A test.only left in would run alone, and a test that passes only when retried would pass.
   assert.match(config, /\bforbidOnly:\s*Boolean\(process\.env\.CI\)/);
   assert.match(config, /\bfailOnFlakyTests:\s*Boolean\(process\.env\.CI\)/);
-  assert.match(workflow, /^ {4}needs: \[unit, licenses, browser\]\s*$/m);
+  assert.match(workflow, /^ {4}needs: \[unit, browser\]\s*$/m);
+});
+
+test('GitHub leaves out only the second theme of each language\'s full accessibility scan; a run anywhere else leaves out nothing', () => {
+  const { fullScanRuns } = createRequire(import.meta.url)('../e2e/on-github.cjs');
+  const themes = ['light', 'dark'];
+  const pairs = (languages, onGitHub) => languages.flatMap((language) => themes.filter((theme) => fullScanRuns(languages, themes, language, theme, onGitHub)).map((theme) => `${language} ${theme}`));
+  for (const languages of [['en'], ['en', 'zh-CN'], ['en', 'zh-CN', 'de'], ['en', 'zh-CN', 'de', 'ja']]) {
+    // Anywhere else: every language in every theme.
+    assert.deepEqual(pairs(languages, false), languages.flatMap((language) => themes.map((theme) => `${language} ${theme}`)));
+    // On GitHub: every language scanned, and every theme.
+    const run = pairs(languages, true);
+    for (const language of languages) assert.ok(run.some((pair) => pair.startsWith(`${language} `)), `${language} of ${languages}`);
+    for (const theme of themes) assert.ok(run.some((pair) => pair.endsWith(` ${theme}`)), `${theme} of ${languages}`);
+    assert.equal(run.length, Math.max(languages.length, themes.length), String(languages));
+  }
+  assert.deepEqual(pairs(['en', 'zh-CN'], true), ['en light', 'zh-CN dark']);
+  // "On GitHub" is what the workflow's runners say of themselves, as the config reads it too.
+  const saved = process.env.CI;
+  try {
+    process.env.CI = 'true';
+    assert.equal(fullScanRuns(['en', 'zh-CN'], themes, 'en', 'dark'), false);
+    delete process.env.CI;
+    assert.equal(fullScanRuns(['en', 'zh-CN'], themes, 'en', 'dark'), true);
+    process.env.CI = '';
+    assert.equal(fullScanRuns(['en', 'zh-CN'], themes, 'en', 'dark'), true);
+  } finally {
+    if (saved === undefined) delete process.env.CI;
+    else process.env.CI = saved;
+  }
+  // The scan asks it, with the languages and themes it runs in; no other browser test leaves anything out by where it runs.
+  const specs = readdirSync(E2E).filter((file) => FILES.test(file)).map((file) => [file, readFileSync(join(E2E, file), 'utf8')]);
+  assert.deepEqual(specs.filter(([, text]) => /process\.env\.CI|fullScanRuns|on-github/.test(text)).map(([file]) => file), ['a11y.spec.cjs']);
+  const scan = specs.find(([file]) => file === 'a11y.spec.cjs')[1];
+  assert.equal(scan.split('fullScanRuns(').length, 2);
+  assert.match(scan, /test\.skip\(!fullScanRuns\(LANGUAGES, THEMES, lang, colorScheme\), /);
+  assert.doesNotMatch(scan, /process\.env/);
 });

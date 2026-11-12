@@ -4,7 +4,8 @@ const os = require('node:os');
 const path = require('node:path');
 const { defineConfig, devices } = require('@playwright/test');
 
-const PORT = 4173;
+// Another port for a copy of the project that runs at the same time (scripts/run-mutants.mjs).
+const PORT = Number(process.env.E2E_PORT) || 4173;
 
 // A Playwright without one of these phones would run its tests on the desktop
 // browser instead, silently: they came with version 1.62.
@@ -34,7 +35,8 @@ module.exports = defineConfig({
     trace: 'retain-on-failure',
   },
   // Phones in both mobile engines: Chromium (Android) and WebKit (Safari, iPhone).
-  // On GitHub the phones run only the tests tagged @phone (.github/workflows/tests.yml).
+  // On GitHub the iPhone runs only the tests tagged @phone, and the Android
+  // phone is not run (.github/workflows/tests.yml).
   projects: [
     { name: 'desktop', use: { ...device('Desktop Chrome') } },
     { name: 'android', use: { ...device('Pixel 10 Pro') } },

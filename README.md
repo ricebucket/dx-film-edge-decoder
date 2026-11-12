@@ -116,19 +116,27 @@ data/                 film tables as CSV, see data/README.md
 research/             research reports on the format and the data
   img/                their diagrams
 scripts/              data extraction and build, diagrams, screenshots,
-                      demo videos, language check, local server, test runners,
-                      deploy stamp
+                      demo videos, language and regression checks, local
+                      server, test runners, deploy stamp
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
-.github/workflows/    tests, license check and GitHub Pages deployment
+tests/regressions/    snapshots of what the page and the lookups show
+tests/mutants.mjs     the code with one thing broken, and the test that must then fail
+.github/workflows/    tests and GitHub Pages deployment
+tsconfig.json,
+globals.d.ts          settings for `npm run check:types`
 LICENSES/, REUSE.toml license texts, and which files each one covers
 ```
 
 ### Tests
 
 ```sh
-npm test            # unit tests: codec, data, lookups, photo reader, languages, diagrams, video writer, @phone tags, links, deploy stamp, stylesheet
-npm run test:e2e    # browser tests: desktop, Android phone, iPhone
+npm test                    # unit tests: codec, data, lookups and their snapshot, photo reader, languages, diagrams, video writer, @phone tags, links, deploy stamp, stylesheet, mutants list
+npm run test:e2e            # browser tests: desktop, Android phone, iPhone
+npm run check:regressions   # the page against its snapshots
+npm run test:mutants        # the tests against the code with one thing broken
+npm run check:types         # code never used, names not defined, calls with too many arguments
+npm run check:styles        # style rules and classes that nothing uses
 ```
 
 The browser tests run in Chromium on a desktop screen and a Pixel 10 Pro, and
@@ -137,11 +145,14 @@ in WebKit, Safari's engine, on an iPhone 17 Pro. To run just one of them, add
 checks with [axe-core](https://github.com/dequelabs/axe-core) (its WCAG 2.2 A
 and AA rules) in every language, in light and dark mode.
 
-On GitHub, to save time, the browser tests run in four jobs at once: every
-test on the desktop, split three ways, and on the two phones only the tests
-tagged `@phone`, those that work differently on a phone or run only there. A
-unit test checks those tags. On a local machine, `npm run test:e2e` runs
-every test on all three.
+On GitHub, to save time, the browser tests run in five jobs at once: every
+test on the desktop, split four ways, and on the iPhone only the tests tagged
+`@phone`, those that work differently on a phone or run only there. A unit
+test checks those tags. The Android phone is not run there. The full
+accessibility scan of the page, the longest test, runs there for each language
+in one theme: English in the light one, Chinese in the dark one. On a local
+machine, `npm run test:e2e` runs every test on all three, and the scan in
+every language and theme.
 
 The unit tests need nothing beyond Node. The browser tests use
 [Playwright](https://playwright.dev/) and axe-core, which are deliberately
@@ -162,6 +173,40 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 somewhere else, and not in a parent folder, set `PLAYWRIGHT_DIR` to the
 `node_modules` folder that contains `@playwright/test`. Test artifacts go to the
 system's temporary folder.
+
+`npm run check:regressions` looks for changes that were not meant. It opens
+the page in its main states, in every language and on three screen sizes, and
+compares the words and the layout with the snapshots in `tests/regressions/`.
+A snapshot of what every search, DX number and cassette number finds is kept
+there too, and `npm test` checks that one. After a change that was meant,
+`npm run check:regressions -- --update` writes the snapshots again, and
+`git diff tests/regressions` shows what changed. For a change that should move
+nothing, `npm run check:regressions -- --against` compares the page with the
+last commit, down to the place and size of every element. It needs Playwright
+too, and does not run on GitHub.
+
+`npm run test:mutants` checks the tests themselves. `tests/mutants.mjs` lists
+mutants: the code with one thing broken, such as a fix taken out again, each
+beside the test that must then fail. The command tries them in copies of the
+project, in a few minutes, and reports a mutant whose test still passes: that
+test no longer guards what it was written for. Words after `--` choose mutants
+by name (`npm run test:mutants -- mirror`). A fix comes with its test, and the
+test with its mutant; `npm test` fails when the code has moved on and a
+mutant's text is no longer in its file. A new or changed browser test is also
+run 20 times in a row before it is trusted, with
+`npm run test:repeat -- -g "words of its name"`. Neither runs on GitHub.
+
+`npm run check:types` and `npm run check:styles` read the code without running
+it, for a look before a review. The first runs the
+[TypeScript](https://www.typescriptlang.org/) compiler over the JavaScript as
+it is, with nothing built, and reports code that is never used or reached,
+names that are not defined, and calls with more arguments than a function
+takes. TypeScript is not a dependency of this project either: install it once,
+outside this folder, with `cd ~ && npm install typescript @types/node` (or
+globally, or set `TYPESCRIPT_DIR` to the `node_modules` folder that contains
+it). The second needs nothing installed: it reports rules of the stylesheet
+for classes that no page or script names, and classes they set that nothing
+uses. Neither runs on GitHub.
 
 ### Film data
 
@@ -266,8 +311,8 @@ machine, so the Chinese ones need a Chinese font (on Ubuntu, the
 The code, tests, scripts and documentation are free software under the
 [GNU General Public License v3.0](LICENSE), except the page's copy of The Big
 Film Database and the index made from it (`site/js/dx-data-community.js` and
-`site/js/dx-index.js`), and the screenshots and demo videos that show its
-entries, which are under CC BY-SA 4.0. The 11 bit strings in
+`site/js/dx-index.js`), and the screenshots, demo videos and snapshots
+(`tests/regressions/`) that show its entries, which are under CC BY-SA 4.0. The 11 bit strings in
 `tests/unit/zint-vectors.mjs`, taken from the Zint barcode library's tests,
 are under BSD-3-Clause.
 The film data has its own sources and terms, described in
@@ -275,8 +320,7 @@ The film data has its own sources and terms, described in
 in [research/06](research/06-sources-and-licensing.md).
 
 The license of every file is also recorded in [`REUSE.toml`](REUSE.toml), in
-the [REUSE](https://reuse.software/) format, and the tests on GitHub check it.
-To check it locally, install the REUSE tool (for example with
-`pipx install reuse`) and run `reuse lint`. Every file has one license, so
-material added from elsewhere needs an entry there, and a file of its own if its
-license differs.
+the [REUSE](https://reuse.software/) format. To check it, install the REUSE
+tool (for example with `pipx install reuse`) and run `reuse lint`. Every file
+has one license, so material added from elsewhere needs an entry there, and a
+file of its own if its license differs.

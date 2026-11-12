@@ -329,7 +329,7 @@
   }
 
   /** Plain-language explanation for each problem the decoder reports. */
-  function explainIssue(issue, d) {
+  function explainIssue(issue) {
     switch (issue.code) {
       case 'blank':
         return {
@@ -583,7 +583,7 @@
 
     const problems = d.issues.length
       ? h('div', { class: 'problems' }, d.issues.map((issue) => {
-        const { title, text } = explainIssue(issue, d);
+        const { title, text } = explainIssue(issue);
         return h('div', { class: 'problem' }, h('p', { class: 'problem__title' }, title), h('p', null, text));
       }), suggestions(d, ctx))
       : null;
@@ -622,7 +622,7 @@
       problems,
       h('div', { class: 'result__grid' },
         h('div', { class: 'result__main' }, main),
-        h('div', { class: 'result__side' }, side, actions)),
+        h('div', null, side, actions)),
       raw);
   }
 
