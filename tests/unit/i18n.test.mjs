@@ -61,38 +61,61 @@ describe('language layer', () => {
 });
 
 describe('which language a visitor sees', () => {
-  /** A fresh copy of the language layer, loaded as a page with this URL query and saved choice would load it. */
-  function shown(search, stored) {
+  // js/prepaint.js settles it: (the language the address names, the browser's own languages) gives the page's.
+  const { choose } = require('../../site/js/prepaint.js');
+
+  test('the language the URL names wins, in any case, but only if the page has it', () => {
+    assert.equal(choose('zh-CN', ['en-US']), 'zh-CN', 'a link or bookmark names the language');
+    assert.equal(choose('zh-cn', []), 'zh-CN');
+    assert.equal(choose('en', ['zh-CN']), 'en', 'also over the browser\'s own');
+    assert.equal(choose('fr', ['zh-CN']), 'zh-CN', 'unknown: as if the URL named none');
+    assert.equal(choose('fr', ['fr-FR']), 'en');
+  });
+
+  test('else the first of the browser\'s own languages that the page has, by its whole tag or its first part; else English', () => {
+    assert.equal(choose(null, ['zh-CN', 'zh', 'en']), 'zh-CN');
+    assert.equal(choose(null, ['zh']), 'zh-CN');
+    assert.equal(choose(null, ['zh-TW', 'en-US']), 'zh-CN', 'any Chinese gets the page\'s Chinese');
+    assert.equal(choose(null, ['fr-FR', 'zh-Hans-CN', 'en']), 'zh-CN', 'the first one the page has');
+    assert.equal(choose(null, ['en-GB', 'zh-CN']), 'en', 'English first: English');
+    assert.equal(choose(null, ['fr-FR', 'de']), 'en', 'none the page has');
+    assert.equal(choose('', []), 'en');
+    assert.equal(choose(null, undefined), 'en');
+  });
+
+  /** A fresh copy of the language layer, loaded as on a page for which js/prepaint.js settled this language. */
+  function shown(language) {
     const file = require.resolve('../../site/js/i18n.js');
     const cached = require.cache[file];
-    const had = { location: 'location' in globalThis, localStorage: 'localStorage' in globalThis };
-    const before = { location: globalThis.location, localStorage: globalThis.localStorage };
-    globalThis.location = { search };
-    globalThis.localStorage = { getItem: () => stored };
+    const [had, before] = ['DX' in globalThis, globalThis.DX];
+    globalThis.DX = { language };
     delete require.cache[file];
     try {
       const fresh = require(file);
       fresh.register({ code: 'zh-CN', name: '简体中文', strings: {} });
       return fresh.current;
     } finally {
-      for (const key of ['location', 'localStorage']) {
-        if (had[key]) globalThis[key] = before[key];
-        else delete globalThis[key];
-      }
+      if (had) globalThis.DX = before;
+      else delete globalThis.DX;
       require.cache[file] = cached;
     }
   }
 
-  test('the saved choice, or English', () => {
-    assert.equal(shown('', 'zh-CN'), 'zh-CN');
-    assert.equal(shown('', null), 'en');
+  test('the language layer shows the language settled so, and English where none was', () => {
+    assert.equal(shown('zh-CN'), 'zh-CN');
+    assert.equal(shown('en'), 'en');
+    assert.equal(shown(undefined), 'en');
   });
 
-  test('a language in the URL wins, in any case, but only if the page has it', () => {
-    assert.equal(shown('?lang=zh-CN', null), 'zh-CN', 'a link or bookmark names the language');
-    assert.equal(shown('?lang=zh-cn', null), 'zh-CN');
-    assert.equal(shown('?lang=en', 'zh-CN'), 'en');
-    assert.equal(shown('?lang=fr', 'zh-CN'), 'zh-CN', 'unknown: the saved choice stays');
+  test('no script keeps the language in the browser: the item once used for it is only taken out', async () => {
+    const { readdir } = await import('node:fs/promises');
+    const found = [];
+    for (const name of (await readdir(join(ROOT, 'site', 'js'))).filter((f) => f.endsWith('.js'))) {
+      const lines = (await readFile(join(ROOT, 'site', 'js', name), 'utf8')).split('\n');
+      lines.forEach((line, i) => { if (/dx-lang\b|(local|session)Storage[^\n]*lang/i.test(line)) found.push(`${name}:${i + 1}: ${line.trim()}`); });
+    }
+    assert.equal(found.length, 1, found.join('\n'));
+    assert.match(found[0], /^prepaint\.js:\d+: localStorage\.removeItem\('dx-lang'\);$/);
   });
 });
 

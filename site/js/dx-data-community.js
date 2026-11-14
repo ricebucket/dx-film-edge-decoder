@@ -7,9 +7,10 @@
  * licensed under CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/.
  * Changes: kept rows with a DX extract or a cassette number, dropped image
  * names, gave each row a record ID, split "#" search tags from names, removed
- * HTML markup, compacted to arrays, added the build's version and a field
- * for the commit it is published from. This whole file, including the code
- * that loads the data, is under CC BY-SA 4.0.
+ * HTML markup, made no-break spaces plain and dropped repeated or outer
+ * spaces, compacted to arrays, added the build's version and a field for the
+ * commit it is published from. This whole file, including the code that loads
+ * the data, is under CC BY-SA 4.0.
  */
 (function (root) {
   'use strict';

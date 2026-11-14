@@ -16,20 +16,27 @@ test('check:types reports unused and unreached code, undefined names, wrong argu
     "tests/unit/lookup.test.mjs(6,7): error TS6133: 'require' is declared but its value is never read.",
     "tests\\unit\\lookup.test.mjs(8,7): error TS6133: 'codec' is declared but its value is never read.",
     "scripts/x.mjs(3,32): error TS2554: Expected 0-1 arguments, but got 3.",
+    "scripts/x.mjs(1,10): error TS2305: Module '\"./lib/main.mjs\"' has no exported member 'nope'.",
     "scripts/x.mjs(4,1): error TS2304: Cannot find name 'lokup'.",
     "scripts/x.mjs(5,1): error TS7027: Unreachable code detected.",
     "scripts/x.mjs(6,9): error TS1005: ';' expected.",
     "tests/unit/data.test.mjs(172,59): error TS2365: Operator '>=' cannot be applied to types 'string | number' and 'number'.",
     "  Type '{}' is missing the following properties from type 'Location'",
+    // The compiler's own trouble: no file, or the settings.
+    "error TS18003: No inputs were found in config file '/x/tsconfig.json'. Specified 'include' paths were '[\"nothing-here\"]'.",
+    "tsconfig.json(17,27): error TS5023: Unknown compiler option 'noSuchOption'.",
     '',
   ].join('\n');
   assert.deepEqual(reported(output), [
     "site/js/ui-result.js(332,32): 'd' is declared but its value is never read.",
     "tests/unit/lookup.test.mjs(8,7): 'codec' is declared but its value is never read.",
     'scripts/x.mjs(3,32): Expected 0-1 arguments, but got 3.',
+    "scripts/x.mjs(1,10): Module '\"./lib/main.mjs\"' has no exported member 'nope'.",
     "scripts/x.mjs(4,1): Cannot find name 'lokup'.",
     'scripts/x.mjs(5,1): Unreachable code detected.',
     "scripts/x.mjs(6,9): ';' expected.",
+    "No inputs were found in config file '/x/tsconfig.json'. Specified 'include' paths were '[\"nothing-here\"]'.",
+    "tsconfig.json(17,27): Unknown compiler option 'noSuchOption'.",
   ]);
   assert.deepEqual(reported(''), []);
 });

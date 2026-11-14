@@ -186,6 +186,23 @@ test('blank() tells a regular expression from a division by the code before it',
   for (const src of ['f(a; isMobile;', 'a); isMobile;']) assert.throws(() => blank(src), /unbalanced parentheses/, src);
 });
 
+test('the browsers GitHub keeps between runs are kept by the Ubuntu release of the runner too: WebKit is built for one release', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const workflow = readFileSync(join(root, '.github/workflows/tests.yml'), 'utf8');
+  const browser = /^ {2}browser:\n((?: {4}.*\n|\s*\n)*)/m.exec(workflow);
+  assert.ok(browser, 'the browser job');
+  const kept = /^ {6}- uses: actions\/cache@.*\n((?: {8,}.*\n)*)/m.exec(browser[1]);
+  assert.ok(kept, 'the step that keeps the browsers');
+  const key = /^ +key: (.*)$/m.exec(kept[1]);
+  assert.ok(key, 'its key');
+  // The release is read on the runner, in a step before that one …
+  const read = /^ {6}- id: (\w+)\n {8}run: \. \/etc\/os-release && echo "(\w+)=\$VERSION_ID" >> "\$GITHUB_OUTPUT"\n/m.exec(browser[1]);
+  assert.ok(read && read.index < kept.index, 'a step that reads the release, before it');
+  // … and the key names it, beside Playwright's version.
+  assert.ok(key[1].includes(`\${{ steps.${read[1]}.outputs.${read[2]} }}`), key[1]);
+  assert.ok(key[1].includes('${{ env.PLAYWRIGHT }}'), key[1]);
+});
+
 // The devices of the config that GitHub does not run, by choice: the Android
 // phone, which is Chromium as the desktop is. Its runs are local only. Any
 // other device the config has, or gets, must run its @phone tests there.
@@ -235,6 +252,12 @@ test('GitHub runs the unit tests with `npm test`, fails a run on a test.only or 
   assert.match(config, /\bforbidOnly:\s*Boolean\(process\.env\.CI\)/);
   assert.match(config, /\bfailOnFlakyTests:\s*Boolean\(process\.env\.CI\)/);
   assert.match(workflow, /^ {4}needs: \[unit, browser\]\s*$/m);
+  // … and only then: a status function in a condition of the deploy job would run it after a failed job too.
+  const deploy = /^ {2}deploy:\n((?: {4}.*\n|\s*\n)*)/m.exec(workflow);
+  assert.ok(deploy, 'the deploy job');
+  const conditions = [...deploy[1].matchAll(/^\s+(?:- )?if: (.*)$/gm)].map((m) => m[1]);
+  assert.ok(conditions.length > 0, "the deploy job's conditions");
+  for (const condition of conditions) assert.doesNotMatch(condition, /\b(?:always|failure|cancelled|success)\s*\(/);
 });
 
 test('GitHub leaves out only the second theme of each language\'s full accessibility scan; a run anywhere else leaves out nothing', () => {
@@ -271,4 +294,8 @@ test('GitHub leaves out only the second theme of each language\'s full accessibi
   assert.equal(scan.split('fullScanRuns(').length, 2);
   assert.match(scan, /test\.skip\(!fullScanRuns\(LANGUAGES, THEMES, lang, colorScheme\), /);
   assert.doesNotMatch(scan, /process\.env/);
+  // Nor does the config leave any test out there: it asks where it runs for these four settings alone.
+  const config = blank(readFileSync(fileURLToPath(new URL('../../playwright.config.cjs', import.meta.url)), 'utf8'));
+  assert.deepEqual([...config.matchAll(/^\s*(\w+):.*\bprocess\.env\.CI\b/gm)].map((m) => m[1]), ['forbidOnly', 'retries', 'failOnFlakyTests', 'reporter']);
+  assert.equal(config.split('process.env').length - 1, 6, 'process.env in the config: CI four times, E2E_PORT and E2E_OUTPUT_DIR once each');
 });

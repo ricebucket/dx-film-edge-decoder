@@ -270,13 +270,9 @@ async function play(page, { scrollPhoto = true } = {}) {
   await wait(page, HOLD.film);
 }
 
-/** Each language's interface: the language saved as the visitor's choice. */
-async function newContext(browser, lang, size, options) {
-  const context = await browser.newContext(Object.assign({ viewport: size, deviceScaleFactor: 1, colorScheme: 'light' }, options));
-  await context.addInitScript((code) => {
-    try { localStorage.setItem('dx-lang', code); } catch (e) { /* file:// without storage */ }
-  }, lang);
-  return context;
+/** Each language's interface: as in a browser set to that language, which the page follows. */
+function newContext(browser, lang, size, options) {
+  return browser.newContext(Object.assign({ viewport: size, deviceScaleFactor: 1, colorScheme: 'light', locale: lang }, options));
 }
 
 /** A page playing the demo, with its pointer and red boxes. */

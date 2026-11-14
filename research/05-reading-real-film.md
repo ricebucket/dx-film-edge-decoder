@@ -144,7 +144,7 @@ number starts at least 4.3 cells after a code.
   printed numbers are upside down.
 - Machines handle both: the Kodak LIBC reader checks whether the entry and exit
   patterns arrive in the right order, and Fuji's reader in US 5,122,645 reads
-  its buffer backwards when the end pattern comes first.
+  its buffer backward when the end pattern comes first.
 
 ## Negatives and slides
 

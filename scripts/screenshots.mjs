@@ -54,10 +54,9 @@ async function main() {
         colorScheme: 'light',
         reducedMotion: 'reduce',
         deviceScaleFactor: 1,
+        // A browser set to the language, which the page follows.
+        locale: lang,
       });
-      await context.addInitScript((code) => {
-        try { localStorage.setItem('dx-lang', code); } catch (e) { /* file:// without storage */ }
-      }, lang);
       for (const shot of SHOTS) {
         const page = await context.newPage();
         await page.goto(PAGE + shot.query);

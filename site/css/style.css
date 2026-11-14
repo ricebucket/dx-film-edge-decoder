@@ -16,6 +16,11 @@
   --ink-3: #5f6d7a;
   --rule: #cdd6dd;
   --rule-strong: #a7b4bf;
+  /* Two colors worked out from those above and written out, as browsers
+     before 2023 cannot mix colors: the header, --bg at 88%, and the gray
+     tint of a status or tag, --ink-3 at 16%. */
+  --header-bg: rgba(237, 242, 245, 0.88);
+  --tint: rgba(95, 109, 122, 0.16);
   --accent: #0a6f81;
   --accent-strong: #075867;
   --accent-soft: #d7eef2;
@@ -37,12 +42,18 @@
   --film-edge: transparent;
   --film-guide: rgba(43, 26, 20, 0.2);
   --film-hover: rgba(43, 26, 20, 0.42);
+  /* The + in an empty cell: the bars' color at 40%. A bar under the mouse or
+     a finger: 82% of the bars' color over the film's. */
+  --film-plus: rgba(43, 26, 20, 0.4);
+  --film-over-bar: #492819;
 
   /* the cassette drawing: painted metal with bare contact areas, end caps, the
      spool's knob, the velvet the film comes out of (and the knob's slot), the
      printed label; light and shade */
   --cassette-paint: #262b31;
   --cassette-metal: #d9dfe4;
+  --cassette-lip: #b2b7bb;
+  --cassette-lip-top: #40444a;
   --cassette-cap: #30363d;
   --cassette-end: #444c54;
   --cassette-end-ring: #586169;
@@ -88,6 +99,8 @@
     --ink-3: #8d9aa6;
     --rule: #2a3642;
     --rule-strong: #3d4b58;
+    --header-bg: rgba(18, 25, 32, 0.88);
+    --tint: rgba(141, 154, 166, 0.16);
     --accent: #5bbccf;
     --accent-strong: #86cfdd;
     --accent-soft: #163942;
@@ -108,6 +121,8 @@
     --f-fixed: #7d8a96;
     --cassette-paint: #343c45;
     --cassette-metal: #b4bec7;
+    --cassette-lip: #949ca3;
+    --cassette-lip-top: #4c535b;
     --cassette-cap: #424b55;
     --cassette-end: #56606a;
     --cassette-end-ring: #6a7581;
@@ -133,6 +148,8 @@
     --ink-3: #8d9aa6;
     --rule: #2a3642;
     --rule-strong: #3d4b58;
+    --header-bg: rgba(18, 25, 32, 0.88);
+    --tint: rgba(141, 154, 166, 0.16);
     --accent: #5bbccf;
     --accent-strong: #86cfdd;
     --accent-soft: #163942;
@@ -153,6 +170,8 @@
     --f-fixed: #7d8a96;
     --cassette-paint: #343c45;
     --cassette-metal: #b4bec7;
+    --cassette-lip: #949ca3;
+    --cassette-lip-top: #4c535b;
     --cassette-cap: #424b55;
     --cassette-end: #56606a;
     --cassette-end-ring: #6a7581;
@@ -293,7 +312,7 @@ select {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  background: var(--header-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--rule);
 }
@@ -833,14 +852,6 @@ h1 {
   font-size: 0.92rem;
 }
 
-.hint {
-  margin-top: 10px;
-  min-height: 1.55em;
-  font-size: 0.93rem;
-  color: var(--ink-2);
-  text-align: center;
-}
-
 /* ---- the film strip ---------------------------------------------------------------------- */
 
 /* Drawn to scale in cells (one cell = 0.408 mm), from GB/T 9185-2003 and a
@@ -857,7 +868,6 @@ h1 {
   --label-w: calc(var(--cell) * 9.2);
   --tail-w: calc(var(--cell) * 0.8);
   --code-w: calc(var(--cells) * var(--cell));
-  --film-plus: color-mix(in srgb, var(--film-mark) 40%, transparent);
 }
 
 /* The cell size: the largest of 25, 24, 23 and 22 px at which the whole code
@@ -904,6 +914,8 @@ h1 {
   --film-mark: #1f2327;
   --film-guide: rgba(31, 35, 39, 0.2);
   --film-hover: rgba(31, 35, 39, 0.4);
+  --film-plus: rgba(31, 35, 39, 0.4);
+  --film-over-bar: #3d4145;
 }
 
 .strip[data-look="slide"],
@@ -912,6 +924,8 @@ h1 {
   --film-mark: #efe6d0;
   --film-guide: rgba(239, 230, 208, 0.2);
   --film-hover: rgba(239, 230, 208, 0.42);
+  --film-plus: rgba(239, 230, 208, 0.4);
+  --film-over-bar: #c8c1af;
 }
 
 /* The film looks: a small piece of each kind of film, in the strip's own
@@ -997,15 +1011,17 @@ h1 {
   display: block;
 }
 
-/* One grid for every row of the strip, in three columns: the number printed
-   before the code (label), the code, and the film after it (tail). Each row
-   spans the grid and hands its columns on to its parts, and each part names
-   the column it stands in: no row lines itself up with the code by rules of
-   its own. Seen from the back of the film the columns change places, here
-   and nowhere else. */
+/* One grid for every part of the strip, in three columns: the number printed
+   before the code (label), the code, and the film after it (tail). Its rows
+   have names too. Each part names the row and the column it stands in, so
+   that none lines itself up with the code by rules of its own; only the
+   film, one piece of material across all three columns, lays out its own
+   inside (.film__row). Seen from the back of the film the columns change
+   places, here. Plain grid alone: nothing that only newer browsers have. */
 .strip__canvas {
   display: grid;
   grid-template-columns: [label-start] var(--label-w) [label-end code-start] var(--code-w) [code-end tail-start] var(--tail-w) [tail-end];
+  grid-template-rows: [caption-start] auto [caption-end photo-start] auto [photo-end ruler-start] auto [ruler-end film-start] auto [film-end fields-start] auto [fields-end];
   width: max-content;
   margin-inline: auto;
 }
@@ -1014,45 +1030,34 @@ h1 {
   grid-template-columns: [tail-start] var(--tail-w) [tail-end code-start] var(--code-w) [code-end label-start] var(--label-w) [label-end];
 }
 
-.strip__photo,
-.ruler,
-.film,
-.film__row,
-.annot {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-}
-
-.strip__photo canvas,
-.ruler__grid,
-.film__code,
-.annot__grid {
+.ruler {
+  grid-row: ruler;
   grid-column: code;
 }
 
-.strip__photo-label,
-.film__label {
-  grid-column: label;
+.film {
+  grid-row: film;
+  grid-column: 1 / -1;
 }
 
-/* The parts of one row stay in it, whichever of their columns comes first. */
-.strip__photo-label,
-.strip__photo canvas,
-.film__label,
-.film__code {
-  grid-row: 1;
+.annot {
+  grid-row: fields;
+  grid-column: code;
 }
 
 /* A photo's barcode, stretched so each cell sits over the strip's matching
-   cell: the label in the edge-label column, the image across the code. A
-   mirrored strip has no such row (app.js). */
+   cell: the label in the edge-label column, the image across the code. The
+   row is its two parts, each placed in the strip's grid. A mirrored strip has
+   no such row (app.js). */
 .strip__photo {
-  align-items: center;
-  margin-bottom: 8px;
+  display: contents;
 }
 
 .strip__photo-label {
+  grid-row: photo;
+  grid-column: label;
+  align-self: center;
+  margin-bottom: 8px;
   padding-right: 10px;
   text-align: right;
   font-size: 0.8rem;
@@ -1061,9 +1066,12 @@ h1 {
 }
 
 .strip__photo canvas {
+  grid-row: photo;
+  grid-column: code;
   display: block;
   width: var(--code-w);
   height: calc(var(--cell) * 2.6);
+  margin-bottom: 8px;
   border-radius: 3px;
 }
 
@@ -1071,14 +1079,12 @@ h1 {
    "Photo detail" stands above the photo, at its left. */
 .strip[data-format="short"] .strip__photo-label,
 .strip.is-overflowing .strip__photo-label {
+  grid-row: caption;
   grid-column: code;
+  align-self: auto;
+  margin-bottom: 0;
   padding: 0 0 4px;
   text-align: left;
-}
-
-.strip[data-format="short"] .strip__photo canvas,
-.strip.is-overflowing .strip__photo canvas {
-  grid-row: 2;
 }
 
 .film {
@@ -1139,6 +1145,7 @@ h1 {
 
 .film__row {
   position: relative;
+  display: flex;
 }
 
 .film__code {
@@ -1202,7 +1209,7 @@ h1 {
   }
 
   .cell--edit.is-bar:hover {
-    background: color-mix(in srgb, var(--film-mark) 82%, var(--film-base));
+    background: var(--film-over-bar);
   }
 }
 
@@ -1211,7 +1218,7 @@ h1 {
 }
 
 .cell--edit.is-pressing.is-bar {
-  background: color-mix(in srgb, var(--film-mark) 82%, var(--film-base));
+  background: var(--film-over-bar);
 }
 
 .cell--fixed {
@@ -1251,7 +1258,9 @@ h1 {
    an A position is printed smaller, 2.8 cells before the code, over an arrow.
    The next number starts at least 4.3 cells after the code, beyond this view. */
 .film__label {
+  flex: none;
   box-sizing: border-box;
+  width: var(--label-w);
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
@@ -1390,8 +1399,12 @@ h1 {
 }
 
 /* Seen from the back of the film: everything reverses, print included. The
-   columns change places in the strip's grid (.strip__canvas); here the cells
-   within the code, the print and the holes. */
+   columns change places in the strip's grid (.strip__canvas); here the film's
+   own inside, the cells within the code, the print and the holes. */
+.strip.is-mirrored .film__row {
+  flex-direction: row-reverse;
+}
+
 .strip.is-mirrored .track,
 .strip.is-mirrored .ruler__grid,
 .strip.is-mirrored .annot__grid {
@@ -1830,7 +1843,7 @@ h1 {
 /* No outline (that would make it look like the example chips below) and no icon. */
 .status--idle {
   padding-left: 12px;
-  background: color-mix(in srgb, var(--ink-3) 16%, transparent);
+  background: var(--tint);
   color: var(--ink-2);
 }
 
@@ -1867,17 +1880,6 @@ h1 {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
-}
-
-/* "Copy failed: …" may wrap on a phone. */
-.result__actions .tool {
-  white-space: normal;
-}
-
-/* The link to copy by hand when the clipboard can't be used. */
-.copy-field {
-  flex-basis: 100%;
-  min-width: 0;
 }
 
 .examples {
@@ -1929,6 +1931,12 @@ h1 {
 .readout {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--rule);
+}
+
+/* The result's last one has no rule of its own: the rule over "Raw fields" follows it. */
+.result .readout:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .readout dt {
@@ -1990,13 +1998,26 @@ h1 {
   color: var(--ink-2);
 }
 
-/* Where a film comes from: plain gray text, never a tint or an outline, so
-   that it does not read as one of the status pills beside it. */
+/* Where a film comes from, before its name: three letters on a soft gray
+   tint, squarer than the status pills and with no outline, which would read
+   as a button. Their tip is the source's full name. Both boxes are one width,
+   as wide as the wider letters need, so that the names after them start at
+   one place. */
 .source-tag {
   display: inline-block;
+  min-width: 3.2em;
+  margin-right: 8px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--tint);
+  color: var(--ink-2);
   font-size: 0.74rem;
   font-weight: 600;
-  color: var(--ink-3);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-align: center;
+  vertical-align: 1px;
   white-space: nowrap;
 }
 
@@ -2057,7 +2078,7 @@ h1 {
 }
 
 .pill--gone {
-  background: color-mix(in srgb, var(--ink-3) 16%, transparent);
+  background: var(--tint);
   color: var(--ink-2);
 }
 
@@ -2501,8 +2522,8 @@ thead th {
 .cassette-figure__knob { fill: var(--cassette-knob); }
 .cassette-figure__knob-end { fill: var(--cassette-knob-end); }
 .cassette-figure__key { fill: var(--cassette-slot); }
-.cassette-figure__lip { fill: color-mix(in srgb, var(--cassette-metal), #000 18%); }
-.cassette-figure__lip-top { fill: color-mix(in srgb, var(--cassette-paint), #fff 12%); }
+.cassette-figure__lip { fill: var(--cassette-lip); }
+.cassette-figure__lip-top { fill: var(--cassette-lip-top); }
 .cassette-figure__lip-end { fill: var(--cassette-end); }
 .cassette-figure__velvet { fill: url(#cassette-velvet); }
 .cassette-figure__velvet-base { fill: var(--cassette-slot); }
@@ -2627,8 +2648,24 @@ thead th {
 /* The count of the list as filtered keeps its line while nothing is chosen
    and it is empty, so that the list below stays where it is: a line is
    1.55em tall, and 1.7em in Chinese (the page's line heights). */
-.ref-count {
+.ref-count-row {
   min-height: 1.8em;
+  font-size: 0.875rem;
+}
+
+.ref-count {
+  display: inline;
+}
+
+/* Beside the menus while one is chosen: the way back to the whole list. As
+   tall as a menu, with its words level with theirs. Where the menus' row has
+   no room for it, it stands in a row of its own under them, and the list
+   below is that much lower for as long as it shows. */
+.ref-reset {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0;
 }
 
 /* ---- explainer prose --------------------------------------------------------------------- */
@@ -2885,7 +2922,6 @@ thead th {
   .cell--edit::after,
   .toolbar,
   .photo,
-  .result__actions,
   .result .text-button,
   .looks,
   .strip__swipe,
@@ -2910,6 +2946,11 @@ thead th {
 
   .strip__scroller {
     overflow: visible;
+  }
+
+  /* A strip stays on one page: its film and its labels belong together. */
+  .strip {
+    break-inside: avoid;
   }
 
   /* The edge fades are the screen's: a strip that scrolled there prints

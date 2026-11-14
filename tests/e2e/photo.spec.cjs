@@ -77,11 +77,11 @@ test('a code read from a photo picks no film, so the result names the film the r
   await expect(page.locator('.photo__found')).toContainText('DX 96-12, frame 14A: KODAK GOLD 200 Film');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await expect(page.locator('#result-title')).toHaveText('KODAK GOLD 200 Film');
-  await expect(page).toHaveURL(/\?dx=96-12\/14A$/);
+  await expect(page).toHaveURL(/\?dx=96-12\/14A&lang=en$/);
   // Undo brings back the code before, with its pick.
   await page.locator('#undo').click();
   await expect(page.locator('#result-title')).toHaveText('Kodak Gold 200 GB 200-7');
-  await expect(page).toHaveURL(/\?dx=96-12\/1&film=bfd-930$/);
+  await expect(page).toHaveURL(/\?dx=96-12\/1&film=bfd-930&lang=en$/);
 });
 
 test('an uploaded photo of a mirrored slide is read the right way around', async ({ page }, testInfo) => {
@@ -187,7 +187,6 @@ test('a scratched stop bar does not stick to the strip', async ({ page }, testIn
   await expect(page.locator('.photo__notes')).not.toContainText('suggested corrections');
   await page.getByRole('button', { name: 'Use this code' }).click();
   await expect(page.locator('#result .status')).toHaveText('Valid DX code');
-  await expect(page.locator('#hint')).toContainText('Valid code');
   await expect(page.locator('#result-title')).toBeFocused();
 });
 
@@ -283,6 +282,33 @@ test('the keyboard moves a box that starts around the barcode that was read (WCA
   await expect(page.getByRole('button', { name: 'Clear selection' })).toBeHidden();
   await photo.blur();
   await expect(keys).toBeHidden();
+});
+
+test('in a browser that does not know :focus-visible, keyboard focus still shows: the ruler names the cell, and the photo its keys', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Tab needs a keyboard');
+  // Safari before 15.4 and Firefox before 85 run the page, and throw on the selector.
+  await page.addInitScript(() => {
+    const matches = Element.prototype.matches;
+    Element.prototype.matches = function (selector) {
+      if (/:focus-visible/.test(selector)) throw new DOMException(`'${selector}' is not a valid selector`, 'SyntaxError');
+      return matches.call(this, selector);
+    };
+  });
+  await page.goto('/?dx=79-15/23');
+  // Tab from the toolbar's last button into the strip: the ruler names the cell with focus.
+  await page.locator('#clear').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#strip .track--data [data-cell="7"]')).toBeFocused();
+  await expect(page.locator('#strip .ruler__cell.is-here')).toHaveText('7');
+  // Tab to a photo: its line of keys shows before any key is used.
+  await page.getByRole('tab', { name: 'Read a photo' }).click();
+  await page.getByRole('button', { name: 'Try a sample' }).click();
+  await expect(page.locator('.photo__found')).toBeVisible();
+  await page.getByRole('button', { name: 'Read again' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('application', { name: 'Photo of the film edge' })).toBeFocused();
+  await expect(page.locator('#photo-keys')).toBeVisible();
+  // … and no error was thrown on the way (checked after each test).
 });
 
 test('a finger that drifts a little while tapping marks a corner, not a box', async ({ page }, testInfo) => {
@@ -955,9 +981,14 @@ test("the photo's barcode lines up over the strip's cells, while the strip is no
   const photo = page.locator('#strip .strip__photo canvas');
   // Both measured at once: a phone's strip scrolls to its code a moment after it is drawn.
   const lined = async () => {
-    const [p, c] = await page.evaluate(() => ['.strip__photo canvas', '.film__code'].map((part) => document.querySelector(`#strip ${part}`).getBoundingClientRect().toJSON()));
+    const [p, c, ruler, row, cell] = await page.evaluate(() => ['.strip__photo canvas', '.film__code', '.ruler__grid', '.ruler', '.track--data .cell'].map((part) => document.querySelector(`#strip ${part}`).getBoundingClientRect().toJSON()));
     expect(Math.abs(p.x - c.x)).toBeLessThan(1);
     expect(Math.abs(p.width - c.width)).toBeLessThan(1);
+    // … and above the ruler, which stands over the film.
+    expect(p.bottom).toBeLessThanOrEqual(ruler.top + 0.5);
+    // 2.6 cells tall, and 8 px clear of the ruler's row under it.
+    expect(Math.abs(p.height - 2.6 * cell.width)).toBeLessThan(1);
+    expect(Math.abs(row.y - (p.y + p.height) - 8)).toBeLessThan(1);
   };
   await lined();
   // Mirrored, which only the Copy tab offers, the strip's cells run the other
@@ -1061,7 +1092,8 @@ test('on a strip that scrolls sideways, "Photo detail" stands above the photo, a
     const words = document.createRange();
     words.selectNodeContents(document.querySelector('#strip .strip__photo-label'));
     const box = (sel) => document.querySelector(`#strip ${sel}`).getBoundingClientRect().toJSON();
-    return { words: words.getBoundingClientRect().toJSON(), photo: box('.strip__photo canvas'), code: box('.film__code'), view: box('.strip__scroller') };
+    const line = parseFloat(getComputedStyle(document.querySelector('#strip .strip__photo-label')).lineHeight);
+    return { words: words.getBoundingClientRect().toJSON(), label: box('.strip__photo-label'), line, photo: box('.strip__photo canvas'), code: box('.film__code'), view: box('.strip__scroller') };
   });
   if (!isMobile) {
     // A strip that shows whole has room before the code: the label beside the photo.
@@ -1070,6 +1102,8 @@ test('on a strip that scrolls sideways, "Photo detail" stands above the photo, a
     expect(wide.words.right).toBeLessThanOrEqual(wide.photo.left);
     expect(wide.words.top).toBeGreaterThan(wide.photo.top);
     expect(wide.words.bottom).toBeLessThan(wide.photo.bottom);
+    // Level with the photo's middle, not at its top.
+    expect(Math.abs((wide.words.top + wide.words.bottom) / 2 - (wide.photo.top + wide.photo.bottom) / 2)).toBeLessThan(2);
     await page.setViewportSize({ width: 390, height: 844 });
   }
   await expect(strip).toHaveClass(/\bis-overflowing\b/);
@@ -1081,9 +1115,11 @@ test('on a strip that scrolls sideways, "Photo detail" stands above the photo, a
     }).toBe(true);
   }
   const at = await measure();
-  // Above the photo, at its left edge.
+  // Above the photo, at its left edge, with 4 px of room under its line.
   expect(at.words.bottom).toBeLessThanOrEqual(at.photo.top + 0.5);
   expect(Math.abs(at.words.left - at.photo.left)).toBeLessThan(1);
+  expect(Math.abs(at.label.height - at.line - 4)).toBeLessThan(0.5);
+  expect(Math.abs(at.photo.top - at.label.bottom)).toBeLessThan(0.5);
   // The photo still over its cells.
   expect(Math.abs(at.photo.x - at.code.x)).toBeLessThan(1);
   expect(Math.abs(at.photo.width - at.code.width)).toBeLessThan(1);
@@ -1172,24 +1208,57 @@ test('a photo stays in the page: no request carries it, and nothing of it is sto
     if (url.protocol === 'blob:' || url.protocol === 'data:') return;
     sent.push(`${req.method()} ${req.url()}`);
   });
+  // Everything the browser keeps for the site, to compare word for word. The
+  // page's own few words (the film look, Mirror, the theme, the language) are
+  // written only when one of them is chosen, which this test never does: so
+  // every store stays empty from start to end.
+  const kept = () => page.evaluate(async () => {
+    const files = [];
+    try {
+      for await (const name of (await navigator.storage.getDirectory()).keys()) files.push(name);
+    } catch (e) { /* no private file system in this browser */ }
+    return {
+      local: { ...localStorage },
+      session: { ...sessionStorage },
+      cookies: document.cookie,
+      databases: (await indexedDB.databases()).length,
+      caches: (await caches.keys()).length,
+      files,
+      workers: navigator.serviceWorker ? (await navigator.serviceWorker.getRegistrations()).length : 0,
+      history: history.state,
+      windowName: window.name,
+    };
+  });
+  const nothing = { local: {}, session: {}, cookies: '', databases: 0, caches: 0, files: [], workers: 0, history: null, windowName: '' };
+  expect(await kept()).toEqual(nothing);
   const syn = image.synthesize({ part1: 79, part2: 15, frame: 23, module: 8 });
   const file = testInfo.outputPath('private-photo-name.png');
   await writeFile(file, encodePng(image.compose(syn, {}), syn.width, syn.height));
   await page.locator('#photo-file').setInputFiles(file);
   await expect(page.locator('.photo__found')).toBeVisible();
   await page.getByRole('button', { name: 'Use this code' }).click();
+  await expect(page.locator('#source')).toContainText('From the photo');
+  // While the photo is in use, and when the reader shows it again: still nothing.
+  expect(await kept()).toEqual(nothing);
+  await page.locator('#source').getByRole('button', { name: 'Open the photo' }).click();
+  await page.getByRole('button', { name: 'Flip' }).click();
+  await expect(page.locator('.photo__found')).toBeVisible();
+  await page.getByRole('button', { name: 'Use this code' }).click();
+  await page.locator('#undo').click();
+  await page.locator('#source').getByRole('button', { name: 'Open the photo' }).click();
+  await expect(page.getByRole('button', { name: 'Flip' })).toHaveAttribute('aria-pressed', 'false');
+  expect(await kept()).toEqual(nothing);
   await page.getByRole('button', { name: 'Remove the photo' }).click();
   await expect(page.locator('#source')).toBeHidden();
+  expect(await kept()).toEqual(nothing);
+  // Nor is anything sent as the page is left: what a page does then, done here while the test can still see it.
+  await page.evaluate(() => {
+    for (const type of ['pagehide', 'beforeunload', 'unload']) window.dispatchEvent(new Event(type));
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.evaluate(() => new Promise((done) => setTimeout(done, 100)));
   expect(sent).toEqual([]);
-  const kept = await page.evaluate(async () => ({
-    stored: JSON.stringify([{ ...localStorage }, { ...sessionStorage }, document.cookie]),
-    databases: (await indexedDB.databases()).length,
-    caches: (await caches.keys()).length,
-  }));
-  expect(kept.stored).not.toContain('private-photo-name');
-  // Preferences are a few words; a picture would be far longer.
-  expect(kept.stored.length).toBeLessThan(2000);
-  expect([kept.databases, kept.caches]).toEqual([0, 0]);
 });
 
 test('the reader loads only when wanted: its two scripts come with its tab', async ({ page }) => {

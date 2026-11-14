@@ -34,6 +34,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 /** The compiler's messages that are reported, by their numbers. */
 const REPORTED = new Set([
   2304, 2552, // a name that is not defined
+  2305, 2614, 2724, // a name imported from a module that does not export it
   2554, 2555, // a call with the wrong number of arguments
   2300, 2451, // a name declared twice
   2448, 2454, // a variable used before it is declared, or before it has a value
@@ -44,14 +45,23 @@ const REPORTED = new Set([
 /**
  * The lines of the compiler's output worth reporting, as "file(line,col): message".
  * Messages below 2000 are about text that is not JavaScript: always reported.
+ * So is the compiler's own trouble, which leaves the code unchecked or checked
+ * another way: a message with no file (no settings, nothing to check) and any
+ * message about tsconfig.json.
  */
 export function reported(output) {
   const out = [];
   for (const line of output.split('\n')) {
+    const own = /^error TS\d+: (.*)$/.exec(line);
+    if (own) {
+      out.push(own[1]);
+      continue;
+    }
     const m = /^(.+?)\((\d+),(\d+)\): error TS(\d+): (.*)$/.exec(line);
     if (!m) continue;
     const [, file, row, column, code, message] = m;
-    if (Number(code) >= 2000 && !REPORTED.has(Number(code))) continue;
+    const settings = /(^|[\\/])tsconfig\.json$/.test(file);
+    if (!settings && Number(code) >= 2000 && !REPORTED.has(Number(code))) continue;
     // `const require = createRequire(…)`: the compiler reads the calls of it as imports, and so takes the constant for unused.
     if (code === '6133' && message.startsWith("'require' is declared")) continue;
     out.push(`${file.replace(/\\/g, '/')}(${row},${column}): ${message}`);

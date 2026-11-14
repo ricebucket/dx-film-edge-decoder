@@ -78,6 +78,18 @@
     );
   }
 
+  /**
+   * Whether the browser rings this element's focus (:focus-visible). A browser
+   * that does not know the selector throws on it: there every focus is ringed.
+   */
+  function focusVisible(el) {
+    try {
+      return el.matches(':focus-visible');
+    } catch (e) {
+      return true;
+    }
+  }
+
   root.DX = root.DX || {};
-  root.DX.dom = { h, s, append, replace, icon };
+  root.DX.dom = { h, s, append, replace, icon, focusVisible };
 })(globalThis);

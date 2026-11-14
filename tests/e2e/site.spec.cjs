@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { pathToFileURL } = require('node:url');
 const path = require('node:path');
-const { watchConsole, dataCell, setCells, sideOverflow } = require('./helpers.cjs');
+const { watchConsole, dataCell, browserLanguages, setCells, sideOverflow } = require('./helpers.cjs');
 
 test('the page is self-contained: every request stays on the site', async ({ page, baseURL }) => {
   const check = watchConsole(page);
@@ -70,12 +70,10 @@ test('without JavaScript the notice comes first, before the decoder that needs i
   await context.close();
 });
 
-test('on a phone, "Copy failed" and the bar above the strip stay inside the page', async ({ page }) => {
+test('on a phone, the result and the bar above the strip stay inside the page', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto('/?dx=79-15/23');
-  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }));
-  await page.getByRole('button', { name: 'Copy link' }).click();
-  await expect(page.getByRole('button', { name: 'Copy failed: copy the link below' })).toBeVisible();
+  await expect(page.locator('#result .readouts')).toBeVisible();
   expect(await sideOverflow(page)).toEqual([]);
   // The longest "back" button, after a cassette lookup.
   await page.locator('#cassette-code').fill('017563');
@@ -292,29 +290,69 @@ test('only what can be clicked has a ring or a pill-shaped outline', async ({ pa
   expect(await outlinedButNotClickable()).toEqual([]);
 });
 
-test('the source tags are plain gray text, with no tint, outline or teal, which mark what can be selected', async ({ page }) => {
+test('the source tags are gray letters on a gray tint with square corners: no outline, underline or teal, which mark what can be selected', async ({ page }) => {
   // In a result, in Find a film and in the cassette helper.
   await page.goto('/?dx=39-1/1');
   await page.locator('#finder-q').fill('fujicolor 200');
+  // The list comes a moment after the last key and moves what is below it: wait for it before pressing a button there.
+  await expect(page.locator('.finder__item').first()).toBeVisible();
   await page.locator('#cassette-code').fill('106253');
   await page.getByRole('button', { name: 'Look up' }).click();
   for (const where of ['#result', '#finder-ui', '#cassette-ui']) await expect(page.locator(`${where} .source-tag`).first()).toBeVisible();
   for (const colorScheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme });
     const looks = await page.evaluate(() => {
+      // The gray of the page's second ink, and the tint of a status that is no longer current.
       const probe = document.body.appendChild(document.createElement('span'));
-      probe.style.color = 'var(--ink-3)';
+      probe.style.color = 'var(--ink-2)';
       const gray = getComputedStyle(probe).color;
+      probe.className = 'pill pill--gone';
+      const tint = getComputedStyle(probe).backgroundColor;
       probe.remove();
       return [...document.querySelectorAll('.source-tag')].map((el) => {
         const s = getComputedStyle(el);
         const boxed = ['Top', 'Right', 'Bottom', 'Left'].some((side) => parseFloat(s[`border${side}Width`]) > 0 && s[`border${side}Style`] !== 'none');
-        return { tag: el.textContent, plain: s.color === gray && s.backgroundColor === 'rgba(0, 0, 0, 0)' && s.backgroundImage === 'none' && !boxed && s.outlineStyle === 'none' && s.boxShadow === 'none' };
+        const plain = !boxed && s.outlineStyle === 'none' && s.boxShadow === 'none' && s.backgroundImage === 'none' && s.textDecorationLine === 'none';
+        return { tag: el.textContent, gray: s.color === gray && s.backgroundColor === tint && tint !== 'rgba(0, 0, 0, 0)', square: parseFloat(s.borderTopLeftRadius) <= 5, plain };
       });
     });
     expect(looks.length, colorScheme).toBeGreaterThan(10);
-    expect(looks.filter((l) => !l.plain), colorScheme).toEqual([]);
+    expect(looks.filter((l) => !(l.gray && l.square && l.plain)), colorScheme).toEqual([]);
   }
+});
+
+test('the source tags are one width, their letters in the middle, so that the names after them start at one place', async ({ page }) => {
+  // A result and a list of Find a film, each with films of both sources.
+  await page.goto('/?dx=96-12/14A');
+  await expect(page.locator('#result .source-tag').first()).toBeVisible();
+  await page.locator('#finder-q').fill('kodak gold 200');
+  await expect(page.locator('.finder__item').first()).toBeVisible();
+  const tags = await page.evaluate(() => [...document.querySelectorAll('#result .source-tag, #finder-ui .source-tag')].filter((tag) => tag.checkVisibility()).map((tag) => {
+    const box = tag.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(tag);
+    const letters = range.getBoundingClientRect();
+    // The name's first line: a long name goes on below the tag.
+    const name = tag.parentElement.querySelector('.match__name').getClientRects()[0];
+    return {
+      list: tag.closest('#result') ? 'result' : 'Find a film',
+      letters: tag.textContent,
+      width: box.width,
+      // How much more room the letters have on their left than on their right.
+      off: (letters.left - box.left) - (box.right - letters.right),
+      // Where the name starts, from the tag's left edge, and whether it starts on the tag's line.
+      name: name.left - box.left,
+      beside: name.top < box.bottom && name.bottom > box.top,
+    };
+  }));
+  for (const list of ['result', 'Find a film']) {
+    expect([...new Set(tags.filter((tag) => tag.list === list).map((tag) => tag.letters))].sort(), list).toEqual(['BFD', 'I3A']);
+  }
+  const spread = (values) => Math.max(...values) - Math.min(...values);
+  expect(spread(tags.map((tag) => tag.width))).toBeLessThan(0.01);
+  expect(tags.filter((tag) => Math.abs(tag.off) > 0.5)).toEqual([]);
+  expect(tags.filter((tag) => !tag.beside)).toEqual([]);
+  expect(spread(tags.map((tag) => tag.name))).toBeLessThan(0.01);
 });
 
 test('record IDs never show on the page: not in its text, its names for screen readers or its tooltips', async ({ page }) => {
@@ -420,6 +458,27 @@ test('the code list\'s long table is a layer of its own, which changes elsewhere
   expect(await box.evaluate((el) => getComputedStyle(el).isolation)).toBe('isolate');
 });
 
+test('`npm run check:regressions -- --against` sees a part of the page that moves as a whole', async ({ page }) => {
+  const { look, moves } = await import('../../scripts/check-regressions.mjs');
+  await page.goto('/?dx=79-15/23');
+  await expect(page.locator('#reference-ui .assign-table')).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  const before = await page.evaluate(look, true);
+  expect(moves(before, before)).toEqual([]);
+  // What the closed "Raw fields" holds is not shown, so it is none of the result's boxes.
+  expect(before.boxes.result.some((box) => box.startsWith('details.raw '))).toBe(true);
+  expect(before.boxes.result.filter((box) => /^(div\.table-scroll|table\.raw-table|p\.raw__line) /.test(box))).toEqual([]);
+  // More room above the introduction, and above the code list's long table: the parts below move, and nothing inside any part does.
+  await page.addStyleTag({ content: '.intro { margin-top: 30px; } .ref-count-row { margin-bottom: 14px; }' });
+  const after = await page.evaluate(look, true);
+  expect(after.boxes).toEqual(before.boxes);
+  expect(moves(before, after)).toEqual([
+    expect.stringMatching(/^ {2}place on the page: "intro" to "code list: count" \(\d+ parts\) 30 px lower$/),
+    '  place on the page: "code list: products" to "footer" (2 parts) 44 px lower',
+    expect.stringMatching(/^ {2}page size: \d+x\d+ → \d+x\d+$/),
+  ]);
+});
+
 test('printed, the strip keeps its film and bars, fits the page, and the colors are the light ones', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/?dx=79-15/23');
@@ -441,6 +500,9 @@ test('printed, the strip keeps its film and bars, fits the page, and the colors 
   });
   expect(printed.exact).toBe(true);
   expect(printed.width).toBeLessThanOrEqual(700); // A4 or Letter, less the margins
+  // Neither strip (this one, and the drawing in "How it works") is cut in two
+  // where a page ends: its ruler, its film and its labels stay on one page.
+  expect(await page.locator('.strip').evaluateAll((strips) => strips.map((strip) => getComputedStyle(strip).breakInside))).toEqual(['avoid', 'avoid']);
   expect(printed.bg).toBe('#edf2f5');
   expect(printed.looks).toBe('none');
   expect(printed.buttons).toEqual([]);
@@ -536,7 +598,7 @@ test('arrow keys in the language menu only move through it; Enter changes the la
   await menu.focus();
   await page.keyboard.press('ArrowDown');
   await page.waitForTimeout(300);
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/\?lang=en$/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await Promise.all([page.waitForEvent('load'), page.keyboard.press('Enter')]);
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
@@ -574,10 +636,7 @@ test('a page brought back by Back takes the theme chosen since on another page, 
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   // Left for the sources page, where dark and English are chosen; then back from the browser's cache.
   await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })));
-  await page.evaluate(() => {
-    localStorage.setItem('dx-theme', 'dark');
-    localStorage.setItem('dx-lang', 'en');
-  });
+  await page.evaluate(() => localStorage.setItem('dx-theme', 'dark'));
   await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.waitForTimeout(500); // a language change would reload the page by now
@@ -599,17 +658,18 @@ test('a page loaded again by Back shows the language its address names, even if 
   await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
 });
 
-test('a page loaded again by Back whose address names no language shows the one saved, and its menu says so', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+test('a page opened by an address that names no language puts the one it shows there, so Back shows it in that language again, and its menu says so', async ({ page }) => {
+  await browserLanguages(page, ['zh-CN', 'zh', 'en']);
   await page.goto('/?dx=79-15/23');
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await page.goto('/sources.zh-CN.html');
   await Promise.all([page.waitForURL(/\/sources\.html$/), page.getByLabel('语言').selectOption('en')]);
   await page.goBack();
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  // Not the choice the browser kept from before.
-  await expect(page.getByLabel('Language')).toHaveValue('en');
+  // As its address says, not the language chosen since, and not the menu choice the browser kept from before.
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
+  await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
 });
 
 test('Back from a language chosen on the page itself shows the earlier page in the language its address names', async ({ page }) => {

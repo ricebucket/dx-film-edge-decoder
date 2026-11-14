@@ -137,28 +137,21 @@
     });
   }
 
-  /** What "Copy link" copies: the code, and the language it is shown in. */
-  function shareUrl(decoded) {
-    const query = stateQuery(decoded);
-    return `${location.href.split(/[?#]/)[0]}${query ? `${query}&` : '?'}lang=${encodeURIComponent(i18n.current)}`;
-  }
-
   // The URL follows every edit at once, so a reload or bookmark gets the latest
   // code. Browsers limit how often a page may rewrite it (Safari: 100 times in
   // 10 s), so past 50 rewrites in 10 s (holding Ctrl+Z, say) it changes at most
-  // every 250 ms, always ending with the latest state. A language in the URL
-  // (?lang=) stays while it is the one shown.
-  const rewrites = []; // performance.now() of recent rewrites; unlike Date.now(), never moves backwards
+  // every 250 ms, always ending with the latest state. The URL always names
+  // the language shown as well (lang=), whether or not a link or the menu
+  // chose it: copied from the address bar, it opens the same page elsewhere,
+  // whatever language that browser is set to.
+  const rewrites = []; // performance.now() of recent rewrites; unlike Date.now(), never moves backward
   let urlQuery = '';
   let urlTimer = null;
 
   function writeUrl() {
     clearTimeout(urlTimer);
     urlTimer = null;
-    const lang = new URLSearchParams(location.search).get('lang');
-    const query = lang && lang.toLowerCase() === i18n.current.toLowerCase()
-      ? `${urlQuery ? `${urlQuery}&` : '?'}lang=${encodeURIComponent(i18n.current)}`
-      : urlQuery;
+    const query = `${urlQuery ? `${urlQuery}&` : '?'}lang=${encodeURIComponent(i18n.current)}`;
     const url = location.pathname + query + location.hash;
     if (url === location.pathname + location.search + location.hash) return;
     rewrites.push(performance.now());
@@ -221,20 +214,6 @@
     },
   });
 
-  function hint(d) {
-    if (isEmpty()) {
-      return t('Start at cell 7, right after the fixed start pattern.');
-    }
-    const problem = d.issues[0];
-    if (problem && problem.code === 'blank') return t('Cell {cell} should always be empty.', { cell: problem.cell });
-    if (problem && problem.code === 'parity') return t('The parity check fails: one bar is probably misread. See the suggestions below.');
-    if (problem) return t('Not a valid code yet: see below.');
-    if (d.part1 === 0) return t('Part 1 is 0. This is unlikely.');
-    if (d.frame === null) return t('Valid code. No frame number present.');
-    if (codec.shortCodeInLong(state.cells)) return t('Valid code, unless the film’s top row has only 7 thin bars: see below.');
-    return t('Valid code. Frame {frame}.', { frame: d.frameLabel });
-  }
-
   function setPressed(group, value) {
     for (const b of group.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.value === value));
   }
@@ -277,13 +256,6 @@
         $('photo').hidden = view.way !== 'photo';
       },
     },
-    // The line under the strip. A live region: written only when its words change, so they are read out once.
-    hint: {
-      view: (decoded) => ({ text: hint(decoded) }),
-      draw(view) {
-        $('hint').textContent = view.text;
-      },
-    },
     // The bar above the strip: where its code came from, and whether the strip has changed since.
     source: {
       view: () => ({ origin: state.origin, edited: edited() }),
@@ -308,7 +280,6 @@
           lookup,
           pickedAt,
           examples: examples(),
-          shareUrl: shareUrl(decoded),
           onLoadExample: loadExample,
           onApplyCells: applyCells,
           onUseShort: useShort,
@@ -328,7 +299,7 @@
     const focusedBar = $('source').contains(focused);
     const decoded = codec.decode(state.cells, state.format);
     for (const part of Object.values(PARTS)) {
-      const view = part.view(decoded);
+      const view = part.view();
       if (part.shown && Object.keys(view).every((key) => Object.is(view[key], part.shown[key]))) continue;
       part.shown = view;
       part.draw(view, decoded);

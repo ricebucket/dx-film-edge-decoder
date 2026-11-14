@@ -48,8 +48,9 @@ the upstream `film_database.csv`:
    database has none.
 
 When building `site/js/dx-data-community.js`, HTML markup is removed from text
-fields, `#` search tags are split off the names, and the rows are compacted to
-arrays.
+fields, no-break spaces become plain spaces, repeated spaces become one and
+spaces at the ends of a field are dropped, `#` search tags are split off the
+names, and the rows are compacted to arrays.
 
 | Column | Meaning |
 |---|---|
@@ -97,12 +98,15 @@ files `npm run build:data` writes share one version: publish them together.
    npm run check:regressions -- --update
    npm test
    npm run test:e2e
+   npm run check:regressions
    ```
 
    The second command writes the snapshots in `tests/regressions/` again:
    they record what the page and the lookups show, which changes with the
    data. `git diff tests/regressions` then shows what the update changed
-   there. Besides the structure of the data, some tests check the snapshot of
+   there. The last command checks the snapshots once more: a correction made
+   for the tests, such as an example's ID, can change what the page shows.
+   Besides the structure of the data, some tests check the snapshot of
    the database itself:
    the test of the figures quoted in research/04 fails until step 3 is done,
    and a few tests name particular rows, such as those whose DX extract and

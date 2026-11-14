@@ -7,14 +7,15 @@ const app = readFileSync(new URL('../../site/js/app.js', import.meta.url), 'utf8
 // The parts of the page (PARTS in site/js/app.js) are drawn again when their
 // view of the state changes. A part that read the state anywhere else would
 // show something it does not list, and miss its changes: the bug this
-// structure is there to prevent.
+// structure is there to prevent. The test sees direct reads only: a helper
+// that reads the state, called while a part draws, passes unseen.
 test('each part of the page reads the state only in its `view`, which is what decides when it is drawn again', () => {
   const start = app.indexOf('  const PARTS = {\n');
   const end = app.indexOf('\n  };\n', start);
   assert.ok(start > 0 && end > start, 'PARTS not found in site/js/app.js');
   const lines = app.slice(start, end).split('\n');
   const parts = lines.filter((line) => /^ {4}\w+: \{$/.test(line)).map((line) => line.trim().split(':')[0]);
-  assert.deepEqual(parts, ['strip', 'toolbar', 'tabs', 'hint', 'source', 'result']);
+  assert.deepEqual(parts, ['strip', 'toolbar', 'tabs', 'source', 'result']);
   // One `view` and one `draw` each; the state is named on the lines of the views alone.
   assert.equal(lines.filter((line) => /^ {6}view: /.test(line)).length, parts.length);
   assert.equal(lines.filter((line) => /^ {6}draw[:(]/.test(line)).length, parts.length);

@@ -19,11 +19,13 @@
  * too; in both cases the key is the English text with runs of white space
  * collapsed.
  *
- * Choosing a language saves it in localStorage and reloads the page with the
- * language in the URL (?lang=zh-CN), so links and bookmarks open in it too. A
- * language in the URL wins over the saved one without replacing it. The reload
- * keeps the code on the strip (it is in the URL as well) and the other
- * preferences.
+ * Which language a page is shown in is settled by js/prepaint.js before first
+ * paint: the one its URL names (?lang=zh-CN), else the browser's own, else
+ * English. Choosing a language reloads the page with that language in the
+ * URL, so links and bookmarks open in it too; nothing is saved in the
+ * browser. The reload keeps the code on the strip (it is in the URL as well)
+ * and the preferences. The decoder page keeps the language it shows in its
+ * URL, also when none was chosen (js/app.js).
  */
 (function (root, factory) {
   'use strict';
@@ -41,8 +43,6 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const STORAGE_KEY = 'dx-lang';
-
   const ENGLISH = {
     code: 'en',
     name: 'English',
@@ -53,28 +53,11 @@
   const languages = [ENGLISH];
   let current = ENGLISH;
 
-  function saved() {
-    try {
-      return typeof localStorage === 'undefined' ? null : localStorage.getItem(STORAGE_KEY);
-    } catch (e) {
-      return null; // storage unavailable: English
-    }
-  }
-
-  /** The language named in the URL (?lang=), if any. */
-  function inUrl() {
-    try {
-      return typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('lang');
-    } catch (e) {
-      return null;
-    }
-  }
-  // The URL's language wins over the saved one, but only if the page has it,
-  // so a wrong ?lang= falls back to the saved choice. Case does not matter.
-  const fromUrl = inUrl();
-  const fromStorage = saved();
-  const same = (a, b) => Boolean(a && b) && a.toLowerCase() === b.toLowerCase();
-  const rank = (code) => (same(code, fromUrl) ? 2 : same(code, fromStorage) ? 1 : 0);
+  /**
+   * The language the page is to be shown in, as js/prepaint.js settled it
+   * (DX.language); without that script, as in Node, English.
+   */
+  const chosen = () => (typeof globalThis !== 'undefined' && globalThis.DX && globalThis.DX.language) || ENGLISH.code;
 
   /** Called by each file in js/i18n/. */
   function register(lang) {
@@ -83,7 +66,7 @@
     // A page already shown keeps its language: a file that comes after the
     // visitor chose English while waiting (js/prepaint.js) is only listed.
     const page = typeof document !== 'undefined' ? document : null;
-    if ((page && !page.documentElement.hasAttribute('data-i18n-pending')) || rank(lang.code) <= rank(current.code)) return;
+    if ((page && !page.documentElement.hasAttribute('data-i18n-pending')) || lang.code !== chosen()) return;
     current = lang;
     // The page gets this text as soon as it is parsed, without waiting for its other scripts.
     if (page && page.readyState !== 'loading') applyLanguage(page);
@@ -199,19 +182,16 @@
     doc.documentElement.removeAttribute('data-i18n-pending');
   }
 
-  /** Switch the current language without saving or reloading (scripts and tests). */
+  /** Switch the current language without reloading (scripts and tests). */
   function use(code) {
     const lang = languages.find((l) => l.code === code);
     if (lang) current = lang;
     return Boolean(lang);
   }
 
-  /** Save a choice and reload the page in that language, named in the URL. */
+  /** Reload the page in the language chosen, named in the URL: the URL alone keeps the choice. */
   function select(code) {
     if (code === current.code || !available().some((l) => l.code === code)) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, code);
-    } catch (e) { /* storage blocked: the URL alone keeps the choice */ }
     // The query built by hand (URLSearchParams would escape the "/" in
     // ?dx=79-15/23), on the page's own address, so it can't lead elsewhere.
     const others = location.search.slice(1).split('&').filter((p) => p && !/^lang=/i.test(p));

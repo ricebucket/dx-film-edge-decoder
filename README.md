@@ -35,9 +35,9 @@ server. It also works when `site/index.html` is opened straight from disk.
   and browse the **2008 DX code list**. A code shown from any of them says
   above the strip where it came from, with a way back.
 - Undo and redo, shareable links such as `?dx=79-15/23`, light and dark themes,
-  English or Simplified Chinese (from the language menu at the top, or in a
-  link with `?lang=en` or `?lang=zh-CN`), and keyboard and screen-reader
-  support.
+  English or Simplified Chinese (the browser's language at first; changed
+  from the language menu at the top, or by a link with `?lang=en` or
+  `?lang=zh-CN`), and keyboard and screen-reader support.
 
 ## How to use it
 
@@ -102,6 +102,8 @@ The web page is plain HTML, CSS and JavaScript with no dependencies and no
 build step: open `site/index.html`, or run `npm start` and visit
 <http://localhost:8080>. The scripts and tests need
 [Node.js](https://nodejs.org/) 22 or later.
+[DEVELOPING.md](DEVELOPING.md) lists the steps for a change, before a push
+and after it.
 
 ```
 site/                 the web pages (deployed with the commit stamped in)
@@ -116,8 +118,8 @@ data/                 film tables as CSV, see data/README.md
 research/             research reports on the format and the data
   img/                their diagrams
 scripts/              data extraction and build, diagrams, screenshots,
-                      demo videos, language and regression checks, local
-                      server, test runners, deploy stamp
+                      demo videos, language, regression, type and style
+                      checks, local server, test runners, deploy stamp
 tests/unit/           unit tests (node:test)
 tests/e2e/            browser and accessibility tests (Playwright, axe-core)
 tests/regressions/    snapshots of what the page and the lookups show
@@ -126,17 +128,19 @@ tests/mutants.mjs     the code with one thing broken, and the test that must the
 tsconfig.json,
 globals.d.ts          settings for `npm run check:types`
 LICENSES/, REUSE.toml license texts, and which files each one covers
+DEVELOPING.md         the steps for a change, before a push and after it
 ```
 
 ### Tests
 
 ```sh
-npm test                    # unit tests: codec, data, lookups and their snapshot, photo reader, languages, diagrams, video writer, @phone tags, links, deploy stamp, stylesheet, mutants list
+npm test                    # unit tests (they need no browser)
 npm run test:e2e            # browser tests: desktop, Android phone, iPhone
 npm run check:regressions   # the page against its snapshots
 npm run test:mutants        # the tests against the code with one thing broken
 npm run check:types         # code never used, names not defined, calls with too many arguments
 npm run check:styles        # style rules and classes that nothing uses
+npm run before-push         # all of these in turn, then the pictures and videos: the steps before a push
 ```
 
 The browser tests run in Chromium on a desktop screen and a Pixel 10 Pro, and
@@ -176,9 +180,9 @@ system's temporary folder.
 
 `npm run check:regressions` looks for changes that were not meant. It opens
 the page in its main states, in every language and on three screen sizes, and
-compares the words and the layout with the snapshots in `tests/regressions/`.
-A snapshot of what every search, DX number and cassette number finds is kept
-there too, and `npm test` checks that one. After a change that was meant,
+compares what it shows with the snapshots in `tests/regressions/`. A snapshot
+of what the lookups find is kept there too, and `npm test` checks that one.
+After a change that was meant,
 `npm run check:regressions -- --update` writes the snapshots again, and
 `git diff tests/regressions` shows what changed. For a change that should move
 nothing, `npm run check:regressions -- --against` compares the page with the
@@ -216,14 +220,17 @@ change.
 
 ### Languages
 
-The pages come in English and Simplified Chinese; visitors choose the language
-from the menu at the top. The decoder page (`site/index.html`) and the code
-hold the English text, and every other language is one file in
-`site/js/i18n/` that gives, for every English text, the text in that
-language; the decoder page loads only the file of the language it is shown
-in, and waits for it. If the file hasn't come after 3 seconds, the page says
-so in that language, with a button to show itself in English. The sources page
-is written once per language instead: `site/sources.html` in English,
+The pages come in English and Simplified Chinese. The decoder opens in the
+language its address names (`?lang=zh-CN`), or else in the browser's own
+language where the page has it, or else in English; visitors change it from
+the menu at the top. The address then always names the language shown, and
+nothing about it is saved in the browser. The decoder page (`site/index.html`)
+and the code hold the English text, and every other language is one file in
+`site/js/i18n/` that gives, for every English text, the text in that language;
+the decoder page loads only the file of the language it is shown in, and waits
+for it. If the file hasn't come after 3 seconds, the page says so in that
+language, with a button to show itself in English. The sources page is written
+once per language instead: `site/sources.html` in English,
 `site/sources.zh-CN.html` in Chinese.
 
 To add a language:
@@ -238,7 +245,8 @@ To add a language:
    its code and name. Give it, in the language, the note the page shows when
    the file is slow to come (`waiting`) and the button that then shows the
    page in English (`english`). From then on the decoder page loads the file
-   for visitors who choose the language, and its language menu lists it. Also
+   for visitors who choose the language or whose browser is set to it, and
+   its language menu lists it. Also
    add the language's version of the message for visitors without JavaScript
    to the `<noscript>` block of `site/index.html`, marked with `lang`: the
    language files cannot supply it, since they need JavaScript.

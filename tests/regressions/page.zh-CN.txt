@@ -110,8 +110,6 @@ P
 @title 黑白负片
 @aria-label 反转片
 @title 反转片
---- hint
-从第 7 位开始，紧接在固定的输入模式之后。
 --- result
 等待填写或读取
 不知道条码长什么样？试试示例：
@@ -197,8 +195,10 @@ X / XA 62 空 / 条 S
 奇偶检验位是一种简单的防误读手段：第 1 部分、第 2 部分、画幅号和 A 标志中的条数为奇数时，它有一根条，为偶数时为空，所以总条数始终为偶数。如果填写的条码没有通过奇偶校验，很可能有一根条错了。解码器会列出只改一位就能得到有效编码的修正，已知胶片排在前面。
 阅读方向与胶片类型
 从时钟道的宽标记开始读。胶片方向正确时（通常是从光亮的片基面看），印的数字正常可读，宽标记在左边；从另一面看，一切都是镜像的。在反转片上，条在黑色的片边上显示为透明。条码每半个画幅重复一次，所以如果某根条看不清，可以看下一个条码。
+胶片名称的来源
+列表中的每种胶片都标有来源。I3A 是国际影像行业协会的 2008 年DX码登记表，这是可以免费获取的最新官方列表。BFD 是 The Big Film Database，一个社区数据库，也收录了 2008 年以来推出的胶片和贴牌胶片。
 编码无法说明的信息
-DX码代表一种产品。产品名称通常带有感光度，但并非总是如此。这里使用的官方列表是 2008 年的，所以较晚推出的胶片要靠社区资料来识别。很多胶片还以多个名称销售，而潜影条码由生产胶片的工厂曝光，所以一个条码可能对应一整组贴牌胶片。
+DX码代表一种产品。产品名称通常带有感光度，但并非总是如此。很多胶片还以多个名称销售，而潜影条码由生产胶片的工厂曝光，所以一个条码可能对应一整组贴牌胶片。
 @title 所有胶片都相同
 @title 所有胶片都相同
 @title 所有胶片都相同
@@ -1324,15 +1324,22 @@ Shanghai General Photo 显示
 @aria-label 显示 ORWOPAN 400 的条码
 --- footer
 胶片数据：I3A 登记表（2008）和 The Big Film Database（CC BY-SA 4.0）。代码：GPL-3.0，托管在 GitHub。来源与致谢
+--- elsewhere
+跳到解码器
+DX码列表
+在国际影像行业协会（I3A）登记的第 1 部分编号和产品，发表于
+DX Codes for 135-Size Film
+（2008 年 2 月）。选择一个第 1 部分编号即可筛选列表。
 --- facts
 title: DX潜影条码解码器
 address: ?lang=zh-CN
 tab open: tab-copy
 focus: (nowhere)
 page wider than the screen by: 0 px
-toolbar shows: undefined long* format-short mirror-toggle undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo(off) redo(off) clear
 strip layout: long
 strip cell: 25 px
+film look: negative chosen, the strip drawn as negative
 bars, clock track: 1111101010101010101010101010111
 bars, data track: 1010100000000000000000000000101
 strip wider than its film by: 0 px
@@ -1387,7 +1394,7 @@ P
 @title 未指定位：始终为空
 --- facts
 address: ?layout=23&lang=zh-CN
-toolbar shows: undefined long format-short* mirror-toggle undo(off) redo(off) clear
+toolbar shows: help-dot long format-short* mirror-toggle undo(off) redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101000000000000000101
@@ -1402,23 +1409,21 @@ bars, data track: 10101000000000000000101
 -13	0
 +15	23
 -15	0
---- hint
-有效编码。画幅号 23。
 --- result
 有效的DX编码
 显示示例
 KODAK Professional BW400CN Film
 第 1 部分 = 79 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK Professional BW400CN Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Professional BW400CN Film
 ，
 停产
-，
-社区
 ，
 2004 至 2014。
 备注：Chromogenic film
@@ -1437,8 +1442,9 @@ DX码
 1279
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- facts
 address: ?dx=79-15/23&lang=zh-CN
 bars, data track: 1010101001111011110101110010101
@@ -1456,23 +1462,21 @@ result lists: 2 films
 +16	A
 -15	0
 -17	–
---- hint
-有效编码。画幅号 14A。
 --- result
 有效的DX编码
 显示示例
 KODAK GOLD 200 Film
 第 1 部分 = 96 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK GOLD 200 Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Gold 200 GB 200-7
 ，
 可能已停产
-，
-社区
 ，
 ~1991 起。
 暗盒编号 015480
@@ -1490,8 +1494,9 @@ DX码
 1548
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=zh-CN
 bars, data track: 1010101100000011000011101000101
@@ -1507,23 +1512,21 @@ result lists: 2 films
 -13	0
 +15	23
 -15	0
---- hint
-有效编码。画幅号 23。
 --- result
 有效的DX编码
 显示示例
 KODAK Professional BW400CN Film
 第 1 部分 = 79 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK Professional BW400CN Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Professional BW400CN Film
 ，
 停产
-，
-社区
 ，
 2004 至 2014。
 备注：Chromogenic film
@@ -1542,12 +1545,13 @@ DX码
 1279
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- facts
 address: ?dx=79-15/23&lang=zh-CN
 focus: #mirror-toggle
-toolbar shows: undefined long* format-short mirror-toggle* undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle* undo(off) redo(off) clear
 strip layout: long, mirrored
 bars, data track: 1010101001111011110101110010101
 result lists: 2 films
@@ -1595,28 +1599,26 @@ P
 @title 所有胶片都相同
 @title 所有胶片都相同
 @title 未指定位：始终为空
---- hint
-有效编码。不含画幅号。
 --- result
 有效的DX编码（23 位条码）
 显示示例
 Fujicolor Super HGV100 Asia
 第 1 部分 = 12 分配给了 FUJIFILM Corporation。
 不在 2008 年登记表中；名称来自社区数据库。
+BFD
+，
 Fujicolor Super HGV100 Asia
 ，
 停产
 ，
-社区
-，
 由 Fujifilm 生产，~1992 ? 起，Made in Japan。
 备注：For asian market
 暗盒编号 002053
+BFD
+，
 Soul Color Print Film ISO 100 SoulColor
 ，
 停产
-，
-社区
 ，
 由 Fuji 生产，Made in Japan，经销商 Soul Pattinson, Sydney。
 备注：Fujicolor Super HGV 100（可信度 2/4）
@@ -1635,13 +1637,14 @@ DX码
 0205
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title The Big Film Database
+@title The Big Film Database
 @title 数据库对此的可信度（0 = 低，4 = 高）
 --- facts
 address: ?dx=12-13&film=bfd-470&lang=zh-CN
 focus: #result-title
-toolbar shows: undefined long format-short* mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long format-short* mirror-toggle undo redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101000011000110110101
@@ -1657,39 +1660,37 @@ result lists: 2 films
 -13	0
 +15	3
 -15	0
---- hint
-有效编码。画幅号 3。
 --- result
 有效的DX编码
 显示示例
 FUJICOLOR 400
 第 1 部分 = 12 分配给了 FUJIFILM Corporation。
+I3A
+，
 FUJICOLOR 400
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 FUJICOLOR 400
 ，
 停产
 ，
-社区
-，
 由 Fuji Photo Film Co., Ltd 生产，Made in Japan。
 暗盒编号 001930
+BFD
+，
 Fujicolor QuickSnap 400 no DX coding, core splined, black
 ，
 停产
 ，
-社区
-，
 Made in Japan。
 暗盒编号 301933
+BFD
+，
 Ritz Crystal Big Print 400 QX400
 ，
 停产
-，
-社区
 ，
 备注：Fujicolor 400（可信度 3/4）
 暗盒编号 501933
@@ -1707,12 +1708,16 @@ DX码
 0193
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title 数据库对此的可信度（0 = 低，4 = 高）
 --- facts
 address: ?dx=12-1/3&lang=zh-CN
 focus: button.looks__film
+film look: slide chosen, the strip drawn as slide
 bars, data track: 1010100001100000010000110010101
 result lists: 4 films
 
@@ -1726,8 +1731,6 @@ result lists: 4 films
 -13	0
 +15	23
 -15	0
---- hint
-有效编码。画幅号 23。
 --- result
 有效的DX编码
 显示示例
@@ -1745,17 +1748,14 @@ DX码
 1407
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
 --- facts
 address: ?dx=87-15/23&lang=zh-CN
 focus: button.cell
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010101010111011110101110010101
 
 === desktop / the all-zero code
---- hint
-第 1 部分为 0。这不太可能。
 --- result
 有效的DX编码
 显示示例
@@ -1773,7 +1773,6 @@ DX码
 0000
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
 --- facts
 address: ?dx=0-0/0&lang=zh-CN
@@ -1788,31 +1787,29 @@ address: ?dx=0-0/0&lang=zh-CN
 -13	0
 +15	1
 -15	0
---- hint
-有效编码。画幅号 1。
 --- result
 有效的DX编码
 显示示例
 RAINBOW / SEAGULL / SHANGHAI / SHENGUANG
 第 1 部分 = 88 分配给了 Shanghai General Photosensitive Film Factory。
+I3A
+，
 RAINBOW
 ，
+I3A 在这个第 1 部分下列出了它，但没有给出第 2 部分编号。
 I3A
 ，
-I3A 在这个第 1 部分下列出了它，但没有给出第 2 部分编号。
 SEAGULL
 ，
+I3A 在这个第 1 部分下列出了它，但没有给出第 2 部分编号。
 I3A
 ，
-I3A 在这个第 1 部分下列出了它，但没有给出第 2 部分编号。
 SHANGHAI
 ，
-I3A
-，
 I3A 在这个第 1 部分下列出了它，但没有给出第 2 部分编号。
-SHENGUANG
-，
 I3A
+，
+SHENGUANG
 ，
 I3A 在这个第 1 部分下列出了它，但没有给出第 2 部分编号。
 DX码
@@ -1826,8 +1823,11 @@ DX码
 1409
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title 国际影像行业协会
+@title 国际影像行业协会
+@title 国际影像行业协会
 --- facts
 address: ?dx=88-1/1&lang=zh-CN
 bars, data track: 1010101011000000010000010010101
@@ -1847,33 +1847,31 @@ result lists: 4 films
 -13	0
 +15	1
 -15	0
---- hint
-有效编码。画幅号 1。
 --- result
 有效的DX编码
 显示示例
 Perutz CR 100 Chrome
 第 1 部分 = 3 分配给了 Agfa-Gevaert AG。
+I3A
+，
 Perutz CR 100 Chrome
-，
 I3A
+，
 AGFACHROME CT precisa 100
-，
 I3A
+，
 AGFACHROME CTX 100
-，
 I3A
+，
 AGFACHROME RSX 100 Professional
-，
 I3A
+，
 AGFACHROME RSX II 100 Professional
+BFD
 ，
-I3A
 AGFA AGFACHROME CTX100
 ，
 停产
-，
-社区
 ，
 1994 至 1998，Made in Germany。
 暗盒编号 000570
@@ -1892,8 +1890,15 @@ DX码
 0057
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title 国际影像行业协会
+@title 国际影像行业协会
+@title 国际影像行业协会
+@title 国际影像行业协会
+@title The Big Film Database
+--- code list: filters: as in "desktop / empty", but
++113	清除筛选条件
 --- code list: count
 显示 7 个登记产品。
 --- code list: products
@@ -1916,7 +1921,7 @@ DX 产品 感光厂 状态
 --- facts
 address: ?dx=3-9/1&film=i3a-13&lang=zh-CN
 focus: #result-title
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010100000011010010000010010101
 result lists: 12 films
 code list: all / 3 / all: 7 rows
@@ -1924,299 +1929,324 @@ code list: all / 3 / all: 7 rows
 === desktop / Find a film: a name
 --- Find a film: as in "desktop / empty", but
 +6	找到 43 种胶片。
-+7	KODAK Professional PORTRA 100T Film
++7	I3A
 +8	，
-+9	DX 79-12
++9	KODAK Professional PORTRA 100T Film
 +10	，
-+11	截至 2008 年已停产
++11	DX 79-12
 +12	，
-+13	I3A
++13	截至 2008 年已停产
 +14	，
 +15	Eastman Kodak Company。
 +16	显示条码
-+17	KODAK PROFESSIONAL PORTRA 100T Film
++17	I3A
 +18	，
-+19	DX 112-12
++19	KODAK PROFESSIONAL PORTRA 100T Film
 +20	，
-+21	截至 2008 年已停产
++21	DX 112-12
 +22	，
-+23	I3A
++23	截至 2008 年已停产
 +24	，
 +25	Eastman Kodak Company。
 +26	显示条码
-+27	KODAK Professional PORTRA 160 Film
++27	I3A
 +28	，
-+29	DX 79-11
++29	KODAK Professional PORTRA 160 Film
 +30	，
-+31	截至 2008 年已停产
++31	DX 79-11
 +32	，
-+33	I3A
++33	截至 2008 年已停产
 +34	，
 +35	Eastman Kodak Company。
 +36	显示条码
-+37	KODAK PROFESSIONAL PORTRA 160NC Film
++37	I3A
 +38	，
-+39	DX 96-7
++39	KODAK PROFESSIONAL PORTRA 160NC Film
 +40	，
-+41	2008 年仍在生产
++41	DX 96-7
 +42	，
-+43	I3A
++43	2008 年仍在生产
 +44	，
 +45	Eastman Kodak Company。
 +46	显示条码
-+47	KODAK PROFESSIONAL PORTRA 160VC Film
++47	I3A
 +48	，
-+49	DX 96-8
++49	KODAK PROFESSIONAL PORTRA 160VC Film
 +50	，
-+51	2008 年仍在生产
++51	DX 96-8
 +52	，
-+53	I3A
++53	2008 年仍在生产
 +54	，
 +55	Eastman Kodak Company。
 +56	显示条码
-+57	KODAK Professional PORTRA 400 Film
++57	I3A
 +58	，
-+59	DX 79-13
++59	KODAK Professional PORTRA 400 Film
 +60	，
-+61	截至 2008 年已停产
++61	DX 79-13
 +62	，
-+63	I3A
++63	截至 2008 年已停产
 +64	，
 +65	Eastman Kodak Company。
 +66	显示条码
-+67	KODAK PROFESSIONAL PORTRA 400NC Film
++67	I3A
 +68	，
-+69	DX 96-9
++69	KODAK PROFESSIONAL PORTRA 400NC Film
 +70	，
-+71	2008 年仍在生产
++71	DX 96-9
 +72	，
-+73	I3A
++73	2008 年仍在生产
 +74	，
 +75	Eastman Kodak Company。
 +76	显示条码
-+77	KODAK PROFESSIONAL PORTRA 400VC Film
++77	I3A
 +78	，
-+79	DX 96-10
++79	KODAK PROFESSIONAL PORTRA 400VC Film
 +80	，
-+81	2008 年仍在生产
++81	DX 96-10
 +82	，
-+83	I3A
++83	2008 年仍在生产
 +84	，
 +85	Eastman Kodak Company。
 +86	显示条码
-+87	KODAK PROFESSIONAL Portra 800 Film
++87	I3A
 +88	，
-+89	DX 43-7
++89	KODAK PROFESSIONAL Portra 800 Film
 +90	，
-+91	2008 年仍在生产
++91	DX 43-7
 +92	，
-+93	I3A
++93	2008 年仍在生产
 +94	，
 +95	Eastman Kodak Company。
 +96	显示条码
-+97	Kodak Portra 160 (new)
++97	BFD
 +98	，
-+99	DX 95-14
++99	Kodak Portra 160 (new)
 +100	，
-+101	在售
++101	DX 95-14
 +102	，
-+103	社区
++103	在售
 +104	，
 +105	2011 至今。
 +106	暗盒编号 115344
 +107	显示条码
-+108	Kodak Portra 400 new
++108	BFD
 +109	，
-+110	DX 95-13
++110	Kodak Portra 400 new
 +111	，
-+112	在售
++112	DX 95-13
 +113	，
-+114	社区
++114	在售
 +115	，
 +116	2010 至今。
 +117	暗盒编号 115334
 +118	显示条码
-+119	Kodak Portra 400 UC - Code : 400UC
++119	BFD
 +120	，
-+121	DX 95-4
++121	Kodak Portra 400 UC - Code : 400UC
 +122	，
-+123	停产
++123	DX 95-4
 +124	，
-+125	社区
++125	停产
 +126	，
 +127	~1999 至 2002 ?。
 +128	暗盒编号 115244
 +129	显示条码
-+130	Kodak Portra 800
++130	BFD
 +131	，
-+132	DX 79-14
++132	Kodak Portra 800
 +133	，
-+134	停产
++134	DX 79-14
 +135	，
-+136	社区
++136	停产
 +137	，
 +138	~2000 起。
 +139	暗盒编号 012784
 +140	显示条码
-+141	Kodak Portra 800
++141	BFD
 +142	，
-+143	DX 105-15
++143	Kodak Portra 800
 +144	，
-+145	停产
++145	DX 105-15
 +146	，
-+147	社区
++147	停产
 +148	，
 +149	~2000 ? 起。
 +150	暗盒编号 016954
 +151	显示条码
-+152	Kodak Professional PORTRA 100T – Code 4719 / 5719
++152	BFD
 +153	，
-+154	DX 79-12
++154	Kodak Professional PORTRA 100T – Code 4719 / 5719
 +155	，
-+156	停产
++156	DX 79-12
 +157	，
-+158	社区
++158	停产
 +159	，
 +160	~1998 ? 至 ~2006。
 +161	暗盒编号 012760
 +162	显示条码
-+163	Kodak Professional PORTRA 100T – Code 4719 / 5719
++163	BFD
 +164	，
-+165	DX 112-12
++165	Kodak Professional PORTRA 100T – Code 4719 / 5719
 +166	，
-+167	停产
++167	DX 112-12
 +168	，
-+169	社区
++169	停产
 +170	，
 +171	~1998 ? 至 ~2006。
 +172	暗盒编号 018040
 +173	显示条码
-+174	Kodak Professional PORTRA 160
++174	BFD
 +175	，
-+176	DX 96-14
++176	Kodak Professional PORTRA 160
 +177	，
-+178	停产
++178	DX 96-14
 +179	，
-+180	社区
++180	停产
 +181	，
 +182	2007 起。
 +183	暗盒编号 015500
 +184	显示条码
-+185	Kodak Professional PORTRA 160NC
++185	BFD
 +186	，
-+187	DX 79-11
++187	Kodak Professional PORTRA 160NC
 +188	，
-+189	停产
++189	DX 79-11
 +190	，
-+191	社区
++191	停产
 +192	，
 +193	2006 至 2008。
 +194	暗盒编号 112754
 +195	显示条码
-+196	Kodak Professional PORTRA 160NC – Code 2755 / 4755
++196	BFD
 +197	，
-+198	DX 96-7
++198	Kodak Professional PORTRA 160NC – Code 2755 / 4755
 +199	，
-+200	停产
++200	DX 96-7
 +201	，
-+202	社区
++202	停产
 +203	，
 +204	2006 至 2008。
 +205	暗盒编号 015430
 +206	显示条码
-+207	Kodak Professional PORTRA 160VC
++207	BFD
 +208	，
-+209	DX 79-11
++209	Kodak Professional PORTRA 160VC
 +210	，
-+211	停产
++211	DX 79-11
 +212	，
-+213	社区
++213	停产
 +214	，
 +215	2007 至 2008 ?。
 +216	暗盒编号 212754
 +217	显示条码
-+218	Kodak Professional PORTRA 160VC – Code 4756
++218	BFD
 +219	，
-+220	DX 96-8
++220	Kodak Professional PORTRA 160VC – Code 4756
 +221	，
-+222	停产
++222	DX 96-8
 +223	，
-+224	社区
++224	停产
 +225	，
 +226	2006 至 2008。
 +227	暗盒编号 015440
 +228	显示条码
-+229	Kodak Professional PORTRA 400 Film
++229	BFD
 +230	，
-+231	DX 79-13
++231	Kodak Professional PORTRA 400 Film
 +232	，
-+233	在售
++233	DX 79-13
 +234	，
-+235	社区
++235	在售
 +236	，
 +237	1998 至今。
 +238	暗盒编号 112774
 +239	显示条码
-+240	Kodak Professional PORTRA 400NC
++240	BFD
 +241	，
-+242	DX 95-9
++242	Kodak Professional PORTRA 400NC
 +243	，
-+244	停产
++244	DX 95-9
 +245	，
-+246	社区
++246	停产
 +247	，
 +248	2007 起。
 +249	暗盒编号 015290
 +250	显示条码
-+251	Kodak Professional PORTRA 400NC
++251	BFD
 +252	，
-+253	DX 96-9
++253	Kodak Professional PORTRA 400NC
 +254	，
-+255	停产
++255	DX 96-9
 +256	，
-+257	社区
++257	停产
 +258	，
 +259	2007 起。
 +260	暗盒编号 015450
 +261	显示条码
-+262	Kodak Professional PORTRA 400VC
++262	BFD
 +263	，
-+264	DX 95-10
++264	Kodak Professional PORTRA 400VC
 +265	，
-+266	停产
++266	DX 95-10
 +267	，
-+268	社区
++268	停产
 +269	，
 +270	2007 起。
 +271	暗盒编号 015300
 +272	显示条码
 +273	再显示 18 条
 -6	至少输入两个字符。
-+280	@aria-label 显示条码：KODAK Professional PORTRA 100T Film
-+281	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 100T Film
-+282	@aria-label 显示条码：KODAK Professional PORTRA 160 Film
-+283	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 160NC Film
-+284	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 160VC Film
-+285	@aria-label 显示条码：KODAK Professional PORTRA 400 Film
-+286	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 400NC Film
-+287	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 400VC Film
-+288	@aria-label 显示条码：KODAK PROFESSIONAL Portra 800 Film
-+289	@aria-label 显示条码：Kodak Portra 160 (new)
-+290	@aria-label 显示条码：Kodak Portra 400 new
-+291	@aria-label 显示条码：Kodak Portra 400 UC - Code : 400UC
-+292	@aria-label 显示条码：Kodak Portra 800
-+293	@aria-label 显示条码：Kodak Portra 800
-+294	@aria-label 显示条码：Kodak Professional PORTRA 100T – Code 4719 / 5719
-+295	@aria-label 显示条码：Kodak Professional PORTRA 100T – Code 4719 / 5719
-+296	@aria-label 显示条码：Kodak Professional PORTRA 160
-+297	@aria-label 显示条码：Kodak Professional PORTRA 160NC
-+298	@aria-label 显示条码：Kodak Professional PORTRA 160NC – Code 2755 / 4755
-+299	@aria-label 显示条码：Kodak Professional PORTRA 160VC
-+300	@aria-label 显示条码：Kodak Professional PORTRA 160VC – Code 4756
-+301	@aria-label 显示条码：Kodak Professional PORTRA 400 Film
-+302	@aria-label 显示条码：Kodak Professional PORTRA 400NC
-+303	@aria-label 显示条码：Kodak Professional PORTRA 400NC
-+304	@aria-label 显示条码：Kodak Professional PORTRA 400VC
++280	@title 国际影像行业协会
++281	@aria-label 显示条码：KODAK Professional PORTRA 100T Film
++282	@title 国际影像行业协会
++283	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 100T Film
++284	@title 国际影像行业协会
++285	@aria-label 显示条码：KODAK Professional PORTRA 160 Film
++286	@title 国际影像行业协会
++287	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 160NC Film
++288	@title 国际影像行业协会
++289	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 160VC Film
++290	@title 国际影像行业协会
++291	@aria-label 显示条码：KODAK Professional PORTRA 400 Film
++292	@title 国际影像行业协会
++293	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 400NC Film
++294	@title 国际影像行业协会
++295	@aria-label 显示条码：KODAK PROFESSIONAL PORTRA 400VC Film
++296	@title 国际影像行业协会
++297	@aria-label 显示条码：KODAK PROFESSIONAL Portra 800 Film
++298	@title The Big Film Database
++299	@aria-label 显示条码：Kodak Portra 160 (new)
++300	@title The Big Film Database
++301	@aria-label 显示条码：Kodak Portra 400 new
++302	@title The Big Film Database
++303	@aria-label 显示条码：Kodak Portra 400 UC - Code : 400UC
++304	@title The Big Film Database
++305	@aria-label 显示条码：Kodak Portra 800
++306	@title The Big Film Database
++307	@aria-label 显示条码：Kodak Portra 800
++308	@title The Big Film Database
++309	@aria-label 显示条码：Kodak Professional PORTRA 100T – Code 4719 / 5719
++310	@title The Big Film Database
++311	@aria-label 显示条码：Kodak Professional PORTRA 100T – Code 4719 / 5719
++312	@title The Big Film Database
++313	@aria-label 显示条码：Kodak Professional PORTRA 160
++314	@title The Big Film Database
++315	@aria-label 显示条码：Kodak Professional PORTRA 160NC
++316	@title The Big Film Database
++317	@aria-label 显示条码：Kodak Professional PORTRA 160NC – Code 2755 / 4755
++318	@title The Big Film Database
++319	@aria-label 显示条码：Kodak Professional PORTRA 160VC
++320	@title The Big Film Database
++321	@aria-label 显示条码：Kodak Professional PORTRA 160VC – Code 4756
++322	@title The Big Film Database
++323	@aria-label 显示条码：Kodak Professional PORTRA 400 Film
++324	@title The Big Film Database
++325	@aria-label 显示条码：Kodak Professional PORTRA 400NC
++326	@title The Big Film Database
++327	@aria-label 显示条码：Kodak Professional PORTRA 400NC
++328	@title The Big Film Database
++329	@aria-label 显示条码：Kodak Professional PORTRA 400VC
 --- facts
 focus: #finder-q
 Find a film lists: 25 films
@@ -2238,20 +2268,21 @@ focus: #finder-q
 === desktop / Find a film: letters of another script
 --- Find a film: as in "desktop / empty", but
 +6	找到 1 种胶片。
-+7	LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
++7	BFD
 +8	，
-+9	DX 100-3
++9	LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
 +10	，
-+11	停产
++11	DX 100-3
 +12	，
-+13	社区
++13	停产
 +14	，
 +15	由 China Lucky Film Corporation 生产，~2003 起，Made in China。
 +16	备注：After China Lucky Film Corporation consolidated with Kodak Company, Lucky Co. launched this Lucky charm-200 color film
 +17	暗盒编号 016034
 +18	显示条码
 -6	至少输入两个字符。
-+25	@aria-label 显示条码：LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
++25	@title The Big Film Database
++26	@aria-label 显示条码：LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
 --- facts
 focus: #finder-q
 Find a film lists: 1 films
@@ -2270,54 +2301,52 @@ Find a film lists: 1 films
 -13	0
 +15	1
 -15	0
---- hint
-有效编码。画幅号 1。
 --- result
 有效的DX编码
 显示示例
 HP5 PLUS
 第 1 部分 = 109 分配给了 Harman Technologies (ILFORD Photo)。
-HP5 PLUS
-，
 I3A
+，
+HP5 PLUS
+BFD
+，
 Ilford HP5 PLUS 400 HP5+ (black box)
 ，
 停产
 ，
-社区
-，
 由 Ilford ltd 生产，1989 至 ~2004，Made in UK。
 暗盒编号 017530
+BFD
+，
 Ilford HP5 PLUS 400 HP5+ (white box)
 ，
 停产
 ，
-社区
-，
 由 Ilford ltd 生产，~2004 至 2018，Made in UK。
 暗盒编号 017530
+BFD
+，
 Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
 ，
 停产
 ，
-社区
-，
 由 Harman Technologies 生产，2024 至 2025，Made in UK。
 暗盒编号 017530
+BFD
+，
 Ilford HP5 PLUS 400 HP5+ (Black&white box)
 ，
 在售
 ，
-社区
-，
 由 Harman Technologies 生产，2018 至今，Made in UK。
 备注：New B&W box
 暗盒编号 017530
+BFD
+，
 Ilford HP5 PLUS 400 HP5+ (Press or propack)
 ，
 可能已停产
-，
-社区
 ，
 由 Ilford ltd 生产，~1989 ? 起，Made in UK。
 备注：Sold by big "propack", 50 films, no individual box
@@ -2337,97 +2366,109 @@ DX码
 1753
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 --- Find a film: as in "desktop / empty", but
 +6	找到 7 种胶片。
-+7	HP5 PLUS
++7	I3A
 +8	，
-+9	DX 109-9
++9	HP5 PLUS
 +10	，
-+11	I3A
++11	DX 109-9
 +12	，
 +13	Harman Technologies (ILFORD Photo)。
 +14	显示条码
-+15	Ilford HP5 PLUS 400 HP5+ (black box)
++15	BFD
 +16	，
-+17	DX 109-9
++17	Ilford HP5 PLUS 400 HP5+ (black box)
 +18	，
-+19	停产
++19	DX 109-9
 +20	，
-+21	社区
++21	停产
 +22	，
 +23	由 Ilford ltd 生产，1989 至 ~2004，Made in UK。
 +24	暗盒编号 017530
 +25	显示条码
-+26	Ilford HP5 PLUS 400 HP5+ (white box)
++26	BFD
 +27	，
-+28	DX 109-9
++28	Ilford HP5 PLUS 400 HP5+ (white box)
 +29	，
-+30	停产
++30	DX 109-9
 +31	，
-+32	社区
++32	停产
 +33	，
 +34	由 Ilford ltd 生产，~2004 至 2018，Made in UK。
 +35	暗盒编号 017530
 +36	显示条码
-+37	Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
++37	BFD
 +38	，
-+39	DX 109-9
++39	Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
 +40	，
-+41	停产
++41	DX 109-9
 +42	，
-+43	社区
++43	停产
 +44	，
 +45	由 Harman Technologies 生产，2024 至 2025，Made in UK。
 +46	暗盒编号 017530
 +47	显示条码
-+48	Ilford HP5 PLUS 400 HP5+ (Black&white box)
++48	BFD
 +49	，
-+50	DX 109-9
++50	Ilford HP5 PLUS 400 HP5+ (Black&white box)
 +51	，
-+52	在售
++52	DX 109-9
 +53	，
-+54	社区
++54	在售
 +55	，
 +56	由 Harman Technologies 生产，2018 至今，Made in UK。
 +57	备注：New B&W box
 +58	暗盒编号 017530
 +59	显示条码
-+60	Ilford HP5 PLUS 400 HP5+ (Press or propack)
++60	BFD
 +61	，
-+62	DX 109-9
++62	Ilford HP5 PLUS 400 HP5+ (Press or propack)
 +63	，
-+64	可能已停产
++64	DX 109-9
 +65	，
-+66	社区
++66	可能已停产
 +67	，
 +68	由 Ilford ltd 生产，~1989 ? 起，Made in UK。
 +69	备注：Sold by big "propack", 50 films, no individual box
 +70	暗盒编号 017530
 +71	显示条码
-+72	Ilford HP5 PLUS 400 motion picture version HP5+
++72	BFD
 +73	，
-+74	DX 109-9
++74	Ilford HP5 PLUS 400 motion picture version HP5+
 +75	，
-+76	停产
++76	DX 109-9
 +77	，
-+78	社区
++78	停产
 +79	，
 +80	由 Ilford ltd 生产，至 2003，Made in UK。
 +81	显示条码
 -6	至少输入两个字符。
-+88	@aria-label 显示条码：HP5 PLUS
-+89	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (black box)
-+90	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (white box)
-+91	@aria-label 显示条码：Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
-+92	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (Black&white box)
-+93	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (Press or propack)
-+94	@aria-label 显示条码：Ilford HP5 PLUS 400 motion picture version HP5+
++88	@title 国际影像行业协会
++89	@aria-label 显示条码：HP5 PLUS
++90	@title The Big Film Database
++91	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (black box)
++92	@title The Big Film Database
++93	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (white box)
++94	@title The Big Film Database
++95	@aria-label 显示条码：Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
++96	@title The Big Film Database
++97	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (Black&white box)
++98	@title The Big Film Database
++99	@aria-label 显示条码：Ilford HP5 PLUS 400 HP5+ (Press or propack)
++100	@title The Big Film Database
++101	@aria-label 显示条码：Ilford HP5 PLUS 400 motion picture version HP5+
 --- facts
 address: ?dx=109-9/1&film=i3a-320&lang=zh-CN
 focus: #result-title
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010101101101010010000010000101
 result lists: 7 films
 Find a film lists: 7 films
@@ -2448,53 +2489,51 @@ Find a film lists: 7 films
 +16	A
 -15	0
 -17	–
---- hint
-有效编码。画幅号 22A。
 --- result
 有效的DX编码
 显示示例
 Perutz Primera 200 (from 01/2002 on)
 第 1 部分 = 47 分配给了 Agfa-Gevaert AG。
-Perutz Primera 200 (from 01/2002 on)
-，
 I3A
+，
+Perutz Primera 200 (from 01/2002 on)
+BFD
+，
 AGFA Agfacolor 200 (24+3)
 ，
 停产
 ，
-社区
-，
 1983 (1984 for dx coded version) 至 1984 ?。
 暗盒编号 007537
+BFD
+，
 AGFA AGFACOLOR XRG200 (improved)
 ，
 停产
 ，
-社区
-，
 由 Agfa-Gevaert AG 生产，1991 至 1994。
 暗盒编号 007534
+BFD
+，
 Perutz Primera 200
 ，
 停产
 ，
-社区
-，
 由 Agfa 生产，~2002 至 ~2009。
 暗盒编号 007530
+BFD
+，
 Polaroid HDF-1 C-41 HDF1
 ，
 停产
 ，
-社区
-，
 Made in ?。
 暗盒编号 007533
+BFD
+，
 O.K. Gold Print 200
 ，
 停产
-，
-社区
 ，
 Made In EC，经销商 Ok Foto Labor GmbH。
 备注：Agfacolor 200（可信度 3/4）
@@ -2514,8 +2553,13 @@ DX码
 0753
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title 数据库对此的可信度（0 = 低，4 = 高）
 --- Find a film: as in "desktop / empty", but
 +11	正在显示DX 47-1，画幅 22A。
@@ -2523,7 +2567,7 @@ DX码
 --- facts
 address: ?dx=47-1/22A&lang=zh-CN
 focus: #result-title
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010100101111000010101101000101
 result lists: 10 films
 
@@ -2539,88 +2583,88 @@ result lists: 10 films
 +14	末位数字 3
 +15	24 张
 +16	第 1 部分 = 39 分配给了 FUJIFILM Corporation。
-+17	FUJICOLOR 200
++17	I3A
 +18	，
-+19	DX 39-1
++19	FUJICOLOR 200
 +20	，
-+21	2008 年仍在生产
++21	DX 39-1
 +22	，
-+23	I3A
++23	2008 年仍在生产
 +24	显示条码
-+25	Fujicolor 200
++25	BFD
 +26	，
-+27	DX 39-1
++27	Fujicolor 200
 +28	，
-+29	停产
++29	DX 39-1
 +30	，
-+31	社区
++31	停产
 +32	，
 +33	由 Fuji Photo Film Co., Ltd 生产。
 +34	暗盒编号 106253
 +35	显示条码
-+36	FUJICOLOR SUPERIA 200
++36	BFD
 +37	，
-+38	DX 39-1
++38	FUJICOLOR SUPERIA 200
 +39	，
-+40	模糊匹配
++40	DX 39-1
 +41	，
-+42	可能已停产
++42	模糊匹配
 +43	，
-+44	社区
++44	可能已停产
 +45	，
 +46	90’s 起，Made in Japan。
 +47	暗盒编号 106254
 +48	显示条码
-+49	Fujifilm 200 China
++49	BFD
 +50	，
-+51	DX 39-1
++51	Fujifilm 200 China
 +52	，
-+53	模糊匹配
++53	DX 39-1
 +54	，
-+55	在售
++55	模糊匹配
 +56	，
-+57	社区
++57	在售
 +58	，
 +59	由 Guangxi Giant Star Medical Equipment Co Ltd (under Fujifilm licence) 生产，2024 至今，China，经销商 Yes!Star (China)。
 +60	备注：Fuji Superia C200. Also available under the brand Yes!Star Supreme 200 for China market（可信度 3/4）
 +61	暗盒编号 106250
 +62	显示条码
-+63	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
++63	BFD
 +64	，
-+65	DX 39-1
++65	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
 +66	，
-+67	模糊匹配
++67	DX 39-1
 +68	，
-+69	可能已停产
++69	模糊匹配
 +70	，
-+71	社区
++71	可能已停产
 +72	，
 +73	备注：Rebranded expired Fujicolor 200, available on China market. Also exist with rebranded Lucky Color or cheap Kodak film（可信度 3/4）
 +74	暗盒编号 106254
 +75	显示条码
-+76	Yes!Star Supreme 200
++76	BFD
 +77	，
-+78	DX 39-1
++78	Yes!Star Supreme 200
 +79	，
-+80	模糊匹配
++80	DX 39-1
 +81	，
-+82	在售
++82	模糊匹配
 +83	，
-+84	社区
++84	在售
 +85	，
 +86	由 Guangxi Giant Star Medical Equipment Co Ltd (under Fujifilm licence) 生产，2024 至今，China，经销商 Yes!Star (China)。
 +87	备注：Fuji Superia C200. Also available under the brand Fujifilm for international market（可信度 3/4）
 +88	暗盒编号 106250
 +89	显示条码
-+90	Fujicolor C200 135
++90	BFD
 +91	，
-+92	DX 39-1
++92	Fujicolor C200 135
 +93	，
-+94	模糊匹配
++94	DX 39-1
 +95	，
-+96	在售
++96	模糊匹配
 +97	，
-+98	社区
++98	在售
 +99	，
 +100	由 Fuji Photo Film Co., Ltd 生产，Made in Japan。
 +101	备注：Also sold under Fujicolor 200 (name on the canister)
@@ -2631,65 +2675,23 @@ result lists: 10 films
 +106	在 The Big Film Database 上查看DX 39-1
 +107	（在新标签页中打开）
 +108	该网站有这些胶卷的图片。
-+110	@aria-label 显示条码：FUJICOLOR 200
-+111	@aria-label 显示条码：Fujicolor 200
-+112	@aria-label 显示条码：FUJICOLOR SUPERIA 200
-+113	@title 数据库对此的可信度（0 = 低，4 = 高）
-+114	@aria-label 显示条码：Fujifilm 200 China
-+115	@title 数据库对此的可信度（0 = 低，4 = 高）
-+116	@aria-label 显示条码：My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
++110	@title 国际影像行业协会
++111	@aria-label 显示条码：FUJICOLOR 200
++112	@title The Big Film Database
++113	@aria-label 显示条码：Fujicolor 200
++114	@title The Big Film Database
++115	@aria-label 显示条码：FUJICOLOR SUPERIA 200
++116	@title The Big Film Database
 +117	@title 数据库对此的可信度（0 = 低，4 = 高）
-+118	@aria-label 显示条码：Yes!Star Supreme 200
-+119	@aria-label 显示条码：Fujicolor C200 135
++118	@aria-label 显示条码：Fujifilm 200 China
++119	@title The Big Film Database
 +120	@title 数据库对此的可信度（0 = 低，4 = 高）
-+121	@aria-label 显示条码：Efiniti Uxi Super 200
-+122	@title 数据库对此的可信度（0 = 低，4 = 高）
-+123	@aria-label 显示条码：Fujicolor Industrial 100 業務記錄用 business
-+124	@title 数据库对此的可信度（0 = 低，4 = 高）
-+125	@aria-label 显示条码：Photocité couleur 200
-+126	@title 数据库对此的可信度（0 = 低，4 = 高）
-+127	@aria-label 显示条码：Walgreens ISO 200 C-41 wphoto
-+128	@title 数据库对此的可信度（0 = 低，4 = 高）
-+129	@aria-label 显示条码：AgfaPhoto Vista Plus 200
-+130	@title 数据库对此的可信度（0 = 低，4 = 高）
-+131	@aria-label 显示条码：Boots Colourprint 200
-+132	@title 数据库对此的可信度（0 = 低，4 = 高）
-+133	@aria-label 显示条码：DM Paradies 200 C-41
-+134	@title 数据库对此的可信度（0 = 低，4 = 高）
-+135	@aria-label 显示条码：FUJIFILM 200 made in USA
-+136	@title 数据库对此的可信度（0 = 低，4 = 高）
-+137	@aria-label 显示条码：Hema Kleurenfilm Super SR200 FarbFilm
-+138	@title 数据库对此的可信度（0 = 低，4 = 高）
-+139	@aria-label 显示条码：Kruidvat ColorFilm 200
-+140	@title 数据库对此的可信度（0 = 低，4 = 高）
-+141	@aria-label 显示条码：Porst Photo Porst Color X 200
-+142	@title 数据库对此的可信度（0 = 低，4 = 高）
-+143	@aria-label 显示条码：Rossmann Farbbilder HR200
-+144	@title 数据库对此的可信度（0 = 低，4 = 高）
-+145	@aria-label 显示条码：Tudor Color Print Film ISO 200
-+146	@title 数据库对此的可信度（0 = 低，4 = 高）
-+147	@aria-label 显示条码：Tudor XLS 200
-+148	@title 数据库对此的可信度（0 = 低，4 = 高）
-+149	@aria-label 显示条码：Voigtländer V200
-+150	@title 数据库对此的可信度（0 = 低，4 = 高）
-+151	@aria-label 显示条码：Chlecker AS photo 200
-+152	@title 数据库对此的可信度（0 = 低，4 = 高）
-+153	@aria-label 显示条码：Fuji Fujicolor ProPlus II 200
-+154	@title 数据库对此的可信度（0 = 低，4 = 高）
-+155	@aria-label 显示条码：Fuji Fujifilm Professional ProValue 200 CA200
-+156	@aria-label 显示条码：Fujicolor 200
-+157	@aria-label 显示条码：Fujicolor 200 Wal-mart branded film
-+158	@aria-label 显示条码：Perutz Primera 200
-+159	@aria-label 显示条码：Schlecker AS Color 200
-+160	@title 数据库对此的可信度（0 = 低，4 = 高）
-+161	@aria-label 显示条码：Spector Color ISO 200 (Blue box)
-+162	@title 数据库对此的可信度（0 = 低，4 = 高）
-+163	@title 数据库对此的可信度（0 = 低，4 = 高）
-+164	@aria-label 显示条码：Power Geek 35mm Film For Color Prints (ISO 200 – 10 exp)
-+165	@title 数据库对此的可信度（0 = 低，4 = 高）
-+166	@aria-label 显示条码：FilmNeverDie C-41 Color IRO200 色 200
-+167	@title 数据库对此的可信度（0 = 低，4 = 高）
-+168	@aria-label 显示条码：FilmNeverDie C-41 Color IRO200 色 200
++121	@aria-label 显示条码：My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
++122	@title The Big Film Database
++123	@title 数据库对此的可信度（0 = 低，4 = 高）
++124	@aria-label 显示条码：Yes!Star Supreme 200
++125	@title The Big Film Database
++126	@aria-label 显示条码：Fujicolor C200 135
 --- facts
 focus: #cassette-code
 cassette helper lists: 34 films
@@ -2706,17 +2708,18 @@ cassette helper lists: 34 films
 +14	末位数字 1
 +15	12 张
 +16	第 1 部分 337 是 81 + 256。在 2008 年登记表中，第 1 部分 = 81 分配给了 Eastman Kodak Company；按照标准，感光厂只在自己的第 1 部分数上加 128、256 或 384。标准没有规定这种暗盒里的胶片带哪个DX码。
-+17	Rollei Retro 400S
++17	BFD
 +18	，
-+19	在售
++19	Rollei Retro 400S
 +20	，
-+21	社区
++21	在售
 +22	，
 +23	由 Agfa-Gevaert 生产，经销商 Mahn & Co. (Maco)。
 +24	备注：Aviphot Pan 200, finished by Foma（可信度 4/4）
 +25	记录的DX码：5401
 +26	暗盒编号 854011
-+28	@title 数据库对此的可信度（0 = 低，4 = 高）
++28	@title The Big Film Database
++29	@title 数据库对此的可信度（0 = 低，4 = 高）
 --- facts
 focus: #cassette-code
 cassette helper lists: 1 films
@@ -2767,7 +2770,7 @@ focus: #cassette-code
 --- facts
 tab open: tab-photo
 focus: #tab-photo
-toolbar shows: undefined long* format-short undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short undo(off) redo(off) clear
 
 === desktop / a sample photo read
 --- copy steps
@@ -2804,7 +2807,7 @@ DX 96-12，画幅 14A：KODAK GOLD 200 Film
 --- facts
 tab open: tab-photo
 focus: button.tool
-toolbar shows: undefined long* format-short undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short undo(off) redo(off) clear
 
 === desktop / a photo’s code used
 --- copy steps
@@ -2834,23 +2837,21 @@ toolbar shows: undefined long* format-short undo(off) redo(off) clear
 +17	A
 -15	0
 -17	–
---- hint
-有效编码。画幅号 14A。
 --- result
 有效的DX编码
 显示示例
 KODAK GOLD 200 Film
 第 1 部分 = 96 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK GOLD 200 Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Gold 200 GB 200-7
 ，
 可能已停产
-，
-社区
 ，
 ~1991 起。
 暗盒编号 015480
@@ -2868,13 +2869,14 @@ DX码
 1548
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=zh-CN
 tab open: tab-photo
 focus: #result-title
-toolbar shows: undefined long* format-short undo redo(off) clear
+toolbar shows: help-dot long* format-short undo redo(off) clear
 bars, data track: 1010101100000011000011101000101
 photo over the strip: 0 px left of the code, 0 px wider; label beside, at the left
 result lists: 2 films
@@ -2897,23 +2899,21 @@ result lists: 2 films
 +17	A
 -15	0
 -17	–
---- hint
-有效编码。画幅号 14A。
 --- result
 有效的DX编码
 显示示例
 KODAK GOLD 200 Film
 第 1 部分 = 96 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK GOLD 200 Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Gold 200 GB 200-7
 ，
 可能已停产
-，
-社区
 ，
 ~1991 起。
 暗盒编号 015480
@@ -2931,12 +2931,13 @@ DX码
 1548
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=zh-CN
 focus: #tab-copy
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010101100000011000011101000101
 photo over the strip: 0 px left of the code, 0 px wider; label beside, at the left
 result lists: 2 films
@@ -2958,23 +2959,21 @@ result lists: 2 films
 +16	A
 -15	0
 -17	–
---- hint
-有效编码。画幅号 14A。
 --- result
 有效的DX编码
 显示示例
 KODAK GOLD 200 Film
 第 1 部分 = 96 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK GOLD 200 Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Gold 200 GB 200-7
 ，
 可能已停产
-，
-社区
 ，
 ~1991 起。
 暗盒编号 015480
@@ -2992,12 +2991,13 @@ DX码
 1548
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=zh-CN
 focus: #mirror-toggle
-toolbar shows: undefined long* format-short mirror-toggle* undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle* undo redo(off) clear
 strip layout: long, mirrored
 bars, data track: 1010101100000011000011101000101
 result lists: 2 films
@@ -3058,57 +3058,55 @@ P
 @title 所有胶片都相同
 @title 所有胶片都相同
 @title 未指定位：始终为空
---- hint
-有效编码。不含画幅号。
 --- result
 有效的DX编码（23 位条码）
 显示示例
 KODACOLOR VR200 Film
 第 1 部分 = 79 分配给了 Eastman Kodak Company。
+I3A
+，
 KODACOLOR VR200 Film
 ，
 截至 2008 年已停产
+BFD
 ，
-I3A
 Kodak Color Plus 200 Colorplus (First edition, French version)
 ，
 停产
 ，
-社区
-，
 由 Kodak Industrie 生产，Made in France (Chalon sur saône)，经销商 Kodak。
 暗盒编号 912714
+BFD
+，
 Kodak-Pathé Rayoscope – Code 5354
 ，
 停产
 ，
-社区
-，
 由 Kodak-Pathé 生产，50's 起，Made in France。
 暗盒编号 512714
+BFD
+，
 My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Kodak version
 ，
 在售
 ，
-社区
-，
 由 Kodak 生产，~2018 ? 至今，Kodak。
 备注：Kodak ColorPlus, available on China market. Exist with rebranded Lucky Color and Fujicolor…（可信度 4/4）
 暗盒编号 512714
+BFD
+，
 Kodak 200 (Gen 7?)
 ，
 停产
 ，
-社区
-，
 由 Kodak 生产，~2006 起。
 备注：Similar to Colorplus ?
 暗盒编号 912713
+BFD
+，
 Kodak Color Plus 200 Colorplus (Actual)
 ，
 在售
-，
-社区
 ，
 由 Kodak Industrie 生产，No country of origin indicated on the box…，经销商 Kodak。
 备注：Similar to ProFoto (or VR200?)
@@ -3128,14 +3126,19 @@ DX码
 1271
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title 数据库对此的可信度（0 = 低，4 = 高）
+@title The Big Film Database
+@title The Big Film Database
 --- facts
 address: ?dx=79-7&lang=zh-CN
 tab open: tab-photo
 focus: #result-title
-toolbar shows: undefined long format-short* undo redo(off) clear
+toolbar shows: help-dot long format-short* undo redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101010011110011100101
@@ -3188,57 +3191,55 @@ P
 @title 所有胶片都相同
 @title 所有胶片都相同
 @title 未指定位：始终为空
---- hint
-有效编码。不含画幅号。
 --- result
 有效的DX编码（23 位条码）
 显示示例
 KODACOLOR VR200 Film
 第 1 部分 = 79 分配给了 Eastman Kodak Company。
+I3A
+，
 KODACOLOR VR200 Film
 ，
 截至 2008 年已停产
+BFD
 ，
-I3A
 Kodak Color Plus 200 Colorplus (First edition, French version)
 ，
 停产
 ，
-社区
-，
 由 Kodak Industrie 生产，Made in France (Chalon sur saône)，经销商 Kodak。
 暗盒编号 912714
+BFD
+，
 Kodak-Pathé Rayoscope – Code 5354
 ，
 停产
 ，
-社区
-，
 由 Kodak-Pathé 生产，50's 起，Made in France。
 暗盒编号 512714
+BFD
+，
 My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Kodak version
 ，
 在售
 ，
-社区
-，
 由 Kodak 生产，~2018 ? 至今，Kodak。
 备注：Kodak ColorPlus, available on China market. Exist with rebranded Lucky Color and Fujicolor…（可信度 4/4）
 暗盒编号 512714
+BFD
+，
 Kodak 200 (Gen 7?)
 ，
 停产
 ，
-社区
-，
 由 Kodak 生产，~2006 起。
 备注：Similar to Colorplus ?
 暗盒编号 912713
+BFD
+，
 Kodak Color Plus 200 Colorplus (Actual)
 ，
 在售
-，
-社区
 ，
 由 Kodak Industrie 生产，No country of origin indicated on the box…，经销商 Kodak。
 备注：Similar to ProFoto (or VR200?)
@@ -3258,13 +3259,18 @@ DX码
 1271
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
-复制链接
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title 数据库对此的可信度（0 = 低，4 = 高）
+@title The Big Film Database
+@title The Big Film Database
 --- facts
 address: ?dx=79-7&lang=zh-CN
 focus: #tab-copy
-toolbar shows: undefined long format-short* mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long format-short* mirror-toggle undo redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101010011110011100101
@@ -3272,6 +3278,8 @@ photo over the strip: 0 px left of the code, 0 px wider; label above, 0 px from 
 result lists: 10 films
 
 === desktop / the code list: a Part 1 number chosen in the table
+--- code list: filters: as in "desktop / empty", but
++113	清除筛选条件
 --- code list: count
 显示 15 个登记产品。
 --- code list: products
@@ -3364,6 +3372,7 @@ Xiamen FUDA
 任何状态
 2008 年仍在生产
 截至 2008 年已停产
+清除筛选条件
 --- code list: count
 显示 36 个登记产品。
 --- code list: products
@@ -3473,6 +3482,7 @@ Xiamen FUDA
 任何状态
 2008 年仍在生产
 截至 2008 年已停产
+清除筛选条件
 --- code list: count
 没有符合这些筛选条件的登记产品。
 --- code list: products
@@ -3499,22 +3509,20 @@ code list: 6 / all / live: 0 rows
 -15	0
 --- film look
 (not shown)
---- hint
-有效编码。画幅号 23。
 --- result
 有效的DX编码
 KODAK Professional BW400CN Film
 第 1 部分 = 79 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK Professional BW400CN Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Professional BW400CN Film
 ，
 停产
-，
-社区
 ，
 2004 至 2014。
 备注：Chromogenic film
@@ -3534,6 +3542,8 @@ DX码
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- Find a film
 (not shown)
 --- cassette
@@ -3546,6 +3556,8 @@ DX码
 (not shown)
 --- code list: products
 (not shown)
+--- elsewhere
+跳到解码器
 --- facts
 address: ?dx=79-15/23&lang=zh-CN
 toolbar shows: 
@@ -3583,22 +3595,20 @@ cassette drawing turned: (does not apply)
 -17	–
 --- film look
 (not shown)
---- hint
-有效编码。画幅号 14A。
 --- result
 有效的DX编码
 KODAK GOLD 200 Film
 第 1 部分 = 96 分配给了 Eastman Kodak Company。
+I3A
+，
 KODAK GOLD 200 Film
 ，
 2008 年仍在生产
+BFD
 ，
-I3A
 Kodak Gold 200 GB 200-7
 ，
 可能已停产
-，
-社区
 ，
 ~1991 起。
 暗盒编号 015480
@@ -3617,6 +3627,8 @@ DX码
 ?
 通常是这种胶片暗盒条码中间的四位数字。首位数字由制造厂自行安排，末位表示可拍摄张数。
 原始字段
+@title 国际影像行业协会
+@title The Big Film Database
 --- Find a film
 (not shown)
 --- cassette
@@ -3629,6 +3641,8 @@ DX码
 (not shown)
 --- code list: products
 (not shown)
+--- elsewhere
+跳到解码器
 --- facts
 address: ?dx=96-12/14A&lang=zh-CN
 tab open: tab-photo

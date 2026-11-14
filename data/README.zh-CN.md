@@ -33,7 +33,7 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
 2. 删除了 `Pic` 列（包装盒图片的文件名）。
 3. 在最前面加了一列 `ID`：我们为每一行编的记录编号，因为该数据库本身没有。
 
-构建 `site/js/dx-data-community.js` 时，会去掉文本字段中的 HTML 标记，把 `#` 搜索标签从名称中分离出来，并把各行压缩成数组。
+构建 `site/js/dx-data-community.js` 时，会去掉文本字段中的 HTML 标记，把不换行空格改为普通空格，把连续的空格合并为一个，并去掉字段首尾的空格；还会把 `#` 搜索标签从名称中分离出来，并把各行压缩成数组。
 
 | 列 | 含义 |
 |---|---|
@@ -71,9 +71,10 @@ CSV 文件按印刷原样保留列表，包括出现了两次的三行；构建�
    npm run check:regressions -- --update
    npm test
    npm run test:e2e
+   npm run check:regressions
    ```
 
-   第二条命令会重新写出 `tests/regressions/` 中的快照：它们记录页面和查询所显示的内容，这些内容随数据而变。之后 `git diff tests/regressions` 会显示这次更新在其中改变了什么。除了数据的结构，有些测试还检查数据库的快照本身：检查 research/04 所引用数字的那项测试，在完成第 3 步之前会失败；还有几项测试指名检查特定的行，例如 DX extract 与暗盒编号不一致的那些行。改变了的行会得到新的 `bfd-` 编号；`npm test` 会指出 `site/js/app.js` 中哪个示例的编号需要更新。如果上游重命名或删除了某一列，更新或构建会报错停止，并在错误信息中指出该列；请相应修改 `scripts/update-community-data.mjs` 或 `scripts/build-data.mjs`。如果测试“is a cleaned subset of the rows with a DX extract or a cassette number”（是带有 DX extract 或暗盒编号的行的已清理子集）失败，说明某一行包含构建步骤还不会清理的内容，例如一种新的标记。
+   第二条命令会重新写出 `tests/regressions/` 中的快照：它们记录页面和查询所显示的内容，这些内容随数据而变。之后 `git diff tests/regressions` 会显示这次更新在其中改变了什么。最后一条命令再检查一次快照：为通过测试所做的更正（例如某个示例的编号）可能改变页面显示的内容。除了数据的结构，有些测试还检查数据库的快照本身：检查 research/04 所引用数字的那项测试，在完成第 3 步之前会失败；还有几项测试指名检查特定的行，例如 DX extract 与暗盒编号不一致的那些行。改变了的行会得到新的 `bfd-` 编号；`npm test` 会指出 `site/js/app.js` 中哪个示例的编号需要更新。如果上游重命名或删除了某一列，更新或构建会报错停止，并在错误信息中指出该列；请相应修改 `scripts/update-community-data.mjs` 或 `scripts/build-data.mjs`。如果测试“is a cleaned subset of the rows with a DX extract or a cassette number”（是带有 DX extract 或暗盒编号的行的已清理子集）失败，说明某一行包含构建步骤还不会清理的内容，例如一种新的标记。
 3. 更新 [research/04](../research/04-community-database.zh-CN.md) 及其英文版。`npm run stats:community-data` 会打印该报告在摘要、“所用快照”、“数据质量方面的发现”和“现代胶片的覆盖情况”中引用的数字；提交的日期可以在 GitHub 上看到。
 
 ### I3A 列表需要更正时

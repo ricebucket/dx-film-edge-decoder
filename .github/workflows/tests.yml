@@ -65,11 +65,14 @@ jobs:
       - run: npm install -g @playwright/test@${{ env.PLAYWRIGHT }} @axe-core/playwright@4.14.0
       # Its browsers are kept from one run to the next, so that only a new
       # version downloads them. The system packages they need are installed
-      # each time.
+      # each time. The key names the runner's Ubuntu release: WebKit is built
+      # for one release, and a build kept from another does not start.
+      - id: system
+        run: . /etc/os-release && echo "release=$VERSION_ID" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT }}-${{ contains(matrix.browsers, 'webkit') && 'webkit' || 'chromium-shell' }}
+          key: playwright-${{ runner.os }}-${{ steps.system.outputs.release }}-${{ env.PLAYWRIGHT }}-${{ contains(matrix.browsers, 'webkit') && 'webkit' || 'chromium-shell' }}
       - run: playwright install --with-deps ${{ matrix.browsers }}
       - run: npm run test:e2e -- ${{ matrix.tests }}
         env:

@@ -17,6 +17,12 @@ function watchConsole(page) {
 
 const dataCell = (page, n) => page.locator(`#strip .track--data [data-cell="${n}"]`);
 
+/** As in a browser set to these languages, the most wanted first: for the pages this page opens from now on. */
+const browserLanguages = (page, tags) => page.addInitScript((list) => {
+  Object.defineProperty(navigator, 'languages', { configurable: true, get: () => list });
+  Object.defineProperty(navigator, 'language', { configurable: true, get: () => list[0] });
+}, tags);
+
 /** Click data cells until the editable ones match `bits` (a full data-track string). */
 async function setCells(page, bits) {
   for (let n = 7; n <= bits.length - 4; n++) {
@@ -143,4 +149,4 @@ function decodePng(png) {
   return { width, height, data: rgba };
 }
 
-module.exports = { watchConsole, dataCell, setCells, sideOverflow, encodePng, decodePng };
+module.exports = { watchConsole, dataCell, browserLanguages, setCells, sideOverflow, encodePng, decodePng };

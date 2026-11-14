@@ -217,6 +217,13 @@ describe('generated data files', () => {
     const reuse = await readFile(join(ROOT, 'REUSE.toml'), 'utf8');
     const ccBySa = reuse.split('[[annotations]]').find((a) => a.includes('"CC-BY-SA-4.0"'));
     assert.ok(ccBySa.includes('"site/js/dx-index.js"'));
+    // The report that lists the licenses (research/06) names every path under this license, in both versions.
+    const paths = [...ccBySa.slice(ccBySa.indexOf('path = ['), ccBySa.indexOf(']')).matchAll(/"([^"]+)"/g)].map((m) => m[1].replace(/\*\*$/, ''));
+    assert.ok(paths.length >= 6, paths.join());
+    for (const file of ['research/06-sources-and-licensing.md', 'research/06-sources-and-licensing.zh-CN.md']) {
+      const text = await readFile(join(ROOT, file), 'utf8');
+      assert.deepEqual(paths.filter((path) => !text.includes(path)), [], file);
+    }
     assert.equal(community.source.license, 'CC BY-SA 4.0');
     assert.match(community.source.commit, /^[0-9a-f]{40}$/);
   });

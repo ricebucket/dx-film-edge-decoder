@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { AxeBuilder } = require('@axe-core/playwright');
-const { watchConsole } = require('./helpers.cjs');
+const { watchConsole, browserLanguages } = require('./helpers.cjs');
 const { fullScanRuns } = require('./on-github.cjs');
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
@@ -48,7 +48,7 @@ for (const lang of LANGUAGES) {
       // Seven passes of axe, a few seconds each: three times the usual time, so
       // that a busy computer does not stop it halfway.
       test.slow();
-      await page.addInitScript((code) => localStorage.setItem('dx-lang', code), lang);
+      await browserLanguages(page, [lang]);
       await page.emulateMedia({ colorScheme });
 
       // A decoded film, with the help panels, the photo reader, search and

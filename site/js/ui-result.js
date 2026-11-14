@@ -133,9 +133,14 @@
         h('span', { class: 'visually-hidden' }, ' ', t('(opens in a new tab)'))));
   }
 
-  /** Which source an entry comes from, said on its row: the films of both are in one list. */
+  /**
+   * Which source an entry comes from, said before its name: the films of both
+   * are in one list. Three letters, the same in every language, whose tip is
+   * the source's full name; The Big Film Database's is English on every page.
+   */
   function sourceTag(source) {
-    return h('span', { class: `source-tag source-tag--${source}` }, source === 'i3a' ? t('I3A') : t('Community'));
+    if (source === 'i3a') return h('abbr', { class: 'source-tag source-tag--i3a', title: t('International Imaging Industry Association') }, 'I3A');
+    return h('abbr', { class: 'source-tag source-tag--community', title: 'The Big Film Database', lang: i18n.current === 'en' ? null : 'en' }, 'BFD');
   }
 
   /**
@@ -150,12 +155,16 @@
     return words.endsWith('.') ? pieces : pieces.concat(mark);
   }
 
+  /** After one of a row's short pieces: a separator that is read out but not shown. */
+  const said = () => h('span', { class: 'visually-hidden' }, i18n.punctuation().comma);
+  /** Between two of them: a middle dot that is not read out, shown only where Windows contrast themes take the tint away. */
+  const dot = () => h('span', { class: 'row-dot', 'aria-hidden': 'true' }, '·');
+
   /**
-   * A row's short pieces (its name, DX number, "Fuzzy match", status and
-   * source tag), each one followed by a separator that is read out but not
-   * shown, unless nothing follows it: on screen, tint and spacing set them
-   * apart. Between two of them, a middle dot that is not read out, shown
-   * only where Windows contrast themes take the tint away. Then the rest of
+   * A row's short pieces (its source and name, DX number, "Fuzzy match" and
+   * status), each one followed by a separator that is read out but not
+   * shown (said), unless nothing follows it: on screen, tint and spacing set
+   * them apart. Between two of them, a middle dot (dot). Then the rest of
    * the row (`rest`).
    */
   function separated(short, rest) {
@@ -164,8 +173,7 @@
     return pieces.flatMap((piece, i) => {
       const next = i + 1 < pieces.length;
       if (!next && !after.length) return [piece];
-      const said = h('span', { class: 'visually-hidden' }, i18n.punctuation().comma);
-      return next ? [piece, said, h('span', { class: 'row-dot', 'aria-hidden': 'true' }, '·')] : [piece, said];
+      return next ? [piece, said(), dot()] : [piece, said()];
     }).concat(after);
   }
 
@@ -178,8 +186,8 @@
    * augmented cassette numbers (`code`), or a row of The Big Film Database
    * (`cassettes`: rows that differ only by cassette number come as one), and
    * `kind` says which source ('i3a' or 'community'). Its short pieces come
-   * first (separated): its name, DX number, "Fuzzy match", status, then its
-   * source; then what its source records. Options:
+   * first (separated): its source and name, DX number, "Fuzzy match", then
+   * its status; then what its source records. Options:
    * - `dx`: its DX number shown;
    * - `related`: the four digits looked up, for a film listed only for them:
    *   it says so, and they are marked where it has them, in a cassette number
@@ -246,11 +254,11 @@
           ? t('Most likely a filler number: no maker held Part 1 = 0 in 2008')
           : t('No maker held Part 1 = 0 in 2008');
     const body = separated([
-      h('span', { class: 'match__name' }, film.name),
+      // The source stands in the name's own text, so that a long name runs on under it.
+      h('span', { class: 'match__title' }, sourceTag(kind), said(), dot(), h('span', { class: 'match__name' }, film.name)),
       options.dx && number ? h('span', { class: 'match__dx' }, 'DX ', markRecorded && edge ? h('mark', { class: 'shared' }, number) : number) : null,
       related ? h('span', { class: 'pill pill--near' }, t('Fuzzy match')) : null,
       status || null,
-      sourceTag(kind),
     ], [
       registry && film.wildcard ? h('span', { class: 'match__facts' }, t('Listed by I3A for this Part 1 without a Part 2 number.')) : null,
       augmented ? h('span', { class: 'match__facts' }, t('Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.')) : null,
@@ -381,28 +389,6 @@
   /** As zxing-cpp writes the code and Zint reads it: the frame as a number, so 62A for the frame printed XA. */
   function textForm(d) {
     return d.frame === null ? d.dxNumber : `${d.dxNumber}/${d.frame}${d.half ? 'A' : ''}`;
-  }
-
-  async function copyText(text, button, done) {
-    // Remember the label once, so quick repeated clicks don't keep "Copied" for good.
-    if (!button.dataset.label) button.dataset.label = button.textContent;
-    clearTimeout(button.resetTimer);
-    try {
-      await navigator.clipboard.writeText(text);
-      button.textContent = done;
-    } catch (e) {
-      // No clipboard (a page over plain http, say): the text to copy, chosen already.
-      button.textContent = t('Copy failed: copy the link below');
-      let field = button.parentNode.querySelector('.copy-field');
-      if (!field) {
-        field = h('input', { type: 'text', class: 'input copy-field', readonly: true, 'aria-label': t('Link to this code') });
-        button.after(field);
-      }
-      field.value = text;
-      field.focus();
-      field.select();
-    }
-    button.resetTimer = setTimeout(() => { button.textContent = button.dataset.label; }, 1800);
   }
 
   function emptyState(ctx) {
@@ -567,7 +553,7 @@
   /**
    * ctx: { decoded, empty (nothing entered yet), lookup, pickedAt(part1, part2) (the record IDs of the films picked to show
    *        the code that have this DX number, listed first),
-   *        examples, shareUrl, onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
+   *        examples, onLoadExample(ex), onApplyCells(bits), onUseShort(bits) }
    */
   function renderResult(container, ctx) {
     const d = ctx.decoded;
@@ -598,11 +584,6 @@
       ...id.parts);
     side.push(readouts(d));
 
-    const actions = h('div', { class: 'result__actions' });
-    const share = h('button', { type: 'button', class: 'tool' }, t('Copy link'));
-    share.addEventListener('click', () => copyText(ctx.shareUrl, share, t('Link copied')));
-    actions.append(share);
-
     // Keep "Raw fields" open across re-renders while the user edits the strip.
     const wasOpen = Boolean(container.querySelector('details.raw[open]'));
     const p = i18n.punctuation();
@@ -622,7 +603,7 @@
       problems,
       h('div', { class: 'result__grid' },
         h('div', { class: 'result__main' }, main),
-        h('div', null, side, actions)),
+        h('div', null, side)),
       raw);
   }
 

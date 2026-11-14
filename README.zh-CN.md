@@ -19,7 +19,7 @@
 - **较旧的胶片**：除了现行的 31 位条码，也支持 1990 年画幅号扩展之前的原始 23 位条码。
 - **读取照片或扫描件**：解码器会自己找到条码，即使胶片是镜像的、上下颠倒的或者是反转片也能找到，并显示它读取了哪些单元。之后照片会留在视野中，照片上的条码与片条的各单元逐一对齐。
 - 按名称或制造厂**查找胶片的编码**，**查询暗盒编号**，以及浏览 **2008 年DX码列表**。从这些地方显示的编码，会在片条上方注明来源，并提供返回的入口。
-- 撤销和重做，`?dx=79-15/23` 这样的可分享链接，浅色和深色主题，英文或简体中文（在顶部的语言菜单中选择，或在链接中用 `?lang=en` 或 `?lang=zh-CN` 指定），以及键盘和屏幕阅读器支持。
+- 撤销和重做，`?dx=79-15/23` 这样的可分享链接，浅色和深色主题，英文或简体中文（起初跟随浏览器的语言；可在顶部的语言菜单中更改，或在链接中用 `?lang=en` 或 `?lang=zh-CN` 指定），以及键盘和屏幕阅读器支持。
 
 ## 使用方法
 
@@ -48,7 +48,7 @@
 
 ## 运行与开发
 
-网页是纯 HTML、CSS 和 JavaScript，没有依赖，也没有构建步骤：打开 `site/index.html`，或者运行 `npm start` 后访问 <http://localhost:8080>。脚本和测试需要 [Node.js](https://nodejs.org/) 22 或更高版本。
+网页是纯 HTML、CSS 和 JavaScript，没有依赖，也没有构建步骤：打开 `site/index.html`，或者运行 `npm start` 后访问 <http://localhost:8080>。脚本和测试需要 [Node.js](https://nodejs.org/) 22 或更高版本。[DEVELOPING.zh-CN.md](DEVELOPING.zh-CN.md) 列出了每一次修改、推送之前和推送之后的步骤。
 
 ```
 site/                 网页（部署时写入提交编号）
@@ -63,8 +63,8 @@ data/                 CSV 格式的胶片数据表，见 data/README.zh-CN.md
 research/             关于格式和数据的研究报告
   img/                报告中的图示
 scripts/              数据提取与构建、图示、截图、
-                      演示视频、语言检查和回归检查、本地服务器、
-                      测试运行器、部署标记
+                      演示视频、语言检查、回归检查、类型检查和样式检查、
+                      本地服务器、测试运行器、部署标记
 tests/unit/           单元测试（node:test）
 tests/e2e/            浏览器和无障碍测试（Playwright、axe-core）
 tests/regressions/    页面和查询所显示内容的快照
@@ -73,17 +73,19 @@ tests/mutants.mjs     故意改坏一处的代码，以及此时必须失败的�
 tsconfig.json,
 globals.d.ts          `npm run check:types` 的设置
 LICENSES/, REUSE.toml 许可证全文，以及每种许可证适用于哪些文件
+DEVELOPING.zh-CN.md   每一次修改、推送之前和推送之后的步骤
 ```
 
 ### 测试
 
 ```sh
-npm test                    # 单元测试：编解码器、数据、查询及其快照、照片读取、语言、图示、视频写入、@phone 标记、链接、部署标记、样式表、变异体列表
+npm test                    # 单元测试（不需要浏览器）
 npm run test:e2e            # 浏览器测试：桌面、Android 手机、iPhone
 npm run check:regressions   # 把页面与它的快照比较
 npm run test:mutants        # 用改坏一处的代码检验测试
 npm run check:types         # 从未使用的代码、未定义的名称、参数过多的调用
 npm run check:styles        # 没有任何地方用到的样式规则和类名
+npm run before-push         # 依次运行以上各项，然后生成图片和视频：推送之前的步骤
 ```
 
 浏览器测试在 Chromium 中以桌面屏幕和 Pixel 10 Pro 运行，并在 Safari 的内核 WebKit 中以 iPhone 17 Pro 运行。只想运行其中一种时，加上 `-- --project=desktop`（或 `android`、`iphone`）。浏览器测试还包括用 [axe-core](https://github.com/dequelabs/axe-core) 进行的无障碍检查（它的 WCAG 2.2 A 级和 AA 级规则），覆盖每种语言以及浅色和深色模式。
@@ -103,7 +105,7 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 
 `npm run test:e2e` 能找到这两种安装中的任意一种。如果 Playwright 安装在别处，而且不在上级文件夹中，请把 `PLAYWRIGHT_DIR` 设为包含 `@playwright/test` 的那个 `node_modules` 文件夹。测试产物会存放在系统的临时文件夹中。
 
-`npm run check:regressions` 用来发现并非有意的改动。它在每种语言和三种屏幕尺寸下打开页面的各个主要状态，并把文字和布局与 `tests/regressions/` 中的快照比较。那里还有一份快照，记录每一次搜索、每一个DX码和每一个暗盒编号能找到什么，由 `npm test` 检查。改动是有意的时候，`npm run check:regressions -- --update` 会重新写出快照，`git diff tests/regressions` 则显示有哪些变化。如果一项改动不应该移动任何东西，`npm run check:regressions -- --against` 会把页面与上一次提交比较，精确到每个元素的位置和大小。它同样需要 Playwright，不在 GitHub 上运行。
+`npm run check:regressions` 用来发现并非有意的改动。它在每种语言和三种屏幕尺寸下打开页面的各个主要状态，并把页面显示的内容与 `tests/regressions/` 中的快照比较。那里还有一份记录查询结果的快照，由 `npm test` 检查。改动是有意的时候，`npm run check:regressions -- --update` 会重新写出快照，`git diff tests/regressions` 则显示有哪些变化。如果一项改动不应该移动任何东西，`npm run check:regressions -- --against` 会把页面与上一次提交比较，精确到每个元素的位置和大小。它同样需要 Playwright，不在 GitHub 上运行。
 
 `npm run test:mutants` 检验的是测试本身。`tests/mutants.mjs` 列出一批变异体：每一个都是故意改坏一处的代码（例如把某项修复重新去掉），旁边写明此时必须失败的测试。这条命令在项目的副本中逐个尝试它们，需要几分钟；如果某个变异体的测试仍然通过，它会报告出来：这项测试已经不再守护它原本要守护的东西。`--` 之后的词按名称挑选变异体（`npm run test:mutants -- mirror`）。每项修复都带有测试，每项测试都带有变异体；代码改动后，如果某个变异体的文字已不在它的文件中，`npm test` 会失败。新增或修改过的浏览器测试，在可以信任之前还要连续运行 20 次：`npm run test:repeat -- -g "测试名称中的词"`。这两条命令都不在 GitHub 上运行。
 
@@ -115,12 +117,12 @@ cd ~ && npm install @playwright/test @axe-core/playwright && npx playwright inst
 
 ### 语言
 
-页面有英文和简体中文两种语言；访问者可以在页面顶部的菜单中选择语言。解码器页面（`site/index.html`）和代码中是英文文字，其他每种语言都是 `site/js/i18n/` 中的一个文件，为每一段英文给出该语言的文字；解码器页面只加载它所显示的那种语言的文件，并等它加载完成。如果 3 秒后这个文件还没到，页面会用该语言说明情况，并给出改用英文显示的按钮。来源页面则每种语言各写一份：英文是 `site/sources.html`，中文是 `site/sources.zh-CN.html`。
+页面有英文和简体中文两种语言。解码器页面按地址中指定的语言（`?lang=zh-CN`）打开；地址没有指定时，按浏览器自己的语言打开（如果页面有这种语言），否则用英文；访问者可以在页面顶部的菜单中更改语言。此后地址中始终带有所显示的语言，浏览器中不保存任何语言设置。解码器页面（`site/index.html`）和代码中是英文文字，其他每种语言都是 `site/js/i18n/` 中的一个文件，为每一段英文给出该语言的文字；解码器页面只加载它所显示的那种语言的文件，并等它加载完成。如果 3 秒后这个文件还没到，页面会用该语言说明情况，并给出改用英文显示的按钮。来源页面则每种语言各写一份：英文是 `site/sources.html`，中文是 `site/sources.zh-CN.html`。
 
 添加一种语言：
 
 1. 把 `site/js/i18n/zh-CN.js` 复制为以语言代码命名的文件，例如 `site/js/i18n/de.js`。设置 `code`、`name`（用该语言本身写的语言名称）和 `punctuation`，并把其中的中文全部换成新语言的文字。`{placeholders}`、HTML 标签以及胶片和产品名称都保持原样。如果该语言有多种复数形式，文字可以写成对象，例如 `{ one: …, few: …, many: …, other: … }`。
-2. 在 `site/js/prepaint.js` 末尾的列表中加入该语言的代码和名称，并用该语言写出语言文件迟迟未到时页面显示的提示（`waiting`）和此时改用英文显示的按钮（`english`）。之后解码器页面会为选择该语言的访问者加载这个文件，语言菜单也会列出它。另外在 `site/index.html` 的 `<noscript>` 部分加上该语言版本的、给未启用 JavaScript 的访问者看的提示，并用 `lang` 标明语言：语言文件需要 JavaScript，所以无法提供这段文字。
+2. 在 `site/js/prepaint.js` 末尾的列表中加入该语言的代码和名称，并用该语言写出语言文件迟迟未到时页面显示的提示（`waiting`）和此时改用英文显示的按钮（`english`）。之后解码器页面会为选择该语言或浏览器设为该语言的访问者加载这个文件，语言菜单也会列出它。另外在 `site/index.html` 的 `<noscript>` 部分加上该语言版本的、给未启用 JavaScript 的访问者看的提示，并用 `lang` 标明语言：语言文件需要 JavaScript，所以无法提供这段文字。
 3. 把 `site/sources.html` 复制为以语言代码命名的文件，例如 `site/sources.de.html`，并用新语言写出其中的文字。在 `<html>` 上设置 `lang`，把指向 `index.html` 的链接中的 `en` 换成该语言（`index.html?lang=de#decoder`），并在菜单中把该语言标为 `selected`。然后在来源页面每个版本的菜单中加上该语言。
 4. 运行 `npm run check:languages`。它会列出该语言缺少的英文文字、对应英文已不再使用的文字，以及占位符或标签与英文不一致的文字；缺少给未启用 JavaScript 的访问者看的提示时，它也会指出。它还会检查 `site/js/prepaint.js` 是否列出了每一个语言文件及其两段文字，并把来源页面的每个版本与英文版比较：两者需要有相同的元素、链接和菜单，页头的文字也要与解码器页面相同。`npm test` 也会运行同样的检查。
 5. 在 `scripts/make-figures.mjs` 的 `LABELS` 中加入该语言的标签，然后运行 `npm run media`，这样图示、截图和演示视频也会有这种语言的版本。

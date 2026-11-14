@@ -10,7 +10,8 @@
 //   npm run test:mutants -- --jobs=2        so many at once (4 by default, fewer on a small machine)
 //
 // It works on copies of the project in the system's temporary folder, removed
-// afterward, and never changes the project itself. Each test is first run on
+// afterward. A run that is stopped from outside leaves them there. It never
+// changes the project itself. Each test is first run on
 // an unchanged copy, where it must pass. Takes a few minutes: it is not part
 // of `npm test`, and not run on GitHub. The browser tests among them need
 // Playwright, installed outside this repository; see scripts/run-e2e.mjs.

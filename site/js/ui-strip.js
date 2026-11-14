@@ -8,7 +8,7 @@
  */
 (function (root) {
   'use strict';
-  const { h } = root.DX.dom;
+  const { h, focusVisible } = root.DX.dom;
   const codec = root.DX.codec;
   const t = root.DX.i18n.t;
 
@@ -307,7 +307,7 @@
       });
       track.addEventListener('focusin', (e) => {
         // Focus the keyboard brought in (Tab) takes the ruler, as keys do.
-        if (!track.classList.contains('is-clicked') && e.target.matches(':focus-visible')) mouseLeads = false;
+        if (!track.classList.contains('is-clicked') && focusVisible(e.target)) mouseLeads = false;
         showHere();
       });
       track.addEventListener('focusout', (e) => {

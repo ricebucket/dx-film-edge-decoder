@@ -2,7 +2,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { buildIndex } from '../../scripts/lib/dx-index.mjs';
-import { LEVELS, ROWS, WORDS } from './search-words.mjs';
+import { LEVELS, NOTHING_FOUND, ROWS, WORDS } from './search-words.mjs';
 
 // The search by name has three stages (site/js/dx-lookup.js), each tested here
 // on its own: the text typed into words (`analyze`), the words against a row
@@ -187,9 +187,10 @@ describe('stage 3: the rows found, ranked (search)', () => {
     assert.equal(lookup.analyze, analyze);
   });
 
-  test('the rows of the table that the film data has words for find films', () => {
-    for (const typed of ['portra 400', 'T-MAX 100', 'superia x-tra 400', 'tmax400', '彩韵200', '200彩韵', '業務用カラーフィルム100', '写ルンです', '写ルンで1600', 'Свема', 'ДС100', '100-2 optima']) {
-      assert.ok(lookup.search(typed).length > 0, typed);
-    }
+  test('every typed text of the table finds films in the data, but for those the table lists as finding none', () => {
+    for (const typed of NOTHING_FOUND) assert.ok(WORDS.some(([text]) => text === typed), `${JSON.stringify(typed)} is not in the table`);
+    const wrong = WORDS.filter(([typed]) => (lookup.search(typed).length > 0) === NOTHING_FOUND.includes(typed))
+      .map(([typed]) => `${JSON.stringify(typed)}: ${lookup.search(typed).length} films`);
+    assert.deepEqual(wrong, []);
   });
 });

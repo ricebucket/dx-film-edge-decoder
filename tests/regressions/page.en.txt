@@ -110,8 +110,6 @@ Stop
 @title Black-and-white negative
 @aria-label Slide
 @title Slide
---- hint
-Start at cell 7, right after the fixed start pattern.
 --- result
 Waiting for bars
 Not sure what a barcode looks like? Try an example:
@@ -197,8 +195,10 @@ The parity check
 The parity cell is a simple guard against misreading: it holds a bar exactly when Part 1, Part 2, the frame number and the A flag contain an odd number of bars, so the total is always even. When a copy fails the check, one bar is probably wrong. The decoder then lists the single-bar corrections that would give a valid code, starting with known films.
 Reading direction and film type
 Read the code from the wide clock mark. With the film the right way around, usually viewed from the shiny base side, the printed numbers read normally and the wide mark is on the left; from the other side, everything is mirrored. On slide film the bars show clear on a black edge. The code repeats every half frame, so if a bar is unclear, check the next one.
+Where the film names come from
+Each film in a list is marked with its source. I3A is the 2008 DX registry of the International Imaging Industry Association, the most recent official list that is freely available. BFD is The Big Film Database, a community database that also covers films introduced since 2008 and rebranded films.
 What the code does not say
-The DX number names a product. The product name usually includes the speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.
+The DX number names a product. The product name usually includes the speed, but not always. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.
 @title Same on every film
 @title Same on every film
 @title Same on every film
@@ -1324,15 +1324,22 @@ Shanghai General Photo Show
 @aria-label Show the barcode of ORWOPAN 400
 --- footer
 Film data: I3A registry (2008) and The Big Film Database (CC BY-SA 4.0). Code: GPL-3.0 on GitHub. Sources and credits
+--- elsewhere
+Skip to the decoder
+DX code list
+The Part 1 numbers and products registered with the International Imaging Industry Association, as published in
+DX Codes for 135-Size Film
+(February 2008). Select a Part 1 number to filter the list.
 --- facts
 title: DX Film Edge Decoder
 address: ?lang=en
 tab open: tab-copy
 focus: (nowhere)
 page wider than the screen by: 0 px
-toolbar shows: undefined long* format-short mirror-toggle undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo(off) redo(off) clear
 strip layout: long
 strip cell: 25 px
+film look: negative chosen, the strip drawn as negative
 bars, clock track: 1111101010101010101010101010111
 bars, data track: 1010100000000000000000000000101
 strip wider than its film by: 0 px
@@ -1387,7 +1394,7 @@ Stop
 @title Unassigned: always empty
 --- facts
 address: ?layout=23&lang=en
-toolbar shows: undefined long format-short* mirror-toggle undo(off) redo(off) clear
+toolbar shows: help-dot long format-short* mirror-toggle undo(off) redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101000000000000000101
@@ -1402,23 +1409,21 @@ bars, data track: 10101000000000000000101
 -13	0
 +15	23
 -15	0
---- hint
-Valid code. Frame 23.
 --- result
 Valid DX code
 Show examples
 KODAK Professional BW400CN Film
 Part 1 = 79 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK Professional BW400CN Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Professional BW400CN Film
 ,
 discontinued
-,
-Community
 ,
 2004 to 2014.
 Notes: Chromogenic film
@@ -1437,8 +1442,9 @@ Cassette number
 1279
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- facts
 address: ?dx=79-15/23&lang=en
 bars, data track: 1010101001111011110101110010101
@@ -1456,23 +1462,21 @@ result lists: 2 films
 +16	A
 -15	0
 -17	–
---- hint
-Valid code. Frame 14A.
 --- result
 Valid DX code
 Show examples
 KODAK GOLD 200 Film
 Part 1 = 96 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK GOLD 200 Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Gold 200 GB 200-7
 ,
 possibly discontinued
-,
-Community
 ,
 from ~1991.
 Cassette number 015480
@@ -1490,8 +1494,9 @@ Cassette number
 1548
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=en
 bars, data track: 1010101100000011000011101000101
@@ -1507,23 +1512,21 @@ result lists: 2 films
 -13	0
 +15	23
 -15	0
---- hint
-Valid code. Frame 23.
 --- result
 Valid DX code
 Show examples
 KODAK Professional BW400CN Film
 Part 1 = 79 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK Professional BW400CN Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Professional BW400CN Film
 ,
 discontinued
-,
-Community
 ,
 2004 to 2014.
 Notes: Chromogenic film
@@ -1542,12 +1545,13 @@ Cassette number
 1279
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- facts
 address: ?dx=79-15/23&lang=en
 focus: #mirror-toggle
-toolbar shows: undefined long* format-short mirror-toggle* undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle* undo(off) redo(off) clear
 strip layout: long, mirrored
 bars, data track: 1010101001111011110101110010101
 result lists: 2 films
@@ -1595,28 +1599,26 @@ Stop
 @title Same on every film
 @title Same on every film
 @title Unassigned: always empty
---- hint
-Valid code. No frame number present.
 --- result
 Valid DX code (23-cell layout)
 Show examples
 Fujicolor Super HGV100 Asia
 Part 1 = 12 is assigned to FUJIFILM Corporation.
 Not in the 2008 registry; the name comes from the community database.
+BFD
+,
 Fujicolor Super HGV100 Asia
 ,
 discontinued
 ,
-Community
-,
 Made by Fujifilm, from ~1992 ?, Made in Japan.
 Notes: For asian market
 Cassette number 002053
+BFD
+,
 Soul Color Print Film ISO 100 SoulColor
 ,
 discontinued
-,
-Community
 ,
 Made by Fuji, Made in Japan, sold by Soul Pattinson, Sydney.
 Notes: Fujicolor Super HGV 100 (certainty 2/4)
@@ -1635,13 +1637,14 @@ Cassette number
 0205
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title The Big Film Database
+@title The Big Film Database
 @title How sure the database is about this (0 = low, 4 = high)
 --- facts
 address: ?dx=12-13&film=bfd-470&lang=en
 focus: #result-title
-toolbar shows: undefined long format-short* mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long format-short* mirror-toggle undo redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101000011000110110101
@@ -1657,39 +1660,37 @@ result lists: 2 films
 -13	0
 +15	3
 -15	0
---- hint
-Valid code. Frame 3.
 --- result
 Valid DX code
 Show examples
 FUJICOLOR 400
 Part 1 = 12 is assigned to FUJIFILM Corporation.
+I3A
+,
 FUJICOLOR 400
 ,
 in production in 2008
+BFD
 ,
-I3A
 FUJICOLOR 400
 ,
 discontinued
 ,
-Community
-,
 Made by Fuji Photo Film Co., Ltd, Made in Japan.
 Cassette number 001930
+BFD
+,
 Fujicolor QuickSnap 400 no DX coding, core splined, black
 ,
 discontinued
 ,
-Community
-,
 Made in Japan.
 Cassette number 301933
+BFD
+,
 Ritz Crystal Big Print 400 QX400
 ,
 discontinued
-,
-Community
 ,
 Notes: Fujicolor 400 (certainty 3/4)
 Cassette number 501933
@@ -1707,12 +1708,16 @@ Cassette number
 0193
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title How sure the database is about this (0 = low, 4 = high)
 --- facts
 address: ?dx=12-1/3&lang=en
 focus: button.looks__film
+film look: slide chosen, the strip drawn as slide
 bars, data track: 1010100001100000010000110010101
 result lists: 4 films
 
@@ -1726,8 +1731,6 @@ result lists: 4 films
 -13	0
 +15	23
 -15	0
---- hint
-Valid code. Frame 23.
 --- result
 Valid DX code
 Show examples
@@ -1745,17 +1748,14 @@ Cassette number
 1407
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
 --- facts
 address: ?dx=87-15/23&lang=en
 focus: button.cell
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010101010111011110101110010101
 
 === desktop / the all-zero code
---- hint
-Part 1 is 0. This is unlikely.
 --- result
 Valid DX code
 Show examples
@@ -1773,7 +1773,6 @@ Cassette number
 0000
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
 --- facts
 address: ?dx=0-0/0&lang=en
@@ -1788,31 +1787,29 @@ address: ?dx=0-0/0&lang=en
 -13	0
 +15	1
 -15	0
---- hint
-Valid code. Frame 1.
 --- result
 Valid DX code
 Show examples
 RAINBOW / SEAGULL / SHANGHAI / SHENGUANG
 Part 1 = 88 is assigned to Shanghai General Photosensitive Film Factory.
+I3A
+,
 RAINBOW
 ,
+Listed by I3A for this Part 1 without a Part 2 number.
 I3A
 ,
-Listed by I3A for this Part 1 without a Part 2 number.
 SEAGULL
 ,
+Listed by I3A for this Part 1 without a Part 2 number.
 I3A
 ,
-Listed by I3A for this Part 1 without a Part 2 number.
 SHANGHAI
 ,
-I3A
-,
 Listed by I3A for this Part 1 without a Part 2 number.
-SHENGUANG
-,
 I3A
+,
+SHENGUANG
 ,
 Listed by I3A for this Part 1 without a Part 2 number.
 DX number
@@ -1826,8 +1823,11 @@ Cassette number
 1409
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title International Imaging Industry Association
+@title International Imaging Industry Association
+@title International Imaging Industry Association
 --- facts
 address: ?dx=88-1/1&lang=en
 bars, data track: 1010101011000000010000010010101
@@ -1847,33 +1847,31 @@ Back to the code list
 -13	0
 +15	1
 -15	0
---- hint
-Valid code. Frame 1.
 --- result
 Valid DX code
 Show examples
 Perutz CR 100 Chrome
 Part 1 = 3 is assigned to Agfa-Gevaert AG.
+I3A
+,
 Perutz CR 100 Chrome
-,
 I3A
+,
 AGFACHROME CT precisa 100
-,
 I3A
+,
 AGFACHROME CTX 100
-,
 I3A
+,
 AGFACHROME RSX 100 Professional
-,
 I3A
+,
 AGFACHROME RSX II 100 Professional
+BFD
 ,
-I3A
 AGFA AGFACHROME CTX100
 ,
 discontinued
-,
-Community
 ,
 1994 to 1998, Made in Germany.
 Cassette number 000570
@@ -1892,8 +1890,15 @@ Cassette number
 0057
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title International Imaging Industry Association
+@title International Imaging Industry Association
+@title International Imaging Industry Association
+@title International Imaging Industry Association
+@title The Big Film Database
+--- code list: filters: as in "desktop / empty", but
++113	Clear filters
 --- code list: count
 7 registered products.
 --- code list: products
@@ -1916,7 +1921,7 @@ Barcode
 --- facts
 address: ?dx=3-9/1&film=i3a-13&lang=en
 focus: #result-title
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010100000011010010000010010101
 result lists: 12 films
 code list: all / 3 / all: 7 rows
@@ -1924,299 +1929,324 @@ code list: all / 3 / all: 7 rows
 === desktop / Find a film: a name
 --- Find a film: as in "desktop / empty", but
 +6	43 films found.
-+7	KODAK Professional PORTRA 100T Film
++7	I3A
 +8	,
-+9	DX 79-12
++9	KODAK Professional PORTRA 100T Film
 +10	,
-+11	discontinued by 2008
++11	DX 79-12
 +12	,
-+13	I3A
++13	discontinued by 2008
 +14	,
 +15	Eastman Kodak Company.
 +16	Show barcode
-+17	KODAK PROFESSIONAL PORTRA 100T Film
++17	I3A
 +18	,
-+19	DX 112-12
++19	KODAK PROFESSIONAL PORTRA 100T Film
 +20	,
-+21	discontinued by 2008
++21	DX 112-12
 +22	,
-+23	I3A
++23	discontinued by 2008
 +24	,
 +25	Eastman Kodak Company.
 +26	Show barcode
-+27	KODAK Professional PORTRA 160 Film
++27	I3A
 +28	,
-+29	DX 79-11
++29	KODAK Professional PORTRA 160 Film
 +30	,
-+31	discontinued by 2008
++31	DX 79-11
 +32	,
-+33	I3A
++33	discontinued by 2008
 +34	,
 +35	Eastman Kodak Company.
 +36	Show barcode
-+37	KODAK PROFESSIONAL PORTRA 160NC Film
++37	I3A
 +38	,
-+39	DX 96-7
++39	KODAK PROFESSIONAL PORTRA 160NC Film
 +40	,
-+41	in production in 2008
++41	DX 96-7
 +42	,
-+43	I3A
++43	in production in 2008
 +44	,
 +45	Eastman Kodak Company.
 +46	Show barcode
-+47	KODAK PROFESSIONAL PORTRA 160VC Film
++47	I3A
 +48	,
-+49	DX 96-8
++49	KODAK PROFESSIONAL PORTRA 160VC Film
 +50	,
-+51	in production in 2008
++51	DX 96-8
 +52	,
-+53	I3A
++53	in production in 2008
 +54	,
 +55	Eastman Kodak Company.
 +56	Show barcode
-+57	KODAK Professional PORTRA 400 Film
++57	I3A
 +58	,
-+59	DX 79-13
++59	KODAK Professional PORTRA 400 Film
 +60	,
-+61	discontinued by 2008
++61	DX 79-13
 +62	,
-+63	I3A
++63	discontinued by 2008
 +64	,
 +65	Eastman Kodak Company.
 +66	Show barcode
-+67	KODAK PROFESSIONAL PORTRA 400NC Film
++67	I3A
 +68	,
-+69	DX 96-9
++69	KODAK PROFESSIONAL PORTRA 400NC Film
 +70	,
-+71	in production in 2008
++71	DX 96-9
 +72	,
-+73	I3A
++73	in production in 2008
 +74	,
 +75	Eastman Kodak Company.
 +76	Show barcode
-+77	KODAK PROFESSIONAL PORTRA 400VC Film
++77	I3A
 +78	,
-+79	DX 96-10
++79	KODAK PROFESSIONAL PORTRA 400VC Film
 +80	,
-+81	in production in 2008
++81	DX 96-10
 +82	,
-+83	I3A
++83	in production in 2008
 +84	,
 +85	Eastman Kodak Company.
 +86	Show barcode
-+87	KODAK PROFESSIONAL Portra 800 Film
++87	I3A
 +88	,
-+89	DX 43-7
++89	KODAK PROFESSIONAL Portra 800 Film
 +90	,
-+91	in production in 2008
++91	DX 43-7
 +92	,
-+93	I3A
++93	in production in 2008
 +94	,
 +95	Eastman Kodak Company.
 +96	Show barcode
-+97	Kodak Portra 160 (new)
++97	BFD
 +98	,
-+99	DX 95-14
++99	Kodak Portra 160 (new)
 +100	,
-+101	on the market
++101	DX 95-14
 +102	,
-+103	Community
++103	on the market
 +104	,
 +105	2011 to today.
 +106	Cassette number 115344
 +107	Show barcode
-+108	Kodak Portra 400 new
++108	BFD
 +109	,
-+110	DX 95-13
++110	Kodak Portra 400 new
 +111	,
-+112	on the market
++112	DX 95-13
 +113	,
-+114	Community
++114	on the market
 +115	,
 +116	2010 to today.
 +117	Cassette number 115334
 +118	Show barcode
-+119	Kodak Portra 400 UC - Code : 400UC
++119	BFD
 +120	,
-+121	DX 95-4
++121	Kodak Portra 400 UC - Code : 400UC
 +122	,
-+123	discontinued
++123	DX 95-4
 +124	,
-+125	Community
++125	discontinued
 +126	,
 +127	~1999 to 2002 ?.
 +128	Cassette number 115244
 +129	Show barcode
-+130	Kodak Portra 800
++130	BFD
 +131	,
-+132	DX 79-14
++132	Kodak Portra 800
 +133	,
-+134	discontinued
++134	DX 79-14
 +135	,
-+136	Community
++136	discontinued
 +137	,
 +138	from ~2000.
 +139	Cassette number 012784
 +140	Show barcode
-+141	Kodak Portra 800
++141	BFD
 +142	,
-+143	DX 105-15
++143	Kodak Portra 800
 +144	,
-+145	discontinued
++145	DX 105-15
 +146	,
-+147	Community
++147	discontinued
 +148	,
 +149	from ~2000 ?.
 +150	Cassette number 016954
 +151	Show barcode
-+152	Kodak Professional PORTRA 100T – Code 4719 / 5719
++152	BFD
 +153	,
-+154	DX 79-12
++154	Kodak Professional PORTRA 100T – Code 4719 / 5719
 +155	,
-+156	discontinued
++156	DX 79-12
 +157	,
-+158	Community
++158	discontinued
 +159	,
 +160	~1998 ? to ~2006.
 +161	Cassette number 012760
 +162	Show barcode
-+163	Kodak Professional PORTRA 100T – Code 4719 / 5719
++163	BFD
 +164	,
-+165	DX 112-12
++165	Kodak Professional PORTRA 100T – Code 4719 / 5719
 +166	,
-+167	discontinued
++167	DX 112-12
 +168	,
-+169	Community
++169	discontinued
 +170	,
 +171	~1998 ? to ~2006.
 +172	Cassette number 018040
 +173	Show barcode
-+174	Kodak Professional PORTRA 160
++174	BFD
 +175	,
-+176	DX 96-14
++176	Kodak Professional PORTRA 160
 +177	,
-+178	discontinued
++178	DX 96-14
 +179	,
-+180	Community
++180	discontinued
 +181	,
 +182	from 2007.
 +183	Cassette number 015500
 +184	Show barcode
-+185	Kodak Professional PORTRA 160NC
++185	BFD
 +186	,
-+187	DX 79-11
++187	Kodak Professional PORTRA 160NC
 +188	,
-+189	discontinued
++189	DX 79-11
 +190	,
-+191	Community
++191	discontinued
 +192	,
 +193	2006 to 2008.
 +194	Cassette number 112754
 +195	Show barcode
-+196	Kodak Professional PORTRA 160NC – Code 2755 / 4755
++196	BFD
 +197	,
-+198	DX 96-7
++198	Kodak Professional PORTRA 160NC – Code 2755 / 4755
 +199	,
-+200	discontinued
++200	DX 96-7
 +201	,
-+202	Community
++202	discontinued
 +203	,
 +204	2006 to 2008.
 +205	Cassette number 015430
 +206	Show barcode
-+207	Kodak Professional PORTRA 160VC
++207	BFD
 +208	,
-+209	DX 79-11
++209	Kodak Professional PORTRA 160VC
 +210	,
-+211	discontinued
++211	DX 79-11
 +212	,
-+213	Community
++213	discontinued
 +214	,
 +215	2007 to 2008 ?.
 +216	Cassette number 212754
 +217	Show barcode
-+218	Kodak Professional PORTRA 160VC – Code 4756
++218	BFD
 +219	,
-+220	DX 96-8
++220	Kodak Professional PORTRA 160VC – Code 4756
 +221	,
-+222	discontinued
++222	DX 96-8
 +223	,
-+224	Community
++224	discontinued
 +225	,
 +226	2006 to 2008.
 +227	Cassette number 015440
 +228	Show barcode
-+229	Kodak Professional PORTRA 400 Film
++229	BFD
 +230	,
-+231	DX 79-13
++231	Kodak Professional PORTRA 400 Film
 +232	,
-+233	on the market
++233	DX 79-13
 +234	,
-+235	Community
++235	on the market
 +236	,
 +237	1998 to today.
 +238	Cassette number 112774
 +239	Show barcode
-+240	Kodak Professional PORTRA 400NC
++240	BFD
 +241	,
-+242	DX 95-9
++242	Kodak Professional PORTRA 400NC
 +243	,
-+244	discontinued
++244	DX 95-9
 +245	,
-+246	Community
++246	discontinued
 +247	,
 +248	from 2007.
 +249	Cassette number 015290
 +250	Show barcode
-+251	Kodak Professional PORTRA 400NC
++251	BFD
 +252	,
-+253	DX 96-9
++253	Kodak Professional PORTRA 400NC
 +254	,
-+255	discontinued
++255	DX 96-9
 +256	,
-+257	Community
++257	discontinued
 +258	,
 +259	from 2007.
 +260	Cassette number 015450
 +261	Show barcode
-+262	Kodak Professional PORTRA 400VC
++262	BFD
 +263	,
-+264	DX 95-10
++264	Kodak Professional PORTRA 400VC
 +265	,
-+266	discontinued
++266	DX 95-10
 +267	,
-+268	Community
++268	discontinued
 +269	,
 +270	from 2007.
 +271	Cassette number 015300
 +272	Show barcode
 +273	Show 18 more
 -6	Type at least two characters.
-+280	@aria-label Show barcode of KODAK Professional PORTRA 100T Film
-+281	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 100T Film
-+282	@aria-label Show barcode of KODAK Professional PORTRA 160 Film
-+283	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 160NC Film
-+284	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 160VC Film
-+285	@aria-label Show barcode of KODAK Professional PORTRA 400 Film
-+286	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 400NC Film
-+287	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 400VC Film
-+288	@aria-label Show barcode of KODAK PROFESSIONAL Portra 800 Film
-+289	@aria-label Show barcode of Kodak Portra 160 (new)
-+290	@aria-label Show barcode of Kodak Portra 400 new
-+291	@aria-label Show barcode of Kodak Portra 400 UC - Code : 400UC
-+292	@aria-label Show barcode of Kodak Portra 800
-+293	@aria-label Show barcode of Kodak Portra 800
-+294	@aria-label Show barcode of Kodak Professional PORTRA 100T – Code 4719 / 5719
-+295	@aria-label Show barcode of Kodak Professional PORTRA 100T – Code 4719 / 5719
-+296	@aria-label Show barcode of Kodak Professional PORTRA 160
-+297	@aria-label Show barcode of Kodak Professional PORTRA 160NC
-+298	@aria-label Show barcode of Kodak Professional PORTRA 160NC – Code 2755 / 4755
-+299	@aria-label Show barcode of Kodak Professional PORTRA 160VC
-+300	@aria-label Show barcode of Kodak Professional PORTRA 160VC – Code 4756
-+301	@aria-label Show barcode of Kodak Professional PORTRA 400 Film
-+302	@aria-label Show barcode of Kodak Professional PORTRA 400NC
-+303	@aria-label Show barcode of Kodak Professional PORTRA 400NC
-+304	@aria-label Show barcode of Kodak Professional PORTRA 400VC
++280	@title International Imaging Industry Association
++281	@aria-label Show barcode of KODAK Professional PORTRA 100T Film
++282	@title International Imaging Industry Association
++283	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 100T Film
++284	@title International Imaging Industry Association
++285	@aria-label Show barcode of KODAK Professional PORTRA 160 Film
++286	@title International Imaging Industry Association
++287	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 160NC Film
++288	@title International Imaging Industry Association
++289	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 160VC Film
++290	@title International Imaging Industry Association
++291	@aria-label Show barcode of KODAK Professional PORTRA 400 Film
++292	@title International Imaging Industry Association
++293	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 400NC Film
++294	@title International Imaging Industry Association
++295	@aria-label Show barcode of KODAK PROFESSIONAL PORTRA 400VC Film
++296	@title International Imaging Industry Association
++297	@aria-label Show barcode of KODAK PROFESSIONAL Portra 800 Film
++298	@title The Big Film Database
++299	@aria-label Show barcode of Kodak Portra 160 (new)
++300	@title The Big Film Database
++301	@aria-label Show barcode of Kodak Portra 400 new
++302	@title The Big Film Database
++303	@aria-label Show barcode of Kodak Portra 400 UC - Code : 400UC
++304	@title The Big Film Database
++305	@aria-label Show barcode of Kodak Portra 800
++306	@title The Big Film Database
++307	@aria-label Show barcode of Kodak Portra 800
++308	@title The Big Film Database
++309	@aria-label Show barcode of Kodak Professional PORTRA 100T – Code 4719 / 5719
++310	@title The Big Film Database
++311	@aria-label Show barcode of Kodak Professional PORTRA 100T – Code 4719 / 5719
++312	@title The Big Film Database
++313	@aria-label Show barcode of Kodak Professional PORTRA 160
++314	@title The Big Film Database
++315	@aria-label Show barcode of Kodak Professional PORTRA 160NC
++316	@title The Big Film Database
++317	@aria-label Show barcode of Kodak Professional PORTRA 160NC – Code 2755 / 4755
++318	@title The Big Film Database
++319	@aria-label Show barcode of Kodak Professional PORTRA 160VC
++320	@title The Big Film Database
++321	@aria-label Show barcode of Kodak Professional PORTRA 160VC – Code 4756
++322	@title The Big Film Database
++323	@aria-label Show barcode of Kodak Professional PORTRA 400 Film
++324	@title The Big Film Database
++325	@aria-label Show barcode of Kodak Professional PORTRA 400NC
++326	@title The Big Film Database
++327	@aria-label Show barcode of Kodak Professional PORTRA 400NC
++328	@title The Big Film Database
++329	@aria-label Show barcode of Kodak Professional PORTRA 400VC
 --- facts
 focus: #finder-q
 Find a film lists: 25 films
@@ -2238,20 +2268,21 @@ focus: #finder-q
 === desktop / Find a film: letters of another script
 --- Find a film: as in "desktop / empty", but
 +6	1 film found.
-+7	LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
++7	BFD
 +8	,
-+9	DX 100-3
++9	LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
 +10	,
-+11	discontinued
++11	DX 100-3
 +12	,
-+13	Community
++13	discontinued
 +14	,
 +15	Made by China Lucky Film Corporation, from ~2003, Made in China.
 +16	Notes: After China Lucky Film Corporation consolidated with Kodak Company, Lucky Co. launched this Lucky charm-200 color film
 +17	Cassette number 016034
 +18	Show barcode
 -6	Type at least two characters.
-+25	@aria-label Show barcode of LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
++25	@title The Big Film Database
++26	@aria-label Show barcode of LUCKY COLOR 200 / Lucky Charm 200 (乐凯 彩韵200)
 --- facts
 focus: #finder-q
 Find a film lists: 1 films
@@ -2270,54 +2301,52 @@ Back to the search
 -13	0
 +15	1
 -15	0
---- hint
-Valid code. Frame 1.
 --- result
 Valid DX code
 Show examples
 HP5 PLUS
 Part 1 = 109 is assigned to Harman Technologies (ILFORD Photo).
-HP5 PLUS
-,
 I3A
+,
+HP5 PLUS
+BFD
+,
 Ilford HP5 PLUS 400 HP5+ (black box)
 ,
 discontinued
 ,
-Community
-,
 Made by Ilford ltd, 1989 to ~2004, Made in UK.
 Cassette number 017530
+BFD
+,
 Ilford HP5 PLUS 400 HP5+ (white box)
 ,
 discontinued
 ,
-Community
-,
 Made by Ilford ltd, ~2004 to 2018, Made in UK.
 Cassette number 017530
+BFD
+,
 Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
 ,
 discontinued
 ,
-Community
-,
 Made by Harman Technologies, 2024 to 2025, Made in UK.
 Cassette number 017530
+BFD
+,
 Ilford HP5 PLUS 400 HP5+ (Black&white box)
 ,
 on the market
 ,
-Community
-,
 Made by Harman Technologies, 2018 to today, Made in UK.
 Notes: New B&W box
 Cassette number 017530
+BFD
+,
 Ilford HP5 PLUS 400 HP5+ (Press or propack)
 ,
 possibly discontinued
-,
-Community
 ,
 Made by Ilford ltd, from ~1989 ?, Made in UK.
 Notes: Sold by big "propack", 50 films, no individual box
@@ -2337,97 +2366,109 @@ Cassette number
 1753
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 --- Find a film: as in "desktop / empty", but
 +6	7 films found.
-+7	HP5 PLUS
++7	I3A
 +8	,
-+9	DX 109-9
++9	HP5 PLUS
 +10	,
-+11	I3A
++11	DX 109-9
 +12	,
 +13	Harman Technologies (ILFORD Photo).
 +14	Show barcode
-+15	Ilford HP5 PLUS 400 HP5+ (black box)
++15	BFD
 +16	,
-+17	DX 109-9
++17	Ilford HP5 PLUS 400 HP5+ (black box)
 +18	,
-+19	discontinued
++19	DX 109-9
 +20	,
-+21	Community
++21	discontinued
 +22	,
 +23	Made by Ilford ltd, 1989 to ~2004, Made in UK.
 +24	Cassette number 017530
 +25	Show barcode
-+26	Ilford HP5 PLUS 400 HP5+ (white box)
++26	BFD
 +27	,
-+28	DX 109-9
++28	Ilford HP5 PLUS 400 HP5+ (white box)
 +29	,
-+30	discontinued
++30	DX 109-9
 +31	,
-+32	Community
++32	discontinued
 +33	,
 +34	Made by Ilford ltd, ~2004 to 2018, Made in UK.
 +35	Cassette number 017530
 +36	Show barcode
-+37	Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
++37	BFD
 +38	,
-+39	DX 109-9
++39	Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
 +40	,
-+41	discontinued
++41	DX 109-9
 +42	,
-+43	Community
++43	discontinued
 +44	,
 +45	Made by Harman Technologies, 2024 to 2025, Made in UK.
 +46	Cassette number 017530
 +47	Show barcode
-+48	Ilford HP5 PLUS 400 HP5+ (Black&white box)
++48	BFD
 +49	,
-+50	DX 109-9
++50	Ilford HP5 PLUS 400 HP5+ (Black&white box)
 +51	,
-+52	on the market
++52	DX 109-9
 +53	,
-+54	Community
++54	on the market
 +55	,
 +56	Made by Harman Technologies, 2018 to today, Made in UK.
 +57	Notes: New B&W box
 +58	Cassette number 017530
 +59	Show barcode
-+60	Ilford HP5 PLUS 400 HP5+ (Press or propack)
++60	BFD
 +61	,
-+62	DX 109-9
++62	Ilford HP5 PLUS 400 HP5+ (Press or propack)
 +63	,
-+64	possibly discontinued
++64	DX 109-9
 +65	,
-+66	Community
++66	possibly discontinued
 +67	,
 +68	Made by Ilford ltd, from ~1989 ?, Made in UK.
 +69	Notes: Sold by big "propack", 50 films, no individual box
 +70	Cassette number 017530
 +71	Show barcode
-+72	Ilford HP5 PLUS 400 motion picture version HP5+
++72	BFD
 +73	,
-+74	DX 109-9
++74	Ilford HP5 PLUS 400 motion picture version HP5+
 +75	,
-+76	discontinued
++76	DX 109-9
 +77	,
-+78	Community
++78	discontinued
 +79	,
 +80	Made by Ilford ltd, until 2003, Made in UK.
 +81	Show barcode
 -6	Type at least two characters.
-+88	@aria-label Show barcode of HP5 PLUS
-+89	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (black box)
-+90	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (white box)
-+91	@aria-label Show barcode of Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
-+92	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (Black&white box)
-+93	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (Press or propack)
-+94	@aria-label Show barcode of Ilford HP5 PLUS 400 motion picture version HP5+
++88	@title International Imaging Industry Association
++89	@aria-label Show barcode of HP5 PLUS
++90	@title The Big Film Database
++91	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (black box)
++92	@title The Big Film Database
++93	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (white box)
++94	@title The Big Film Database
++95	@aria-label Show barcode of Ilford HP5 PLUS 400 limited-edition retro packaging for 145th birthday
++96	@title The Big Film Database
++97	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (Black&white box)
++98	@title The Big Film Database
++99	@aria-label Show barcode of Ilford HP5 PLUS 400 HP5+ (Press or propack)
++100	@title The Big Film Database
++101	@aria-label Show barcode of Ilford HP5 PLUS 400 motion picture version HP5+
 --- facts
 address: ?dx=109-9/1&film=i3a-320&lang=en
 focus: #result-title
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010101101101010010000010000101
 result lists: 7 films
 Find a film lists: 7 films
@@ -2448,53 +2489,51 @@ Back to the search
 +16	A
 -15	0
 -17	–
---- hint
-Valid code. Frame 22A.
 --- result
 Valid DX code
 Show examples
 Perutz Primera 200 (from 01/2002 on)
 Part 1 = 47 is assigned to Agfa-Gevaert AG.
-Perutz Primera 200 (from 01/2002 on)
-,
 I3A
+,
+Perutz Primera 200 (from 01/2002 on)
+BFD
+,
 AGFA Agfacolor 200 (24+3)
 ,
 discontinued
 ,
-Community
-,
 1983 (1984 for dx coded version) to 1984 ?.
 Cassette number 007537
+BFD
+,
 AGFA AGFACOLOR XRG200 (improved)
 ,
 discontinued
 ,
-Community
-,
 Made by Agfa-Gevaert AG, 1991 to 1994.
 Cassette number 007534
+BFD
+,
 Perutz Primera 200
 ,
 discontinued
 ,
-Community
-,
 Made by Agfa, ~2002 to ~2009.
 Cassette number 007530
+BFD
+,
 Polaroid HDF-1 C-41 HDF1
 ,
 discontinued
 ,
-Community
-,
 Made in ?.
 Cassette number 007533
+BFD
+,
 O.K. Gold Print 200
 ,
 discontinued
-,
-Community
 ,
 Made In EC, sold by Ok Foto Labor GmbH.
 Notes: Agfacolor 200 (certainty 3/4)
@@ -2514,8 +2553,13 @@ Cassette number
 0753
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title How sure the database is about this (0 = low, 4 = high)
 --- Find a film: as in "desktop / empty", but
 +11	Showing DX 47-1, frame 22A.
@@ -2523,7 +2567,7 @@ Raw fields
 --- facts
 address: ?dx=47-1/22A&lang=en
 focus: #result-title
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010100101111000010101101000101
 result lists: 10 films
 
@@ -2539,88 +2583,88 @@ result lists: 10 films
 +14	Last digit 3
 +15	24 exposures
 +16	Part 1 = 39 is assigned to FUJIFILM Corporation.
-+17	FUJICOLOR 200
++17	I3A
 +18	,
-+19	DX 39-1
++19	FUJICOLOR 200
 +20	,
-+21	in production in 2008
++21	DX 39-1
 +22	,
-+23	I3A
++23	in production in 2008
 +24	Show barcode
-+25	Fujicolor 200
++25	BFD
 +26	,
-+27	DX 39-1
++27	Fujicolor 200
 +28	,
-+29	discontinued
++29	DX 39-1
 +30	,
-+31	Community
++31	discontinued
 +32	,
 +33	Made by Fuji Photo Film Co., Ltd.
 +34	Cassette number 106253
 +35	Show barcode
-+36	FUJICOLOR SUPERIA 200
++36	BFD
 +37	,
-+38	DX 39-1
++38	FUJICOLOR SUPERIA 200
 +39	,
-+40	Fuzzy match
++40	DX 39-1
 +41	,
-+42	possibly discontinued
++42	Fuzzy match
 +43	,
-+44	Community
++44	possibly discontinued
 +45	,
 +46	from 90’s, Made in Japan.
 +47	Cassette number 106254
 +48	Show barcode
-+49	Fujifilm 200 China
++49	BFD
 +50	,
-+51	DX 39-1
++51	Fujifilm 200 China
 +52	,
-+53	Fuzzy match
++53	DX 39-1
 +54	,
-+55	on the market
++55	Fuzzy match
 +56	,
-+57	Community
++57	on the market
 +58	,
 +59	Made by Guangxi Giant Star Medical Equipment Co Ltd (under Fujifilm licence), 2024 to today, China, sold by Yes!Star (China).
 +60	Notes: Fuji Superia C200. Also available under the brand Yes!Star Supreme 200 for China market (certainty 3/4)
 +61	Cassette number 106250
 +62	Show barcode
-+63	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
++63	BFD
 +64	,
-+65	DX 39-1
++65	My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
 +66	,
-+67	Fuzzy match
++67	DX 39-1
 +68	,
-+69	possibly discontinued
++69	Fuzzy match
 +70	,
-+71	Community
++71	possibly discontinued
 +72	,
 +73	Notes: Rebranded expired Fujicolor 200, available on China market. Also exist with rebranded Lucky Color or cheap Kodak film (certainty 3/4)
 +74	Cassette number 106254
 +75	Show barcode
-+76	Yes!Star Supreme 200
++76	BFD
 +77	,
-+78	DX 39-1
++78	Yes!Star Supreme 200
 +79	,
-+80	Fuzzy match
++80	DX 39-1
 +81	,
-+82	on the market
++82	Fuzzy match
 +83	,
-+84	Community
++84	on the market
 +85	,
 +86	Made by Guangxi Giant Star Medical Equipment Co Ltd (under Fujifilm licence), 2024 to today, China, sold by Yes!Star (China).
 +87	Notes: Fuji Superia C200. Also available under the brand Fujifilm for international market (certainty 3/4)
 +88	Cassette number 106250
 +89	Show barcode
-+90	Fujicolor C200 135
++90	BFD
 +91	,
-+92	DX 39-1
++92	Fujicolor C200 135
 +93	,
-+94	Fuzzy match
++94	DX 39-1
 +95	,
-+96	on the market
++96	Fuzzy match
 +97	,
-+98	Community
++98	on the market
 +99	,
 +100	Made by Fuji Photo Film Co., Ltd, Made in Japan.
 +101	Notes: Also sold under Fujicolor 200 (name on the canister)
@@ -2631,65 +2675,23 @@ result lists: 10 films
 +106	Look up DX 39-1 on The Big Film Database
 +107	(opens in a new tab)
 +108	The site has pictures of the films.
-+110	@aria-label Show barcode of FUJICOLOR 200
-+111	@aria-label Show barcode of Fujicolor 200
-+112	@aria-label Show barcode of FUJICOLOR SUPERIA 200
-+113	@title How sure the database is about this (0 = low, 4 = high)
-+114	@aria-label Show barcode of Fujifilm 200 China
-+115	@title How sure the database is about this (0 = low, 4 = high)
-+116	@aria-label Show barcode of My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
++110	@title International Imaging Industry Association
++111	@aria-label Show barcode of FUJICOLOR 200
++112	@title The Big Film Database
++113	@aria-label Show barcode of Fujicolor 200
++114	@title The Big Film Database
++115	@aria-label Show barcode of FUJICOLOR SUPERIA 200
++116	@title The Big Film Database
 +117	@title How sure the database is about this (0 = low, 4 = high)
-+118	@aria-label Show barcode of Yes!Star Supreme 200
-+119	@aria-label Show barcode of Fujicolor C200 135
++118	@aria-label Show barcode of Fujifilm 200 China
++119	@title The Big Film Database
 +120	@title How sure the database is about this (0 = low, 4 = high)
-+121	@aria-label Show barcode of Efiniti Uxi Super 200
-+122	@title How sure the database is about this (0 = low, 4 = high)
-+123	@aria-label Show barcode of Fujicolor Industrial 100 業務記錄用 business
-+124	@title How sure the database is about this (0 = low, 4 = high)
-+125	@aria-label Show barcode of Photocité couleur 200
-+126	@title How sure the database is about this (0 = low, 4 = high)
-+127	@aria-label Show barcode of Walgreens ISO 200 C-41 wphoto
-+128	@title How sure the database is about this (0 = low, 4 = high)
-+129	@aria-label Show barcode of AgfaPhoto Vista Plus 200
-+130	@title How sure the database is about this (0 = low, 4 = high)
-+131	@aria-label Show barcode of Boots Colourprint 200
-+132	@title How sure the database is about this (0 = low, 4 = high)
-+133	@aria-label Show barcode of DM Paradies 200 C-41
-+134	@title How sure the database is about this (0 = low, 4 = high)
-+135	@aria-label Show barcode of FUJIFILM 200 made in USA
-+136	@title How sure the database is about this (0 = low, 4 = high)
-+137	@aria-label Show barcode of Hema Kleurenfilm Super SR200 FarbFilm
-+138	@title How sure the database is about this (0 = low, 4 = high)
-+139	@aria-label Show barcode of Kruidvat ColorFilm 200
-+140	@title How sure the database is about this (0 = low, 4 = high)
-+141	@aria-label Show barcode of Porst Photo Porst Color X 200
-+142	@title How sure the database is about this (0 = low, 4 = high)
-+143	@aria-label Show barcode of Rossmann Farbbilder HR200
-+144	@title How sure the database is about this (0 = low, 4 = high)
-+145	@aria-label Show barcode of Tudor Color Print Film ISO 200
-+146	@title How sure the database is about this (0 = low, 4 = high)
-+147	@aria-label Show barcode of Tudor XLS 200
-+148	@title How sure the database is about this (0 = low, 4 = high)
-+149	@aria-label Show barcode of Voigtländer V200
-+150	@title How sure the database is about this (0 = low, 4 = high)
-+151	@aria-label Show barcode of Chlecker AS photo 200
-+152	@title How sure the database is about this (0 = low, 4 = high)
-+153	@aria-label Show barcode of Fuji Fujicolor ProPlus II 200
-+154	@title How sure the database is about this (0 = low, 4 = high)
-+155	@aria-label Show barcode of Fuji Fujifilm Professional ProValue 200 CA200
-+156	@aria-label Show barcode of Fujicolor 200
-+157	@aria-label Show barcode of Fujicolor 200 Wal-mart branded film
-+158	@aria-label Show barcode of Perutz Primera 200
-+159	@aria-label Show barcode of Schlecker AS Color 200
-+160	@title How sure the database is about this (0 = low, 4 = high)
-+161	@aria-label Show barcode of Spector Color ISO 200 (Blue box)
-+162	@title How sure the database is about this (0 = low, 4 = high)
-+163	@title How sure the database is about this (0 = low, 4 = high)
-+164	@aria-label Show barcode of Power Geek 35mm Film For Color Prints (ISO 200 – 10 exp)
-+165	@title How sure the database is about this (0 = low, 4 = high)
-+166	@aria-label Show barcode of FilmNeverDie C-41 Color IRO200 色 200
-+167	@title How sure the database is about this (0 = low, 4 = high)
-+168	@aria-label Show barcode of FilmNeverDie C-41 Color IRO200 色 200
++121	@aria-label Show barcode of My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Fuji version
++122	@title The Big Film Database
++123	@title How sure the database is about this (0 = low, 4 = high)
++124	@aria-label Show barcode of Yes!Star Supreme 200
++125	@title The Big Film Database
++126	@aria-label Show barcode of Fujicolor C200 135
 --- facts
 focus: #cassette-code
 cassette helper lists: 34 films
@@ -2706,17 +2708,18 @@ cassette helper lists: 34 films
 +14	Last digit 1
 +15	12 exposures
 +16	Part 1 337 is 81 + 256. Part 1 = 81 is assigned to Eastman Kodak Company in the 2008 registry; under the standard, a maker adds 128, 256 or 384 only to its own Part 1 number. The standard does not say which DX number the film carries.
-+17	Rollei Retro 400S
++17	BFD
 +18	,
-+19	on the market
++19	Rollei Retro 400S
 +20	,
-+21	Community
++21	on the market
 +22	,
 +23	Made by Agfa-Gevaert, sold by Mahn & Co. (Maco).
 +24	Notes: Aviphot Pan 200, finished by Foma (certainty 4/4)
 +25	Recorded DX number: 5401
 +26	Cassette number 854011
-+28	@title How sure the database is about this (0 = low, 4 = high)
++28	@title The Big Film Database
++29	@title How sure the database is about this (0 = low, 4 = high)
 --- facts
 focus: #cassette-code
 cassette helper lists: 1 films
@@ -2767,7 +2770,7 @@ Use the code
 --- facts
 tab open: tab-photo
 focus: #tab-photo
-toolbar shows: undefined long* format-short undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short undo(off) redo(off) clear
 
 === desktop / a sample photo read
 --- copy steps
@@ -2804,7 +2807,7 @@ Use this code
 --- facts
 tab open: tab-photo
 focus: button.tool
-toolbar shows: undefined long* format-short undo(off) redo(off) clear
+toolbar shows: help-dot long* format-short undo(off) redo(off) clear
 
 === desktop / a photo’s code used
 --- copy steps
@@ -2834,23 +2837,21 @@ Open the photo
 +17	A
 -15	0
 -17	–
---- hint
-Valid code. Frame 14A.
 --- result
 Valid DX code
 Show examples
 KODAK GOLD 200 Film
 Part 1 = 96 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK GOLD 200 Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Gold 200 GB 200-7
 ,
 possibly discontinued
-,
-Community
 ,
 from ~1991.
 Cassette number 015480
@@ -2868,13 +2869,14 @@ Cassette number
 1548
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=en
 tab open: tab-photo
 focus: #result-title
-toolbar shows: undefined long* format-short undo redo(off) clear
+toolbar shows: help-dot long* format-short undo redo(off) clear
 bars, data track: 1010101100000011000011101000101
 photo over the strip: 0 px left of the code, 0 px wider; label beside, at the left
 result lists: 2 films
@@ -2897,23 +2899,21 @@ Open the photo
 +17	A
 -15	0
 -17	–
---- hint
-Valid code. Frame 14A.
 --- result
 Valid DX code
 Show examples
 KODAK GOLD 200 Film
 Part 1 = 96 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK GOLD 200 Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Gold 200 GB 200-7
 ,
 possibly discontinued
-,
-Community
 ,
 from ~1991.
 Cassette number 015480
@@ -2931,12 +2931,13 @@ Cassette number
 1548
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=en
 focus: #tab-copy
-toolbar shows: undefined long* format-short mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle undo redo(off) clear
 bars, data track: 1010101100000011000011101000101
 photo over the strip: 0 px left of the code, 0 px wider; label beside, at the left
 result lists: 2 films
@@ -2958,23 +2959,21 @@ Open the photo
 +16	A
 -15	0
 -17	–
---- hint
-Valid code. Frame 14A.
 --- result
 Valid DX code
 Show examples
 KODAK GOLD 200 Film
 Part 1 = 96 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK GOLD 200 Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Gold 200 GB 200-7
 ,
 possibly discontinued
-,
-Community
 ,
 from ~1991.
 Cassette number 015480
@@ -2992,12 +2991,13 @@ Cassette number
 1548
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- facts
 address: ?dx=96-12/14A&lang=en
 focus: #mirror-toggle
-toolbar shows: undefined long* format-short mirror-toggle* undo redo(off) clear
+toolbar shows: help-dot long* format-short mirror-toggle* undo redo(off) clear
 strip layout: long, mirrored
 bars, data track: 1010101100000011000011101000101
 result lists: 2 films
@@ -3058,57 +3058,55 @@ Stop
 @title Same on every film
 @title Same on every film
 @title Unassigned: always empty
---- hint
-Valid code. No frame number present.
 --- result
 Valid DX code (23-cell layout)
 Show examples
 KODACOLOR VR200 Film
 Part 1 = 79 is assigned to Eastman Kodak Company.
+I3A
+,
 KODACOLOR VR200 Film
 ,
 discontinued by 2008
+BFD
 ,
-I3A
 Kodak Color Plus 200 Colorplus (First edition, French version)
 ,
 discontinued
 ,
-Community
-,
 Made by Kodak Industrie, Made in France (Chalon sur saône), sold by Kodak.
 Cassette number 912714
+BFD
+,
 Kodak-Pathé Rayoscope – Code 5354
 ,
 discontinued
 ,
-Community
-,
 Made by Kodak-Pathé, from 50's, Made in France.
 Cassette number 512714
+BFD
+,
 My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Kodak version
 ,
 on the market
 ,
-Community
-,
 Made by Kodak, ~2018 ? to today, Kodak.
 Notes: Kodak ColorPlus, available on China market. Exist with rebranded Lucky Color and Fujicolor… (certainty 4/4)
 Cassette number 512714
+BFD
+,
 Kodak 200 (Gen 7?)
 ,
 discontinued
 ,
-Community
-,
 Made by Kodak, from ~2006.
 Notes: Similar to Colorplus ?
 Cassette number 912713
+BFD
+,
 Kodak Color Plus 200 Colorplus (Actual)
 ,
 on the market
-,
-Community
 ,
 Made by Kodak Industrie, No country of origin indicated on the box…, sold by Kodak.
 Notes: Similar to ProFoto (or VR200?)
@@ -3128,14 +3126,19 @@ Cassette number
 1271
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title How sure the database is about this (0 = low, 4 = high)
+@title The Big Film Database
+@title The Big Film Database
 --- facts
 address: ?dx=79-7&lang=en
 tab open: tab-photo
 focus: #result-title
-toolbar shows: undefined long format-short* undo redo(off) clear
+toolbar shows: help-dot long format-short* undo redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101010011110011100101
@@ -3188,57 +3191,55 @@ Stop
 @title Same on every film
 @title Same on every film
 @title Unassigned: always empty
---- hint
-Valid code. No frame number present.
 --- result
 Valid DX code (23-cell layout)
 Show examples
 KODACOLOR VR200 Film
 Part 1 = 79 is assigned to Eastman Kodak Company.
+I3A
+,
 KODACOLOR VR200 Film
 ,
 discontinued by 2008
+BFD
 ,
-I3A
 Kodak Color Plus 200 Colorplus (First edition, French version)
 ,
 discontinued
 ,
-Community
-,
 Made by Kodak Industrie, Made in France (Chalon sur saône), sold by Kodak.
 Cassette number 912714
+BFD
+,
 Kodak-Pathé Rayoscope – Code 5354
 ,
 discontinued
 ,
-Community
-,
 Made by Kodak-Pathé, from 50's, Made in France.
 Cassette number 512714
+BFD
+,
 My Heart Professional "Barbie" Sweetheart 135 color print film – ISO 200, 27 exp only, Kodak version
 ,
 on the market
 ,
-Community
-,
 Made by Kodak, ~2018 ? to today, Kodak.
 Notes: Kodak ColorPlus, available on China market. Exist with rebranded Lucky Color and Fujicolor… (certainty 4/4)
 Cassette number 512714
+BFD
+,
 Kodak 200 (Gen 7?)
 ,
 discontinued
 ,
-Community
-,
 Made by Kodak, from ~2006.
 Notes: Similar to Colorplus ?
 Cassette number 912713
+BFD
+,
 Kodak Color Plus 200 Colorplus (Actual)
 ,
 on the market
-,
-Community
 ,
 Made by Kodak Industrie, No country of origin indicated on the box…, sold by Kodak.
 Notes: Similar to ProFoto (or VR200?)
@@ -3258,13 +3259,18 @@ Cassette number
 1271
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
-Copy link
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
+@title The Big Film Database
+@title The Big Film Database
 @title How sure the database is about this (0 = low, 4 = high)
+@title The Big Film Database
+@title The Big Film Database
 --- facts
 address: ?dx=79-7&lang=en
 focus: #tab-copy
-toolbar shows: undefined long format-short* mirror-toggle undo redo(off) clear
+toolbar shows: help-dot long format-short* mirror-toggle undo redo(off) clear
 strip layout: short
 bars, clock track: 11111010101010101010111
 bars, data track: 10101010011110011100101
@@ -3272,6 +3278,8 @@ photo over the strip: 0 px left of the code, 0 px wider; label above, 0 px from 
 result lists: 10 films
 
 === desktop / the code list: a Part 1 number chosen in the table
+--- code list: filters: as in "desktop / empty", but
++113	Clear filters
 --- code list: count
 15 registered products.
 --- code list: products
@@ -3364,6 +3372,7 @@ Status in 2008
 Any status
 In production in 2008
 Discontinued by 2008
+Clear filters
 --- code list: count
 36 registered products.
 --- code list: products
@@ -3473,6 +3482,7 @@ Status in 2008
 Any status
 In production in 2008
 Discontinued by 2008
+Clear filters
 --- code list: count
 No registered products match these filters.
 --- code list: products
@@ -3499,22 +3509,20 @@ code list: 6 / all / live: 0 rows
 -15	0
 --- film look
 (not shown)
---- hint
-Valid code. Frame 23.
 --- result
 Valid DX code
 KODAK Professional BW400CN Film
 Part 1 = 79 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK Professional BW400CN Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Professional BW400CN Film
 ,
 discontinued
-,
-Community
 ,
 2004 to 2014.
 Notes: Chromogenic film
@@ -3534,6 +3542,8 @@ Cassette number
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- Find a film
 (not shown)
 --- cassette
@@ -3546,6 +3556,8 @@ Raw fields
 (not shown)
 --- code list: products
 (not shown)
+--- elsewhere
+Skip to the decoder
 --- facts
 address: ?dx=79-15/23&lang=en
 toolbar shows: 
@@ -3583,22 +3595,20 @@ From the photo: DX 96-12, frame 14A
 -17	–
 --- film look
 (not shown)
---- hint
-Valid code. Frame 14A.
 --- result
 Valid DX code
 KODAK GOLD 200 Film
 Part 1 = 96 is assigned to Eastman Kodak Company.
+I3A
+,
 KODAK GOLD 200 Film
 ,
 in production in 2008
+BFD
 ,
-I3A
 Kodak Gold 200 GB 200-7
 ,
 possibly discontinued
-,
-Community
 ,
 from ~1991.
 Cassette number 015480
@@ -3617,6 +3627,8 @@ Cassette number
 ?
 Usually the middle four digits of this film’s cassette barcode. The first digit is chosen by the maker, the last gives the roll length.
 Raw fields
+@title International Imaging Industry Association
+@title The Big Film Database
 --- Find a film
 (not shown)
 --- cassette
@@ -3629,6 +3641,8 @@ Raw fields
 (not shown)
 --- code list: products
 (not shown)
+--- elsewhere
+Skip to the decoder
 --- facts
 address: ?dx=96-12/14A&lang=en
 tab open: tab-photo
@@ -4022,8 +4036,7 @@ strip cell: 22 px
 --- intro: as in "phone / empty"
 --- copy steps: as in "phone / empty"
 --- strip: as in "desktop / Find a film: a film shown", but
-+2	2
-+22	Scroll sideways to see the whole strip.
++21	Scroll sideways to see the whole strip.
 --- How it works: as in "phone / empty"
 --- facts
 strip layout: long, scrolls sideways
@@ -4033,8 +4046,7 @@ strip cell: 22 px
 --- intro: as in "phone / empty"
 --- copy steps: as in "phone / empty"
 --- strip: as in "desktop / a number entered directly", but
-+2	3
-+22	Scroll sideways to see the whole strip.
++21	Scroll sideways to see the whole strip.
 --- How it works: as in "phone / empty"
 --- facts
 strip layout: long, scrolls sideways

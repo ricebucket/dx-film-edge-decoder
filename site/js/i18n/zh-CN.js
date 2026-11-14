@@ -21,22 +21,6 @@
       "{film}，旧式 7 根细条编码",
     "{name}, frame {frame}":
       "{name}，画幅 {frame}",
-    "Start at cell 7, right after the fixed start pattern.":
-      "从第 7 位开始，紧接在固定的输入模式之后。",
-    "Cell {cell} should always be empty.":
-      "第 {cell} 位应始终为空。",
-    "The parity check fails: one bar is probably misread. See the suggestions below.":
-      "奇偶校验未通过：可能有一根条读错了。请看下面的建议。",
-    "Not a valid code yet: see below.":
-      "还不是有效编码：见下文。",
-    "Part 1 is 0. This is unlikely.":
-      "第 1 部分为 0。这不太可能。",
-    "Valid code. No frame number present.":
-      "有效编码。不含画幅号。",
-    "Valid code, unless the film’s top row has only 7 thin bars: see below.":
-      "有效编码，除非胶片上排只有 7 根细条：见下文。",
-    "Valid code. Frame {frame}.":
-      "有效编码。画幅号 {frame}。",
     "The photo reader could not be loaded. Choose “Read a photo” to try again.":
       "无法加载照片读取功能。再次选择“读取照片”即可重试。",
     "This page is out of date. Reload it.":
@@ -277,6 +261,8 @@
       "显示 {n} 个登记产品。",
     "No registered products match these filters.":
       "没有符合这些筛选条件的登记产品。",
+    "Clear filters":
+      "清除筛选条件",
     "Status in 2008":
       "2008 年的状态",
     "Product":
@@ -375,10 +361,6 @@
       "二进制",
     "Value":
       "值",
-    "Link to this code":
-      "这个编码的链接",
-    "Copy failed: copy the link below":
-      "复制失败：请复制下方的链接",
     "Waiting for bars":
       "等待填写或读取",
     "Not sure what a barcode looks like? Try an example:":
@@ -447,10 +429,6 @@
       "有效的DX编码",
     "The code does not pass its checks yet, so this will probably change once the misread bar is fixed.":
       "编码还没有通过检查，所以改正读错的条之后，这里可能会变。",
-    "Copy link":
-      "复制链接",
-    "Link copied":
-      "链接已复制",
     "Raw fields":
       "原始字段",
     "Data track":
@@ -487,10 +465,8 @@
       "显示条码：{name}",
     "No full code":
       "无完整编码",
-    "I3A":
-      "I3A",
-    "Community":
-      "社区",
+    "International Imaging Industry Association":
+      "国际影像行业协会",
     "Kodak’s “augmented” cassette number (ISO 1007, Annex A.4), outside the normal DX range.":
       "柯达的“增补”暗盒条码（augmented，ISO 1007 附录 A.4），超出常规DX范围。",
     "Look up DX {dx} on The Big Film Database":
@@ -719,10 +695,14 @@
       "阅读方向与胶片类型",
     "Read the code from the wide clock mark. With the film the right way around, usually viewed from the shiny base side, the printed numbers read normally and the wide mark is on the left; from the other side, everything is mirrored. On slide film the bars show clear on a black edge. The code repeats every half frame, so if a bar is unclear, check the next one.":
       "从时钟道的宽标记开始读。胶片方向正确时（通常是从光亮的片基面看），印的数字正常可读，宽标记在左边；从另一面看，一切都是镜像的。在反转片上，条在黑色的片边上显示为透明。条码每半个画幅重复一次，所以如果某根条看不清，可以看下一个条码。",
+    "Where the film names come from":
+      "胶片名称的来源",
+    "Each film in a list is marked with its source. <strong>I3A</strong> is the 2008 DX registry of the International Imaging Industry Association, the most recent official list that is freely available. <strong>BFD</strong> is The Big Film Database, a community database that also covers films introduced since 2008 and rebranded films.":
+      "列表中的每种胶片都标有来源。<strong>I3A</strong> 是国际影像行业协会的 2008 年DX码登记表，这是可以免费获取的最新官方列表。<strong>BFD</strong> 是 The Big Film Database，一个社区数据库，也收录了 2008 年以来推出的胶片和贴牌胶片。",
     "What the code does not say":
       "编码无法说明的信息",
-    "The DX number names a product. The product name usually includes the speed, but not always. The official list used here dates from 2008, so films introduced later are identified from community reports. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.":
-      "DX码代表一种产品。产品名称通常带有感光度，但并非总是如此。这里使用的官方列表是 2008 年的，所以较晚推出的胶片要靠社区资料来识别。很多胶片还以多个名称销售，而潜影条码由生产胶片的工厂曝光，所以一个条码可能对应一整组贴牌胶片。",
+    "The DX number names a product. The product name usually includes the speed, but not always. Many films are also sold under several names, and the edge code is exposed by the factory that made the film, so one code can belong to a whole family of rebranded films.":
+      "DX码代表一种产品。产品名称通常带有感光度，但并非总是如此。很多胶片还以多个名称销售，而潜影条码由生产胶片的工厂曝光，所以一个条码可能对应一整组贴牌胶片。",
     "DX code list":
       "DX码列表",
     "The Part 1 numbers and products registered with the International Imaging Industry Association, as published in <cite>DX Codes for 135-Size Film</cite> (February 2008). Select a Part 1 number to filter the list.":

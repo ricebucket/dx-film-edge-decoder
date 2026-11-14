@@ -26,7 +26,7 @@
 //
 // Needs Playwright with Chromium, installed outside this repository; see
 // scripts/run-e2e.mjs. The snapshots change with the film data: update them
-// after `npm run update:community-data`.
+// after `npm run build:data` on new data (data/README.md has the steps).
 
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -79,9 +79,10 @@ const useSevenBarPhoto = async (page) => {
   await page.locator('#strip .strip__photo:not([hidden])').waitFor();
 };
 const find = (text) => async (page) => {
+  // The search waits a moment after the last key: its reply is then no longer the opening one, read before typing.
+  const opening = await page.locator('#finder-help').textContent();
   await page.locator('#finder-q').fill(text);
-  // The search waits a moment after the last key: its reply is no longer the opening one.
-  await page.waitForFunction((opening) => document.getElementById('finder-help').textContent !== opening, await page.locator('#finder-help').textContent());
+  await page.waitForFunction((opening) => document.getElementById('finder-help').textContent !== opening, opening);
 };
 const cassette = (digits) => async (page) => {
   await page.locator('#cassette-code').fill(digits);
@@ -127,9 +128,10 @@ const STATES = [
 
 /**
  * Runs in the page: its words by part, facts about its layout and, with
- * `full`, the box of every element (for --against).
+ * `full`, the box of every element, where each part stands on the page and
+ * the page's size (for --against).
  */
-function look(full) {
+export function look(full) {
   const PARTS = {
     header: '.site-header',
     intro: '.intro',
@@ -140,19 +142,21 @@ function look(full) {
     'where the code came from': '#source',
     strip: '#strip',
     'film look': '.looks',
-    hint: '#hint',
     result: '#result',
     'Find a film': '#finder',
     cassette: '#cassette',
     'How it works': '#how',
     'code list: manufacturers': '#reference-ui .table-scroll',
     'code list: filters': '#reference-ui .ref-head',
-    'code list: count': '#codes p[aria-live]',
+    'code list: count': '#reference-ui .ref-count-row',
     'code list: products': '#reference-ui .table-scroll--tall',
     footer: '.site-footer',
   };
-  const shown = (el) => Boolean(el) && el.getClientRects().length > 0;
+  // Shown: it has a box, and nothing folds it away. What a closed <details> holds may still have boxes
+  // in Chromium, some of them only once they were asked for: left to them, two looks at one page differ.
+  const shown = (el) => Boolean(el) && el.getClientRects().length > 0 && (!el.checkVisibility || el.checkVisibility());
   const tidy = (text) => text.split('\n').map((line) => line.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const SAID = ['aria-label', 'title', 'placeholder', 'alt'];
   const parts = {};
   for (const [name, selector] of Object.entries(PARTS)) {
     const el = document.querySelector(selector);
@@ -171,6 +175,21 @@ function look(full) {
       parts[name] = [...tidy(el.innerText), ...said];
     }
   }
+  // What stands in none of the parts above: a part of its own, so that nothing on the page goes unseen.
+  const roots = Object.values(PARTS).map((selector) => document.querySelector(selector)).filter(Boolean);
+  const outside = (el) => !roots.some((root) => root.contains(el));
+  const elsewhere = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const el = node.parentElement;
+    if (!shown(el) || !outside(el) || ['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(el.tagName)) continue;
+    elsewhere.push(...tidy(node.textContent));
+  }
+  for (const el of document.querySelectorAll(SAID.map((a) => `[${a}]`).join(', '))) {
+    if (!shown(el) || !outside(el)) continue;
+    for (const attribute of SAID) if (el.getAttribute(attribute)) elsewhere.push(`@${attribute} ${el.getAttribute(attribute).replace(/\s+/g, ' ').trim()}`);
+  }
+  parts.elsewhere = elsewhere.length ? elsewhere : ['(nothing)'];
 
   const round = (n) => Math.round(n * 10) / 10;
   const box = (selector, root = document) => {
@@ -184,7 +203,7 @@ function look(full) {
   const active = document.activeElement;
   facts.focus = !active || active === document.body ? '(nowhere)' : active.id ? `#${active.id}` : `${active.tagName.toLowerCase()}.${String(active.className).split(' ')[0]}`;
   facts['page wider than the screen by'] = `${document.documentElement.scrollWidth - document.documentElement.clientWidth} px`;
-  facts['toolbar shows'] = [...document.querySelectorAll('#toolbar button')].filter(shown).map((b) => `${b.id || b.dataset.value}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}${b.disabled || b.getAttribute('aria-disabled') === 'true' ? '(off)' : ''}`).join(' ');
+  facts['toolbar shows'] = [...document.querySelectorAll('#toolbar button')].filter(shown).map((b) => `${b.id || b.dataset.value || b.className}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}${b.disabled || b.getAttribute('aria-disabled') === 'true' ? '(off)' : ''}`).join(' ');
   // The strip: the page's own, not the diagram in "How it works".
   const strip = document.querySelector('#strip .strip');
   if (strip) {
@@ -193,6 +212,9 @@ function look(full) {
     const cell = box('.track--data .cell', strip);
     facts['strip layout'] = `${strip.dataset.format}${strip.classList.contains('is-mirrored') ? ', mirrored' : ''}${scroller.scrollWidth > scroller.clientWidth + 1 ? ', scrolls sideways' : ''}`;
     facts['strip cell'] = cell ? `${round(cell.width)} px` : '(none)';
+    // The film look: the one marked as chosen under the strip, and the one the strip is drawn in.
+    const look = document.querySelector('.looks [aria-pressed="true"]');
+    facts['film look'] = `${look ? look.dataset.value : '(none)'} chosen, the strip drawn as ${strip.dataset.look || '(none)'}`;
     for (const track of ['clock', 'data']) facts[`bars, ${track} track`] = [...strip.querySelectorAll(`.track--${track} .cell`)].map((c) => (c.classList.contains('is-bar') ? '1' : '0')).join('');
     const film = box('.film', strip);
     const canvas = box('.strip__canvas', strip);
@@ -232,12 +254,18 @@ function look(full) {
   }
 
   let boxes = null;
+  let places = null;
+  let size = null;
   if (full) {
     boxes = {};
+    places = {};
+    size = `${document.documentElement.scrollWidth}x${document.documentElement.scrollHeight}`;
     for (const [name, selector] of Object.entries(PARTS)) {
       const root = document.querySelector(selector);
       if (!shown(root)) continue;
       const at = root.getBoundingClientRect();
+      // Where the part itself stands on the page: its boxes are measured from its own corner, so a part that moves as a whole shows only here.
+      places[name] = [Math.round((at.left + scrollX) * 2) / 2, Math.round((at.top + scrollY) * 2) / 2];
       boxes[name] = [root, ...root.querySelectorAll('*')].filter((el) => !el.closest('svg') || el.tagName === 'svg').filter(shown).map((el) => {
         const r = el.getBoundingClientRect();
         const cls = typeof el.className === 'string' ? el.className : el.className.baseVal;
@@ -245,7 +273,28 @@ function look(full) {
       });
     }
   }
-  return { parts, facts, boxes };
+  return { parts, facts, boxes, places, size };
+}
+
+/**
+ * The parts that stand elsewhere on the page in `now` than in `was` (two
+ * looks with `full`), as lines of a report: parts that moved alike, one after
+ * another, are one line. Then the page's size, where it changed.
+ */
+export function moves(was, now) {
+  const out = [];
+  const shifts = Object.keys(now.places).filter((part) => was.places[part]).map((part) => [part, now.places[part][0] - was.places[part][0], now.places[part][1] - was.places[part][1]]);
+  for (let i = 0; i < shifts.length; i++) {
+    const [part, across, down] = shifts[i];
+    if (!across && !down) continue;
+    let last = i;
+    while (last + 1 < shifts.length && shifts[last + 1][1] === across && shifts[last + 1][2] === down) last++;
+    const by = [down && `${Math.abs(down)} px ${down > 0 ? 'lower' : 'higher'}`, across && `${Math.abs(across)} px further ${across > 0 ? 'right' : 'left'}`].filter(Boolean).join(', ');
+    out.push(`  place on the page: ${last > i ? `"${part}" to "${shifts[last][0]}" (${last - i + 1} parts)` : `"${part}"`} ${by}`);
+    i = last;
+  }
+  if (was.size !== now.size) out.push(`  page size: ${was.size} → ${now.size}`);
+  return out;
 }
 
 async function languages(site) {
@@ -253,7 +302,7 @@ async function languages(site) {
 }
 
 /** Every state of one copy of the site, as { language: { screen: { state: what `look` saw } } }. */
-async function collect(site, { full = false, only = null } = {}) {
+async function collect(site, { full = false } = {}) {
   const { chromium } = loadPlaywright();
   const browser = await chromium.launch();
   const index = pathToFileURL(join(site, 'index.html')).href;
@@ -266,7 +315,6 @@ async function collect(site, { full = false, only = null } = {}) {
         out[lang][screen.name] = {};
         jobs.push(async () => {
           for (const state of STATES) {
-            if (only && !state.name.includes(only)) continue;
             const context = await browser.newContext({
               viewport: state.print ? PAPER : screen.viewport,
               isMobile: Boolean(screen.isMobile),
@@ -286,6 +334,10 @@ async function collect(site, { full = false, only = null } = {}) {
               await page.waitForFunction(() => document.querySelector('#reference-ui .assign-table') && !document.documentElement.hasAttribute('data-i18n-pending'));
               if (state.steps) await state.steps(page);
               if (state.print) await page.emulateMedia({ media: 'print' });
+              // The mouse is still where the last step clicked. A page that scrolls then brings something
+              // else under it (a cell of the strip, whose number the ruler shows), and what that is depends
+              // on the fonts of the machine: so the mouse is moved off the page's parts first.
+              await page.mouse.move(0, 0);
               // Let what the steps set off settle: a search, a scroll, a drawing.
               await page.evaluate(() => document.fonts.ready.then(() => new Promise((done) => setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(done)), 250))));
               const seen = await page.evaluate(look, full);
@@ -393,7 +445,6 @@ function pageSnapshot(lang, seen, sourcePages) {
   return `${lines.join('\n')}\n`;
 }
 
-/** The lines where two texts first differ, with what follows: enough to see what it is about. */
 /** Where a snapshot differs from what it was: under each heading, the lines gone and the new ones. */
 function differences(was, now, limit = 60) {
   const sections = (text) => {
@@ -442,9 +493,14 @@ async function snapshots(site) {
 /** The site of a commit, in a temporary folder. */
 function siteAt(commit) {
   const dir = mkdtempSync(join(tmpdir(), 'dx-regressions-'));
-  const tar = execFileSync('git', ['archive', '--format=tar', commit, 'site'], { cwd: ROOT, maxBuffer: 1 << 30 });
-  const unpack = spawnSync('tar', ['-x', '-C', dir], { input: tar });
-  if (unpack.status !== 0) throw new Error(`could not unpack ${commit}: ${unpack.stderr}`);
+  try {
+    const tar = execFileSync('git', ['archive', '--format=tar', commit, 'site'], { cwd: ROOT, maxBuffer: 1 << 30, stdio: ['ignore', 'pipe', 'pipe'] });
+    const unpack = spawnSync('tar', ['-x', '-C', dir], { input: tar });
+    if (unpack.status !== 0) throw new Error(`could not unpack ${commit}: ${unpack.stderr}`);
+  } catch (err) {
+    rmSync(dir, { recursive: true, force: true });
+    throw new Error(`${commit} is no commit of this project, and no folder with a copy of it or of its site/ (${String(err.stderr || err.message).trim().split('\n').pop()})`);
+  }
   return dir;
 }
 
@@ -453,6 +509,8 @@ async function against(commit) {
   // A folder with a copy of the project made earlier, in place of a commit.
   const copy = existsSync(join(commit, 'site', 'index.html'));
   const dir = copy ? commit : siteAt(commit);
+  // Ctrl-C: the copy of the commit's site goes too.
+  if (!copy) process.on('SIGINT', () => { rmSync(dir, { recursive: true, force: true }); process.exit(130); });
   try {
     const [was, now] = [await collect(join(dir, 'site'), { full: true }), await collect(join(ROOT, 'site'), { full: true })];
     let states = 0;
@@ -460,7 +518,7 @@ async function against(commit) {
     for (const lang of Object.keys(now)) {
       for (const screen of SCREENS) {
         for (const state of STATES) {
-          const [a, b] = [(was[lang] || {})[screen.name][state.name], now[lang][screen.name][state.name]];
+          const [a, b] = [((was[lang] || {})[screen.name] || {})[state.name], now[lang][screen.name][state.name]];
           states++;
           const report = [];
           if (!a) report.push('  not in the commit');
@@ -481,6 +539,7 @@ async function against(commit) {
                 report.push(`  layout of "${part}": ${left.length} boxes gone or moved, ${moved.length} new`, ...left.slice(0, 2).map((item) => `    - ${item}`), ...moved.slice(0, 2).map((item) => `    + ${item}`));
               }
             }
+            report.push(...moves(a, b));
             for (const name of new Set([...Object.keys(a.facts), ...Object.keys(b.facts)])) {
               if (a.facts[name] !== b.facts[name]) report.push(`  ${name}: ${a.facts[name]} → ${b.facts[name]}`);
             }

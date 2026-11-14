@@ -36,7 +36,7 @@ test('clicking the bars of a real code identifies the film', async ({ page }) =>
   // The number printed before the code, as on film: a whole frame, so no arrow.
   await expect(page.locator('#strip .film__label--before')).toHaveText('23');
   await expect(page.locator('#strip .film__label--before')).not.toHaveClass(/is-half/);
-  await expect(page).toHaveURL(/\?dx=79-15\/23$/);
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=en$/);
 });
 
 test('cells can be typed with the keyboard', async ({ page }) => {
@@ -168,7 +168,6 @@ test('a bar in an unassigned cell is explained', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
   await dataCell(page, 14).click();
   await expect(page.locator('#result')).toContainText('Cell 14 should never have a bar');
-  await expect(page.locator('#hint')).toHaveText('Cell 14 should always be empty.');
   await expect(page.locator('#result')).toContainText('shifted by one cell');
   await expect(dataCell(page, 14)).toHaveClass(/is-error/);
 });
@@ -218,7 +217,7 @@ test('mirror reverses the strip on screen but not the reading', async ({ page })
     return {
       number: number.right <= code.left + 0.5 ? 'before the code' : number.left >= code.right - 0.5 ? 'after the code' : 'over the code',
       numberInTheRowOfTheCode: near(number.bottom, code.bottom),
-      rulerOverTheCode: near(ruler.left, code.left) && near(ruler.width, code.width),
+      rulerOverTheCode: near(ruler.left, code.left) && near(ruler.width, code.width) && ruler.bottom <= film.top + 0.5,
       labelsUnderTheCode: near(labels.left, code.left) && near(labels.width, code.width) && labels.top >= code.bottom,
       filmBeforeTheCode: Math.round(code.left - film.left),
       filmAfterTheCode: Math.round(film.right - code.right),
@@ -316,7 +315,7 @@ test('switching layout keeps Part 1 and Part 2', async ({ page }) => {
   await dataCell(page, 19).click();
   await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
   await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
-  await expect(page).toHaveURL(/\?dx=109-9$/);
+  await expect(page).toHaveURL(/\?dx=109-9&lang=en$/);
 });
 
 test('examples load a code with the matching film look', async ({ page }) => {
@@ -371,19 +370,19 @@ test('a link to the all-zero code shows it, while bars taken off by hand leave a
   await page.goto('/?dx=0-0/0');
   await expect(page.locator('#result .status')).toHaveText('Valid DX code');
   await expect(page.locator('#result .readout__value').first()).toHaveText('0-0');
-  await expect(page).toHaveURL(/\?dx=0-0\/0$/);
+  await expect(page).toHaveURL(/\?dx=0-0\/0&lang=en$/);
   await expect(page.locator('#strip .film')).not.toHaveClass(/labels-uncertain/);
   await dataCell(page, 10).click();
   await dataCell(page, 10).click();
   await expect(page.locator('#result')).toContainText('Waiting for bars');
   await expect(page.locator('#strip .film')).toHaveClass(/labels-uncertain/);
-  await expect(page).not.toHaveURL(/\?/);
+  await expect(page).toHaveURL(/\/\?lang=en$/);
   await page.locator('#undo').click();
   await page.locator('#undo').click();
   await expect(page.locator('#result .readout__value').first()).toHaveText('0-0');
   await page.locator('#clear').click();
   await expect(page.locator('#result')).toContainText('Waiting for bars');
-  await expect(page).not.toHaveURL(/\?/);
+  await expect(page).toHaveURL(/\/\?lang=en$/);
 });
 
 test('undo brings back where a code came from, but not a source that was removed', async ({ page }) => {
@@ -429,7 +428,7 @@ test('leader frames show their printed labels', async ({ page }) => {
 test('frames 61 to 63 open from their numbers, and the text form writes them so, as zxing-cpp does', async ({ page }) => {
   await page.goto('/?dx=79-7/62A');
   await expect(page.locator('.readout__value--edge')).toHaveText('XA');
-  await expect(page).toHaveURL(/\?dx=79-7\/XA$/);
+  await expect(page).toHaveURL(/\?dx=79-7\/XA&lang=en$/);
   await page.locator('details.raw summary').click();
   await expect(page.locator('details.raw')).toContainText('Text form (as used by zxing-cpp and Zint): 79-7/62A');
   // Both reject Part 1 = 0, so its text form is not said to be theirs.
@@ -491,7 +490,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
     await expect(result.locator('#result-title')).toHaveText('KODACOLOR VR200 Film');
     await expect(result).toContainText('The 23-cell layout has no frame number.');
     await expect(page.locator('#strip .film')).not.toHaveClass(/has-labels/);
-    await expect(page).toHaveURL(/\?dx=79-7$/);
+    await expect(page).toHaveURL(/\?dx=79-7&lang=en$/);
   });
 
   test('a 7-bar code copied into the 11-bar strip is recognized', async ({ page }) => {
@@ -519,7 +518,7 @@ test.describe('film from before the 1990 frame-number extension', () => {
     await expect(page.locator('#result .status')).toHaveText('Valid DX code (23-cell layout)');
     await expect(page.locator('#result-title')).toHaveText('Fujicolor Super HGV100 Asia');
     // The example names its film, The Big Film Database's row, in the address too.
-    await expect(page).toHaveURL(/\?dx=12-13&film=bfd-470$/);
+    await expect(page).toHaveURL(/\?dx=12-13&film=bfd-470&lang=en$/);
   });
 
   test('a link to a code without a frame opens the 7-bar layout', async ({ page }) => {
@@ -557,7 +556,7 @@ test('the URL keeps up with fast edits (browsers limit how often it may change)'
     await page.keyboard.press('Control+y');
   }
   await page.locator('#clear').click();
-  await expect(page).toHaveURL(/:\d+\/$/);
+  await expect(page).toHaveURL(/:\d+\/\?lang=en$/);
 });
 
 test('a reload straight after quick edits keeps the latest code', async ({ page }) => {
@@ -565,7 +564,7 @@ test('a reload straight after quick edits keeps the latest code', async ({ page 
   await dataCell(page, 8).click();
   await dataCell(page, 9).click(); // Part 1 is now 127
   await page.reload();
-  await expect(page).toHaveURL(/\?dx=127-15\/23$/);
+  await expect(page).toHaveURL(/\?dx=127-15\/23&lang=en$/);
   await expect(dataCell(page, 9)).toHaveAttribute('aria-pressed', 'true');
 });
 
@@ -575,13 +574,13 @@ test('Back and Forward move around the page, and the address keeps the code on t
   await page.locator('#direct-dx').fill('109-9');
   await page.locator('#direct-frame').fill('12');
   await page.locator('.finder__direct').getByRole('button', { name: 'Show barcode' }).click();
-  await expect(page).toHaveURL(/\?dx=109-9\/12#finder$/);
+  await expect(page).toHaveURL(/\?dx=109-9\/12&lang=en#finder$/);
   // Back returns to the top of the page, not to the earlier code.
   await page.goBack();
-  await expect(page).toHaveURL(/\?dx=109-9\/12$/);
+  await expect(page).toHaveURL(/\?dx=109-9\/12&lang=en$/);
   await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
   await page.goForward();
-  await expect(page).toHaveURL(/\?dx=109-9\/12#finder$/);
+  await expect(page).toHaveURL(/\?dx=109-9\/12&lang=en#finder$/);
   await expect(page.locator('#result-title')).toHaveText('HP5 PLUS');
 });
 
@@ -612,7 +611,7 @@ test('focus in the result goes to the status when the result empties, as the sta
   await page.goto('/');
   await page.getByRole('button', { name: 'Kodak BW400CN, frame 23' }).click();
   // A button of the result, which goes with the old result; Undo empties the strip.
-  await page.getByRole('button', { name: 'Copy link' }).focus();
+  await page.getByRole('button', { name: 'Show examples' }).focus();
   await page.keyboard.press('Control+z');
   await expect(page.locator('#result .status')).toHaveText('Waiting for bars');
   await expect(page.locator('#result-title')).toBeFocused();
@@ -640,31 +639,46 @@ test('loading the same code from the same place again adds no step to undo', asy
 test('an empty strip in the 7-bar layout stays so on reload and in the link', async ({ page }) => {
   await page.goto('/');
   await page.locator('[data-control="format"]').getByRole('button', { name: '7 thin bars' }).click();
-  await expect(page).toHaveURL(/\?layout=23$/);
+  await expect(page).toHaveURL(/\?layout=23&lang=en$/);
   await page.reload();
   await expect(page.locator('#strip .track--data .cell')).toHaveCount(23);
   await expect(page.locator('#result')).toContainText('Waiting for bars');
 });
 
-test('Copy link without a clipboard shows the link, selected, to copy by hand', async ({ page }) => {
+test('the result has no button that copies a link: the address is the link, and follows the code and the language', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
-  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }));
-  await page.getByRole('button', { name: 'Copy link' }).click();
-  const field = page.getByRole('textbox', { name: 'Link to this code' });
-  await expect(field).toBeFocused();
-  await expect(field).toHaveValue(/\?dx=79-15\/23&lang=en$/);
-  expect(await field.evaluate((el) => el.selectionEnd - el.selectionStart)).toBe((await field.inputValue()).length);
+  await expect(page.locator('#result .readouts')).toBeVisible();
+  // Beside its lists the result has one button, which shows the examples.
+  await expect(page.locator('#result .result__top').getByRole('button')).toHaveText(['Show examples']);
+  await expect(page.locator('#result .result__grid').getByRole('button')).toHaveCount(0);
+  await expect(page.locator('#result').getByRole('button', { name: /link/i })).toHaveCount(0);
+  // Where the button stood, one rule and not two: the last readout leaves it to "Raw fields".
+  const rules = await page.locator('#result .readout').evaluateAll((items) => items.map((el) => parseFloat(getComputedStyle(el).borderBottomWidth)));
+  expect(rules).toEqual([1, 1, 0]);
+  expect(await page.locator('#result details.raw').evaluate((el) => parseFloat(getComputedStyle(el).borderTopWidth))).toBe(1);
+  // The address names the code as it changes, and the language shown: frame 23 becomes 23A.
+  for (const cell of [25, 27]) await dataCell(page, cell).click();
+  await expect(page).toHaveURL(/\?dx=79-15\/23A&lang=en$/);
 });
 
-test('the hint under the strip is only rewritten when it changes', async ({ page }) => {
+test('nothing under the strip says what the code reads as, on screen or to screen readers: the result says it', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
-  await page.locator('#hint').evaluate((el) => {
-    window.hintChanges = 0;
-    new MutationObserver(() => window.hintChanges++).observe(el, { childList: true, characterData: true, subtree: true });
+  await expect(page.locator('#result .status')).toHaveText('Valid DX code');
+  // The film looks are the last thing in the light table, and nothing there is read out as it changes.
+  const table = await page.evaluate(() => {
+    const el = document.getElementById('lighttable');
+    return { last: el.lastElementChild.className, live: el.querySelectorAll('[aria-live], [role="status"], [role="alert"]').length, words: el.innerText.includes('Valid') };
   });
-  await page.locator('#toolbar').getByRole('button', { name: 'Mirror' }).click();
-  await page.locator('[data-control="look"]').getByRole('button', { name: 'Slide' }).click();
-  expect(await page.evaluate(() => window.hintChanges)).toBe(0);
+  expect(table).toEqual({ last: 'looks', live: 0, words: false });
+  // Nothing stands between the film looks and the result but the light table's own edge.
+  const under = await page.evaluate(() => {
+    const looks = document.querySelector('.looks').getBoundingClientRect();
+    const table = document.getElementById('lighttable').getBoundingClientRect();
+    const result = document.getElementById('result').getBoundingClientRect();
+    return { toEdge: table.bottom - looks.bottom, toResult: result.top - looks.bottom };
+  });
+  expect(under.toEdge).toBeLessThan(30);
+  expect(under.toResult).toBeLessThan(60);
 });
 
 test('cells 14 and 26 are called unassigned, as GB/T 9185-2003 calls them', async ({ page }) => {

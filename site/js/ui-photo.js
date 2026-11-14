@@ -7,7 +7,7 @@
  */
 (function (root) {
   'use strict';
-  const { h, replace } = root.DX.dom;
+  const { h, replace, focusVisible } = root.DX.dom;
   const codec = root.DX.codec;
   const reader = root.DX.image;
   const i18n = root.DX.i18n;
@@ -699,7 +699,7 @@
       }
     });
     canvas.addEventListener('focus', () => {
-      keysHint.hidden = !canvas.matches(':focus-visible');
+      keysHint.hidden = !focusVisible(canvas);
     });
     // Left for a press elsewhere, as on "Use this code" below, the hint goes
     // only once that click is over: hidden at once, it would move what is

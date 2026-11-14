@@ -28,24 +28,33 @@
 
 export const NUMBER = true;
 
+// The typed texts of WORDS that find no film in the data, and are meant to: a
+// DX number or a cassette number has a lookup of its own, a mark typed between
+// letters of another script and digits is matched as typed, and no words find
+// nothing. Every other text of WORDS is a form the data has, and finds films.
+export const NOTHING_FOUND = ['20-0', '(20-0).', '“79-15”', '012794', '(012794)', '832973', '彩韵-200', '', '   '];
+
 export const WORDS = [
   // Words: lower case, accents dropped, full-width letters and digits as plain ones.
   ['portra 400', ['portra', '400']],
   ['PORTRA', ['portra']],
   ['  kodak   gold ', ['kodak', 'gold']],
-  ['café', ['cafe']],
+  ['sélection', ['selection']],
   ['ｆｕｊｉ２００', ['fuji200']],
   ['tmax400', ['tmax400']],
   ['made in japan', ['made', 'in', 'japan']],
 
-  // Marks in or around a word are not matched: only its letters and digits.
+  // Marks in or around a word are not matched: only its letters and digits
+  // (but where the word is only part of a word of the name: LEVELS, below).
   ['T-MAX 100', ['t-max → tmax', '100']],
   ['superia x-tra 400', ['superia', 'x-tra → xtra', '400']],
   ['hp5+', ['hp5+ → hp5']],
   ['(kodak)', ['(kodak) → kodak']],
   ['portra,400', ['portra,400 → portra400']],
+  // A mark typed on its own is a word, matched as typed: only rows that have it are found.
+  ['kodak - gold', ['kodak', 'typed -', 'gold']],
   // A letter against digits joined by a mark makes them such a word too.
-  ['x100-2', ['x100-2 → x1002']],
+  ['vr100-2', ['vr100-2 → vr1002']],
 
   // Digits joined by marks are a number, with any dash as a hyphen and
   // without the marks around them.
@@ -55,7 +64,7 @@ export const WORDS = [
   ['200–2', ['number 200-2']],
   ['１００－２', ['number 100-2'], NUMBER],
   ['100——2', ['number 100-2'], NUMBER],
-  ['100/21', ['number 100/21']],
+  ['800/3200', ['number 800/3200']],
   ['100-2 optima', ['number 100-2', 'optima']],
 
   // Digits on their own are a word like any other.
@@ -64,6 +73,8 @@ export const WORDS = [
   ['1991', ['1991'], NUMBER],
   ['012794', ['012794'], NUMBER],
   ['(012794)', ['(012794) → 012794'], NUMBER],
+  // So is a cassette number that gives no DX number, as the registry's augmented ones.
+  ['832973', ['832973'], NUMBER],
   ['DX 400', ['dx', '400'], NUMBER],
   ['dx coded', ['dx', 'coded']],
 
@@ -130,6 +141,9 @@ export const LEVELS = [
   // Inside words, as typed; then word by word.
   ['odak t', 'tmax', 'inName'],
   ['odak ilm', 'tmax', 'pieces'],
+  // A mark typed against a part of a word counts: the name has "odak", not "odak,".
+  ['odak, ilm', 'tmax', 'elsewhereInside'],
+  ['odak, t', 'tmax', 'elsewhereInside'],
   // Outside the name: a whole word, the start of one, the inside of one.
   ['eastman', 'tmax', 'elsewhere'],
   ['pan', 'tmax', 'elsewhere'],
@@ -140,6 +154,9 @@ export const LEVELS = [
   // Every word typed must be in the row.
   ['portra', 'tmax', 'not found'],
   ['kodak portra', 'tmax', 'not found'],
+  // A mark typed on its own must be in the row too, and is no word of a name.
+  ['kodak - film', 'tmax', 'pieces'],
+  ['kodak / film', 'tmax', 'not found'],
   // A field's words are its own: "Point" and "Max" are no "pointmax".
   ['pointmax', 'apart', 'not found'],
   ['max 400', 'apart', 'elsewhere'],

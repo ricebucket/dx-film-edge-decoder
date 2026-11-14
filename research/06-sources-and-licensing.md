@@ -15,9 +15,11 @@ texts. Each file has a single license.
   Public License v3.0 (see `LICENSE`). The diagrams are drawn by
   `scripts/make-figures.mjs`.
 - **The screenshots** (`.github/screenshot*.png`, taken by
-  `scripts/screenshots.mjs`) and **the demo videos** (`.github/demo*`, recorded
-  by `scripts/demo-video.mjs`) show entries from The Big Film Database and are
-  licensed under CC BY-SA 4.0.
+  `scripts/screenshots.mjs`), **the demo videos** (`.github/demo*`, recorded
+  by `scripts/demo-video.mjs`) and **the snapshots of what the page and the
+  lookups show** (`tests/regressions/`, written by
+  `scripts/check-regressions.mjs`) show entries from The Big Film Database and
+  are licensed under CC BY-SA 4.0.
 - **`data/i3a-2008/`** holds a transcription of the factual content of the
   I3A list *DX Codes for 135-Size Film* (February 2008): the Part 1
   assignments, and the DX numbers and product names as published. It was

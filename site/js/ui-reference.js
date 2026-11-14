@@ -61,6 +61,8 @@
     }
     // The count of the list as filtered; the whole list's is said once, above the filters.
     const count = h('p', { class: 'fineprint ref-count', 'aria-live': 'polite', tabindex: '-1' });
+    // Beside the menus while one is chosen: the way back to the whole list.
+    const reset = h('button', { type: 'button', class: 'text-button ref-reset', hidden: true }, t('Clear filters'));
     /** Keyboard focus to the count of the list as filtered, from a control that scrolls there. */
     const focusCount = () => count.focus({ preventScroll: true });
     const tbody = h('tbody');
@@ -128,12 +130,14 @@
       tbody.replaceChildren(...root.DX.createLookup.ranked(rows, codeOrder).map(rowFor));
       // Nothing chosen: the whole list, whose count stands above the filters.
       // Otherwise how many they leave; the menus themselves say what was chosen.
-      if (number === null && !m && !st) count.textContent = '';
+      const whole = number === null && !m && !st;
+      if (whole) count.textContent = '';
       else {
         count.textContent = rows.length
           ? i18n.plural(rows.length, '{n} registered product.', '{n} registered products.')
           : t('No registered products match these filters.');
       }
+      reset.hidden = whole;
     }
 
     maker.addEventListener('input', () => {
@@ -141,6 +145,16 @@
       render();
     });
     for (const el of [part1, status]) el.addEventListener('input', render);
+    reset.addEventListener('click', () => {
+      maker.value = '';
+      status.value = '';
+      listPart1();
+      part1.value = '';
+      render();
+      // The link has gone with the choices: carry on at the first menu.
+      maker.focus({ preventScroll: true });
+      maker.closest('.field').scrollIntoView({ block: 'nearest' });
+    });
 
     host.replaceChildren(
       h('div', { class: 'table-scroll' }, assignments),
@@ -149,8 +163,9 @@
         h('div', { class: 'ref-filters' },
           h('div', { class: 'field' }, h('label', { for: 'ref-maker' }, t('Manufacturer')), maker),
           h('div', { class: 'field' }, h('label', { for: 'ref-part1' }, t('Part 1')), part1),
-          h('div', { class: 'field' }, h('label', { for: 'ref-status' }, t('Status in 2008')), status))),
-      count,
+          h('div', { class: 'field' }, h('label', { for: 'ref-status' }, t('Status in 2008')), status),
+          reset)),
+      h('div', { class: 'ref-count-row' }, count),
       h('div', { class: 'table-scroll table-scroll--tall' },
         h('table', { class: 'products-table' },
           h('thead', null, h('tr', null,

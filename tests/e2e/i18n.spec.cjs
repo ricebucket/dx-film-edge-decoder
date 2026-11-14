@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { watchConsole, setCells, sideOverflow } = require('./helpers.cjs');
+const { watchConsole, browserLanguages, setCells, sideOverflow } = require('./helpers.cjs');
 
 let checkConsole;
 test.beforeEach(({ page }) => {
@@ -37,7 +37,7 @@ test('the page starts in English, with every language in the menu', async ({ pag
   await expect(menu.locator('option[value="zh-CN"]')).toHaveAttribute('lang', 'zh-CN');
 });
 
-test('choosing Chinese shows the page in Chinese, keeps the code, and is remembered and named in the URL', async ({ page }) => {
+test('choosing Chinese shows the page in Chinese, keeps the code, and is named in the URL: the browser keeps nothing', async ({ page }) => {
   await page.goto('/?dx=79-15/23');
   await chooseLanguage(page, '简体中文');
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
@@ -50,18 +50,72 @@ test('choosing Chinese shows the page in Chinese, keeps the code, and is remembe
   // The code survived the reload, and the generated text is Chinese too.
   await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
   await expect(page.locator('#result .status')).toHaveText('有效的DX编码');
-  await expect(page.locator('#hint')).toHaveText('有效编码。画幅号 23。');
   await expect(page.locator('#strip .track--data button.cell').first()).toHaveAttribute('aria-label', '第 7 位（共 31 位）：第 1 部分，位权 64');
   await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^切换到/);
 
+  // The choice is in the address alone: the plain address opens in the browser's own language again.
+  expect(await page.evaluate(() => Object.keys(localStorage).filter((key) => /lang/i.test(key)))).toEqual([]);
   await page.goto('/');
-  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
-  await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
+  await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  await expect(page.getByLabel('Language')).toHaveValue('en');
+  await expect(page).toHaveURL(/\/\?lang=en$/);
 
+  await page.goto('/?lang=zh-CN');
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await chooseLanguage(page, 'English');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
   await expect(page).toHaveURL(/\?lang=en$/);
+});
+
+test('where the address names no language, the page opens in the browser\'s own, if it has it, and in English otherwise', async ({ browser, baseURL }) => {
+  const titles = { en: 'Identify a film from the barcode on its edge', 'zh-CN': '从片边的潜影条码识别胶片' };
+  for (const [tags, lang] of [
+    [['zh-CN', 'zh', 'en'], 'zh-CN'],
+    [['zh-TW', 'en-US'], 'zh-CN'], // any Chinese gets the page's Chinese
+    [['fr-FR', 'zh-Hans-CN', 'en'], 'zh-CN'], // the first one the page has
+    [['en-GB', 'zh-CN'], 'en'],
+    [['fr-FR', 'de'], 'en'], // none the page has
+  ]) {
+    const context = await browser.newContext({ baseURL });
+    const visitor = await context.newPage();
+    await browserLanguages(visitor, tags);
+    await visitor.goto('/?dx=79-15/23');
+    await expect(visitor.locator('html'), String(tags)).toHaveAttribute('lang', lang);
+    await expect(visitor.locator('#decoder-title'), String(tags)).toHaveText(titles[lang]);
+    await expect(visitor.getByLabel(/^(Language|语言)$/), String(tags)).toHaveValue(lang);
+    // The address then says which, for whoever it is passed on to.
+    await expect(visitor, String(tags)).toHaveURL(new RegExp(`\\?dx=79-15/23&lang=${lang}$`));
+    await context.close();
+  }
+  // A browser set to Chinese as Playwright sets one, with the header it sends.
+  const context = await browser.newContext({ baseURL, locale: 'zh-CN' });
+  const visitor = await context.newPage();
+  await visitor.goto('/');
+  await expect(visitor.locator('#decoder-title')).toHaveText(titles['zh-CN']);
+  await expect(visitor).toHaveURL(/\/\?lang=zh-CN$/);
+  // The address wins over it.
+  await visitor.goto('/?lang=en');
+  await expect(visitor.locator('#decoder-title')).toHaveText(titles.en);
+  await expect(visitor.getByLabel('Language')).toHaveValue('en');
+  await context.close();
+});
+
+test('the browser keeps nothing about the language: none is written, and one kept by an earlier version of the page is ignored and taken out', async ({ page }) => {
+  const kept = () => page.evaluate(() => Object.keys(localStorage).concat(Object.keys(sessionStorage)).filter((key) => /lang/i.test(key)));
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN')); // as the page saved a choice until November 2026
+  await page.goto('/?dx=79-15/23');
+  await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
+  expect(await kept()).toEqual([]);
+  // A language chosen in the menu, on the decoder and on the sources page.
+  await chooseLanguage(page, '简体中文');
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
+  expect(await kept()).toEqual([]);
+  await page.locator('.site-footer').getByRole('link', { name: '来源与致谢' }).click();
+  await chooseLanguage(page, 'English');
+  await expect(page).toHaveURL(/\/sources\.html$/);
+  expect(await kept()).toEqual([]);
 });
 
 test('the language can be switched where the browser blocks storage', async ({ page }) => {
@@ -121,8 +175,7 @@ test('the sources page is written in each language: the decoder leads to the one
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('h1')).toHaveText('Sources and credits');
   await expect(page.locator('#theme-toggle')).toHaveAttribute('aria-label', /^Switch to/);
-  // A Chinese choice saved earlier does not hide or change the English page.
-  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+  // Opened by its own address, it is the English page, whatever was chosen before.
   await page.goto('/sources.html');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('html')).not.toHaveAttribute('data-i18n-pending', /.*/);
@@ -132,15 +185,15 @@ test('the sources page is written in each language: the decoder leads to the one
   await expect(page.locator('h1')).toHaveText('来源与致谢');
   expect(requests.filter((p) => p.includes('/js/i18n'))).toEqual([]);
 
-  // The choice made there is the decoder's too.
+  // The choice made there is the decoder's too, by the page's own links.
   await chooseLanguage(page, 'English');
-  await page.goto('/');
+  await page.getByRole('link', { name: 'DX Film Edge Decoder', exact: true }).click();
+  await expect(page).toHaveURL(/\/index\.html\?lang=en$/);
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
 });
 
-test('the English sources page leads to the decoder in English, also with another language saved', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(() => localStorage.setItem('dx-lang', 'zh-CN'));
+test('the English sources page leads to the decoder in English, also in a browser set to another language', async ({ page }) => {
+  await browserLanguages(page, ['zh-CN', 'zh']);
   await page.goto('/?dx=79-15/23&lang=en'); // as by an English link
   await page.locator('.site-footer').getByRole('link', { name: 'Sources and credits' }).click();
   await expect(page).toHaveURL(/\/sources\.html$/);
@@ -178,7 +231,7 @@ test('a page in Chinese shows as soon as its text has loaded, before the rest of
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   release();
   await expect(page.getByLabel('语言')).toHaveValue('zh-CN');
-  await expect(page.locator('#hint')).toHaveText(/^从第 7 位开始/);
+  await expect(page.locator('#result .status')).toHaveText('等待填写或读取');
 });
 
 test('every text is looked up as it is drawn, never as a script loads, so a page is in its language throughout, however late the file comes', async ({ page }) => {
@@ -242,7 +295,7 @@ test('the language file may also come before the language layer', async ({ page 
   });
   await page.goto('/?lang=zh-CN');
   await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
-  await expect(page.locator('#hint')).toHaveText(/^从第 7 位开始/);
+  await expect(page.locator('#result .status')).toHaveText('等待填写或读取');
 });
 
 test('a language file that has not come after 3 s: the page says so in that language and keeps waiting, or shows in English if asked, and works', async ({ page }) => {
@@ -283,7 +336,7 @@ test('the note goes as the page shows: in Chinese if the file comes, in English 
     await expect(page.locator('.language-wait')).toHaveCount(0);
     await expect(page.locator('html')).toHaveAttribute('lang', askEnglish ? 'en' : 'zh-CN');
     await expect(page.locator('#decoder-title')).toHaveText(askEnglish ? 'Identify a film from the barcode on its edge' : '从片边的潜影条码识别胶片');
-    await expect(page.locator('#hint')).toHaveText(askEnglish ? /^Start at cell 7/ : /^从第 7 位开始/);
+    await expect(page.locator('#result .status')).toHaveText(askEnglish ? 'Waiting for bars' : '等待填写或读取');
     await page.unrouteAll();
   }
 });
@@ -315,11 +368,14 @@ test('in Chinese, the code list counts its products in Chinese, and its count ta
   await expect(page.locator('#ref-part1 option').first()).toHaveText('全部');
   await expect(count).toBeEmpty();
   // A line of Chinese is taller than one of English: the empty line has room for it, so the list below does not move.
-  const room = () => count.evaluate((line) => line.getBoundingClientRect().height);
+  const room = () => page.locator('#reference-ui .ref-count-row').evaluate((line) => line.getBoundingClientRect().height);
   const before = await room();
+  await expect(page.locator('#reference-ui .ref-reset')).toBeHidden();
   await page.locator('#ref-part1').selectOption('79');
   await expect(count).toHaveText('显示 8 个登记产品。');
   expect(await room()).toBe(before);
+  // The way back to the whole list stands beside the menus, in Chinese.
+  await expect(page.locator('#reference-ui .ref-filters .ref-reset')).toHaveText('清除筛选条件');
   await page.locator('#ref-part1').selectOption('');
   await page.locator('#ref-status').selectOption('gone');
   await expect(count).toHaveText('显示 55 个登记产品。');
@@ -331,45 +387,52 @@ test('in Chinese, the code list counts its products in Chinese, and its count ta
   await expect(count).toHaveText('没有符合这些筛选条件的登记产品。');
 });
 
-test('a language in the URL that the page does not have is ignored', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('dx-lang', 'zh-CN'));
+test('a language in the URL that the page does not have is ignored: the address then names the one shown', async ({ page }) => {
+  await browserLanguages(page, ['zh-CN', 'zh']);
   await page.goto('/?dx=79-15/23&lang=fr');
   await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
-  await expect(page).toHaveURL(/\?dx=79-15\/23$/);
+  await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
 });
 
-test('Copy link copies the code, the film picked and the language it is shown in', async ({ page, baseURL }) => {
-  await page.addInitScript(() => {
-    window.copied = [];
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text) => { window.copied.push(text); } } });
-  });
-  await page.goto('/?dx=96-12/14A');
-  await page.getByRole('button', { name: 'Copy link' }).click();
-  await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
-  expect(await page.evaluate(() => window.copied)).toEqual([`${baseURL}/?dx=96-12/14A&lang=en`]);
-  await chooseLanguage(page, '简体中文');
-  await page.getByRole('button', { name: '复制链接' }).click();
-  await expect(page.getByRole('button', { name: '链接已复制' })).toBeVisible();
-  expect(await page.evaluate(() => window.copied)).toEqual([`${baseURL}/?dx=96-12/14A&lang=zh-CN`]);
-  // A film picked to show the code stays picked in the link.
-  await page.goto('/?dx=96-12/1&film=bfd-930&lang=en');
-  await expect(page.locator('#result-title')).toHaveText('Kodak Gold 200 GB 200-7');
-  await page.getByRole('button', { name: 'Copy link' }).click();
-  await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
-  expect(await page.evaluate(() => window.copied)).toEqual([`${baseURL}/?dx=96-12/1&film=bfd-930&lang=en`]);
+test('the address always names the language shown, so that a copied address opens the same page elsewhere', async ({ page, browser, baseURL }) => {
+  // No language in the link, a browser set to English: English, and the address says so, with or without a code.
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/\?lang=en$/);
+  await page.goto('/?layout=23');
+  await expect(page).toHaveURL(/\?layout=23&lang=en$/);
+  // A browser set to Chinese, and a link that names no language.
+  const chinese = await browser.newContext({ baseURL, locale: 'zh-CN' });
+  const sender = await chinese.newPage();
+  await sender.goto('/?dx=79-15/23');
+  await expect(sender.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+  await expect(sender).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
+  // It stays as the code changes, and where the page is moved around in.
+  await sender.locator('#strip .track--data [data-cell="8"]').click();
+  await expect(sender).toHaveURL(/\?bits=[01]+&lang=zh-CN$/);
+  await sender.locator('#strip .track--data [data-cell="8"]').click();
+  await sender.locator('.site-nav a[href="#finder"]').click();
+  await expect(sender).toHaveURL(/\?dx=79-15\/23&lang=zh-CN#finder$/);
+  const address = sender.url().replace(/#.*$/, '');
+  expect(address).toBe(`${baseURL}/?dx=79-15/23&lang=zh-CN`);
+  await chinese.close();
+  // Pasted into the browser set to English: the same film, in the same language.
+  await page.goto(address);
+  await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
+  await expect(page.locator('#result-title')).toHaveText('KODAK Professional BW400CN Film');
+  await expect(page.locator('.readout__value--edge')).toHaveText('23');
 });
 
-test('a link can name the language: it stays in the URL as the code changes, without replacing the saved choice', async ({ page }) => {
+test('a link can name the language: it wins over the browser\'s own, and stays in the URL as the code changes', async ({ page }) => {
   await page.goto('/?dx=79-15/23&lang=zh-cn');
   await expect(page.locator('#decoder-title')).toHaveText('从片边的潜影条码识别胶片');
   await expect(page).toHaveURL(/\?dx=79-15\/23&lang=zh-CN$/);
   await page.locator('#strip .track--data [data-cell="8"]').click();
   await expect(page).toHaveURL(/\?bits=[01]+&lang=zh-CN$/);
-  // Nothing saved yet: without ?lang= the page is in English.
+  // The browser is set to English: without ?lang= the page is in English, also after a Chinese visit.
   await page.goto('/');
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
-  // Chinese saved from the menu; a link asking for English still gets English.
-  await chooseLanguage(page, '简体中文');
+  // In a browser set to Chinese, a link asking for English still gets English.
+  await browserLanguages(page, ['zh-CN', 'zh']);
   await page.goto('/?lang=en');
   await expect(page.locator('#decoder-title')).toHaveText('Identify a film from the barcode on its edge');
   await expect(page.getByLabel('Language')).toHaveValue('en');
@@ -407,7 +470,7 @@ test('in Chinese, searches, the cassette helper and the photo reader speak Chine
   // A row's pieces are read out apart, with Chinese commas.
   await page.locator('#cassette-code').fill('106253');
   await page.getByRole('button', { name: '查询' }).click();
-  expect(await page.locator('.cassette__result .match').first().ariaSnapshot()).toMatch(/FUJICOLOR 200\s*，\s*DX 39-1\s*，\s*2008 年仍在生产\s*，\s*I3A/);
+  expect(await page.locator('.cassette__result .match').first().ariaSnapshot()).toMatch(/I3A\s*，\s*FUJICOLOR 200\s*，\s*DX 39-1\s*，\s*2008 年仍在生产/);
   // Each list says how many films it has: alone, as just films; after another, as other films.
   await page.locator('#cassette-code').fill('016834');
   await page.getByRole('button', { name: '查询' }).click();

@@ -19,6 +19,7 @@
     "test:all": "npm test && npm run test:e2e",
     "test:repeat": "node scripts/run-e2e.mjs --repeat-each=20 --trace=off",
     "test:mutants": "node scripts/run-mutants.mjs",
+    "before-push": "node scripts/before-push.mjs",
     "build:data": "node scripts/build-data.mjs",
     "check:data": "node scripts/build-data.mjs --check",
     "update:community-data": "node scripts/update-community-data.mjs",

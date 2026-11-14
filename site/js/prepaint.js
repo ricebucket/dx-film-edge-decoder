@@ -1,8 +1,7 @@
 /*
- * Loaded without defer at the top of every page: applies the saved theme,
- * language and folded introduction (phones) before first paint, to avoid a
- * flash. A language in the URL (?lang=) wins over the saved one, if the page
- * has it.
+ * Loaded without defer at the top of every page: applies the saved theme and
+ * folded introduction (phones), and settles the page's language, before
+ * first paint, to avoid a flash. The language is not saved: see `choose`.
  *
  * Below is the list of languages besides English, each a file in js/i18n/.
  * index.html loads only the file of the language it is shown in, and its
@@ -12,9 +11,29 @@
  */
 (function (root, languages) {
   'use strict';
+  /**
+   * The language a page is shown in, as its code: the one its address names
+   * (?lang=), if the page has it; else the first of the browser's own
+   * languages that the page has, by its whole tag or else by its first part
+   * ("zh", "zh-TW" and "zh-Hans" all get the page's Chinese); else English.
+   * Case does not matter. The browser keeps nothing about it: the decoder's
+   * address names the language from then on (js/app.js), and choosing one in
+   * the menu opens the page with it in the address (js/i18n.js).
+   */
+  function choose(named, preferred) {
+    const codes = ['en', ...languages.map((l) => l.code)];
+    const whole = (tag) => codes.find((code) => code.toLowerCase() === String(tag).toLowerCase());
+    const first = (tag) => String(tag).split('-')[0].toLowerCase();
+    if (named && whole(named)) return whole(named);
+    for (const tag of preferred || []) {
+      const code = tag && (whole(tag) || codes.find((c) => first(c) === first(tag)));
+      if (code) return code;
+    }
+    return 'en';
+  }
   // scripts/check-languages.mjs compares the list with the files.
   if (typeof module === 'object' && module.exports) {
-    module.exports = { languages };
+    module.exports = { languages, choose };
     return;
   }
   (root.DX = root.DX || {}).languages = languages;
@@ -25,11 +44,11 @@
   root.DX.query = v ? `?v=${encodeURIComponent(v)}` : '';
   let theme = null;
   let intro = null;
-  let saved = null;
   try {
     theme = localStorage.getItem('dx-theme');
     intro = localStorage.getItem('dx-intro');
-    saved = localStorage.getItem('dx-lang');
+    // The language was saved here once: no longer read, and taken out where it is found.
+    localStorage.removeItem('dx-lang');
   } catch (e) { /* storage unavailable: follow the system theme */ }
   if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
   if (intro === 'hidden') document.documentElement.dataset.intro = 'hidden';
@@ -38,10 +57,10 @@
   // as in index.html, gets its language here. The sources page is written in
   // each language (sources.html, sources.zh-CN.html …) and shows at once.
   if (!document.querySelector('title[data-i18n]')) return;
-  const listed = (code) => code && (code.toLowerCase() === 'en' ? { code: 'en' } : languages.find((l) => l.code.toLowerCase() === code.toLowerCase()));
-  const fromUrl = new URLSearchParams(location.search).get('lang');
-  const lang = listed(fromUrl) || listed(saved);
-  if (!lang || lang.code === 'en') return;
+  // js/i18n.js takes the page's language from here.
+  root.DX.language = choose(new URLSearchParams(location.search).get('lang'), navigator.languages || [navigator.language]);
+  const lang = languages.find((l) => l.code === root.DX.language);
+  if (!lang) return; // English
   // Its file loads alongside the page's other scripts: js/i18n.js takes it in
   // whichever comes first, and app.js starts the page once it is there (or
   // has failed to load, and the page is in English).

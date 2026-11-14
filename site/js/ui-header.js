@@ -90,16 +90,12 @@
   }
 
   /**
-   * On a page written once per language, choosing a language saves it, as on
-   * index.html, and opens the page's version in it at the same place.
+   * On a page written once per language, choosing a language opens the page's
+   * version in it at the same place. Each version links to index.html in its
+   * own language.
    */
   function bindVersions(select, page) {
-    onPick(select, select.value, () => {
-      try {
-        localStorage.setItem('dx-lang', select.value);
-      } catch (e) { /* storage blocked: each version links to index.html in its language */ }
-      location.replace(fileIn(page, select.value) + location.hash);
-    });
+    onPick(select, select.value, () => location.replace(fileIn(page, select.value) + location.hash));
   }
 
   /**
